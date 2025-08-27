@@ -8,6 +8,10 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model';
 
+/**
+ * @author tknight-dev
+ */
+
 /*
  * Input: from Main Thread
  */
@@ -107,17 +111,61 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		// let canvasOffscreen: OffscreenCanvas = VideoMainEngine.canvasOffscreen,
-		// 	canvasOffscreenContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.canvasOffscreenContext,
-		// 	fpms: number = VideoMainEngine.settingsFPMS,
-		// 	frameCount: number = 0,
-		// 	timestampDelta: number,
-		// 	timestampFPS: number = 0,
-		// 	timestampThen: number = 0;
+		let fpms: number = VideoMainEngine.settingsFPMS,
+			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
+			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
+			frameCount: number = 0,
+			timestampDelta: number,
+			timestampFPS: number = 0,
+			timestampThen: number = 0;
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
+
+			// Main code
+			timestampDelta = timestampNow - timestampThen;
+			if (timestampDelta > fpms) {
+				// More accurately calculate for more stable FPS
+				timestampThen = timestampNow - (timestampDelta % fpms);
+				frameCount++;
+
+				if (VideoMainEngine.reportNew === true) {
+					VideoMainEngine.reportNew = false;
+
+					// This isn't necessary when you are using a fixed resolution
+					offscreenCanvas.height = VideoMainEngine.report.canvasHeight;
+					offscreenCanvas.width = VideoMainEngine.report.canvasWidth;
+				}
+
+				if (VideoMainEngine.settingsNew === true) {
+					VideoMainEngine.settingsNew = false;
+
+					fpms = VideoMainEngine.settingsFPMS;
+				}
+
+				// Your code Here
+				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+				offscreenCanvasContext.fillStyle = 'red';
+				offscreenCanvasContext.font = '48px serif';
+				offscreenCanvasContext.fillText('Video: Main', 5, 50);
+			}
+
+			// Stats: sent once per second
+			if (timestampNow - timestampFPS > 999) {
+				timestampFPS = timestampNow;
+
+				// Output
+				VideoMainEngine.post([
+					{
+						cmd: VideoMainBusOutputCmd.STATS,
+						data: {
+							fps: frameCount,
+						},
+					},
+				]);
+				frameCount = 0;
+			}
 		};
 		VideoMainEngine.go = go;
 	}

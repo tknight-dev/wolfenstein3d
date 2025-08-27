@@ -1,4 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { FPS } from '../../model';
 
 /**
  * @author tknight-dev
@@ -19,7 +20,7 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 }
 
 export interface VideoMainBusInputDataSettings {
-	fps: number;
+	fps: FPS;
 }
 
 export interface VideoMainBusInputPayload {

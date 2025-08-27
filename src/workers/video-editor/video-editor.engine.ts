@@ -8,6 +8,10 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model';
 
+/**
+ * @author tknight-dev
+ */
+
 /*
  * Input: from Main Thread
  */
@@ -107,17 +111,61 @@ class VideoEditorEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		// let canvasOffscreen: OffscreenCanvas = VideoEditorEngine.canvasOffscreen,
-		// 	canvasOffscreenContext: OffscreenCanvasRenderingContext2D = VideoEditorEngine.canvasOffscreenContext,
-		// 	fpms: number = VideoEditorEngine.settingsFPMS,
-		// 	frameCount: number = 0,
-		// 	timestampDelta: number,
-		// 	timestampFPS: number = 0,
-		// 	timestampThen: number = 0;
+		let fpms: number = VideoEditorEngine.settingsFPMS,
+			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
+			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoEditorEngine.offscreenCanvasContext,
+			frameCount: number = 0,
+			timestampDelta: number,
+			timestampFPS: number = 0,
+			timestampThen: number = 0;
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoEditorEngine.request = requestAnimationFrame(VideoEditorEngine.go);
+
+			// Main code
+			timestampDelta = timestampNow - timestampThen;
+			if (timestampDelta > fpms) {
+				// More accurately calculate for more stable FPS
+				timestampThen = timestampNow - (timestampDelta % fpms);
+				frameCount++;
+
+				if (VideoEditorEngine.reportNew === true) {
+					VideoEditorEngine.reportNew = false;
+
+					// This isn't necessary when you are using a fixed resolution
+					offscreenCanvas.height = VideoEditorEngine.report.canvasHeight;
+					offscreenCanvas.width = VideoEditorEngine.report.canvasWidth;
+				}
+
+				if (VideoEditorEngine.settingsNew === true) {
+					VideoEditorEngine.settingsNew = false;
+
+					fpms = VideoEditorEngine.settingsFPMS;
+				}
+
+				// Your code Here
+				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+				offscreenCanvasContext.fillStyle = 'red';
+				offscreenCanvasContext.font = '48px serif';
+				offscreenCanvasContext.fillText('Video: Editor', 5, 100);
+			}
+
+			// Stats: sent once per second
+			if (timestampNow - timestampFPS > 999) {
+				timestampFPS = timestampNow;
+
+				// Output
+				VideoEditorEngine.post([
+					{
+						cmd: VideoEditorBusOutputCmd.STATS,
+						data: {
+							fps: frameCount,
+						},
+					},
+				]);
+				frameCount = 0;
+			}
 		};
 		VideoEditorEngine.go = go;
 	}

@@ -1,3 +1,5 @@
+import { FPS } from '../../model';
+
 /**
  * @author tknight-dev
  */
@@ -14,7 +16,7 @@ export enum CalcBusInputCmd {
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {}
 
 export interface CalcBusInputDataSettings {
-	fps: number;
+	fps: FPS;
 }
 
 export interface CalcBusInputPayload {

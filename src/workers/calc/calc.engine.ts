@@ -1,5 +1,9 @@
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
 
+/**
+ * @author tknight-dev
+ */
+
 /*
  * Input: from Main Thread
  */
