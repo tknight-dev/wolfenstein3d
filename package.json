@@ -1,0 +1,25 @@
+{
+    "author": "tknight-dev",
+    "description": "A multithreaded pseudo 3d game engine",
+    "name": "blockenstein",
+    "license": "MIT",
+    "scripts": {
+        "dev": "rimraf dist && node esbuild.mjs dev",
+        "lint": "prettier esbuild.mjs src/. --write",
+        "prod": "rimraf dist && node esbuild.mjs"
+    },
+    "type": "module",
+    "version": "0.0.0",
+    "dependencies": {
+        "@tknight-dev/gaming-canvas": "1.5.9"
+    },
+    "devDependencies": {
+        "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
+        "esbuild": "^0.25.5",
+        "esbuild-sass-plugin": "^3.0.0",
+        "open": "^10.0.0",
+        "prettier": "^3.0.0",
+        "rimraf": "^6.0.0",
+        "typescript": "^5.0.0"
+    }
+}
