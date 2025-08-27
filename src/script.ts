@@ -2,7 +2,7 @@ import { Input } from './modules/input';
 import { CalcBus } from './workers/calc/calc.bus';
 import { CalcBusOutputDataStats } from './workers/calc/calc.model';
 import { FPS, Resolution } from './model';
-import { GamingCanvas, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasReport, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model';
 import { VideoMainBus } from './workers/video-main/video-main.bus';
@@ -84,6 +84,14 @@ class Blockenstein extends Input {
 		 * Calc
 		 */
 		CalcBus.setCallbackStats((stats: CalcBusOutputDataStats) => {});
+
+		/**
+		 * GamingCanvas
+		 */
+		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
+			VideoEditorBus.outputReport(report);
+			VideoMainBus.outputReport(report);
+		});
 
 		/**
 		 * Video: Editor
