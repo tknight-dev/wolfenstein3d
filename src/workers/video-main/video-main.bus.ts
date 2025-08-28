@@ -1,4 +1,6 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { Camera, CameraEncode } from '../../models/camera.model';
+import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataSettings,
@@ -16,7 +18,13 @@ export class VideoMainBus {
 	private static callbackStats: (data: VideoMainBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(canvas: HTMLCanvasElement, settings: VideoMainBusInputDataSettings, callback: (status: boolean) => void): void {
+	public static initialize(
+		camera: Camera,
+		canvas: HTMLCanvasElement,
+		gameMap: GameMap,
+		settings: VideoMainBusInputDataSettings,
+		callback: (status: boolean) => void,
+	): void {
 		VideoMainBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -30,19 +38,22 @@ export class VideoMainBus {
 			VideoMainBus.input();
 
 			// Init the webworker
+			const cameraEncoded: Float32Array = CameraEncode(camera);
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			VideoMainBus.worker.postMessage(
 				{
 					cmd: VideoMainBusInputCmd.INIT,
 					data: Object.assign(
 						{
+							camera: cameraEncoded,
+							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
 							report: GamingCanvas.getReport(),
 						},
 						settings,
 					),
 				},
-				[offscreenCanvas],
+				[cameraEncoded.buffer, offscreenCanvas],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');

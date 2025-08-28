@@ -1,4 +1,5 @@
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
+import { GameMap } from '../../models/game.model';
 
 /**
  * @author tknight-dev
@@ -21,11 +22,15 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class CalcEngine {
+	private static gameMap: GameMap;
 	private static request: number;
 	private static settingsFPMS: number;
 	private static settingsNew: boolean;
 
 	public static initialize(data: CalcBusInputDataInit): void {
+		// Config
+		CalcEngine.gameMap = data.gameMap;
+
 		// Config: Settings
 		CalcEngine.inputSettings(data as CalcBusInputDataSettings);
 

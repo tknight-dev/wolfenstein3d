@@ -1,4 +1,5 @@
-import { FPS } from '../../model';
+import { GameMap } from '../../models/game.model';
+import { FPS } from '../../models/settings.model';
 
 /**
  * @author tknight-dev
@@ -13,7 +14,9 @@ export enum CalcBusInputCmd {
 	SETTINGS,
 }
 
-export interface CalcBusInputDataInit extends CalcBusInputDataSettings {}
+export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
+	gameMap: GameMap;
+}
 
 export interface CalcBusInputDataSettings {
 	fps: FPS;

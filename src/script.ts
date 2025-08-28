@@ -1,7 +1,11 @@
-import { Input } from './modules/input';
 import { CalcBus } from './workers/calc/calc.bus';
 import { CalcBusOutputDataStats } from './workers/calc/calc.model';
-import { FPS, Resolution } from './model';
+import { DOM } from './modules/dom';
+import { Game } from './modules/game';
+import { Camera } from './models/camera.model';
+import { GameMap } from './models/game.model';
+import { FPS, Resolution } from './models/settings.model';
+import { Viewport } from './models/viewport.model';
 import { GamingCanvas, GamingCanvasReport, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model';
@@ -15,36 +19,44 @@ import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.mod
 // ESBuild live reloader
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
-class Blockenstein extends Input {
+class Blockenstein {
 	private static initializeGamingCanvas(): void {
-		Blockenstein.elCanvases = GamingCanvas.initialize(Blockenstein.elVideo, {
+		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
 			canvasCount: 2,
-			resolutionWidthPx: Blockenstein.settingResolution,
+			dpiSupportEnable: Game.settingDPISupport,
+			inputMouseEnable: true,
+			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});
+
+		// TODO: AUDIO
+		// TODO: AUDIO
+		// TODO: AUDIO
+		// TODO: AUDIO
 	}
 
 	private static initializeSettings(): void {
 		/**
 		 * Non-worker specific
 		 */
-		Blockenstein.settingDebug = false;
-		Blockenstein.settingFPSDisplay = true;
-		Blockenstein.settingResolution = null;
+		Game.settingDebug = false; // def: false
+		Game.settingDPISupport = false; // def: false
+		Game.settingFPSDisplay = true; // def: true
+		Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 
 		/**
 		 * Worker specific
 		 */
-		Blockenstein.settingsCalc = {
+		Game.settingsCalc = {
 			fps: FPS._60,
 		};
 
-		Blockenstein.settingsVideoEditor = {
-			fps: Blockenstein.settingsCalc.fps,
+		Game.settingsVideoEditor = {
+			fps: Game.settingsCalc.fps,
 		};
 
-		Blockenstein.settingsVideoMain = {
-			fps: Blockenstein.settingsCalc.fps,
+		Game.settingsVideoMain = {
+			fps: Game.settingsCalc.fps,
 		};
 
 		/**
@@ -54,14 +66,17 @@ class Blockenstein extends Input {
 		for (let [name, value] of params.entries()) {
 			switch (name.toLowerCase()) {
 				case 'debug':
-					Blockenstein.settingDebug = String(value).toLowerCase() === 'true';
+					Game.settingDebug = String(value).toLowerCase() === 'true';
+					break;
+				case 'dpi':
+					Game.settingDPISupport = String(value).toLowerCase() === 'true';
 					break;
 				case 'fps':
-					Blockenstein.settingFPSDisplay = String(value).toLowerCase() === 'true';
+					Game.settingFPSDisplay = String(value).toLowerCase() === 'true';
 					break;
 				case 'res':
 					if (String(value).toLowerCase() === 'null') {
-						Blockenstein.settingResolution = null;
+						Game.settingResolution = null;
 					} else {
 						switch (Number(value)) {
 							case 160:
@@ -70,7 +85,7 @@ class Blockenstein extends Input {
 							case 1280:
 							case 1920:
 							case 2560:
-								Blockenstein.settingResolution = <Resolution>Number(value);
+								Game.settingResolution = <Resolution>Number(value);
 								break;
 						}
 					}
@@ -105,22 +120,28 @@ class Blockenstein extends Input {
 	}
 
 	private static initializeWorkers(): Promise<void> {
-		let then: number = performance.now();
+		let camera: Camera = Game.camera,
+			gameMap: GameMap = <GameMap>Game.dataMaps.get(0),
+			then: number = performance.now(),
+			viewport: Viewport = Game.viewport;
+
+		// Camera to viewport
+		Game.viewport.apply(Game.camera, true, GamingCanvas.getReport());
 
 		return new Promise<void>((resolve: any) => {
-			CalcBus.initialize(Blockenstein.settingsCalc, () => {
+			CalcBus.initialize(Game.settingsCalc, gameMap, () => {
 				// Done
 				console.log('CalcEngine Loaded in', performance.now() - then, 'ms');
 
 				// Load video-editor
 				then = performance.now();
-				VideoEditorBus.initialize(GamingCanvas.getCanvases()[1], Blockenstein.settingsVideoEditor, () => {
+				VideoEditorBus.initialize(camera, GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoEditor, viewport, () => {
 					// Done
 					console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoMainBus.initialize(GamingCanvas.getCanvases()[0], Blockenstein.settingsVideoMain, () => {
+					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[0], gameMap, Game.settingsVideoMain, () => {
 						// Done
 						console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
 
@@ -138,7 +159,8 @@ class Blockenstein extends Input {
 		/**
 		 * DOM
 		 */
-		Blockenstein.initializeDom();
+		DOM.initializeDom();
+		Game.initializeDomInteractive();
 
 		/**
 		 * Settings: Intialize
@@ -162,6 +184,8 @@ class Blockenstein extends Input {
 		Blockenstein.settingsApply();
 
 		// Done
+		Game.initializeGame();
+		Game.viewEditor();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 	}
 
@@ -173,7 +197,7 @@ class Blockenstein extends Input {
 		/**
 		 * Algos
 		 */
-		GamingCanvas.setDebug(Blockenstein.settingDebug);
+		GamingCanvas.setDebug(Game.settingDebug);
 	}
 }
 Blockenstein.main();

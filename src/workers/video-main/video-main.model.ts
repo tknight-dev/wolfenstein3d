@@ -1,5 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { FPS } from '../../model';
+import { GameMap } from '../../models/game.model';
+import { FPS } from '../../models/settings.model';
 
 /**
  * @author tknight-dev
@@ -9,12 +10,18 @@ import { FPS } from '../../model';
  * Input
  */
 export enum VideoMainBusInputCmd {
+	CAMERA_VIEWPORT,
 	INIT,
 	REPORT,
 	SETTINGS,
 }
 
-export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
+export interface VideoMainBusInputDataCamera {
+	camera: Float32Array;
+}
+
+export interface VideoMainBusInputDataInit extends VideoMainBusInputDataCamera, VideoMainBusInputDataSettings {
+	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
 	report: GamingCanvasReport;
 }
@@ -25,7 +32,7 @@ export interface VideoMainBusInputDataSettings {
 
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
-	data: GamingCanvasReport | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
+	data: GamingCanvasReport | VideoMainBusInputDataCamera | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
 }
 
 /*

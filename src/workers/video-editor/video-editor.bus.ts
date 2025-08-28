@@ -1,6 +1,10 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { Camera, CameraEncode } from '../../models/camera.model';
+import { GameMap } from '../../models/game.model';
+import { Viewport } from '../../models/viewport.model';
 import {
 	VideoEditorBusInputCmd,
+	VideoEditorBusInputDataCameraAndViewport,
 	VideoEditorBusInputDataSettings,
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputDataStats,
@@ -16,7 +20,14 @@ export class VideoEditorBus {
 	private static callbackStats: (data: VideoEditorBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(canvas: HTMLCanvasElement, settings: VideoEditorBusInputDataSettings, callback: (status: boolean) => void): void {
+	public static initialize(
+		camera: Camera,
+		canvas: HTMLCanvasElement,
+		gameMap: GameMap,
+		settings: VideoEditorBusInputDataSettings,
+		viewport: Viewport,
+		callback: (status: boolean) => void,
+	): void {
 		VideoEditorBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -30,19 +41,24 @@ export class VideoEditorBus {
 			VideoEditorBus.input();
 
 			// Init the webworker
+			const cameraEncoded: Float32Array = CameraEncode(camera);
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
+			const viewportEncoded: Float32Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
 				{
 					cmd: VideoEditorBusInputCmd.INIT,
 					data: Object.assign(
 						{
+							camera: cameraEncoded,
+							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
 							report: GamingCanvas.getReport(),
+							viewport: viewportEncoded,
 						},
 						settings,
 					),
 				},
-				[offscreenCanvas],
+				[cameraEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');
@@ -72,6 +88,20 @@ export class VideoEditorBus {
 	/*
 	 * Output
 	 */
+
+	public static outputCameraAndViewport(data: VideoEditorBusInputDataCameraAndViewport): void {
+		VideoEditorBus.worker.postMessage({
+			cmd: VideoEditorBusInputCmd.CAMERA_VIEWPORT,
+			data: data,
+		});
+	}
+
+	public static outputDataSegment(data: Map<number, number>): void {
+		VideoEditorBus.worker.postMessage({
+			cmd: VideoEditorBusInputCmd.DATA_SEGMENT,
+			data: data,
+		});
+	}
 
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {

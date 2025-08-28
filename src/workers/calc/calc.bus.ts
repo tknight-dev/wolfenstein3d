@@ -1,5 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { CalcBusInputCmd, CalcBusInputDataSettings, CalcBusOutputCmd, CalcBusOutputDataStats, CalcBusOutputPayload } from './calc.model';
+import { GameMap } from '../../models/game.model';
 
 /**
  * @author tknight-dev
@@ -10,7 +11,7 @@ export class CalcBus {
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(settings: CalcBusInputDataSettings, callback: (status: boolean) => void): void {
+	public static initialize(settings: CalcBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
 		CalcBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -24,13 +25,15 @@ export class CalcBus {
 			CalcBus.input();
 
 			// Init the webworker
-			CalcBus.worker.postMessage(
-				{
-					cmd: CalcBusInputCmd.INIT,
-					data: Object.assign({}, settings),
-				},
-				[],
-			);
+			CalcBus.worker.postMessage({
+				cmd: CalcBusInputCmd.INIT,
+				data: Object.assign(
+					{
+						gameMap: gameMap,
+					},
+					settings,
+				),
+			});
 		} else {
 			alert('Web Workers are not supported by your browser');
 			CalcBus.callbackInitComplete(false);

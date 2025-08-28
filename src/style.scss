@@ -23,10 +23,24 @@ $main-logo-width: 152px;
 	min-width: 40px;
 	width: 40px;
 
-	&.backward {
-		// !Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.
-		mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29l0-320c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4L288 214.3l0 41.7 0 41.7L459.5 440.6zM256 352l0-96 0-128 0-32c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160C4.2 237.5 0 246.5 0 256s4.2 18.5 11.5 24.6l192 160c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29l0-64z"/></svg>');
+	&.edit {
+		// !Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.
+		mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M535.6 85.7C513.7 63.8 478.3 63.8 456.4 85.7L432 110.1L529.9 208L554.3 183.6C576.2 161.7 576.2 126.3 554.3 104.4L535.6 85.7zM236.4 305.7C230.3 311.8 225.6 319.3 222.9 327.6L193.3 416.4C190.4 425 192.7 434.5 199.1 441C205.5 447.5 215 449.7 223.7 446.8L312.5 417.2C320.7 414.5 328.2 409.8 334.4 403.7L496 241.9L398.1 144L236.4 305.7zM160 128C107 128 64 171 64 224L64 480C64 533 107 576 160 576L416 576C469 576 512 533 512 480L512 384C512 366.3 497.7 352 480 352C462.3 352 448 366.3 448 384L448 480C448 497.7 433.7 512 416 512L160 512C142.3 512 128 497.7 128 480L128 224C128 206.3 142.3 192 160 192L256 192C273.7 192 288 177.7 288 160C288 142.3 273.7 128 256 128L160 128z"/></svg>');
 	}
+
+	&.play {
+		// !Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.
+		mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M448 128C554 128 640 214 640 320C640 426 554 512 448 512L192 512C86 512 0 426 0 320C0 214 86 128 192 128L448 128zM192 240C178.7 240 168 250.7 168 264L168 296L136 296C122.7 296 112 306.7 112 320C112 333.3 122.7 344 136 344L168 344L168 376C168 389.3 178.7 400 192 400C205.3 400 216 389.3 216 376L216 344L248 344C261.3 344 272 333.3 272 320C272 306.7 261.3 296 248 296L216 296L216 264C216 250.7 205.3 240 192 240zM432 336C414.3 336 400 350.3 400 368C400 385.7 414.3 400 432 400C449.7 400 464 385.7 464 368C464 350.3 449.7 336 432 336zM496 240C478.3 240 464 254.3 464 272C464 289.7 478.3 304 496 304C513.7 304 528 289.7 528 272C528 254.3 513.7 240 496 240z"/></svg>');
+	}
+}
+
+.info {
+	background-color: white;
+	color: black;
+	position: fixed;
+	left: 20px;
+	top: 20px;
+	z-index: 9999;
 }
 
 .main {
@@ -37,12 +51,116 @@ $main-logo-width: 152px;
 	.game {
 		z-index: 1;
 
+		.icons,
+		.video {
+			position: absolute;
+			z-index: 1;
+
+			.button {
+				align-items: center;
+				background-color: rgba(0, 0, 0, 0.75);
+				border: 1px solid #eeeeee;
+				border-radius: 5px;
+				box-shadow: 0 0 2px 2px rgba(255, 255, 255, 0.25) inset;
+				cursor: pointer;
+				display: flex;
+				height: 50px;
+				justify-content: center;
+				position: relative;
+				transition:
+					background-color,
+					border 0.125s linear;
+				width: 50px;
+
+				&.active {
+					background-color: rgba(0, 128, 0, 0.75);
+
+					&:active {
+						background-color: rgba(0, 108, 0, 0.75);
+					}
+				}
+
+				&:active {
+					border: 1px solid #999999;
+					margin-top: 1px;
+				}
+
+				&:not(:first-child) {
+					margin-left: 20px;
+				}
+
+				&:last-child {
+					margin-right: 20px;
+				}
+
+				.life-icon {
+					height: 25px;
+					max-height: 25px;
+					min-height: 25px;
+					position: relative;
+					width: 25px;
+					max-width: 25px;
+					min-width: 25px;
+
+					&:hover {
+						background-color: white;
+						cursor: pointer;
+					}
+					&:active {
+						background-color: #999999;
+						margin-top: 1px;
+					}
+				}
+
+				&.disable {
+					border: 1px solid #666666;
+
+					&:active {
+						border: 1px solid #666666;
+						margin-top: 0;
+					}
+
+					.life-icon {
+						background-color: #666666;
+
+						&:hover {
+							background-color: #666666;
+							cursor: default;
+						}
+						&:active {
+							background-color: #666666;
+							margin-top: 0;
+						}
+					}
+				}
+			}
+		}
+
+		.icons {
+			align-items: center;
+			display: flex;
+			height: 50px;
+			justify-content: center;
+			left: 0;
+			right: 0;
+			top: 5px;
+			z-index: 2;
+		}
+
 		.video {
 			bottom: 0;
 			left: 0;
-			position: absolute;
 			right: 0;
 			top: 0;
+
+			canvas {
+				opacity: 0.8;
+				transition: opacity 0.125s linear;
+
+				&.hide {
+					opacity: 0;
+				}
+			}
 		}
 	}
 

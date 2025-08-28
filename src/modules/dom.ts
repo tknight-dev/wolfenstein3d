@@ -5,11 +5,15 @@ import packageJSON from '../../package.json';
  */
 
 export class DOM {
-	protected static elCanvases: HTMLCanvasElement[];
-	protected static elVideo: HTMLElement;
-	protected static elVersion: HTMLAnchorElement;
+	public static elButtonEdit: HTMLElement;
+	public static elButtonPlay: HTMLElement;
+	public static elCanvases: HTMLCanvasElement[];
+	public static elVideo: HTMLElement;
+	public static elVersion: HTMLAnchorElement;
 
-	protected static initializeDom(): void {
+	public static initializeDom(): void {
+		DOM.elButtonEdit = <HTMLElement>document.getElementById('button-edit');
+		DOM.elButtonPlay = <HTMLElement>document.getElementById('button-play');
 		DOM.elVideo = <HTMLElement>document.getElementById('video');
 		DOM.elVersion = <HTMLAnchorElement>document.getElementById('version');
 

@@ -1,4 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataInit,
@@ -32,15 +33,20 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
+	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
-	private static report: GamingCanvasReport;
+	private static reportHeightPx: number;
+	private static reportWidthPx: number;
 	private static reportNew: boolean;
 	private static request: number;
 	private static settingsFPMS: number;
 	private static settingsNew: boolean;
 
 	public static initialize(data: VideoMainBusInputDataInit): void {
+		// Config
+		VideoMainEngine.gameMap = data.gameMap;
+
 		// Config: Canvas
 		VideoMainEngine.offscreenCanvas = data.offscreenCanvas;
 		VideoMainEngine.offscreenCanvasContext = data.offscreenCanvas.getContext('2d', {
@@ -85,7 +91,8 @@ class VideoMainEngine {
 	 */
 
 	public static inputReport(report: GamingCanvasReport): void {
-		VideoMainEngine.report = report;
+		VideoMainEngine.reportHeightPx = report.canvasHeightDPI;
+		VideoMainEngine.reportWidthPx = report.canvasWidthDPI;
 
 		// Last
 		VideoMainEngine.reportNew = true;
@@ -134,8 +141,8 @@ class VideoMainEngine {
 					VideoMainEngine.reportNew = false;
 
 					// This isn't necessary when you are using a fixed resolution
-					offscreenCanvas.height = VideoMainEngine.report.canvasHeight;
-					offscreenCanvas.width = VideoMainEngine.report.canvasWidth;
+					offscreenCanvas.height = VideoMainEngine.reportHeightPx;
+					offscreenCanvas.width = VideoMainEngine.reportWidthPx;
 				}
 
 				if (VideoMainEngine.settingsNew === true) {
