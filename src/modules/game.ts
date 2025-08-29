@@ -7,6 +7,7 @@ import { Viewport } from '../models/viewport.model';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model';
 import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.model';
+import { VideoMainBus } from '../workers/video-main/video-main.bus';
 import {
 	GamingCanvas,
 	GamingCanvasFIFOQueue,
@@ -18,9 +19,11 @@ import {
 	GamingCanvasInputTouch,
 	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
+	GamingCanvasOrientation,
 	GamingCanvasReport,
 	GamingCanvasScale,
 } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasInputGamepadControllerVendor } from '@tknight-dev/gaming-canvas/dist/engines/gamepad.engine';
 
 /**
  * @author tknight-dev
@@ -34,6 +37,8 @@ export class Game {
 	public static dataMaps: Map<number, GameMap> = new Map();
 	public static inputRequest: number;
 	public static modeEdit: boolean;
+	public static report: GamingCanvasReport;
+	public static reportNew: boolean;
 	public static settingDebug: boolean;
 	public static settingDPISupport: boolean;
 	public static settingFPSDisplay: boolean;
@@ -54,13 +59,27 @@ export class Game {
 			xRelative: 0.5,
 			y: gameDataWidth / 2 + 0.5,
 			yRelative: 0.5,
-			z: 1,
+			z: 10,
 		};
 		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
 
 		// Game Map
+		const map: Uint8Array = new Uint8Array(gameDataWidth * gameDataWidth),
+			mapCenter: number = (gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0;
+		// map[0] = 0xff; // top-left
+		// map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
+		// map[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
+		// map[gameDataWidth ** 2 - 1] = 0xff; // bottom-right
+		// gameData[gameDataWidth - 1] = 0xff; // bottom-left
+
+		for (let x = mapCenter - gameDataWidth * 5; x <= mapCenter + gameDataWidth * 5; x += gameDataWidth) {
+			for (let y = -5; y <= 5; y++) {
+				map[x + y] = 0xff;
+			}
+		}
+
 		Game.dataMaps.set(0, {
-			data: new Uint8Array(gameDataWidth * gameDataWidth),
+			data: map,
 			dataEnds: [],
 			dataLights: [],
 			dataWidth: gameDataWidth,
@@ -78,6 +97,18 @@ export class Game {
 	}
 
 	public static initializeGame(): void {
+		// Integrations
+		Game.report = GamingCanvas.getReport();
+		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
+			Game.camera.z = -1;
+			Game.report = report;
+			Game.reportNew = true;
+
+			VideoEditorBus.outputReport(report);
+			VideoMainBus.outputReport(report);
+		});
+
+		// Start inputs
 		Game.processorBinder();
 		Game.inputRequest = requestAnimationFrame(Game.processor);
 	}
@@ -99,9 +130,9 @@ export class Game {
 			cameraViewportWidthC: number = 0,
 			cameraXOriginal: number = 0,
 			cameraYOriginal: number = 0,
-			cameraZoom: number = 0,
+			cameraZoom: number = camera.z,
 			cameraZoomMax: number = 100,
-			cameraZoomMin: number = 1,
+			cameraZoomMin: number = 10,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 10,
 			down: boolean,
@@ -133,9 +164,8 @@ export class Game {
 
 		// Limit how often a camera update can be sent via the bus
 		setInterval(() => {
-			if (cameraUpdated) {
-				cameraUpdated = false;
-				report = GamingCanvas.getReport();
+			if (cameraUpdated || Game.reportNew) {
+				report = Game.report;
 
 				// Zoom
 				if (camera.z !== cameraZoom) {
@@ -153,18 +183,20 @@ export class Game {
 					// cameraMoveYOriginal = camera.yRelative;
 					// cameraXOriginal = camera.x;
 					// cameraYOriginal = camera.y;
-				} else {
+				} else if (cameraUpdated === true) {
 					camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
 					camera.xRelative = camera.x / viewport.cellsWidth;
 					camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
 					camera.yRelative = camera.y / viewport.cellsHeight;
 				}
-				viewport.apply(camera, false, report);
+				viewport.apply(camera, false);
 
 				VideoEditorBus.outputCameraAndViewport({
 					camera: CameraEncode(camera),
 					viewport: viewport.encode(),
 				});
+				cameraUpdated = false;
+				Game.reportNew = false;
 			}
 		}, inputLimitPerMs);
 

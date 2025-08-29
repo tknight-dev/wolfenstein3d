@@ -91,8 +91,8 @@ class VideoMainEngine {
 	 */
 
 	public static inputReport(report: GamingCanvasReport): void {
-		VideoMainEngine.reportHeightPx = report.canvasHeightDPI;
-		VideoMainEngine.reportWidthPx = report.canvasWidthDPI;
+		VideoMainEngine.reportHeightPx = report.canvasHeight;
+		VideoMainEngine.reportWidthPx = report.canvasWidth;
 
 		// Last
 		VideoMainEngine.reportNew = true;

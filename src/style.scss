@@ -52,7 +52,8 @@ $main-logo-width: 152px;
 		z-index: 1;
 
 		.icons,
-		.video {
+		.video,
+		.video-interactive {
 			position: absolute;
 			z-index: 1;
 
@@ -138,13 +139,16 @@ $main-logo-width: 152px;
 
 		.icons {
 			align-items: center;
+			background-color: rgba(0, 0, 0, 0.75);
+			border-top-left-radius: 5px;
+			border-top-right-radius: 5px;
 			display: flex;
-			height: 50px;
+			height: 60px;
 			justify-content: center;
 			left: 0;
 			right: 0;
-			top: 5px;
-			z-index: 2;
+			top: 0;
+			z-index: 3;
 		}
 
 		.video {
@@ -161,6 +165,14 @@ $main-logo-width: 152px;
 					opacity: 0;
 				}
 			}
+		}
+
+		.video-interactive {
+			bottom: -10px;
+			left: -10px;
+			right: -10px;
+			top: -10px;
+			z-index: 2;
 		}
 	}
 

@@ -204,12 +204,6 @@ class VideoEditorEngine {
 			x: number,
 			y: number;
 
-		gameData[0] = 0xff; // top-left
-		gameData[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
-		gameData[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
-		gameData[gameDataWidth ** 2 - 1] = 0xff; // bottom-right
-		gameData[gameDataWidth - 1] = 0xff; // bottom-left
-
 		// Warm cache
 		for (const v of Object.values(CacheId)) {
 			if (typeof v === 'number') {
@@ -265,45 +259,43 @@ class VideoEditorEngine {
 					}
 
 					// Calc & Cache
-					if (viewportIncrement !== viewport.increment) {
-						cellSizePx = viewport.cellSizePx;
-						viewportIncrement = viewport.increment;
+					cellSizePx = viewport.cellSizePx;
+					viewportIncrement = viewport.increment;
 
-						// Cache
-						for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
-							cacheCanvasInstance.height = cellSizePx;
-							cacheCanvasInstance.width = cellSizePx;
-						}
-						for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
-							cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(128,128,128)' : 'rgb(255,255,255)';
-							cacheCanvasContextInstance.fillRect(0, 0, cellSizePx, cellSizePx);
-						}
+					// Cache
+					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
+						cacheCanvasInstance.height = cellSizePx;
+						cacheCanvasInstance.width = cellSizePx;
+					}
+					for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
+						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(128,128,128)' : 'rgb(255,255,255)';
+						cacheCanvasContextInstance.fillRect(0, 0, cellSizePx, cellSizePx);
+					}
 
-						// Grid: Cache
-						offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + cellSizePx * 2;
-						offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + cellSizePx * 2;
+					// Grid: Cache
+					offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + cellSizePx * 2;
+					offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + cellSizePx * 2;
 
-						cacheCanvasGridH.height = 1;
-						cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
-						cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
-						cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
+					cacheCanvasGridH.height = 1;
+					cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
+					cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
+					cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
 
-						cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
-						cacheCanvasGridV.width = 1;
-						cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
-						cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
+					cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
+					cacheCanvasGridV.width = 1;
+					cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
+					cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
 
-						cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
-						cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
+					cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
+					cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
 
-						// Grid: Horizontal
-						for (y = 0; y < offscreenCanvasHeightPxEff; y += cellSizePx) {
-							cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
-						}
-						// Grid: Vertical
-						for (x = 0; x < offscreenCanvasWidthPxEff; x += cellSizePx) {
-							cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
-						}
+					// Grid: Horizontal
+					for (y = 0; y < offscreenCanvasHeightPxEff; y += cellSizePx) {
+						cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
+					}
+					// Grid: Vertical
+					for (x = 0; x < offscreenCanvasWidthPxEff; x += cellSizePx) {
+						cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
 					}
 				}
 

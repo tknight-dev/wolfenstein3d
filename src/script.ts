@@ -24,8 +24,10 @@ class Blockenstein {
 		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
 			canvasCount: 2,
 			dpiSupportEnable: Game.settingDPISupport,
+			// elementInteractive: DOM.elVideoInteractive,
 			inputMouseEnable: true,
 			inputTouchEnable: true,
+			orientationCanvasRotateEnable: false,
 			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});
@@ -105,10 +107,6 @@ class Blockenstein {
 		/**
 		 * GamingCanvas
 		 */
-		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
-			VideoEditorBus.outputReport(report);
-			VideoMainBus.outputReport(report);
-		});
 
 		/**
 		 * Video: Editor
@@ -129,7 +127,7 @@ class Blockenstein {
 
 		// Camera to viewport
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-		Game.viewport.apply(Game.camera, true, GamingCanvas.getReport());
+		Game.viewport.apply(Game.camera, false);
 
 		return new Promise<void>((resolve: any) => {
 			CalcBus.initialize(Game.settingsCalc, gameMap, () => {

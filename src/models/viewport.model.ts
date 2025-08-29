@@ -1,5 +1,5 @@
 import { Camera } from './camera.model';
-import { GamingCanvasReport, GamingCanvasScale } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasScale } from '@tknight-dev/gaming-canvas';
 
 /**
  * @author tknight-dev
@@ -33,10 +33,7 @@ export class Viewport {
 	/**
 	 * @param cameraFitToView if true, modifies the camera object as required to fit within the viewport
 	 */
-	public apply(camera: Camera, cameraFitToView: boolean, report: GamingCanvasReport): void {
-		this.heightPx = report.canvasHeight;
-		this.widthPx = report.canvasWidth;
-
+	public apply(camera: Camera, cameraFitToView: boolean): void {
 		// Viewport: height + position bounded
 		this.heightStartC = camera.y - this.heightC / 2;
 		if (cameraFitToView === true) {
@@ -64,6 +61,9 @@ export class Viewport {
 				this.heightStopPx = this.heightStopC * this.cellSizePx;
 			}
 		} else {
+			camera.y = Math.max(-this.heightC * 2, Math.min(this.heightC * 2, camera.y));
+			camera.yRelative = Math.max(-2, Math.min(2, camera.yRelative));
+
 			this.heightStartPx = this.heightStartC * this.cellSizePx;
 			this.heightStopC = this.heightStartC + this.heightC;
 			this.heightStopPx = this.heightStopC * this.cellSizePx;
@@ -106,9 +106,15 @@ export class Viewport {
 	}
 
 	public applyZ(camera: Camera, report: GamingCanvasReport): void {
-		this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasScale(camera.z, 1, 100, 1, this.cameraZScaleMax));
+		if (report.orientation === GamingCanvasOrientation.LANDSCAPE || report.orientationCanvasRotated === true) {
+			this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasScale(camera.z, 1, 100, 0.25, 2));
+		} else {
+			this.cellSizePx = Math.max(1, (report.canvasHeight / this.cellsHeight) * GamingCanvasScale(camera.z, 1, 100, 0.25, 2));
+		}
 		this.heightC = report.canvasHeight / this.cellSizePx;
+		this.heightPx = report.canvasHeight;
 		this.widthC = report.canvasWidth / this.cellSizePx;
+		this.widthPx = report.canvasWidth;
 
 		// Done
 		this.increment++;
