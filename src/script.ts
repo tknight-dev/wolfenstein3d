@@ -25,6 +25,7 @@ class Blockenstein {
 			canvasCount: 2,
 			dpiSupportEnable: Game.settingDPISupport,
 			inputMouseEnable: true,
+			inputTouchEnable: true,
 			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});

@@ -213,18 +213,16 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputMouseAction.LEFT:
-					if (down) {
+					if (down === true) {
 						cameraMoveXOriginal = 1 - position1.xRelative;
 						cameraMoveYOriginal = 1 - position1.yRelative;
 						cameraXOriginal = camera.x;
 						cameraYOriginal = camera.y;
-						downMode = true;
-					} else {
-						downMode = false;
 					}
+					downMode = down;
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					if (downMode && !position1.out && cameraMoveXOriginal !== 1 - position1.xRelative && cameraMoveYOriginal !== 1 - position1.yRelative) {
+					if (downMode === true) {
 						cameraMoveX = 1 - position1.xRelative;
 						cameraMoveY = 1 - position1.yRelative;
 						cameraUpdated = true;
@@ -252,7 +250,7 @@ export class Game {
 					touchAdded = false;
 					touchDistancePrevious = -1;
 
-					if (down && positions && positions.length === 1) {
+					if (down === true && positions !== undefined && positions.length === 1) {
 						position1 = positions[0];
 
 						cameraMoveXOriginal = 1 - position1.xRelative;
@@ -263,16 +261,16 @@ export class Game {
 					downMode = down;
 					break;
 				case GamingCanvasInputTouchAction.MOVE:
-					if (positions) {
+					if (positions !== undefined) {
 						position1 = positions[0];
 
-						if (position1.out) {
+						if (position1.out === true) {
 							down = false;
 						}
 
-						if (positions.length > 1) {
+						if (positions.length !== 1) {
 							// Zoom
-							if (down) {
+							if (down === true) {
 								position2 = positions[1];
 
 								if (touchDistancePrevious !== -1) {
@@ -296,18 +294,13 @@ export class Game {
 							}
 						} else {
 							touchDistancePrevious = -1;
+						}
 
-							// Move
-							if (
-								downMode &&
-								!position1.out &&
-								cameraMoveXOriginal !== 1 - position1.xRelative &&
-								cameraMoveYOriginal !== 1 - position1.yRelative
-							) {
-								cameraMoveX = 1 - position1.xRelative;
-								cameraMoveY = 1 - position1.yRelative;
-								cameraUpdated = true;
-							}
+						// Move
+						if (downMode === true) {
+							cameraMoveX = 1 - position1.xRelative;
+							cameraMoveY = 1 - position1.yRelative;
+							cameraUpdated = true;
 						}
 					}
 					break;

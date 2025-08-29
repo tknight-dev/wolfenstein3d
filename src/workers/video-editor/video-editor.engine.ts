@@ -204,7 +204,6 @@ class VideoEditorEngine {
 			x: number,
 			y: number;
 
-		console.log('gameDataWidth', gameDataWidth);
 		gameData[0] = 0xff; // top-left
 		gameData[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
 		gameData[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
