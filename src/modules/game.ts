@@ -2,7 +2,7 @@ import { DOM } from './dom';
 import { CalcBusInputDataSettings } from '../workers/calc/calc.model';
 import { CalcBus } from '../workers/calc/calc.bus';
 import { Camera, CameraDecode, CameraEncode } from '../models/camera.model';
-import { CharacterControl, CharacterControlEncode } from '../models/character.model';
+import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model';
 import { GameMap } from '../models/game.model';
 import { Resolution } from '../models/settings.model';
 import { Viewport } from '../models/viewport.model';
@@ -52,7 +52,7 @@ export class Game {
 
 	static {
 		const gameDataWidth: number = 64,
-			cameraCenter: number = gameDataWidth / 2;
+			positionCenter: number = gameDataWidth / 2;
 
 		// Camera and Viewport
 		Game.camera = {
@@ -172,17 +172,21 @@ export class Game {
 			x: number,
 			y: number;
 
-		CalcBus.setCallbackCamera((cameraRaw: Float32Array) => {
-			let cameraParsed: Camera = CameraDecode(cameraRaw);
-			camera.rDeg = cameraParsed.rDeg; // TEMPORARY
-			camera.rRad = cameraParsed.rRad; // TEMPORARY
-			viewport.apply(camera, false);
+		CalcBus.setCallbackCharacterPostion((characterPositionRaw: Float32Array) => {
+			let characterPosition: CharacterPosition = CharacterPositionDecode(characterPositionRaw);
 
-			VideoEditorBus.outputCameraAndViewport({
-				camera: CameraEncode(camera),
-				viewport: viewport.encode(),
-			});
-			VideoMainBus.outputCamera(CameraEncode(camera));
+			VideoEditorBus.outputCharacterPosition(CharacterPositionEncode(characterPosition));
+			VideoMainBus.outputCamera(
+				CameraEncode({
+					rDeg: characterPosition.rDeg,
+					rRad: characterPosition.rRad,
+					x: characterPosition.x,
+					xRelative: characterPosition.x / viewport.cellsWidth,
+					y: characterPosition.y,
+					yRelative: characterPosition.y / viewport.cellsHeight,
+					z: 1,
+				}),
+			);
 		});
 
 		// Limit how often a camera update can be sent via the bus
@@ -207,6 +211,7 @@ export class Game {
 						camera: CameraEncode(camera),
 						viewport: viewport.encode(),
 					});
+					VideoMainBus.outputCamera(CameraEncode(camera));
 				} else {
 					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
 				}

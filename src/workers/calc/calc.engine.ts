@@ -1,4 +1,4 @@
-import { CharacterControl, CharacterControlDecode } from '../../models/character.model';
+import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model';
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
 import { GameMap } from '../../models/game.model';
 import { CameraEncode } from '../../models/camera.model';
@@ -27,6 +27,7 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class CalcEngine {
+	private static characterPosition: CharacterPosition;
 	private static gameMap: GameMap;
 	private static request: number;
 	private static settingsFPMS: number;
@@ -35,6 +36,9 @@ class CalcEngine {
 	public static initialize(data: CalcBusInputDataInit): void {
 		// Config
 		CalcEngine.gameMap = data.gameMap;
+
+		// Config: CharacterPosition
+		CalcEngine.characterPosition = CharacterPositionDecode(data.characterPosition);
 
 		// Config: Settings
 		CalcEngine.inputSettings(data as CalcBusInputDataSettings);
@@ -58,26 +62,20 @@ class CalcEngine {
 
 	public static inputCharacterControl(data: Float32Array): void {
 		let characterControl: CharacterControl = CharacterControlDecode(data);
-		// console.log('calc got', characterControl);
 
-		let cameraRaw: Float32Array = CameraEncode({
-			rDeg: characterControl.rDeg,
-			rRad: characterControl.rRad,
-			x: 32,
-			xRelative: 0.5,
-			y: 32,
-			yRelative: 0.5,
-			z: 1,
-		});
+		CalcEngine.characterPosition.rDeg = characterControl.rDeg;
+		CalcEngine.characterPosition.rRad = characterControl.rRad;
+
+		let characterPosition: Float32Array = CharacterPositionEncode(CalcEngine.characterPosition);
 
 		CalcEngine.post(
 			[
 				{
-					cmd: CalcBusOutputCmd.CAMERA,
-					data: cameraRaw,
+					cmd: CalcBusOutputCmd.CHARACTER_POSITION,
+					data: characterPosition,
 				},
 			],
-			[cameraRaw.buffer],
+			[characterPosition.buffer],
 		);
 	}
 

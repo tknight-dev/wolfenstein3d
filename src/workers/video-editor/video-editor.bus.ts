@@ -10,6 +10,7 @@ import {
 	VideoEditorBusOutputDataStats,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model';
+import { CharacterPosition, CharacterPositionEncode } from '../../models/character.model';
 
 /**
  * @author tknight-dev
@@ -42,6 +43,12 @@ export class VideoEditorBus {
 
 			// Init the webworker
 			const cameraEncoded: Float32Array = CameraEncode(camera);
+			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
+				rDeg: camera.rDeg,
+				rRad: camera.rRad,
+				x: camera.x,
+				y: camera.y,
+			});
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			const viewportEncoded: Float32Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
@@ -50,6 +57,7 @@ export class VideoEditorBus {
 					data: Object.assign(
 						{
 							camera: cameraEncoded,
+							characterPosition: characterPositionEncoded,
 							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
 							report: GamingCanvas.getReport(),
@@ -58,7 +66,7 @@ export class VideoEditorBus {
 						settings,
 					),
 				},
-				[cameraEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
+				[cameraEncoded.buffer, characterPositionEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');
@@ -88,6 +96,16 @@ export class VideoEditorBus {
 	/*
 	 * Output
 	 */
+
+	public static outputCharacterPosition(characterPosition: Float32Array): void {
+		VideoEditorBus.worker.postMessage(
+			{
+				cmd: VideoEditorBusInputCmd.CHARACTER_POSITION,
+				data: characterPosition,
+			},
+			[characterPosition.buffer],
+		);
+	}
 
 	public static outputCameraAndViewport(data: VideoEditorBusInputDataCameraAndViewport): void {
 		VideoEditorBus.worker.postMessage(

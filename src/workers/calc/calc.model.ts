@@ -16,6 +16,7 @@ export enum CalcBusInputCmd {
 }
 
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
+	characterPosition: Float32Array;
 	gameMap: GameMap;
 }
 
@@ -32,7 +33,7 @@ export interface CalcBusInputPayload {
  * Output
  */
 export enum CalcBusOutputCmd {
-	CAMERA,
+	CHARACTER_POSITION,
 	INIT_COMPLETE,
 	STATS,
 }

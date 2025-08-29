@@ -11,6 +11,7 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model';
+import { CharacterPosition, CharacterPositionDecode } from '../../models/character.model';
 
 /**
  * @author tknight-dev
@@ -25,6 +26,9 @@ self.onmessage = (event: MessageEvent) => {
 	switch (payload.cmd) {
 		case VideoEditorBusInputCmd.CAMERA_VIEWPORT:
 			VideoEditorEngine.inputCameraAndViewport(<VideoEditorBusInputDataCameraAndViewport>payload.data);
+			break;
+		case VideoEditorBusInputCmd.CHARACTER_POSITION:
+			VideoEditorEngine.inputCharacterPosition(<Float32Array>payload.data);
 			break;
 		case VideoEditorBusInputCmd.DATA_SEGMENT:
 			VideoEditorEngine.inputDataSegment(<Map<number, number>>payload.data);
@@ -48,6 +52,8 @@ enum CacheId {
 
 class VideoEditorEngine {
 	private static cameraRaw: Float32Array;
+	private static characterPositionRaw: Float32Array;
+	private static characterPositionNew: boolean;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
@@ -73,8 +79,11 @@ class VideoEditorEngine {
 			powerPreference: 'high-performance',
 		}) as OffscreenCanvasRenderingContext2D;
 
-		// Config: Report
+		// Config: Camera and Viewport
 		VideoEditorEngine.inputCameraAndViewport(data as VideoEditorBusInputDataCameraAndViewport);
+
+		// Config: Character Position
+		VideoEditorEngine.inputCharacterPosition(data.characterPosition);
 
 		// Config: Report
 		VideoEditorEngine.inputReport(data.report);
@@ -108,6 +117,13 @@ class VideoEditorEngine {
 	/*
 	 * Input
 	 */
+
+	public static inputCharacterPosition(data: Float32Array): void {
+		VideoEditorEngine.characterPositionRaw = data;
+
+		VideoEditorEngine.characterPositionNew = true;
+	}
+
 	public static inputDataSegment(data: Map<number, number>): void {
 		let index: number, value: number;
 
@@ -179,6 +195,9 @@ class VideoEditorEngine {
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheId: CacheId,
 			cellSizePx: number = 0,
+			characterPosition: CharacterPosition,
+			characterPositionXEff: number,
+			characterPositionYEff: number,
 			gameData: Uint8Array = VideoEditorEngine.gameMap.data,
 			gameDataWidth: number = VideoEditorEngine.gameMap.dataWidth,
 			fpms: number = VideoEditorEngine.settingsFPMS,
@@ -232,6 +251,15 @@ class VideoEditorEngine {
 				timestampThen = timestampNow - (timestampDelta % fpms);
 				frameCount++;
 
+				if (VideoEditorEngine.characterPositionNew === true) {
+					VideoEditorEngine.characterPositionNew = false;
+
+					characterPosition = CharacterPositionDecode(VideoEditorEngine.characterPositionRaw);
+
+					characterPositionXEff = characterPosition.x - viewport.widthStartC;
+					characterPositionYEff = characterPosition.y - viewport.heightStartC;
+				}
+
 				if (VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true || VideoEditorEngine.viewportNew === true) {
 					VideoEditorEngine.reportNew = false;
 					VideoEditorEngine.settingsNew = false;
@@ -256,6 +284,9 @@ class VideoEditorEngine {
 
 						camera = CameraDecode(VideoEditorEngine.cameraRaw);
 						viewport.decode(VideoEditorEngine.viewportRaw);
+
+						characterPositionXEff = characterPosition.x - viewport.widthStartC;
+						characterPositionYEff = characterPosition.y - viewport.heightStartC;
 					}
 
 					// Calc & Cache
@@ -339,23 +370,24 @@ class VideoEditorEngine {
 					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
 				);
 
+				// Character
 				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;
 				offscreenCanvasContext.strokeStyle = 'blue';
 				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.moveTo(offscreenCanvas.width / 2, offscreenCanvas.height / 2); // Center
+				offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
 				offscreenCanvasContext.lineTo(
-					viewport.cellSizePx * Math.sin(camera.rRad) + offscreenCanvas.width / 2,
-					viewport.cellSizePx * Math.cos(camera.rRad) + offscreenCanvas.height / 2,
+					cellSizePx * (Math.sin(characterPosition.rRad) + characterPositionXEff),
+					cellSizePx * (Math.cos(characterPosition.rRad) + characterPositionYEff),
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.stroke();
 
 				offscreenCanvasContext.fillStyle = 'red';
 				offscreenCanvasContext.fillRect(
-					offscreenCanvas.width / 2 - viewport.cellSizePx / 4,
-					offscreenCanvas.height / 2 - viewport.cellSizePx / 4,
-					viewport.cellSizePx / 2,
-					viewport.cellSizePx / 2,
+					characterPositionXEff * cellSizePx - cellSizePx / 4,
+					characterPositionYEff * cellSizePx - cellSizePx / 4,
+					cellSizePx / 2,
+					cellSizePx / 2,
 				);
 
 				// statDrawAvg.watchStop();

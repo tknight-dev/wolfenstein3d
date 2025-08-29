@@ -130,7 +130,7 @@ class Blockenstein {
 		Game.viewport.apply(Game.camera, false);
 
 		return new Promise<void>((resolve: any) => {
-			CalcBus.initialize(Game.settingsCalc, gameMap, () => {
+			CalcBus.initialize(camera, Game.settingsCalc, gameMap, () => {
 				// Done
 				console.log('CalcEngine Loaded in', performance.now() - then, 'ms');
 
@@ -186,6 +186,7 @@ class Blockenstein {
 
 		// Done
 		Game.initializeGame();
+		// Game.viewEditor();
 		Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 	}
