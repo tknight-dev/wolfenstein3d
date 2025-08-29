@@ -207,9 +207,9 @@ class VideoEditorEngine {
 		console.log('gameDataWidth', gameDataWidth);
 		gameData[0] = 0xff; // top-left
 		gameData[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
-		gameData[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right?
-		gameData[gameDataWidth ** 2 + gameDataWidth] = 0xff; // bottom-right?
-		gameData[gameDataWidth - 1] = 0xff; // bottom-left?
+		gameData[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
+		gameData[gameDataWidth ** 2 - 1] = 0xff; // bottom-right
+		gameData[gameDataWidth - 1] = 0xff; // bottom-left
 
 		// Warm cache
 		for (const v of Object.values(CacheId)) {
@@ -281,8 +281,8 @@ class VideoEditorEngine {
 						}
 
 						// Grid: Cache
-						offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + cellSizePx;
-						offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + cellSizePx;
+						offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + cellSizePx * 2;
+						offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + cellSizePx * 2;
 
 						cacheCanvasGridH.height = 1;
 						cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
@@ -344,9 +344,12 @@ class VideoEditorEngine {
 				// Draw: Grid
 				offscreenCanvasContext.drawImage(
 					cacheCanvasGrid,
-					cellSizePx - (viewport.widthStartPx % cellSizePx) - cellSizePx,
-					cellSizePx - (viewport.heightStartPx % cellSizePx) - cellSizePx,
+					-(viewport.widthStartPx % cellSizePx) - cellSizePx,
+					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
 				);
+
+				offscreenCanvasContext.fillStyle = 'red';
+				offscreenCanvasContext.fillRect(offscreenCanvas.width / 2 + 2.5, offscreenCanvas.height / 2 + 2.5, 5, 5);
 
 				// statDrawAvg.watchStop();
 			}

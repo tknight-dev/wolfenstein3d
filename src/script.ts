@@ -42,7 +42,8 @@ class Blockenstein {
 		Game.settingDebug = false; // def: false
 		Game.settingDPISupport = false; // def: false
 		Game.settingFPSDisplay = true; // def: true
-		Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
+		// Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
+		Game.settingResolution = null;
 
 		/**
 		 * Worker specific
@@ -126,6 +127,7 @@ class Blockenstein {
 			viewport: Viewport = Game.viewport;
 
 		// Camera to viewport
+		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
 		Game.viewport.apply(Game.camera, true, GamingCanvas.getReport());
 
 		return new Promise<void>((resolve: any) => {

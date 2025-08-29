@@ -14,7 +14,12 @@ import {
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
 	GamingCanvasInputPosition,
+	GamingCanvasInputPositionDistance,
+	GamingCanvasInputTouch,
+	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
+	GamingCanvasReport,
+	GamingCanvasScale,
 } from '@tknight-dev/gaming-canvas';
 
 /**
@@ -39,18 +44,19 @@ export class Game {
 	public static viewport: Viewport;
 
 	static {
-		const gameDataWidth: number = 64;
+		const gameDataWidth: number = 64,
+			cameraCenter: number = gameDataWidth / 2;
 
 		// Camera and Viewport
 		Game.camera = {
 			r: 90, // North
-			x: (gameDataWidth / 2) | 0,
-			xRelative: ((gameDataWidth / 2) | 0) / gameDataWidth,
-			y: (gameDataWidth / 2) | 0,
-			yRelative: ((gameDataWidth / 2) | 0) / gameDataWidth,
+			x: gameDataWidth / 2 + 0.5,
+			xRelative: 0.5,
+			y: gameDataWidth / 2 + 0.5,
+			yRelative: 0.5,
 			z: 1,
 		};
-		Game.viewport = new Viewport(10, gameDataWidth, gameDataWidth);
+		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
 
 		// Game Map
 		Game.dataMaps.set(0, {
@@ -82,20 +88,22 @@ export class Game {
 		let audioClickVolume: number = 0.25,
 			buffer: Set<number> = new Set(),
 			camera: Camera = Game.camera,
-			cameraRelX: number = 0,
-			cameraRelXOriginal: number = 0,
-			cameraRelY: number = 0,
-			cameraRelYOriginal: number = 0,
+			cameraMoveX: number = 0,
+			cameraMoveXOriginal: number = 0,
+			cameraMoveY: number = 0,
+			cameraMoveYOriginal: number = 0,
 			cameraUpdated: boolean,
 			cameraViewportHeightC: number = 0,
 			cameraViewportStartXC: number = 0,
 			cameraViewportStartYC: number = 0,
 			cameraViewportWidthC: number = 0,
+			cameraXOriginal: number = 0,
+			cameraYOriginal: number = 0,
 			cameraZoom: number = 0,
 			cameraZoomMax: number = 100,
 			cameraZoomMin: number = 1,
 			cameraZoomPrevious: number = cameraZoomMin,
-			cameraZoomStep: number = 5,
+			cameraZoomStep: number = 10,
 			down: boolean,
 			downMode: boolean,
 			// elementEditStyle: CSSStyleDeclaration = DOM.elementEdit.style,
@@ -114,6 +122,7 @@ export class Game {
 			queueInput: GamingCanvasInput | undefined,
 			queueInputOverlay: GamingCanvasInput,
 			queueTimestamp: number = -2025,
+			report: GamingCanvasReport,
 			touchAdded: boolean,
 			touchDistance: number,
 			touchDistancePrevious: number = -1,
@@ -126,18 +135,31 @@ export class Game {
 		setInterval(() => {
 			if (cameraUpdated) {
 				cameraUpdated = false;
+				report = GamingCanvas.getReport();
 
-				camera.xRelative += cameraRelX;
-				camera.x = camera.xRelative * viewport.widthPx;
-				camera.yRelative += cameraRelY;
-				camera.y = camera.yRelative * viewport.heightPx;
-				camera.z = cameraZoom;
+				// Zoom
+				if (camera.z !== cameraZoom) {
+					camera.z = cameraZoom;
+					viewport.applyZ(camera, report);
 
-				console.log('request', camera.x, camera.y);
+					// Very minor glitch here
+					// 1. set move position orignal
+					// 2. move from original position
+					// 3. zoom while maintaining move action
+					// 4. move has slight glitch to another position on start
 
-				viewport.apply(camera, false, GamingCanvas.getReport());
-
-				console.log('  >> final', camera.x, camera.y);
+					// Doesn't fix it
+					// cameraMoveXOriginal = camera.xRelative;
+					// cameraMoveYOriginal = camera.yRelative;
+					// cameraXOriginal = camera.x;
+					// cameraYOriginal = camera.y;
+				} else {
+					camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
+					camera.xRelative = camera.x / viewport.cellsWidth;
+					camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
+					camera.yRelative = camera.y / viewport.cellsHeight;
+				}
+				viewport.apply(camera, false, report);
 
 				VideoEditorBus.outputCameraAndViewport({
 					camera: CameraEncode(camera),
@@ -169,10 +191,10 @@ export class Game {
 							GamingCanvas.relativizeInputToCanvas(queueInput);
 							processorMouse(queueInput, queueInputOverlay);
 							break;
-						// case GamingCanvasInputType.TOUCH:
-						// 	GamingCanvas.relativizeInputToCanvas(queueInput);
-						// 	processorTouch(queueInput);
-						// 	break;
+						case GamingCanvasInputType.TOUCH:
+							GamingCanvas.relativizeInputToCanvas(queueInput);
+							processorTouch(queueInput);
+							break;
 					}
 				}
 			}
@@ -186,36 +208,107 @@ export class Game {
 			}
 			if (position1.out) {
 				down = false;
+				downMode = false;
 			}
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputMouseAction.LEFT:
-					cameraRelXOriginal = position1.xRelative;
-					cameraRelYOriginal = position1.yRelative;
-
 					if (down) {
-						cameraRelXOriginal = position1.xRelative;
-						cameraRelYOriginal = position1.yRelative;
+						cameraMoveXOriginal = 1 - position1.xRelative;
+						cameraMoveYOriginal = 1 - position1.yRelative;
+						cameraXOriginal = camera.x;
+						cameraYOriginal = camera.y;
 						downMode = true;
 					} else {
 						downMode = false;
-						cameraRelXOriginal = 0;
-						cameraRelYOriginal = 0;
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					if (downMode && !position1.out && cameraRelX !== position1.xRelative && cameraRelY !== position1.yRelative) {
-						cameraRelX = 1 - (position1.xRelative - cameraRelXOriginal);
-						cameraRelY = 1 - (position1.yRelative - cameraRelYOriginal);
+					if (downMode && !position1.out && cameraMoveXOriginal !== 1 - position1.xRelative && cameraMoveYOriginal !== 1 - position1.yRelative) {
+						cameraMoveX = 1 - position1.xRelative;
+						cameraMoveY = 1 - position1.yRelative;
 						cameraUpdated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
 					cameraZoomPrevious = cameraZoom;
 					cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
-					downMode = false;
 					if (cameraZoom !== cameraZoomPrevious) {
 						cameraUpdated = true;
+					}
+					break;
+			}
+		};
+
+		const processorTouch = (input: GamingCanvasInputTouch) => {
+			// elementEditStyle.display = 'none';
+			positions = input.propriatary.positions;
+			if (input.propriatary.down !== undefined) {
+				down = input.propriatary.down;
+			}
+
+			switch (input.propriatary.action) {
+				case GamingCanvasInputTouchAction.ACTIVE:
+					touchAdded = false;
+					touchDistancePrevious = -1;
+
+					if (down && positions && positions.length === 1) {
+						position1 = positions[0];
+
+						cameraMoveXOriginal = 1 - position1.xRelative;
+						cameraMoveYOriginal = 1 - position1.yRelative;
+						cameraXOriginal = camera.x;
+						cameraYOriginal = camera.y;
+					}
+					downMode = down;
+					break;
+				case GamingCanvasInputTouchAction.MOVE:
+					if (positions) {
+						position1 = positions[0];
+
+						if (position1.out) {
+							down = false;
+						}
+
+						if (positions.length > 1) {
+							// Zoom
+							if (down) {
+								position2 = positions[1];
+
+								if (touchDistancePrevious !== -1) {
+									touchDistance = GamingCanvasInputPositionDistance(position1, position2) - touchDistancePrevious;
+									if (Math.abs(touchDistance) > 20) {
+										cameraZoomPrevious = cameraZoom;
+										cameraZoom = Math.max(
+											cameraZoomMin,
+											Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
+										);
+										if (cameraZoom !== cameraZoomPrevious) {
+											cameraUpdated = true;
+										}
+										touchDistancePrevious = touchDistance + touchDistancePrevious;
+									}
+								} else {
+									touchDistancePrevious = GamingCanvasInputPositionDistance(position1, position2);
+								}
+							} else {
+								touchDistancePrevious = -1;
+							}
+						} else {
+							touchDistancePrevious = -1;
+
+							// Move
+							if (
+								downMode &&
+								!position1.out &&
+								cameraMoveXOriginal !== 1 - position1.xRelative &&
+								cameraMoveYOriginal !== 1 - position1.yRelative
+							) {
+								cameraMoveX = 1 - position1.xRelative;
+								cameraMoveY = 1 - position1.yRelative;
+								cameraUpdated = true;
+							}
+						}
 					}
 					break;
 			}

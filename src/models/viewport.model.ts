@@ -30,33 +30,38 @@ export class Viewport {
 		this.cellsWidth = cellsWidth;
 	}
 
+	public toString(): string {
+		return `{
+	cellSize: ${this.cellSizePx}px, 
+	cellDimensions: ${this.cellsWidth}C x ${this.cellsHeight}C
+},
+dimensionsC: [${this.widthC} x ${this.heightC}],
+dimensionsPx: [${this.widthPx} x ${this.heightPx}],
+viewportC: [${this.widthStartC} to ${this.widthStopC} x ${this.heightStartC} to ${this.heightStopC} ]
+viewportPx: [${this.widthStartPx} to ${this.widthStopPx} x ${this.heightStartPx} to ${this.heightStopPx}]`;
+	}
+
 	/**
 	 * @param cameraFitToView if true, modifies the camera object as required to fit within the viewport
 	 */
 	public apply(camera: Camera, cameraFitToView: boolean, report: GamingCanvasReport): void {
-		this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasScale(camera.z, 1, 100, 1, this.cameraZScaleMax));
-		this.increment++;
-
-		this.heightC = report.canvasHeight / this.cellSizePx;
 		this.heightPx = report.canvasHeight;
-		this.widthC = report.canvasWidth / this.cellSizePx;
 		this.widthPx = report.canvasWidth;
 
-		// Height + position bounded
-		this.heightStartPx = Math.round((camera.y - this.heightPx / 2) * 1000) / 1000;
+		// Viewport: height + position bounded
+		this.heightStartC = camera.y - this.heightC / 2;
 		if (cameraFitToView === true) {
-			if (this.heightStartPx < 0) {
-				camera.y = this.heightPx / 2;
-				camera.yRelative = 0.5;
+			if (this.heightStartC < 0) {
+				camera.y = this.heightC / 2;
 
 				this.heightStartC = 0;
 				this.heightStartPx = 0;
 
 				this.heightStopC = this.heightC;
-				this.heightStopPx = this.heightPx;
-			} else if (this.heightStartPx + this.heightPx > this.cellsHeight) {
-				camera.y = this.cellsHeight / this.cellSizePx - this.heightPx / 2;
-				camera.yRelative = camera.y / this.heightPx;
+				this.heightStopPx = this.heightStopC * this.cellSizePx;
+			} else if (this.heightStartC + this.heightC > this.cellsHeight) {
+				camera.y = this.cellsHeight - this.heightC / 2;
+				camera.yRelative = camera.y / this.heightC;
 
 				this.heightStopC = this.cellsHeight;
 				this.heightStopPx = this.heightStopC * this.cellSizePx;
@@ -64,51 +69,59 @@ export class Viewport {
 				this.heightStartC = this.heightStopC - this.heightC;
 				this.heightStartPx = this.heightStartC * this.cellSizePx;
 			} else {
-				this.heightStartC = this.heightStopC - this.heightC;
-
+				this.heightStartPx = this.heightStartC * this.cellSizePx;
 				this.heightStopC = this.heightStartC + this.heightC;
 				this.heightStopPx = this.heightStopC * this.cellSizePx;
 			}
 		} else {
-			this.heightStartC = this.heightStopC - this.heightC;
-
+			this.heightStartPx = this.heightStartC * this.cellSizePx;
 			this.heightStopC = this.heightStartC + this.heightC;
 			this.heightStopPx = this.heightStopC * this.cellSizePx;
 		}
 
-		// Width + position bounded
-		this.widthStartPx = Math.round((camera.x - this.widthPx / 2) * 1000) / 1000;
+		// Viewport: width + position bounded
+		this.widthStartC = camera.x - this.widthC / 2;
 		if (cameraFitToView === true) {
-			if (this.widthStartPx < 0) {
-				camera.x = this.widthPx / 2;
-				camera.xRelative = 0.5;
+			if (this.widthStartC < 0) {
+				camera.x = this.widthC / 2;
+				camera.xRelative = camera.x / this.widthC;
 
 				this.widthStartC = 0;
 				this.widthStartPx = 0;
 
 				this.widthStopC = this.widthC;
-				this.widthStopPx = this.widthPx;
-			} else if (this.widthStartPx + this.widthPx > this.cellsWidth) {
-				camera.x = this.cellsWidth / this.cellSizePx - this.widthPx / 2;
-				camera.xRelative = camera.x / this.widthPx;
+				this.widthStopPx = this.widthStopC * this.cellSizePx;
+			} else if (this.widthStartC + this.widthC > this.cellsHeight) {
+				camera.x = this.cellsHeight - this.widthC / 2;
+				camera.xRelative = camera.x / this.widthC;
 
-				this.widthStopC = this.cellsWidth;
+				this.widthStopC = this.cellsHeight;
 				this.widthStopPx = this.widthStopC * this.cellSizePx;
 
 				this.widthStartC = this.widthStopC - this.widthC;
 				this.widthStartPx = this.widthStartC * this.cellSizePx;
 			} else {
-				this.widthStartC = this.widthStopC - this.widthC;
-
+				this.widthStartPx = this.widthStartC * this.cellSizePx;
 				this.widthStopC = this.widthStartC + this.widthC;
 				this.widthStopPx = this.widthStopC * this.cellSizePx;
 			}
 		} else {
-			this.widthStartC = this.widthStopC - this.widthC;
-
+			this.widthStartPx = this.widthStartC * this.cellSizePx;
 			this.widthStopC = this.widthStartC + this.widthC;
 			this.widthStopPx = this.widthStopC * this.cellSizePx;
 		}
+
+		// Done
+		this.increment++;
+	}
+
+	public applyZ(camera: Camera, report: GamingCanvasReport): void {
+		this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasScale(camera.z, 1, 100, 1, this.cameraZScaleMax));
+		this.heightC = report.canvasHeight / this.cellSizePx;
+		this.widthC = report.canvasWidth / this.cellSizePx;
+
+		// Done
+		this.increment++;
 	}
 
 	public decode(data: Float32Array): void {

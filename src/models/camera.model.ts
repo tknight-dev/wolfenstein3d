@@ -2,6 +2,9 @@
  * @author tknight-dev
  */
 
+/**
+ * Postions in terms of C
+ */
 export interface Camera {
 	r: number; // float: rotation in degrees
 	x: number; // int
