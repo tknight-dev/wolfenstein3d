@@ -30,17 +30,6 @@ export class Viewport {
 		this.cellsWidth = cellsWidth;
 	}
 
-	public toString(): string {
-		return `{
-	cellSize: ${this.cellSizePx}px, 
-	cellDimensions: ${this.cellsWidth}C x ${this.cellsHeight}C
-},
-dimensionsC: [${this.widthC} x ${this.heightC}],
-dimensionsPx: [${this.widthPx} x ${this.heightPx}],
-viewportC: [${this.widthStartC} to ${this.widthStopC} x ${this.heightStartC} to ${this.heightStopC} ]
-viewportPx: [${this.widthStartPx} to ${this.widthStopPx} x ${this.heightStartPx} to ${this.heightStopPx}]`;
-	}
-
 	/**
 	 * @param cameraFitToView if true, modifies the camera object as required to fit within the viewport
 	 */
@@ -53,6 +42,7 @@ viewportPx: [${this.widthStartPx} to ${this.widthStopPx} x ${this.heightStartPx}
 		if (cameraFitToView === true) {
 			if (this.heightStartC < 0) {
 				camera.y = this.heightC / 2;
+				camera.yRelative = camera.y / this.heightC;
 
 				this.heightStartC = 0;
 				this.heightStartPx = 0;
@@ -91,8 +81,8 @@ viewportPx: [${this.widthStartPx} to ${this.widthStopPx} x ${this.heightStartPx}
 
 				this.widthStopC = this.widthC;
 				this.widthStopPx = this.widthStopC * this.cellSizePx;
-			} else if (this.widthStartC + this.widthC > this.cellsHeight) {
-				camera.x = this.cellsHeight - this.widthC / 2;
+			} else if (this.widthStartC + this.widthC > this.cellsWidth) {
+				camera.x = this.cellsWidth - this.widthC / 2;
 				camera.xRelative = camera.x / this.widthC;
 
 				this.widthStopC = this.cellsHeight;
