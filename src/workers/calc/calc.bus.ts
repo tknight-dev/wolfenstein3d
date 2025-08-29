@@ -1,3 +1,5 @@
+import { Camera } from '../../models/camera.model';
+import { CharacterControl } from '../../models/character.model';
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { CalcBusInputCmd, CalcBusInputDataSettings, CalcBusOutputCmd, CalcBusOutputDataStats, CalcBusOutputPayload } from './calc.model';
 import { GameMap } from '../../models/game.model';
@@ -7,6 +9,7 @@ import { GameMap } from '../../models/game.model';
  */
 
 export class CalcBus {
+	private static callbackCamera: (camera: Float32Array) => void;
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
@@ -48,6 +51,9 @@ export class CalcBus {
 
 			for (payload of payloads) {
 				switch (payload.cmd) {
+					case CalcBusOutputCmd.CAMERA:
+						CalcBus.callbackCamera(<Float32Array>payload.data);
+						break;
 					case CalcBusOutputCmd.INIT_COMPLETE:
 						CalcBus.callbackInitComplete(<boolean>payload.data);
 						break;
@@ -63,12 +69,14 @@ export class CalcBus {
 	 * Output
 	 */
 
-	// Non-fixed resolution canvas has changed in size
-	public static outputReport(report: GamingCanvasReport): void {
-		CalcBus.worker.postMessage({
-			cmd: CalcBusInputCmd.REPORT,
-			data: report,
-		});
+	public static outputCharacterControl(characterControl: Float32Array): void {
+		CalcBus.worker.postMessage(
+			{
+				cmd: CalcBusInputCmd.CHARACTER_CONTROL,
+				data: characterControl,
+			},
+			[characterControl.buffer],
+		);
 	}
 
 	// User changed their settings
@@ -77,6 +85,10 @@ export class CalcBus {
 			cmd: CalcBusInputCmd.SETTINGS,
 			data: settings,
 		});
+	}
+
+	public static setCallbackCamera(callbackCamera: (camera: Float32Array) => void): void {
+		CalcBus.callbackCamera = callbackCamera;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcBusOutputDataStats) => void): void {

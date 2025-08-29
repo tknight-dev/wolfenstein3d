@@ -1,4 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { Camera } from '../../models/camera.model';
 import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
@@ -20,6 +21,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoMainBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case VideoMainBusInputCmd.CAMERA:
+			VideoMainEngine.inputCamera(<Float32Array>payload.data);
+			break;
 		case VideoMainBusInputCmd.INIT:
 			VideoMainEngine.initialize(<VideoMainBusInputDataInit>payload.data);
 			break;
@@ -89,6 +93,8 @@ class VideoMainEngine {
 	/*
 	 * Input
 	 */
+
+	public static inputCamera(camera: Float32Array): void {}
 
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.reportHeightPx = report.canvasHeight;

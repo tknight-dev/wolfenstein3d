@@ -1,5 +1,7 @@
+import { CharacterControl, CharacterControlDecode } from '../../models/character.model';
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
 import { GameMap } from '../../models/game.model';
+import { CameraEncode } from '../../models/camera.model';
 
 /**
  * @author tknight-dev
@@ -12,6 +14,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: CalcBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case CalcBusInputCmd.CHARACTER_CONTROL:
+			CalcEngine.inputCharacterControl(<Float32Array>payload.data);
+			break;
 		case CalcBusInputCmd.INIT:
 			CalcEngine.initialize(<CalcBusInputDataInit>payload.data);
 			break;
@@ -50,6 +55,31 @@ class CalcEngine {
 	/*
 	 * Input
 	 */
+
+	public static inputCharacterControl(data: Float32Array): void {
+		let characterControl: CharacterControl = CharacterControlDecode(data);
+		// console.log('calc got', characterControl);
+
+		let cameraRaw: Float32Array = CameraEncode({
+			rDeg: characterControl.rDeg,
+			rRad: characterControl.rRad,
+			x: 32,
+			xRelative: 0.5,
+			y: 32,
+			yRelative: 0.5,
+			z: 1,
+		});
+
+		CalcEngine.post(
+			[
+				{
+					cmd: CalcBusOutputCmd.CAMERA,
+					data: cameraRaw,
+				},
+			],
+			[cameraRaw.buffer],
+		);
+	}
 
 	public static inputSettings(data: CalcBusInputDataSettings): void {
 		CalcEngine.settingsFPMS = 1000 / data.fps;

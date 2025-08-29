@@ -339,8 +339,24 @@ class VideoEditorEngine {
 					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
 				);
 
+				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;
+				offscreenCanvasContext.strokeStyle = 'blue';
+				offscreenCanvasContext.beginPath();
+				offscreenCanvasContext.moveTo(offscreenCanvas.width / 2, offscreenCanvas.height / 2); // Center
+				offscreenCanvasContext.lineTo(
+					viewport.cellSizePx * Math.sin(camera.rRad) + offscreenCanvas.width / 2,
+					viewport.cellSizePx * Math.cos(camera.rRad) + offscreenCanvas.height / 2,
+				);
+				offscreenCanvasContext.closePath();
+				offscreenCanvasContext.stroke();
+
 				offscreenCanvasContext.fillStyle = 'red';
-				offscreenCanvasContext.fillRect(offscreenCanvas.width / 2 + 2.5, offscreenCanvas.height / 2 + 2.5, 5, 5);
+				offscreenCanvasContext.fillRect(
+					offscreenCanvas.width / 2 - viewport.cellSizePx / 4,
+					offscreenCanvas.height / 2 - viewport.cellSizePx / 4,
+					viewport.cellSizePx / 2,
+					viewport.cellSizePx / 2,
+				);
 
 				// statDrawAvg.watchStop();
 			}

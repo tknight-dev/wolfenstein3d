@@ -1,3 +1,4 @@
+import { Camera } from '../../models/camera.model';
 import { GameMap } from '../../models/game.model';
 import { FPS } from '../../models/settings.model';
 
@@ -9,8 +10,8 @@ import { FPS } from '../../models/settings.model';
  * Input
  */
 export enum CalcBusInputCmd {
+	CHARACTER_CONTROL,
 	INIT,
-	REPORT,
 	SETTINGS,
 }
 
@@ -24,13 +25,14 @@ export interface CalcBusInputDataSettings {
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataSettings;
+	data: CalcBusInputDataInit | CalcBusInputDataSettings | Float32Array;
 }
 
 /*
  * Output
  */
 export enum CalcBusOutputCmd {
+	CAMERA,
 	INIT_COMPLETE,
 	STATS,
 }
@@ -39,5 +41,5 @@ export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusOutputDataStats;
+	data: boolean | CalcBusOutputDataStats | Float32Array;
 }

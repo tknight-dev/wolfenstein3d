@@ -10,7 +10,7 @@ import { FPS } from '../../models/settings.model';
  * Input
  */
 export enum VideoMainBusInputCmd {
-	CAMERA_VIEWPORT,
+	CAMERA,
 	INIT,
 	REPORT,
 	SETTINGS,
@@ -32,7 +32,7 @@ export interface VideoMainBusInputDataSettings {
 
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
-	data: GamingCanvasReport | VideoMainBusInputDataCamera | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
+	data: Float32Array | GamingCanvasReport | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
 }
 
 /*

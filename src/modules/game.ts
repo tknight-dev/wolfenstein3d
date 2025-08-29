@@ -1,6 +1,8 @@
 import { DOM } from './dom';
 import { CalcBusInputDataSettings } from '../workers/calc/calc.model';
-import { Camera, CameraEncode } from '../models/camera.model';
+import { CalcBus } from '../workers/calc/calc.bus';
+import { Camera, CameraDecode, CameraEncode } from '../models/camera.model';
+import { CharacterControl, CharacterControlEncode } from '../models/character.model';
 import { GameMap } from '../models/game.model';
 import { Resolution } from '../models/settings.model';
 import { Viewport } from '../models/viewport.model';
@@ -54,12 +56,13 @@ export class Game {
 
 		// Camera and Viewport
 		Game.camera = {
-			r: 90, // North
+			rDeg: 90, // North
+			rRad: (90 * Math.PI) / 180, // North
 			x: gameDataWidth / 2 + 0.5,
 			xRelative: 0.5,
 			y: gameDataWidth / 2 + 0.5,
 			yRelative: 0.5,
-			z: 10,
+			z: 80, // Def 10
 		};
 		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
 
@@ -99,6 +102,7 @@ export class Game {
 	public static initializeGame(): void {
 		// Integrations
 		Game.report = GamingCanvas.getReport();
+
 		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
 			Game.camera.z = -1;
 			Game.report = report;
@@ -135,6 +139,12 @@ export class Game {
 			cameraZoomMin: number = 10,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 10,
+			characterControl: CharacterControl = {
+				rDeg: Game.camera.rDeg, // initial value
+				rRad: Game.camera.rRad, // initial value
+				x: false,
+				y: false,
+			},
 			down: boolean,
 			downMode: boolean,
 			// elementEditStyle: CSSStyleDeclaration = DOM.elementEdit.style,
@@ -162,39 +172,45 @@ export class Game {
 			x: number,
 			y: number;
 
+		CalcBus.setCallbackCamera((cameraRaw: Float32Array) => {
+			let cameraParsed: Camera = CameraDecode(cameraRaw);
+			camera.rDeg = cameraParsed.rDeg; // TEMPORARY
+			camera.rRad = cameraParsed.rRad; // TEMPORARY
+			viewport.apply(camera, false);
+
+			VideoEditorBus.outputCameraAndViewport({
+				camera: CameraEncode(camera),
+				viewport: viewport.encode(),
+			});
+			VideoMainBus.outputCamera(CameraEncode(camera));
+		});
+
 		// Limit how often a camera update can be sent via the bus
 		setInterval(() => {
 			if (cameraUpdated || Game.reportNew) {
 				report = Game.report;
 
-				// Zoom
-				if (camera.z !== cameraZoom) {
-					camera.z = cameraZoom;
-					viewport.applyZ(camera, report);
+				if (modeEdit) {
+					// Zoom
+					if (camera.z !== cameraZoom) {
+						camera.z = cameraZoom;
+						viewport.applyZ(camera, report);
+					} else if (cameraUpdated === true) {
+						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
+						camera.xRelative = camera.x / viewport.cellsWidth;
+						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
+						camera.yRelative = camera.y / viewport.cellsHeight;
+					}
+					viewport.apply(camera, false);
 
-					// Very minor glitch here
-					// 1. set move position orignal
-					// 2. move from original position
-					// 3. zoom while maintaining move action
-					// 4. move has slight glitch to another position on start
-
-					// Doesn't fix it
-					// cameraMoveXOriginal = camera.xRelative;
-					// cameraMoveYOriginal = camera.yRelative;
-					// cameraXOriginal = camera.x;
-					// cameraYOriginal = camera.y;
-				} else if (cameraUpdated === true) {
-					camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
-					camera.xRelative = camera.x / viewport.cellsWidth;
-					camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
-					camera.yRelative = camera.y / viewport.cellsHeight;
+					VideoEditorBus.outputCameraAndViewport({
+						camera: CameraEncode(camera),
+						viewport: viewport.encode(),
+					});
+				} else {
+					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
 				}
-				viewport.apply(camera, false);
 
-				VideoEditorBus.outputCameraAndViewport({
-					camera: CameraEncode(camera),
-					viewport: viewport.encode(),
-				});
 				cameraUpdated = false;
 				Game.reportNew = false;
 			}
@@ -207,6 +223,7 @@ export class Game {
 				queueTimestamp = timestampNow;
 
 				// Update temporary values
+				modeEdit = Game.modeEdit;
 
 				while (queue.length !== 0) {
 					queueInput = <GamingCanvasInput>queue.pop();
@@ -245,26 +262,36 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputMouseAction.LEFT:
-					if (down === true) {
-						cameraMoveXOriginal = 1 - position1.xRelative;
-						cameraMoveYOriginal = 1 - position1.yRelative;
-						cameraXOriginal = camera.x;
-						cameraYOriginal = camera.y;
+					if (modeEdit) {
+						if (down === true) {
+							cameraMoveXOriginal = 1 - position1.xRelative;
+							cameraMoveYOriginal = 1 - position1.yRelative;
+							cameraXOriginal = camera.x;
+							cameraYOriginal = camera.y;
+						}
+						downMode = down;
 					}
-					downMode = down;
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					if (downMode === true) {
-						cameraMoveX = 1 - position1.xRelative;
-						cameraMoveY = 1 - position1.yRelative;
+					if (modeEdit) {
+						if (downMode === true) {
+							cameraMoveX = 1 - position1.xRelative;
+							cameraMoveY = 1 - position1.yRelative;
+							cameraUpdated = true;
+						}
+					} else {
+						characterControl.rDeg = GamingCanvasScale(position1.xRelative, 0, 1, 360, 0);
+						characterControl.rRad = (characterControl.rDeg * Math.PI) / 180;
 						cameraUpdated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
-					cameraZoomPrevious = cameraZoom;
-					cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
-					if (cameraZoom !== cameraZoomPrevious) {
-						cameraUpdated = true;
+					if (modeEdit) {
+						cameraZoomPrevious = cameraZoom;
+						cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
+						if (cameraZoom !== cameraZoomPrevious) {
+							cameraUpdated = true;
+						}
 					}
 					break;
 			}
@@ -279,60 +306,64 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputTouchAction.ACTIVE:
-					touchAdded = false;
-					touchDistancePrevious = -1;
+					if (modeEdit) {
+						touchAdded = false;
+						touchDistancePrevious = -1;
 
-					if (down === true && positions !== undefined && positions.length === 1) {
-						position1 = positions[0];
+						if (down === true && positions !== undefined && positions.length === 1) {
+							position1 = positions[0];
 
-						cameraMoveXOriginal = 1 - position1.xRelative;
-						cameraMoveYOriginal = 1 - position1.yRelative;
-						cameraXOriginal = camera.x;
-						cameraYOriginal = camera.y;
+							cameraMoveXOriginal = 1 - position1.xRelative;
+							cameraMoveYOriginal = 1 - position1.yRelative;
+							cameraXOriginal = camera.x;
+							cameraYOriginal = camera.y;
+						}
+						downMode = down;
 					}
-					downMode = down;
 					break;
 				case GamingCanvasInputTouchAction.MOVE:
-					if (positions !== undefined) {
-						position1 = positions[0];
+					if (modeEdit) {
+						if (positions !== undefined) {
+							position1 = positions[0];
 
-						if (position1.out === true) {
-							down = false;
-						}
+							if (position1.out === true) {
+								down = false;
+							}
 
-						if (positions.length !== 1) {
-							// Zoom
-							if (down === true) {
-								position2 = positions[1];
+							if (positions.length !== 1) {
+								// Zoom
+								if (down === true) {
+									position2 = positions[1];
 
-								if (touchDistancePrevious !== -1) {
-									touchDistance = GamingCanvasInputPositionDistance(position1, position2) - touchDistancePrevious;
-									if (Math.abs(touchDistance) > 20) {
-										cameraZoomPrevious = cameraZoom;
-										cameraZoom = Math.max(
-											cameraZoomMin,
-											Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
-										);
-										if (cameraZoom !== cameraZoomPrevious) {
-											cameraUpdated = true;
+									if (touchDistancePrevious !== -1) {
+										touchDistance = GamingCanvasInputPositionDistance(position1, position2) - touchDistancePrevious;
+										if (Math.abs(touchDistance) > 20) {
+											cameraZoomPrevious = cameraZoom;
+											cameraZoom = Math.max(
+												cameraZoomMin,
+												Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
+											);
+											if (cameraZoom !== cameraZoomPrevious) {
+												cameraUpdated = true;
+											}
+											touchDistancePrevious = touchDistance + touchDistancePrevious;
 										}
-										touchDistancePrevious = touchDistance + touchDistancePrevious;
+									} else {
+										touchDistancePrevious = GamingCanvasInputPositionDistance(position1, position2);
 									}
 								} else {
-									touchDistancePrevious = GamingCanvasInputPositionDistance(position1, position2);
+									touchDistancePrevious = -1;
 								}
 							} else {
 								touchDistancePrevious = -1;
 							}
-						} else {
-							touchDistancePrevious = -1;
-						}
 
-						// Move
-						if (downMode === true) {
-							cameraMoveX = 1 - position1.xRelative;
-							cameraMoveY = 1 - position1.yRelative;
-							cameraUpdated = true;
+							// Move
+							if (downMode === true) {
+								cameraMoveX = 1 - position1.xRelative;
+								cameraMoveY = 1 - position1.yRelative;
+								cameraUpdated = true;
+							}
 						}
 					}
 					break;
@@ -356,9 +387,14 @@ export class Game {
 			Game.modeEdit = false;
 
 			// DOM
-			DOM.elButtonEdit.classList.remove('active');
-			DOM.elButtonPlay.classList.add('active');
-			DOM.elCanvases[1].classList.add('hide');
+			// DOM.elButtonEdit.classList.remove('active');
+			// DOM.elButtonPlay.classList.add('active');
+			// DOM.elCanvases[1].classList.add('hide');
+
+			// TMP FOR CALC WORK ON POSITION AND ROTATION
+			DOM.elButtonEdit.classList.add('active');
+			DOM.elButtonPlay.classList.remove('active');
+			DOM.elCanvases[1].classList.remove('hide');
 		}
 	}
 }

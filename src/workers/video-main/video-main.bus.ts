@@ -84,6 +84,16 @@ export class VideoMainBus {
 	 * Output
 	 */
 
+	public static outputCamera(camera: Float32Array): void {
+		VideoMainBus.worker.postMessage(
+			{
+				cmd: VideoMainBusInputCmd.CAMERA,
+				data: camera,
+			},
+			[camera.buffer],
+		);
+	}
+
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {
 		VideoMainBus.worker.postMessage({

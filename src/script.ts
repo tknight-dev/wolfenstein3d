@@ -186,7 +186,7 @@ class Blockenstein {
 
 		// Done
 		Game.initializeGame();
-		Game.viewEditor();
+		Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 	}
 

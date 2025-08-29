@@ -90,10 +90,13 @@ export class VideoEditorBus {
 	 */
 
 	public static outputCameraAndViewport(data: VideoEditorBusInputDataCameraAndViewport): void {
-		VideoEditorBus.worker.postMessage({
-			cmd: VideoEditorBusInputCmd.CAMERA_VIEWPORT,
-			data: data,
-		});
+		VideoEditorBus.worker.postMessage(
+			{
+				cmd: VideoEditorBusInputCmd.CAMERA_VIEWPORT,
+				data: data,
+			},
+			[data.camera.buffer, data.viewport.buffer],
+		);
 	}
 
 	public static outputDataSegment(data: Map<number, number>): void {
