@@ -39,7 +39,6 @@ export class Viewport {
 		if (cameraFitToView === true) {
 			if (this.heightStartC < 0) {
 				camera.y = this.heightC / 2;
-				camera.yRelative = camera.y / this.heightC;
 
 				this.heightStartC = 0;
 				this.heightStartPx = 0;
@@ -48,7 +47,6 @@ export class Viewport {
 				this.heightStopPx = this.heightStopC * this.cellSizePx;
 			} else if (this.heightStartC + this.heightC > this.cellsHeight) {
 				camera.y = this.cellsHeight - this.heightC / 2;
-				camera.yRelative = camera.y / this.heightC;
 
 				this.heightStopC = this.cellsHeight;
 				this.heightStopPx = this.heightStopC * this.cellSizePx;
@@ -62,7 +60,6 @@ export class Viewport {
 			}
 		} else {
 			camera.y = Math.max(-this.heightC * 2, Math.min(this.heightC * 2, camera.y));
-			camera.yRelative = Math.max(-2, Math.min(2, camera.yRelative));
 
 			this.heightStartPx = this.heightStartC * this.cellSizePx;
 			this.heightStopC = this.heightStartC + this.heightC;
@@ -74,7 +71,6 @@ export class Viewport {
 		if (cameraFitToView === true) {
 			if (this.widthStartC < 0) {
 				camera.x = this.widthC / 2;
-				camera.xRelative = camera.x / this.widthC;
 
 				this.widthStartC = 0;
 				this.widthStartPx = 0;
@@ -83,7 +79,6 @@ export class Viewport {
 				this.widthStopPx = this.widthStopC * this.cellSizePx;
 			} else if (this.widthStartC + this.widthC > this.cellsWidth) {
 				camera.x = this.cellsWidth - this.widthC / 2;
-				camera.xRelative = camera.x / this.widthC;
 
 				this.widthStopC = this.cellsHeight;
 				this.widthStopPx = this.widthStopC * this.cellSizePx;

@@ -88,8 +88,7 @@ class CalcEngine {
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
 		let characterControl: CharacterControl = {
-				rDeg: CalcEngine.characterPosition.rDeg,
-				rRad: CalcEngine.characterPosition.rRad,
+				r: CalcEngine.characterPosition.r,
 				x: 0,
 				y: 0,
 			},
@@ -129,9 +128,8 @@ class CalcEngine {
 					CalcEngine.characterControlNew = false;
 					characterControl = CharacterControlDecode(CalcEngine.characterControlRaw);
 
-					if (characterPosition.rDeg !== characterControl.rDeg || characterPosition.rRad !== characterControl.rRad) {
-						characterPosition.rDeg = characterControl.rDeg;
-						characterPosition.rRad = characterControl.rRad;
+					if (characterPosition.r !== characterControl.r) {
+						characterPosition.r = characterControl.r;
 						characterPositionUpdated = true;
 					}
 				}
@@ -140,8 +138,7 @@ class CalcEngine {
 				if (characterControl.x !== 0 || characterControl.y !== 0) {
 					// X
 					characterControlX =
-						(Math.cos(characterControl.rRad) * -characterControl.x + Math.sin(characterControl.rRad) * -characterControl.y) *
-						characterControlFactor;
+						(Math.cos(characterControl.r) * -characterControl.x + Math.sin(characterControl.r) * -characterControl.y) * characterControlFactor;
 
 					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMap.dataWidth;
@@ -153,7 +150,7 @@ class CalcEngine {
 
 					// Y
 					characterControlY =
-						(Math.sin(characterControl.rRad) * characterControl.x + Math.cos(characterControl.rRad) * -characterControl.y) * characterControlFactor;
+						(Math.sin(characterControl.r) * characterControl.x + Math.cos(characterControl.r) * -characterControl.y) * characterControlFactor;
 
 					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;

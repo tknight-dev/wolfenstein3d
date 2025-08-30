@@ -7,44 +7,40 @@ export interface Character extends CharacterPosition {
 }
 
 export class CharacterControl {
-	rDeg: number; // 0 - 360 deg
-	rRad: number; // 0 - 6.28318530 rads
+	r: number; // 0 - 6.28318530 rads
 	x: number; // -1 to 1
 	y: number; // -1 to 1
 }
 
 export const CharacterControlEncode = (characterControl: CharacterControl): Float32Array => {
-	return Float32Array.from([characterControl.rDeg, characterControl.rRad, characterControl.x, characterControl.y]);
+	return Float32Array.from([characterControl.r, characterControl.x, characterControl.y]);
 };
 
 export const CharacterControlDecode = (characterControl: Float32Array): CharacterControl => {
 	return {
-		rDeg: characterControl[0],
-		rRad: characterControl[1],
-		x: characterControl[2],
-		y: characterControl[3],
+		r: characterControl[0],
+		x: characterControl[1],
+		y: characterControl[2],
 	};
 };
 
 export interface CharacterPosition {
 	dataIndex: number; // int
-	rDeg: number; // 0 - 360 deg
-	rRad: number; // 0 - 6.28318530 rads
+	r: number; // 0 - 6.28318530 rads
 	x: number; // float
 	y: number; // float
 }
 
 export const CharacterPositionEncode = (characterPosition: CharacterPosition): Float32Array => {
-	return Float32Array.from([characterPosition.dataIndex, characterPosition.rDeg, characterPosition.rRad, characterPosition.x, characterPosition.y]);
+	return Float32Array.from([characterPosition.dataIndex, characterPosition.r, characterPosition.x, characterPosition.y]);
 };
 
 export const CharacterPositionDecode = (characterPosition: Float32Array): CharacterPosition => {
 	return {
 		dataIndex: characterPosition[0] | 0,
-		rDeg: characterPosition[1],
-		rRad: characterPosition[2],
-		x: characterPosition[3],
-		y: characterPosition[4],
+		r: characterPosition[1],
+		x: characterPosition[2],
+		y: characterPosition[3],
 	};
 };
 

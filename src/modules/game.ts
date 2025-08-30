@@ -58,12 +58,10 @@ export class Game {
 
 		// Camera and Viewport
 		Game.camera = {
-			rDeg: 90, // North
-			rRad: (90 * Math.PI) / 180, // North
+			fov: (60 * Math.PI) / 180, // 60deg
+			r: (90 * Math.PI) / 180, // North
 			x: gameDataWidth / 2 + 0.5,
-			xRelative: 0.5,
 			y: gameDataWidth / 2 + 0.5,
-			yRelative: 0.5,
 			z: gameCameraZoomInitial, // Def 10
 		};
 		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
@@ -159,8 +157,7 @@ export class Game {
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 10,
 			characterControl: CharacterControl = {
-				rDeg: Game.camera.rDeg, // initial value
-				rRad: Game.camera.rRad, // initial value
+				r: Game.camera.r, // initial value
 				x: 0,
 				y: 0,
 			},
@@ -199,12 +196,9 @@ export class Game {
 			if (modeEdit === false) {
 				const characterPosition: CharacterPosition = CharacterPositionDecode(characterPositionRaw);
 
-				camera.rDeg = characterPosition.rDeg;
-				camera.rRad = characterPosition.rRad;
+				camera.r = characterPosition.r;
 				camera.x = characterPosition.x;
-				camera.xRelative = characterPosition.x / viewport.cellsWidth;
 				camera.y = characterPosition.y;
-				camera.yRelative = characterPosition.y / viewport.cellsHeight;
 				camera.z = gamepadMap.cameraZoomIntial;
 				cameraZoom = camera.z;
 
@@ -238,9 +232,7 @@ export class Game {
 						cellSizePx = viewport.cellSizePx;
 					} else if (updated === true) {
 						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
-						camera.xRelative = camera.x / viewport.cellsWidth;
 						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
-						camera.yRelative = camera.y / viewport.cellsHeight;
 					}
 					viewport.apply(camera, false);
 
@@ -362,8 +354,7 @@ export class Game {
 							updated = true;
 						}
 					} else {
-						characterControl.rDeg = GamingCanvasScale(position1.xRelative, 0, 1, 360, 0);
-						characterControl.rRad = (characterControl.rDeg * Math.PI) / 180;
+						characterControl.r = (GamingCanvasScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
 						updated = true;
 					}
 					break;

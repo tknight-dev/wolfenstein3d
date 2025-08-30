@@ -376,8 +376,8 @@ class VideoEditorEngine {
 				offscreenCanvasContext.beginPath();
 				offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
 				offscreenCanvasContext.lineTo(
-					cellSizePx * (Math.sin(characterPosition.rRad) + characterPositionXEff),
-					cellSizePx * (Math.cos(characterPosition.rRad) + characterPositionYEff),
+					cellSizePx * (Math.sin(characterPosition.r) + characterPositionXEff),
+					cellSizePx * (Math.cos(characterPosition.r) + characterPositionYEff),
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.stroke();
