@@ -29,6 +29,7 @@ export class CalcBus {
 
 			// Init the webworker
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
+				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
 				rDeg: camera.rDeg,
 				rRad: camera.rRad,
 				x: camera.x,

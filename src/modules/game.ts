@@ -70,18 +70,35 @@ export class Game {
 
 		// Game Map
 		const map: Uint8Array = new Uint8Array(gameDataWidth * gameDataWidth),
-			mapCenter: number = (gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0;
+			mapCenter: number = (gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0,
+			valueFlooor: number = 0x00,
+			valueWall: number = 0x01;
+
+		// Map basic layout
+		map.fill(valueWall);
+
+		// Boundaries
 		// map[0] = 0xff; // top-left
 		// map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
 		// map[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
 		// map[gameDataWidth ** 2 - 1] = 0xff; // bottom-right
 		// gameData[gameDataWidth - 1] = 0xff; // bottom-left
 
-		for (let x = mapCenter - gameDataWidth * 5; x <= mapCenter + gameDataWidth * 5; x += gameDataWidth) {
-			for (let y = -5; y <= 5; y++) {
-				map[x + y] = 0xff;
+		// Central square...ish
+		let boxSize: number = 3;
+		for (let x = mapCenter - gameDataWidth * boxSize; x <= mapCenter + gameDataWidth * boxSize; x += gameDataWidth) {
+			for (let y = -boxSize; y <= boxSize; y++) {
+				map[x + y] = valueFlooor;
 			}
 		}
+
+		map[(gameDataWidth ** 2 / 2 - gameDataWidth / 2 - 2) | 0] = valueWall; // Top-Left
+		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + gameDataWidth - 2) | 0] = valueWall; // Top-Right
+		map[(gameDataWidth ** 2 / 2 - gameDataWidth / 2 + 2) | 0] = valueWall; // Bottom-Left
+		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + gameDataWidth + 2) | 0] = valueWall; // Bottom-Right
+
+		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 - (boxSize + 1)) | 0] = valueFlooor; // Top-Center
+		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + (boxSize + 1)) | 0] = valueFlooor; // Bottom-Center
 
 		Game.dataMaps.set(0, {
 			cameraZoomIntial: gameCameraZoomInitial,
@@ -295,15 +312,15 @@ export class Game {
 						break;
 					case 'KeyW':
 						if (down) {
-							characterControl.y = 1;
-						} else if (characterControl.y === 1) {
+							characterControl.y = -1;
+						} else if (characterControl.y === -1) {
 							characterControl.y = 0;
 						}
 						break;
 					case 'KeyS':
 						if (down) {
-							characterControl.y = -1;
-						} else if (characterControl.y === -1) {
+							characterControl.y = 1;
+						} else if (characterControl.y === 1) {
 							characterControl.y = 0;
 						}
 						break;

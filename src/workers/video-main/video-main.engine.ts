@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { Camera } from '../../models/camera.model';
+import { Camera, CameraDecode } from '../../models/camera.model';
 import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
@@ -37,6 +37,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
+	private static cameraNew: boolean;
+	private static cameraRaw: Float32Array;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
@@ -97,7 +99,12 @@ class VideoMainEngine {
 	 * Input
 	 */
 
-	public static inputCamera(camera: Float32Array): void {}
+	public static inputCamera(camera: Float32Array): void {
+		VideoMainEngine.cameraRaw = camera;
+
+		// Last
+		VideoMainEngine.cameraNew = true;
+	}
 
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.reportHeightPx = report.canvasHeight;
@@ -127,7 +134,8 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let fpms: number = VideoMainEngine.settingsFPMS,
+		let camera: Camera,
+			fpms: number = VideoMainEngine.settingsFPMS,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			frameCount: number = 0,
@@ -145,6 +153,12 @@ class VideoMainEngine {
 				// More accurately calculate for more stable FPS
 				timestampThen = timestampNow - (timestampDelta % fpms);
 				frameCount++;
+
+				if (VideoMainEngine.cameraNew === true) {
+					VideoMainEngine.cameraNew = false;
+
+					camera = CameraDecode(VideoMainEngine.cameraRaw);
+				}
 
 				if (VideoMainEngine.reportNew === true) {
 					VideoMainEngine.reportNew = false;

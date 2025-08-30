@@ -27,22 +27,24 @@ export const CharacterControlDecode = (characterControl: Float32Array): Characte
 };
 
 export interface CharacterPosition {
+	dataIndex: number; // int
 	rDeg: number; // 0 - 360 deg
 	rRad: number; // 0 - 6.28318530 rads
-	x: number; // int
-	y: number; // int
+	x: number; // float
+	y: number; // float
 }
 
 export const CharacterPositionEncode = (characterPosition: CharacterPosition): Float32Array => {
-	return Float32Array.from([characterPosition.rDeg, characterPosition.rRad, characterPosition.x, characterPosition.y]);
+	return Float32Array.from([characterPosition.dataIndex, characterPosition.rDeg, characterPosition.rRad, characterPosition.x, characterPosition.y]);
 };
 
 export const CharacterPositionDecode = (characterPosition: Float32Array): CharacterPosition => {
 	return {
-		rDeg: characterPosition[0],
-		rRad: characterPosition[1],
-		x: characterPosition[2],
-		y: characterPosition[3],
+		dataIndex: characterPosition[0] | 0,
+		rDeg: characterPosition[1],
+		rRad: characterPosition[2],
+		x: characterPosition[3],
+		y: characterPosition[4],
 	};
 };
 

@@ -1,6 +1,6 @@
 import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model';
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
-import { GameMap } from '../../models/game.model';
+import { GameMap, GameMapCellMasks } from '../../models/game.model';
 import { CameraEncode } from '../../models/camera.model';
 
 /**
@@ -93,8 +93,12 @@ class CalcEngine {
 				x: 0,
 				y: 0,
 			},
-			characterPosition: Float32Array,
+			characterPosition: CharacterPosition = CalcEngine.characterPosition,
+			characterPositionBefore: CharacterPosition = JSON.parse(JSON.stringify(CalcEngine.characterPosition)),
+			characterPositionEncoded: Float32Array,
+			characterPositionUpdated: boolean,
 			cycleMinMs: number = 2,
+			gameMap: GameMap = CalcEngine.gameMap,
 			fpms: number = CalcEngine.settingsFPMS,
 			timestampDelta: number,
 			timestampFPSDelta: number,
@@ -113,17 +117,36 @@ class CalcEngine {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
 
-				// Calc code here
+				// Character
 				if (CalcEngine.characterControlNew === true) {
 					CalcEngine.characterControlNew = false;
 					characterControl = CharacterControlDecode(CalcEngine.characterControlRaw);
 
-					CalcEngine.characterPosition.rDeg = characterControl.rDeg;
-					CalcEngine.characterPosition.rRad = characterControl.rRad;
+					characterPosition.rDeg = characterControl.rDeg;
+					characterPosition.rRad = characterControl.rRad;
 				}
 
 				if (characterControl.x !== 0 || characterControl.y !== 0) {
-					console.log('characterControl', characterControl.x, characterControl.y);
+					characterPosition.x += (characterControl.x + Math.sin(characterControl.rRad) * -characterControl.y) * 0.02;
+					characterPosition.y += Math.cos(characterControl.rRad) * -characterControl.y * 0.02;
+					characterPosition.dataIndex = (characterPosition.x | 0) * gameMap.dataWidth + (characterPosition.y | 0);
+				}
+
+				// Collision detection
+				if ((gameMap.data[characterPosition.dataIndex] & GameMapCellMasks.TYPE_WALL) === 1) {
+					characterPosition.dataIndex = characterPositionBefore.dataIndex;
+					characterPosition.rDeg = characterPositionBefore.rDeg;
+					characterPosition.rRad = characterPositionBefore.rRad;
+					characterPosition.x = characterPositionBefore.x;
+					characterPosition.y = characterPositionBefore.y;
+				} else {
+					characterPositionUpdated = true;
+
+					characterPositionBefore.dataIndex = characterPosition.dataIndex;
+					characterPositionBefore.rDeg = characterPosition.rDeg;
+					characterPositionBefore.rRad = characterPosition.rRad;
+					characterPositionBefore.x = characterPosition.x;
+					characterPositionBefore.y = characterPosition.y;
 				}
 			}
 
@@ -136,16 +159,18 @@ class CalcEngine {
 				timestampFPSThen = timestampNow - (timestampFPSDelta % fpms);
 
 				// Update camera position in other threads
-				characterPosition = CharacterPositionEncode(CalcEngine.characterPosition);
-				CalcEngine.post(
-					[
-						{
-							cmd: CalcBusOutputCmd.CHARACTER_POSITION,
-							data: characterPosition,
-						},
-					],
-					[characterPosition.buffer],
-				);
+				if (characterPositionUpdated === true) {
+					characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
+					CalcEngine.post(
+						[
+							{
+								cmd: CalcBusOutputCmd.CHARACTER_POSITION,
+								data: characterPositionEncoded,
+							},
+						],
+						[characterPositionEncoded.buffer],
+					);
+				}
 			}
 		};
 		CalcEngine.go = go;

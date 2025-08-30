@@ -44,6 +44,7 @@ export class VideoEditorBus {
 			// Init the webworker
 			const cameraEncoded: Float32Array = CameraEncode(camera);
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
+				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
 				rDeg: camera.rDeg,
 				rRad: camera.rRad,
 				x: camera.x,

@@ -299,7 +299,7 @@ class VideoEditorEngine {
 						cacheCanvasInstance.width = cellSizePx;
 					}
 					for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
-						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(128,128,128)' : 'rgb(255,255,255)';
+						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(255,255,255)' : 'rgb(128,128,128)';
 						cacheCanvasContextInstance.fillRect(0, 0, cellSizePx, cellSizePx);
 					}
 
@@ -383,12 +383,10 @@ class VideoEditorEngine {
 				offscreenCanvasContext.stroke();
 
 				offscreenCanvasContext.fillStyle = 'red';
-				offscreenCanvasContext.fillRect(
-					characterPositionXEff * cellSizePx - cellSizePx / 4,
-					characterPositionYEff * cellSizePx - cellSizePx / 4,
-					cellSizePx / 2,
-					cellSizePx / 2,
-				);
+				offscreenCanvasContext.beginPath();
+				offscreenCanvasContext.arc(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx, cellSizePx / 4, 0, 2 * Math.PI);
+				offscreenCanvasContext.closePath();
+				offscreenCanvasContext.fill();
 
 				// statDrawAvg.watchStop();
 			}
