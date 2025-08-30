@@ -101,6 +101,8 @@ class CalcEngine {
 			characterPosition: CharacterPosition = CalcEngine.characterPosition,
 			characterPositionEncoded: Float32Array,
 			characterPositionUpdated: boolean,
+			characterSizeInC: number = 0.25,
+			characterSizeInCEff: number,
 			cycleMinMs: number = 10,
 			gameMap: GameMap = CalcEngine.gameMap,
 			gameMapData: Uint8Array = CalcEngine.gameMap.data,
@@ -140,7 +142,9 @@ class CalcEngine {
 					characterControlX =
 						(Math.cos(characterControl.rRad) * -characterControl.x + Math.sin(characterControl.rRad) * -characterControl.y) *
 						characterControlFactor;
-					characterControlXIndex = ((characterPosition.x + characterControlX) | 0) * gameMap.dataWidth;
+
+					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
+					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMap.dataWidth;
 
 					if ((gameMapData[characterControlXIndex + (characterPosition.y | 0)] & GameMapCellMasks.TYPE_WALL) !== 1) {
 						characterPosition.x += characterControlX;
@@ -150,7 +154,9 @@ class CalcEngine {
 					// Y
 					characterControlY =
 						(Math.sin(characterControl.rRad) * characterControl.x + Math.cos(characterControl.rRad) * -characterControl.y) * characterControlFactor;
-					characterControlYIndex = (characterPosition.y + characterControlY) | 0;
+
+					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
+					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;
 
 					if ((gameMapData[(characterPosition.x | 0) * gameMap.dataWidth + characterControlYIndex] & GameMapCellMasks.TYPE_WALL) !== 1) {
 						characterPosition.y += characterControlY;
