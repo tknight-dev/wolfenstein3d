@@ -316,6 +316,7 @@ export class Game {
 						} else if (characterControl.x === -1) {
 							characterControl.x = 0;
 						}
+						updated = true;
 						break;
 					case 'KeyD':
 						if (down) {
@@ -323,6 +324,7 @@ export class Game {
 						} else if (characterControl.x === 1) {
 							characterControl.x = 0;
 						}
+						updated = true;
 						break;
 					case 'KeyW':
 						if (down) {
@@ -330,6 +332,7 @@ export class Game {
 						} else if (characterControl.y === -1) {
 							characterControl.y = 0;
 						}
+						updated = true;
 						break;
 					case 'KeyS':
 						if (down) {
@@ -337,10 +340,20 @@ export class Game {
 						} else if (characterControl.y === 1) {
 							characterControl.y = 0;
 						}
+						updated = true;
 						break;
 				}
-
-				updated = true;
+			} else {
+				switch (input.propriatary.action.code) {
+					case 'KeyQ':
+						// down
+						// Rotate camera left
+						break;
+					case 'KeyE':
+						// down
+						// Rotate camera right
+						break;
+				}
 			}
 		};
 

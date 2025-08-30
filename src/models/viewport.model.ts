@@ -16,7 +16,6 @@ export class Viewport {
 	public heightStartPx: number; // float
 	public heightStopC: number; // float
 	public heightStopPx: number; // float
-	public increment: number = 0; // int
 	public widthC: number; // float
 	public widthPx: number; // int
 	public widthStartC: number; // float
@@ -95,9 +94,6 @@ export class Viewport {
 			this.widthStopC = this.widthStartC + this.widthC;
 			this.widthStopPx = this.widthStopC * this.cellSizePx;
 		}
-
-		// Done
-		this.increment++;
 	}
 
 	public applyZ(camera: Camera, report: GamingCanvasReport): void {
@@ -110,9 +106,6 @@ export class Viewport {
 		this.heightPx = report.canvasHeight;
 		this.widthC = report.canvasWidth / this.cellSizePx;
 		this.widthPx = report.canvasWidth;
-
-		// Done
-		this.increment++;
 	}
 
 	public decode(data: Float32Array): void {
@@ -126,13 +119,12 @@ export class Viewport {
 		this.heightStartPx = data[7];
 		this.heightStopC = data[8];
 		this.heightStopPx = data[9];
-		this.increment = data[10] | 0;
-		this.widthC = data[11];
-		this.widthPx = data[12];
-		this.widthStartC = data[13];
-		this.widthStartPx = data[14];
-		this.widthStopC = data[15];
-		this.widthStopPx = data[16];
+		this.widthC = data[10];
+		this.widthPx = data[11];
+		this.widthStartC = data[12];
+		this.widthStartPx = data[13];
+		this.widthStopC = data[14];
+		this.widthStopPx = data[15];
 	}
 
 	public encode(): Float32Array {
@@ -147,7 +139,6 @@ export class Viewport {
 			this.heightStartPx,
 			this.heightStopC,
 			this.heightStopPx,
-			this.increment,
 			this.widthC,
 			this.widthPx,
 			this.widthStartC,
@@ -155,5 +146,21 @@ export class Viewport {
 			this.widthStopC,
 			this.widthStopPx,
 		]);
+	}
+
+	public updateConfig(
+		camera: Camera,
+		cameraFitToView: boolean,
+		cameraZScaleMax: number,
+		cellsHeight: number,
+		cellsWidth: number,
+		report: GamingCanvasReport,
+	): void {
+		this.cameraZScaleMax = cameraZScaleMax;
+		this.cellsHeight = cellsHeight;
+		this.cellsWidth = cellsWidth;
+
+		this.applyZ(camera, report);
+		this.apply(camera, cameraFitToView);
 	}
 }

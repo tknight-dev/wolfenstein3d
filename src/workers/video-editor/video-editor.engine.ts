@@ -204,6 +204,10 @@ class VideoEditorEngine {
 			offscreenCanvasWidthPx: number = 0,
 			offscreenCanvasWidthPxEff: number = 0,
 			frameCount: number = 0,
+			pi: number = Math.PI,
+			pi2: number = Math.PI * 2,
+			rayOriginXPx: number,
+			rayOriginYPx: number,
 			rays: Float32Array,
 			report: GamingCanvasReport = VideoEditorEngine.report,
 			timestampDelta: number,
@@ -211,7 +215,6 @@ class VideoEditorEngine {
 			timestampThen: number = 0,
 			value: number,
 			viewport: Viewport = new Viewport(),
-			viewportIncrement: number = -1,
 			viewPortHeightStartCEff: number,
 			viewPortHeightStopCEff: number,
 			viewPortWidthStartCEff: number,
@@ -266,8 +269,11 @@ class VideoEditorEngine {
 							characterPosition.y = camera.y;
 						}
 
+						cellSizePx = viewport.cellSizePx;
 						characterPositionXEff = characterPosition.x - viewport.widthStartC;
 						characterPositionYEff = characterPosition.y - viewport.heightStartC;
+						rayOriginXPx = (camera.x - viewport.widthStartC) * cellSizePx;
+						rayOriginYPx = (camera.y - viewport.heightStartC) * cellSizePx;
 					}
 
 					// Report
@@ -283,10 +289,6 @@ class VideoEditorEngine {
 					// Settings
 					gameData = VideoEditorEngine.gameMap.data;
 					fpms = VideoEditorEngine.settingsFPMS;
-
-					// Calc & Cache
-					cellSizePx = viewport.cellSizePx;
-					viewportIncrement = viewport.increment;
 
 					// Cache
 					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
@@ -372,7 +374,7 @@ class VideoEditorEngine {
 					offscreenCanvasContext.strokeStyle = 'yellow';
 					for (i = 0; i < rays.length; i += 2) {
 						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
+						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
 						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStartC), cellSizePx * (rays[i + 1] - viewport.heightStartC));
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
@@ -394,7 +396,7 @@ class VideoEditorEngine {
 				// Draw: Character Position
 				offscreenCanvasContext.fillStyle = 'red';
 				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.arc(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx, cellSizePx / 4, 0, 2 * Math.PI);
+				offscreenCanvasContext.arc(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx, cellSizePx / 4, 0, pi2);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.fill();
 
