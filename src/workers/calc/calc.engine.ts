@@ -93,12 +93,17 @@ class CalcEngine {
 				x: 0,
 				y: 0,
 			},
+			characterControlFactor: number = 0.06,
+			characterControlX: number,
+			characterControlXIndex: number,
+			characterControlY: number,
+			characterControlYIndex: number,
 			characterPosition: CharacterPosition = CalcEngine.characterPosition,
-			characterPositionBefore: CharacterPosition = JSON.parse(JSON.stringify(CalcEngine.characterPosition)),
 			characterPositionEncoded: Float32Array,
 			characterPositionUpdated: boolean,
-			cycleMinMs: number = 2,
+			cycleMinMs: number = 10,
 			gameMap: GameMap = CalcEngine.gameMap,
+			gameMapData: Uint8Array = CalcEngine.gameMap.data,
 			fpms: number = CalcEngine.settingsFPMS,
 			timestampDelta: number,
 			timestampFPSDelta: number,
@@ -117,36 +122,43 @@ class CalcEngine {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
 
-				// Character
+				// Character Control: Update
 				if (CalcEngine.characterControlNew === true) {
 					CalcEngine.characterControlNew = false;
 					characterControl = CharacterControlDecode(CalcEngine.characterControlRaw);
 
-					characterPosition.rDeg = characterControl.rDeg;
-					characterPosition.rRad = characterControl.rRad;
+					if (characterPosition.rDeg !== characterControl.rDeg || characterPosition.rRad !== characterControl.rRad) {
+						characterPosition.rDeg = characterControl.rDeg;
+						characterPosition.rRad = characterControl.rRad;
+						characterPositionUpdated = true;
+					}
 				}
 
+				// Character Control: Input
 				if (characterControl.x !== 0 || characterControl.y !== 0) {
-					characterPosition.x += (characterControl.x + Math.sin(characterControl.rRad) * -characterControl.y) * 0.02;
-					characterPosition.y += Math.cos(characterControl.rRad) * -characterControl.y * 0.02;
+					// X
+					characterControlX =
+						(Math.cos(characterControl.rRad) * -characterControl.x + Math.sin(characterControl.rRad) * -characterControl.y) *
+						characterControlFactor;
+					characterControlXIndex = ((characterPosition.x + characterControlX) | 0) * gameMap.dataWidth;
+
+					if ((gameMapData[characterControlXIndex + (characterPosition.y | 0)] & GameMapCellMasks.TYPE_WALL) !== 1) {
+						characterPosition.x += characterControlX;
+						characterPositionUpdated = true;
+					}
+
+					// Y
+					characterControlY =
+						(Math.sin(characterControl.rRad) * characterControl.x + Math.cos(characterControl.rRad) * -characterControl.y) * characterControlFactor;
+					characterControlYIndex = (characterPosition.y + characterControlY) | 0;
+
+					if ((gameMapData[(characterPosition.x | 0) * gameMap.dataWidth + characterControlYIndex] & GameMapCellMasks.TYPE_WALL) !== 1) {
+						characterPosition.y += characterControlY;
+						characterPositionUpdated = true;
+					}
+
+					// Current cell
 					characterPosition.dataIndex = (characterPosition.x | 0) * gameMap.dataWidth + (characterPosition.y | 0);
-				}
-
-				// Collision detection
-				if ((gameMap.data[characterPosition.dataIndex] & GameMapCellMasks.TYPE_WALL) === 1) {
-					characterPosition.dataIndex = characterPositionBefore.dataIndex;
-					characterPosition.rDeg = characterPositionBefore.rDeg;
-					characterPosition.rRad = characterPositionBefore.rRad;
-					characterPosition.x = characterPositionBefore.x;
-					characterPosition.y = characterPositionBefore.y;
-				} else {
-					characterPositionUpdated = true;
-
-					characterPositionBefore.dataIndex = characterPosition.dataIndex;
-					characterPositionBefore.rDeg = characterPosition.rDeg;
-					characterPositionBefore.rRad = characterPosition.rRad;
-					characterPositionBefore.x = characterPosition.x;
-					characterPositionBefore.y = characterPosition.y;
 				}
 			}
 
@@ -161,6 +173,8 @@ class CalcEngine {
 				// Update camera position in other threads
 				if (characterPositionUpdated === true) {
 					characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
+					characterPositionUpdated = false;
+
 					CalcEngine.post(
 						[
 							{
