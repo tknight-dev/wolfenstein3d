@@ -14,6 +14,7 @@ import {
 	GamingCanvas,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
+	GamingCanvasInputKeyboard,
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
 	GamingCanvasInputPosition,
@@ -51,7 +52,8 @@ export class Game {
 	public static viewport: Viewport;
 
 	static {
-		const gameDataWidth: number = 64,
+		const gameCameraZoomInitial: number = 80,
+			gameDataWidth: number = 64,
 			positionCenter: number = gameDataWidth / 2;
 
 		// Camera and Viewport
@@ -62,7 +64,7 @@ export class Game {
 			xRelative: 0.5,
 			y: gameDataWidth / 2 + 0.5,
 			yRelative: 0.5,
-			z: 80, // Def 10
+			z: gameCameraZoomInitial, // Def 10
 		};
 		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
 
@@ -82,6 +84,7 @@ export class Game {
 		}
 
 		Game.dataMaps.set(0, {
+			cameraZoomIntial: gameCameraZoomInitial,
 			data: map,
 			dataEnds: [],
 			dataLights: [],
@@ -127,7 +130,6 @@ export class Game {
 			cameraMoveXOriginal: number = 0,
 			cameraMoveY: number = 0,
 			cameraMoveYOriginal: number = 0,
-			cameraUpdated: boolean,
 			cameraViewportHeightC: number = 0,
 			cameraViewportStartXC: number = 0,
 			cameraViewportStartYC: number = 0,
@@ -142,12 +144,15 @@ export class Game {
 			characterControl: CharacterControl = {
 				rDeg: Game.camera.rDeg, // initial value
 				rRad: Game.camera.rRad, // initial value
-				x: false,
-				y: false,
+				x: 0,
+				y: 0,
 			},
 			down: boolean,
 			downMode: boolean,
-			// elementEditStyle: CSSStyleDeclaration = DOM.elementEdit.style,
+			elEditStyle: CSSStyleDeclaration = DOM.elEdit.style,
+			elEditX: number,
+			elEditY: number,
+			gamepadMap: GameMap = <GameMap>Game.dataMaps.get(0),
 			gamepadAxes: number[] | undefined,
 			gamepadX: number = 0,
 			gamepadY: number = 0,
@@ -158,48 +163,63 @@ export class Game {
 			position1: GamingCanvasInputPosition,
 			position2: GamingCanvasInputPosition,
 			positions: GamingCanvasInputPosition[] | undefined,
-			pxCellSize: number,
+			cellSizePx: number = Game.viewport.cellSizePx,
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
 			queueInput: GamingCanvasInput | undefined,
 			queueInputOverlay: GamingCanvasInput,
 			queueTimestamp: number = -2025,
-			report: GamingCanvasReport,
+			report: GamingCanvasReport = Game.report,
 			touchAdded: boolean,
 			touchDistance: number,
 			touchDistancePrevious: number = -1,
+			updated: boolean,
 			value: number,
 			viewport: Viewport = Game.viewport,
 			x: number,
 			y: number;
 
 		CalcBus.setCallbackCharacterPostion((characterPositionRaw: Float32Array) => {
-			let characterPosition: CharacterPosition = CharacterPositionDecode(characterPositionRaw);
+			if (modeEdit === false) {
+				const characterPosition: CharacterPosition = CharacterPositionDecode(characterPositionRaw);
 
-			VideoEditorBus.outputCharacterPosition(CharacterPositionEncode(characterPosition));
-			VideoMainBus.outputCamera(
-				CameraEncode({
-					rDeg: characterPosition.rDeg,
-					rRad: characterPosition.rRad,
-					x: characterPosition.x,
-					xRelative: characterPosition.x / viewport.cellsWidth,
-					y: characterPosition.y,
-					yRelative: characterPosition.y / viewport.cellsHeight,
-					z: 1,
-				}),
-			);
+				camera.rDeg = characterPosition.rDeg;
+				camera.rRad = characterPosition.rRad;
+				camera.x = characterPosition.x;
+				camera.xRelative = characterPosition.x / viewport.cellsWidth;
+				camera.y = characterPosition.y;
+				camera.yRelative = characterPosition.y / viewport.cellsHeight;
+				camera.z = gamepadMap.cameraZoomIntial;
+				cameraZoom = camera.z;
+
+				// First: VideoMain
+				VideoMainBus.outputCamera(CameraEncode(camera));
+
+				// Second: VideoEditor
+				VideoEditorBus.outputCharacterPosition(CharacterPositionEncode(characterPosition));
+
+				viewport.applyZ(camera, report);
+				cellSizePx = viewport.cellSizePx;
+				viewport.apply(camera, false);
+				VideoEditorBus.outputCameraAndViewport({
+					camera: CameraEncode(camera),
+					viewport: viewport.encode(),
+				});
+			}
 		});
 
 		// Limit how often a camera update can be sent via the bus
 		setInterval(() => {
-			if (cameraUpdated || Game.reportNew) {
+			if (updated || Game.reportNew) {
 				report = Game.report;
 
-				if (modeEdit) {
+				if (modeEdit === true) {
 					// Zoom
 					if (camera.z !== cameraZoom) {
 						camera.z = cameraZoom;
 						viewport.applyZ(camera, report);
-					} else if (cameraUpdated === true) {
+
+						cellSizePx = viewport.cellSizePx;
+					} else if (updated === true) {
 						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
 						camera.xRelative = camera.x / viewport.cellsWidth;
 						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
@@ -216,7 +236,7 @@ export class Game {
 					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
 				}
 
-				cameraUpdated = false;
+				updated = false;
 				Game.reportNew = false;
 			}
 		}, inputLimitPerMs);
@@ -237,13 +257,12 @@ export class Game {
 						// case GamingCanvasInputType.GAMEPAD:
 						// 	processorGamepad(queueInput);
 						// 	break;
-						// case GamingCanvasInputType.KEYBOARD:
-						// 	processorKeyboard(queueInput);
-						// 	break;
+						case GamingCanvasInputType.KEYBOARD:
+							processorKeyboard(queueInput);
+							break;
 						case GamingCanvasInputType.MOUSE:
-							queueInputOverlay = JSON.parse(JSON.stringify(queueInput));
 							GamingCanvas.relativizeInputToCanvas(queueInput);
-							processorMouse(queueInput, queueInputOverlay);
+							processorMouse(queueInput);
 							break;
 						case GamingCanvasInputType.TOUCH:
 							GamingCanvas.relativizeInputToCanvas(queueInput);
@@ -255,7 +274,46 @@ export class Game {
 		};
 		Game.processor = processor;
 
-		const processorMouse = (input: GamingCanvasInputMouse, inputOverlay: GamingCanvasInputMouse) => {
+		const processorKeyboard = (input: GamingCanvasInputKeyboard) => {
+			down = input.propriatary.down;
+
+			if (modeEdit !== true) {
+				switch (input.propriatary.action.code) {
+					case 'KeyA':
+						if (down) {
+							characterControl.x = -1;
+						} else if (characterControl.x === -1) {
+							characterControl.x = 0;
+						}
+						break;
+					case 'KeyD':
+						if (down) {
+							characterControl.x = 1;
+						} else if (characterControl.x === 1) {
+							characterControl.x = 0;
+						}
+						break;
+					case 'KeyW':
+						if (down) {
+							characterControl.y = 1;
+						} else if (characterControl.y === 1) {
+							characterControl.y = 0;
+						}
+						break;
+					case 'KeyS':
+						if (down) {
+							characterControl.y = -1;
+						} else if (characterControl.y === -1) {
+							characterControl.y = 0;
+						}
+						break;
+				}
+
+				updated = true;
+			}
+		};
+
+		const processorMouse = (input: GamingCanvasInputMouse) => {
 			position1 = input.propriatary.position;
 			if (input.propriatary.down !== undefined) {
 				down = input.propriatary.down;
@@ -267,7 +325,7 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputMouseAction.LEFT:
-					if (modeEdit) {
+					if (modeEdit === true) {
 						if (down === true) {
 							cameraMoveXOriginal = 1 - position1.xRelative;
 							cameraMoveYOriginal = 1 - position1.yRelative;
@@ -278,32 +336,49 @@ export class Game {
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					if (modeEdit) {
+					// processorMouseCellHighlight(input.propriatary.position);
+
+					if (modeEdit === true) {
 						if (downMode === true) {
 							cameraMoveX = 1 - position1.xRelative;
 							cameraMoveY = 1 - position1.yRelative;
-							cameraUpdated = true;
+							updated = true;
 						}
 					} else {
 						characterControl.rDeg = GamingCanvasScale(position1.xRelative, 0, 1, 360, 0);
 						characterControl.rRad = (characterControl.rDeg * Math.PI) / 180;
-						cameraUpdated = true;
+						updated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
-					if (modeEdit) {
+					// processorMouseCellHighlight(input.propriatary.position);
+
+					if (modeEdit === true) {
 						cameraZoomPrevious = cameraZoom;
 						cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
 						if (cameraZoom !== cameraZoomPrevious) {
-							cameraUpdated = true;
+							updated = true;
 						}
 					}
 					break;
 			}
 		};
 
+		const processorMouseCellHighlight = (position: GamingCanvasInputPosition) => {
+			// Timeout allows for the viewport to be updated before the input before fitting the cell highlight
+			setTimeout(() => {
+				elEditStyle.display = 'block';
+				elEditStyle.height = cellSizePx + 'px';
+				elEditStyle.left =
+					(position.xRelative * viewport.widthC - ((position.xRelative * viewport.widthC + viewport.widthStartC) % 1)) * cellSizePx + 'px';
+				elEditStyle.top =
+					(position.yRelative * viewport.heightC - ((position.yRelative * viewport.heightC + viewport.heightStartC) % 1)) * cellSizePx + 'px';
+				elEditStyle.width = cellSizePx + 'px';
+			}, inputLimitPerMs + 10);
+		};
+
 		const processorTouch = (input: GamingCanvasInputTouch) => {
-			// elementEditStyle.display = 'none';
+			elEditStyle.display = 'none';
 			positions = input.propriatary.positions;
 			if (input.propriatary.down !== undefined) {
 				down = input.propriatary.down;
@@ -311,7 +386,7 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputTouchAction.ACTIVE:
-					if (modeEdit) {
+					if (modeEdit === true) {
 						touchAdded = false;
 						touchDistancePrevious = -1;
 
@@ -327,7 +402,7 @@ export class Game {
 					}
 					break;
 				case GamingCanvasInputTouchAction.MOVE:
-					if (modeEdit) {
+					if (modeEdit === true) {
 						if (positions !== undefined) {
 							position1 = positions[0];
 
@@ -349,7 +424,7 @@ export class Game {
 												Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
 											);
 											if (cameraZoom !== cameraZoomPrevious) {
-												cameraUpdated = true;
+												updated = true;
 											}
 											touchDistancePrevious = touchDistance + touchDistancePrevious;
 										}
@@ -367,7 +442,7 @@ export class Game {
 							if (downMode === true) {
 								cameraMoveX = 1 - position1.xRelative;
 								cameraMoveY = 1 - position1.yRelative;
-								cameraUpdated = true;
+								updated = true;
 							}
 						}
 					}

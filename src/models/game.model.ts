@@ -6,6 +6,7 @@
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
+	cameraZoomIntial: number;
 	data: Uint8Array;
 	dataEnds: number[]; // Level ending cells array by data index
 	dataLights: number[]; // Level ending cells array by data index

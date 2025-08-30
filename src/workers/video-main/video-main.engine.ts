@@ -62,6 +62,9 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		// Config: Report
+		VideoMainEngine.inputCamera(data.camera);
+
+		// Config: Report
 		VideoMainEngine.inputReport(data.report);
 
 		// Config: Settings

@@ -27,6 +27,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class CalcEngine {
+	private static characterControlNew: boolean;
+	private static characterControlRaw: Float32Array;
 	private static characterPosition: CharacterPosition;
 	private static gameMap: GameMap;
 	private static request: number;
@@ -61,22 +63,8 @@ class CalcEngine {
 	 */
 
 	public static inputCharacterControl(data: Float32Array): void {
-		let characterControl: CharacterControl = CharacterControlDecode(data);
-
-		CalcEngine.characterPosition.rDeg = characterControl.rDeg;
-		CalcEngine.characterPosition.rRad = characterControl.rRad;
-
-		let characterPosition: Float32Array = CharacterPositionEncode(CalcEngine.characterPosition);
-
-		CalcEngine.post(
-			[
-				{
-					cmd: CalcBusOutputCmd.CHARACTER_POSITION,
-					data: characterPosition,
-				},
-			],
-			[characterPosition.buffer],
-		);
+		CalcEngine.characterControlRaw = data;
+		CalcEngine.characterControlNew = true;
 	}
 
 	public static inputSettings(data: CalcBusInputDataSettings): void {
@@ -99,14 +87,66 @@ class CalcEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let fpms: number = CalcEngine.settingsFPMS,
+		let characterControl: CharacterControl = {
+				rDeg: CalcEngine.characterPosition.rDeg,
+				rRad: CalcEngine.characterPosition.rRad,
+				x: 0,
+				y: 0,
+			},
+			characterPosition: Float32Array,
+			cycleMinMs: number = 2,
+			fpms: number = CalcEngine.settingsFPMS,
 			timestampDelta: number,
-			timestampFPS: number = 0,
+			timestampFPSDelta: number,
+			timestampFPSThen: number = 0,
 			timestampThen: number = 0;
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			CalcEngine.request = requestAnimationFrame(CalcEngine.go);
+
+			/**
+			 * Calc
+			 */
+			timestampDelta = timestampNow - timestampThen;
+			if (timestampDelta > cycleMinMs) {
+				// Wait a small duration to not thread lock
+				timestampThen = timestampNow;
+
+				// Calc code here
+				if (CalcEngine.characterControlNew === true) {
+					CalcEngine.characterControlNew = false;
+					characterControl = CharacterControlDecode(CalcEngine.characterControlRaw);
+
+					CalcEngine.characterPosition.rDeg = characterControl.rDeg;
+					CalcEngine.characterPosition.rRad = characterControl.rRad;
+				}
+
+				if (characterControl.x !== 0 || characterControl.y !== 0) {
+					console.log('characterControl', characterControl.x, characterControl.y);
+				}
+			}
+
+			/**
+			 * Video
+			 */
+			timestampFPSDelta = timestampNow - timestampFPSThen;
+			if (timestampFPSDelta > fpms) {
+				// More accurately calculate for more stable FPS
+				timestampFPSThen = timestampNow - (timestampFPSDelta % fpms);
+
+				// Update camera position in other threads
+				characterPosition = CharacterPositionEncode(CalcEngine.characterPosition);
+				CalcEngine.post(
+					[
+						{
+							cmd: CalcBusOutputCmd.CHARACTER_POSITION,
+							data: characterPosition,
+						},
+					],
+					[characterPosition.buffer],
+				);
+			}
 		};
 		CalcEngine.go = go;
 	}

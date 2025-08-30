@@ -165,6 +165,18 @@ $main-logo-width: 152px;
 					opacity: 0;
 				}
 			}
+
+			.edit {
+				background-color: rgba(255, 255, 255, 0.5);
+				border: 1px solid white;
+				border-radius: 25%;
+				box-shadow: 0 0 2px 2px white;
+				cursor: pointer;
+				display: none;
+				left: 0;
+				position: absolute;
+				top: 0;
+			}
 		}
 
 		.video-interactive {

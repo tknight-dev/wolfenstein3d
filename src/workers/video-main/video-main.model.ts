@@ -16,11 +16,8 @@ export enum VideoMainBusInputCmd {
 	SETTINGS,
 }
 
-export interface VideoMainBusInputDataCamera {
+export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
 	camera: Float32Array;
-}
-
-export interface VideoMainBusInputDataInit extends VideoMainBusInputDataCamera, VideoMainBusInputDataSettings {
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
 	report: GamingCanvasReport;

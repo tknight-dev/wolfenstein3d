@@ -9,8 +9,8 @@ export interface Character extends CharacterPosition {
 export class CharacterControl {
 	rDeg: number; // 0 - 360 deg
 	rRad: number; // 0 - 6.28318530 rads
-	x: boolean;
-	y: boolean;
+	x: number; // -1 to 1
+	y: number; // -1 to 1
 }
 
 export const CharacterControlEncode = (characterControl: CharacterControl): Float32Array => {
@@ -21,8 +21,8 @@ export const CharacterControlDecode = (characterControl: Float32Array): Characte
 	return {
 		rDeg: characterControl[0],
 		rRad: characterControl[1],
-		x: (characterControl[1] | 0) !== 0,
-		y: (characterControl[2] | 0) !== 0,
+		x: characterControl[2],
+		y: characterControl[3],
 	};
 };
 

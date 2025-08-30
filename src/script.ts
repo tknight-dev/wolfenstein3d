@@ -25,6 +25,8 @@ class Blockenstein {
 			canvasCount: 2,
 			dpiSupportEnable: Game.settingDPISupport,
 			// elementInteractive: DOM.elVideoInteractive,
+			elementInjectAsOverlay: [DOM.elEdit],
+			inputKeyboardEnable: true,
 			inputMouseEnable: true,
 			inputTouchEnable: true,
 			orientationCanvasRotateEnable: false,
@@ -102,6 +104,7 @@ class Blockenstein {
 		/**
 		 * Calc
 		 */
+		CalcBus.setCallbackCharacterPostion(() => {});
 		CalcBus.setCallbackStats((stats: CalcBusOutputDataStats) => {});
 
 		/**
