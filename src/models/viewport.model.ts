@@ -1,5 +1,5 @@
 import { Camera } from './camera.model';
-import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasScale } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 
 /**
  * @author tknight-dev
@@ -33,7 +33,7 @@ export class Viewport {
 	/**
 	 * @param cameraFitToView if true, modifies the camera object as required to fit within the viewport
 	 */
-	public apply(camera: Camera, cameraFitToView: boolean): void {
+	public apply(camera: Camera, cameraFitToView?: boolean): void {
 		// Viewport: height + position bounded
 		this.heightStartC = camera.y - this.heightC / 2;
 		if (cameraFitToView === true) {
@@ -102,9 +102,9 @@ export class Viewport {
 
 	public applyZ(camera: Camera, report: GamingCanvasReport): void {
 		if (report.orientation === GamingCanvasOrientation.LANDSCAPE || report.orientationCanvasRotated === true) {
-			this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasScale(camera.z, 1, 100, 0.25, 2));
+			this.cellSizePx = Math.max(1, (report.canvasWidth / this.cellsWidth) * GamingCanvasUtilScale(camera.z, 1, 100, 0.25, 2));
 		} else {
-			this.cellSizePx = Math.max(1, (report.canvasHeight / this.cellsHeight) * GamingCanvasScale(camera.z, 1, 100, 0.25, 2));
+			this.cellSizePx = Math.max(1, (report.canvasHeight / this.cellsHeight) * GamingCanvasUtilScale(camera.z, 1, 100, 0.25, 2));
 		}
 		this.heightC = report.canvasHeight / this.cellSizePx;
 		this.heightPx = report.canvasHeight;

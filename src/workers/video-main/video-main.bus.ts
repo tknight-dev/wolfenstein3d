@@ -3,6 +3,7 @@ import { Camera, CameraEncode } from '../../models/camera.model';
 import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
+	VideoMainBusInputDataCalculations,
 	VideoMainBusInputDataSettings,
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputDataStats,
@@ -84,13 +85,13 @@ export class VideoMainBus {
 	 * Output
 	 */
 
-	public static outputCamera(camera: Float32Array): void {
+	public static outputCalculations(data: VideoMainBusInputDataCalculations): void {
 		VideoMainBus.worker.postMessage(
 			{
-				cmd: VideoMainBusInputCmd.CAMERA,
-				data: camera,
+				cmd: VideoMainBusInputCmd.CALCULATIONS,
+				data: data,
 			},
-			[camera.buffer],
+			[data.camera.buffer, data.rays.buffer],
 		);
 	}
 

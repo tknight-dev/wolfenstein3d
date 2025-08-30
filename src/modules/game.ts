@@ -1,5 +1,5 @@
 import { DOM } from './dom';
-import { CalcBusInputDataSettings } from '../workers/calc/calc.model';
+import { CalcBusOutputDataCalculations, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model';
 import { CalcBus } from '../workers/calc/calc.bus';
 import { Camera, CameraDecode, CameraEncode } from '../models/camera.model';
 import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model';
@@ -24,7 +24,7 @@ import {
 	GamingCanvasInputType,
 	GamingCanvasOrientation,
 	GamingCanvasReport,
-	GamingCanvasScale,
+	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
 import { GamingCanvasInputGamepadControllerVendor } from '@tknight-dev/gaming-canvas/dist/engines/gamepad.engine';
 
@@ -44,6 +44,7 @@ export class Game {
 	public static reportNew: boolean;
 	public static settingDebug: boolean;
 	public static settingDPISupport: boolean;
+	public static settingFOV: number;
 	public static settingFPSDisplay: boolean;
 	public static settingResolution: Resolution;
 	public static settingsCalc: CalcBusInputDataSettings;
@@ -58,8 +59,7 @@ export class Game {
 
 		// Camera and Viewport
 		Game.camera = {
-			fov: (60 * Math.PI) / 180, // 60deg
-			r: (90 * Math.PI) / 180, // North
+			r: (90 * Math.PI) / 180, // Top (north)
 			x: gameDataWidth / 2 + 0.5,
 			y: gameDataWidth / 2 + 0.5,
 			z: gameCameraZoomInitial, // Def 10
@@ -192,30 +192,54 @@ export class Game {
 			x: number,
 			y: number;
 
-		CalcBus.setCallbackCharacterPostion((characterPositionRaw: Float32Array) => {
-			if (modeEdit === false) {
-				const characterPosition: CharacterPosition = CharacterPositionDecode(characterPositionRaw);
+		// Calc: Camera Mode
+		CalcBus.setCallbackCamera((data: CalcBusOutputDataCamera) => {
+			// First: VideoEditor
+			VideoEditorBus.outputCalculations({
+				camera: CameraEncode(camera),
+				gameMode: false,
+				rays: Float32Array.from(data.rays),
+				viewport: viewport.encode(),
+			});
 
-				camera.r = characterPosition.r;
-				camera.x = characterPosition.x;
-				camera.y = characterPosition.y;
-				camera.z = gamepadMap.cameraZoomIntial;
+			// Second: VideoMain
+			VideoMainBus.outputCalculations({
+				camera: data.camera,
+				rays: data.rays,
+			});
+		});
+
+		// Calc: Game Mode
+		CalcBus.setCallbackCalculations((data: CalcBusOutputDataCalculations) => {
+			const characterPosition: CharacterPosition = CharacterPositionDecode(data.characterPosition);
+			const rays: Float32Array = data.rays;
+			const raysClone: Float32Array = Float32Array.from(rays);
+
+			camera.r = characterPosition.r;
+			camera.x = characterPosition.x;
+			camera.y = characterPosition.y;
+			camera.z = gamepadMap.cameraZoomIntial;
+			raysClone.set(rays);
+
+			if (cameraZoom !== camera.z) {
 				cameraZoom = camera.z;
-
-				// First: VideoMain
-				VideoMainBus.outputCamera(CameraEncode(camera));
-
-				// Second: VideoEditor
-				VideoEditorBus.outputCharacterPosition(CharacterPositionEncode(characterPosition));
-
 				viewport.applyZ(camera, report);
-				cellSizePx = viewport.cellSizePx;
-				viewport.apply(camera, false);
-				VideoEditorBus.outputCameraAndViewport({
-					camera: CameraEncode(camera),
-					viewport: viewport.encode(),
-				});
 			}
+			viewport.apply(camera);
+
+			// First: VideoMain
+			VideoMainBus.outputCalculations({
+				camera: CameraEncode(camera),
+				rays: rays,
+			});
+
+			// Second: VideoEditor
+			VideoEditorBus.outputCalculations({
+				camera: CameraEncode(camera),
+				gameMode: true,
+				rays: raysClone,
+				viewport: viewport.encode(),
+			});
 		});
 
 		// Limit how often a camera update can be sent via the bus
@@ -234,14 +258,12 @@ export class Game {
 						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
 						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
 					}
-					viewport.apply(camera, false);
+					viewport.apply(camera);
 
-					VideoEditorBus.outputCameraAndViewport({
-						camera: CameraEncode(camera),
-						viewport: viewport.encode(),
-					});
-					VideoMainBus.outputCamera(CameraEncode(camera));
+					// Calc: Camera Mode
+					CalcBus.outputCamera(CameraEncode(camera));
 				} else {
+					// Calc: Game Mode
 					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
 				}
 
@@ -354,7 +376,7 @@ export class Game {
 							updated = true;
 						}
 					} else {
-						characterControl.r = (GamingCanvasScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
+						characterControl.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
 						updated = true;
 					}
 					break;

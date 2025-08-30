@@ -4,6 +4,7 @@
 
 export interface Character extends CharacterPosition {
 	health: number;
+	id: number;
 }
 
 export class CharacterControl {

@@ -1,4 +1,4 @@
-import { Camera } from '../../models/camera.model';
+import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model';
 import { FPS } from '../../models/settings.model';
 
@@ -10,37 +10,52 @@ import { FPS } from '../../models/settings.model';
  * Input
  */
 export enum CalcBusInputCmd {
+	CAMERA,
 	CHARACTER_CONTROL,
 	INIT,
+	REPORT,
 	SETTINGS,
 }
 
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
 	characterPosition: Float32Array;
 	gameMap: GameMap;
+	report: GamingCanvasReport;
 }
 
 export interface CalcBusInputDataSettings {
+	fov: number;
 	fps: FPS;
 }
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataSettings | Float32Array;
+	data: CalcBusInputDataInit | CalcBusInputDataSettings | Float32Array | GamingCanvasReport;
 }
 
 /*
  * Output
  */
 export enum CalcBusOutputCmd {
-	CHARACTER_POSITION,
+	CAMERA,
+	CALCULATIONS,
 	INIT_COMPLETE,
 	STATS,
+}
+
+export interface CalcBusOutputDataCamera {
+	camera: Float32Array;
+	rays: Float32Array;
+}
+
+export interface CalcBusOutputDataCalculations {
+	characterPosition: Float32Array;
+	rays: Float32Array;
 }
 
 export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusOutputDataStats | Float32Array;
+	data: boolean | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
 }

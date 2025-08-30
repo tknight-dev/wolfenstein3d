@@ -3,6 +3,7 @@ import { Camera, CameraDecode } from '../../models/camera.model';
 import { GameMap } from '../../models/game.model';
 import {
 	VideoMainBusInputCmd,
+	VideoMainBusInputDataCalculations,
 	VideoMainBusInputDataInit,
 	VideoMainBusInputDataSettings,
 	VideoMainBusInputPayload,
@@ -21,8 +22,8 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoMainBusInputPayload = event.data;
 
 	switch (payload.cmd) {
-		case VideoMainBusInputCmd.CAMERA:
-			VideoMainEngine.inputCamera(<Float32Array>payload.data);
+		case VideoMainBusInputCmd.CALCULATIONS:
+			VideoMainEngine.inputCalculations(<VideoMainBusInputDataCalculations>payload.data);
 			break;
 		case VideoMainBusInputCmd.INIT:
 			VideoMainEngine.initialize(<VideoMainBusInputDataInit>payload.data);
@@ -37,8 +38,9 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
-	private static cameraNew: boolean;
-	private static cameraRaw: Float32Array;
+	private static calculationsCamera: Float32Array;
+	private static calculationsRays: Float32Array;
+	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
@@ -64,7 +66,10 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		// Config: Report
-		VideoMainEngine.inputCamera(data.camera);
+		VideoMainEngine.inputCalculations({
+			camera: data.camera,
+			rays: new Float32Array(),
+		});
 
 		// Config: Report
 		VideoMainEngine.inputReport(data.report);
@@ -99,11 +104,12 @@ class VideoMainEngine {
 	 * Input
 	 */
 
-	public static inputCamera(camera: Float32Array): void {
-		VideoMainEngine.cameraRaw = camera;
+	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
+		VideoMainEngine.calculationsCamera = data.camera;
+		VideoMainEngine.calculationsRays = data.rays;
 
 		// Last
-		VideoMainEngine.cameraNew = true;
+		VideoMainEngine.calculationsNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -139,6 +145,7 @@ class VideoMainEngine {
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			frameCount: number = 0,
+			rays: Float32Array,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0;
@@ -154,10 +161,11 @@ class VideoMainEngine {
 				timestampThen = timestampNow - (timestampDelta % fpms);
 				frameCount++;
 
-				if (VideoMainEngine.cameraNew === true) {
-					VideoMainEngine.cameraNew = false;
+				if (VideoMainEngine.calculationsNew === true) {
+					VideoMainEngine.calculationsNew = false;
 
-					camera = CameraDecode(VideoMainEngine.cameraRaw);
+					camera = CameraDecode(VideoMainEngine.calculationsCamera);
+					rays = VideoMainEngine.calculationsRays;
 				}
 
 				if (VideoMainEngine.reportNew === true) {

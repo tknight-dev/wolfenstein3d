@@ -10,20 +10,21 @@ import { FPS } from '../../models/settings.model';
  * Input
  */
 export enum VideoEditorBusInputCmd {
-	CAMERA_VIEWPORT,
-	CHARACTER_POSITION,
+	CALCULATIONS,
 	DATA_SEGMENT,
 	INIT,
 	REPORT,
 	SETTINGS,
 }
 
-export interface VideoEditorBusInputDataCameraAndViewport {
+export interface VideoEditorBusInputDataCalculations {
 	camera: Float32Array;
+	gameMode: boolean;
+	rays: Float32Array;
 	viewport: Float32Array;
 }
 
-export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCameraAndViewport, VideoEditorBusInputDataSettings {
+export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalculations, VideoEditorBusInputDataSettings {
 	characterPosition: Float32Array;
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
@@ -31,6 +32,7 @@ export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCame
 }
 
 export interface VideoEditorBusInputDataSettings {
+	fov: number;
 	fps: FPS;
 }
 
@@ -40,7 +42,7 @@ export interface VideoEditorBusInputPayload {
 		| GamingCanvasReport
 		| Float32Array
 		| Map<number, number>
-		| VideoEditorBusInputDataCameraAndViewport
+		| VideoEditorBusInputDataCalculations
 		| VideoEditorBusInputDataInit
 		| VideoEditorBusInputDataSettings;
 }

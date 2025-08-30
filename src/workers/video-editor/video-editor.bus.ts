@@ -4,7 +4,7 @@ import { GameMap } from '../../models/game.model';
 import { Viewport } from '../../models/viewport.model';
 import {
 	VideoEditorBusInputCmd,
-	VideoEditorBusInputDataCameraAndViewport,
+	VideoEditorBusInputDataCalculations,
 	VideoEditorBusInputDataSettings,
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputDataStats,
@@ -45,8 +45,7 @@ export class VideoEditorBus {
 			const cameraEncoded: Float32Array = CameraEncode(camera);
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
 				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
-				rDeg: camera.rDeg,
-				rRad: camera.rRad,
+				r: camera.r,
 				x: camera.x,
 				y: camera.y,
 			});
@@ -61,6 +60,7 @@ export class VideoEditorBus {
 							characterPosition: characterPositionEncoded,
 							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
+							rays: new Float32Array(),
 							report: GamingCanvas.getReport(),
 							viewport: viewportEncoded,
 						},
@@ -98,24 +98,24 @@ export class VideoEditorBus {
 	 * Output
 	 */
 
-	public static outputCharacterPosition(characterPosition: Float32Array): void {
-		VideoEditorBus.worker.postMessage(
-			{
-				cmd: VideoEditorBusInputCmd.CHARACTER_POSITION,
-				data: characterPosition,
-			},
-			[characterPosition.buffer],
-		);
-	}
-
-	public static outputCameraAndViewport(data: VideoEditorBusInputDataCameraAndViewport): void {
-		VideoEditorBus.worker.postMessage(
-			{
-				cmd: VideoEditorBusInputCmd.CAMERA_VIEWPORT,
-				data: data,
-			},
-			[data.camera.buffer, data.viewport.buffer],
-		);
+	public static outputCalculations(data: VideoEditorBusInputDataCalculations): void {
+		if (data.viewport !== undefined) {
+			VideoEditorBus.worker.postMessage(
+				{
+					cmd: VideoEditorBusInputCmd.CALCULATIONS,
+					data: data,
+				},
+				[data.camera.buffer, data.rays.buffer, data.viewport.buffer],
+			);
+		} else {
+			VideoEditorBus.worker.postMessage(
+				{
+					cmd: VideoEditorBusInputCmd.CALCULATIONS,
+					data: data,
+				},
+				[data.camera.buffer, data.rays.buffer],
+			);
+		}
 	}
 
 	public static outputDataSegment(data: Map<number, number>): void {

@@ -1,7 +1,15 @@
 import { Camera } from '../../models/camera.model';
-import { CharacterControl, CharacterPositionEncode } from '../../models/character.model';
-import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { CalcBusInputCmd, CalcBusInputDataSettings, CalcBusOutputCmd, CalcBusOutputDataStats, CalcBusOutputPayload } from './calc.model';
+import { CharacterPositionEncode } from '../../models/character.model';
+import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import {
+	CalcBusInputCmd,
+	CalcBusInputDataSettings,
+	CalcBusOutputCmd,
+	CalcBusOutputDataCamera,
+	CalcBusOutputDataCalculations,
+	CalcBusOutputDataStats,
+	CalcBusOutputPayload,
+} from './calc.model';
 import { GameMap } from '../../models/game.model';
 
 /**
@@ -9,7 +17,8 @@ import { GameMap } from '../../models/game.model';
  */
 
 export class CalcBus {
-	private static callbackCharacterPostion: (camera: Float32Array) => void;
+	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
+	private static callbackCalculations: (data: CalcBusOutputDataCalculations) => void;
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
@@ -30,8 +39,7 @@ export class CalcBus {
 			// Init the webworker
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
 				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
-				rDeg: camera.rDeg,
-				rRad: camera.rRad,
+				r: camera.r,
 				x: camera.x,
 				y: camera.y,
 			});
@@ -42,6 +50,7 @@ export class CalcBus {
 						{
 							characterPosition: characterPositionEncoded,
 							gameMap: gameMap,
+							report: GamingCanvas.getReport(),
 						},
 						settings,
 					),
@@ -62,8 +71,11 @@ export class CalcBus {
 
 			for (payload of payloads) {
 				switch (payload.cmd) {
-					case CalcBusOutputCmd.CHARACTER_POSITION:
-						CalcBus.callbackCharacterPostion(<Float32Array>payload.data);
+					case CalcBusOutputCmd.CAMERA:
+						CalcBus.callbackCamera(<CalcBusOutputDataCamera>payload.data);
+						break;
+					case CalcBusOutputCmd.CALCULATIONS:
+						CalcBus.callbackCalculations(<CalcBusOutputDataCalculations>payload.data);
 						break;
 					case CalcBusOutputCmd.INIT_COMPLETE:
 						CalcBus.callbackInitComplete(<boolean>payload.data);
@@ -80,6 +92,16 @@ export class CalcBus {
 	 * Output
 	 */
 
+	public static outputCamera(camera: Float32Array): void {
+		CalcBus.worker.postMessage(
+			{
+				cmd: CalcBusInputCmd.CAMERA,
+				data: camera,
+			},
+			[camera.buffer],
+		);
+	}
+
 	public static outputCharacterControl(characterControl: Float32Array): void {
 		CalcBus.worker.postMessage(
 			{
@@ -90,6 +112,14 @@ export class CalcBus {
 		);
 	}
 
+	// Non-fixed resolution canvas has changed in size
+	public static outputReport(report: GamingCanvasReport): void {
+		CalcBus.worker.postMessage({
+			cmd: CalcBusInputCmd.REPORT,
+			data: report,
+		});
+	}
+
 	// User changed their settings
 	public static outputSettings(settings: CalcBusInputDataSettings): void {
 		CalcBus.worker.postMessage({
@@ -98,8 +128,12 @@ export class CalcBus {
 		});
 	}
 
-	public static setCallbackCharacterPostion(callbackCharacterPostion: (camera: Float32Array) => void): void {
-		CalcBus.callbackCharacterPostion = callbackCharacterPostion;
+	public static setCallbackCamera(callbackCamera: (data: CalcBusOutputDataCamera) => void): void {
+		CalcBus.callbackCamera = callbackCamera;
+	}
+
+	public static setCallbackCalculations(callbackCalculations: (data: CalcBusOutputDataCalculations) => void): void {
+		CalcBus.callbackCalculations = callbackCalculations;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcBusOutputDataStats) => void): void {

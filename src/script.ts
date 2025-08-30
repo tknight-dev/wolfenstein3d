@@ -54,14 +54,17 @@ class Blockenstein {
 		 * Worker specific
 		 */
 		Game.settingsCalc = {
+			fov: (60 * Math.PI) / 180, // 60 deg
 			fps: FPS._60,
 		};
 
 		Game.settingsVideoEditor = {
+			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
 		};
 
 		Game.settingsVideoMain = {
+			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
 		};
 
@@ -104,7 +107,8 @@ class Blockenstein {
 		/**
 		 * Calc
 		 */
-		CalcBus.setCallbackCharacterPostion(() => {});
+		CalcBus.setCallbackCamera(() => {});
+		CalcBus.setCallbackCalculations(() => {});
 		CalcBus.setCallbackStats((stats: CalcBusOutputDataStats) => {});
 
 		/**
