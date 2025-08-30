@@ -366,6 +366,19 @@ class VideoEditorEngine {
 					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
 				);
 
+				// Draw: Rays
+				if (rays !== undefined) {
+					offscreenCanvasContext.lineWidth = 1;
+					offscreenCanvasContext.strokeStyle = 'yellow';
+					for (i = 0; i < rays.length; i += 2) {
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
+						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStartC), cellSizePx * (rays[i + 1] - viewport.heightStartC));
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.stroke();
+					}
+				}
+
 				// Draw: Character Direction
 				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;
 				offscreenCanvasContext.strokeStyle = 'blue';
@@ -384,19 +397,6 @@ class VideoEditorEngine {
 				offscreenCanvasContext.arc(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx, cellSizePx / 4, 0, 2 * Math.PI);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.fill();
-
-				// Draw: Rays
-				if (rays !== undefined) {
-					offscreenCanvasContext.lineWidth = 1;
-					offscreenCanvasContext.strokeStyle = 'yellow';
-					for (i = 0; i < rays.length; i += 2) {
-						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
-						offscreenCanvasContext.lineTo(cellSizePx * rays[i], cellSizePx * rays[i + 1]);
-						offscreenCanvasContext.closePath();
-						offscreenCanvasContext.stroke();
-					}
-				}
 
 				// statDrawAvg.watchStop();
 			}
