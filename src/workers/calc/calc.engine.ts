@@ -33,6 +33,82 @@ self.onmessage = (event: MessageEvent) => {
 	}
 };
 
+interface GamingCanvasGridRaycastOptions {
+	fovInDegrees?: number;
+	fovPixels?: number;
+	skipCells?: boolean;
+	skipRays?: boolean;
+}
+
+interface GamingCanvasGridRaycastResult {
+	cells?: Set<number>; // to be Uint*Array typed with in the actual canvas project with types available
+	rays?: Float32Array;
+}
+
+/**
+ * Uses the DDA Algorithm
+ *
+ * If either `fovInDegrees` or `fovPixels` is undefiend then only one ray is cast
+ *
+ * @param fovInDegrees (integer) how wide of a field-of-view to cast rays in
+ * @param fovPixels (integer) how many rays to cast
+ */
+const GamingCanvasGridRaycast = (r: number, x: number, y: number, grid: any, options?: GamingCanvasGridRaycastOptions): GamingCanvasGridRaycastResult => {
+	let cells: Set<number> | undefined,
+		fovInDegreesStart: number = 0,
+		i: number = 0,
+		length: number = 1,
+		rayIndex: number = 0,
+		rays: Float32Array | undefined; // Cast 1 ray by default
+
+	if (options !== undefined) {
+		if (options.fovInDegrees !== undefined && options.fovPixels !== undefined) {
+			options.fovInDegrees = options.fovInDegrees | 0;
+
+			fovInDegreesStart = options.fovInDegrees - ((options.fovInDegrees / 2) | 0);
+
+			length = options.fovPixels | 0;
+		}
+
+		if (options.skipCells !== true) {
+			cells = new Set();
+		}
+
+		if (options.skipRays !== true) {
+			rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
+		}
+
+		if (cells === undefined && rays === undefined) {
+			return {};
+		}
+	} else {
+		cells = new Set();
+		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
+	}
+
+	// Start the algo
+	for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
+		// if (cells !== undefined) {
+		// 	cells.add(1);
+		// }
+		// if (rays !== undefined) {
+		// 	rays[rayIndex] = 1; // x
+		// 	rays[rayIndex + 1] = 1; // y
+		// }
+	}
+
+	if (rays !== undefined) {
+		rays[0] = 0; // x
+		rays[1] = 0; // y
+	}
+
+	// Done
+	return {
+		cells: cells,
+		rays: rays,
+	};
+};
+
 class CalcEngine {
 	private static camera: Float32Array;
 	private static cameraNew: boolean;
@@ -145,10 +221,7 @@ class CalcEngine {
 			i: number,
 			pi: number = Math.PI,
 			piDouble: number = Math.PI * 2,
-			rays: number[] = new Array(CalcEngine.report.canvasWidth * 2), // [ray1-x, ray1-y, ray2-x, ray2-y, ...]
-			raysEncoded: Float32Array,
-			raysIndex: number = 0,
-			raysSize: number = 0,
+			rays: Float32Array,
 			report: GamingCanvasReport = CalcEngine.report,
 			settingsFOV: number = CalcEngine.settingsFOV,
 			settingsFOVHalf: number = CalcEngine.settingsFOV / 2,
@@ -192,10 +265,10 @@ class CalcEngine {
 					// Same as viewport but without the z factor
 					cellSizePx = Math.max(1, report.canvasWidth / gameMapGrid.sideLength);
 
-					if (report.canvasWidth * 2 > rays.length) {
-						GamingCanvasUtilArrayExpand(rays, report.canvasWidth * 2 - rays.length);
-						raysIndex = 0; // Reset ray calculation
-					}
+					// if (report.canvasWidth * 2 > rays.length) {
+					// 	GamingCanvasUtilArrayExpand(rays, report.canvasWidth * 2 - rays.length);
+					// 	raysIndex = 0; // Reset ray calculation
+					// }
 				}
 
 				// Character Control: Update
@@ -216,7 +289,7 @@ class CalcEngine {
 					CalcEngine.settingsNew = false;
 
 					cameraUpdated = true; // This or position works
-					raysSize = report.canvasWidth;
+					// raysSize = report.canvasWidth;
 					settingsFOV = CalcEngine.settingsFOV;
 					settingsFOVHalf = settingsFOV / 2;
 					settingsFPMS = CalcEngine.settingsFPMS;
@@ -264,30 +337,16 @@ class CalcEngine {
 				 */
 
 				if (cameraUpdated === true || characterPositionUpdated === true) {
-					// let currentAngle = (cameraMode === true ? camera.r : characterPosition.r) + settingsFOVHalf;
-					// let rayStartX: number = cameraMode === true ? camera.x : characterPosition.x;
-					// let rayStartY: number = cameraMode === true ? camera.y : characterPosition.y;
-					// // Vertical intersection
-					// for (i = 0, raysIndex = 0; i < raysSize; i++, raysIndex += 2) {
-					// 	let currentCos = Math.cos(currentAngle);
-					// 	let currentSin = Math.sin(currentAngle);
-					// 	let rayEndX: number, rayEndY: number, rayDirectionX: number, verticalDepth: number;
-					// 	if (currentSin > 0) {
-					// 		rayEndX = rayStartX;
-					// 		rayDirectionX = 1;
-					// 	} else {
-					// 		rayEndX = rayStartX;
-					// 		rayDirectionX = -1;
-					// 	}
-					// 	for (let offset = 0; offset < report.canvasWidth; offset += cellSizePx) {
-					// 		verticalDepth = (rayEndX - rayStartX) / currentSin;
-					// 		rayEndY = rayStartY + verticalDepth * currentCos;
-					// 	}
-					// }
+					let data: GamingCanvasGridRaycastResult;
+
+					if (cameraMode === true) {
+						data = GamingCanvasGridRaycast(camera.r, camera.x, camera.y, gameMapGrid);
+					} else {
+						data = GamingCanvasGridRaycast(characterPosition.r, characterPosition.x, characterPosition.y, gameMapGrid);
+					}
+
+					rays = <Float32Array>data.rays;
 				}
-				rays[0] = 0;
-				rays[1] = 0;
-				raysIndex = 2;
 
 				// Done
 				cameraUpdated = false;
@@ -307,7 +366,6 @@ class CalcEngine {
 						cameraUpdatedReport = false;
 
 						cameraEncoded = camera.encode();
-						raysEncoded = Float32Array.from(rays.slice(0, raysIndex));
 
 						CalcEngine.post(
 							[
@@ -315,11 +373,11 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
-										rays: raysEncoded,
+										rays: rays,
 									},
 								},
 							],
-							[cameraEncoded.buffer, raysEncoded.buffer],
+							[cameraEncoded.buffer],
 						);
 					}
 				} else {
@@ -327,7 +385,6 @@ class CalcEngine {
 						characterPositionUpdatedReport = false;
 
 						characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
-						raysEncoded = Float32Array.from(rays.slice(0, raysIndex));
 
 						CalcEngine.post(
 							[
@@ -335,11 +392,11 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CALCULATIONS,
 									data: {
 										characterPosition: characterPositionEncoded,
-										rays: raysEncoded,
+										rays: rays,
 									},
 								},
 							],
-							[characterPositionEncoded.buffer, raysEncoded.buffer],
+							[characterPositionEncoded.buffer],
 						);
 					}
 				}

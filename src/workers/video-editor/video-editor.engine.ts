@@ -374,17 +374,17 @@ class VideoEditorEngine {
 				);
 
 				// Draw: Rays
-				// if (rays !== undefined) {
-				// 	offscreenCanvasContext.lineWidth = 1;
-				// 	offscreenCanvasContext.strokeStyle = 'yellow';
-				// 	for (i = 0; i < rays.length; i += 2) {
-				// 		offscreenCanvasContext.beginPath();
-				// 		offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
-				// 		offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
-				// 		offscreenCanvasContext.closePath();
-				// 		offscreenCanvasContext.stroke();
-				// 	}
-				// }
+				if (rays !== undefined) {
+					offscreenCanvasContext.lineWidth = 1;
+					offscreenCanvasContext.strokeStyle = 'yellow';
+					for (i = 0; i < rays.length; i += 2) {
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
+						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.stroke();
+					}
+				}
 
 				// Draw: Character Direction
 				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;
