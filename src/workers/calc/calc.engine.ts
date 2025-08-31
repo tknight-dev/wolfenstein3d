@@ -2,7 +2,7 @@ import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterP
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model.js';
 import { GameMap, GameMapCellMasks } from '../../models/game.model.js';
 import { GamingCanvasReport, GamingCanvasUtilArrayExpand } from '@tknight-dev/gaming-canvas';
-import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -50,25 +50,34 @@ interface GamingCanvasGridRaycastResult {
  *
  * @param fovInDegrees (integer) how wide of a field-of-view to cast rays in
  * @param fovPixels (integer) how many rays to cast
+ * @return .cells are indexes for each cell touched by a ray | .rays are the (x,y) coordinates, from the camera postion, that form a ray (line)
  */
-const GamingCanvasGridRaycast = (
-	r: number,
-	x: number,
-	y: number,
-	cellSizePx: number,
-	grid: any,
-	options?: GamingCanvasGridRaycastOptions,
-): GamingCanvasGridRaycastResult => {
+const GamingCanvasGridRaycast = (camera: GamingCanvasGridICamera, grid: any, options?: GamingCanvasGridRaycastOptions): GamingCanvasGridRaycastResult => {
 	let cells: Set<number> | undefined,
+		distance: number,
 		fovInDegreesStart: number = 0,
 		gridData: any = grid.data,
+		gridIndex: number,
 		gridSideLength: number = grid.sideLength,
 		gridSize: number = gridSideLength * gridSideLength,
 		i: number = 0,
 		j: number,
 		length: number = 1,
+		r: number = camera.r,
 		rayIndex: number = 0,
-		rays: Float32Array | undefined; // Cast 1 ray by default
+		rays: Float32Array | undefined, // Cast 1 ray by default
+		x: number = camera.x,
+		xAngle: number,
+		xIndex: number,
+		xRayLength: number,
+		xStep: number,
+		xStepRay: number,
+		y: number = camera.y,
+		yAngle: number,
+		yIndex: number,
+		yRayLength: number,
+		yStep: number,
+		yStepRay: number;
 
 	if (options !== undefined) {
 		if (options.fovInDegrees !== undefined && options.fovPixels !== undefined) {
@@ -97,20 +106,6 @@ const GamingCanvasGridRaycast = (
 
 		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
 	}
-
-	// Start the algo
-	let distance: number,
-		gridIndex: number,
-		xAngle: number,
-		xIndex: number,
-		xRayLength: number,
-		xStepRay: number,
-		xStep: number,
-		yAngle: number,
-		yIndex: number,
-		yRayLength: number,
-		yStepRay: number,
-		yStep: number;
 
 	for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
 		// Initial angle
@@ -404,10 +399,15 @@ class CalcEngine {
 				if (cameraUpdated === true || characterPositionUpdated === true) {
 					let data: GamingCanvasGridRaycastResult;
 
+					let options: GamingCanvasGridRaycastOptions = {
+						fovInDegrees: 60,
+						fovPixels: 5,
+					};
+
 					if (cameraMode === true) {
-						data = GamingCanvasGridRaycast(camera.r, camera.x, camera.y, cellSizePx, gameMapGrid);
+						data = GamingCanvasGridRaycast(camera, gameMapGrid, options);
 					} else {
-						data = GamingCanvasGridRaycast(characterPosition.r, characterPosition.x, characterPosition.y, cellSizePx, gameMapGrid);
+						data = GamingCanvasGridRaycast(characterPosition, gameMapGrid, options);
 					}
 
 					cells = <Set<number>>data.cells;

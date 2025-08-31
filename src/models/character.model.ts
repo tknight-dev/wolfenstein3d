@@ -1,3 +1,5 @@
+import { GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
+
 /**
  * @author tknight-dev
  */
@@ -25,11 +27,8 @@ export const CharacterControlDecode = (characterControl: Float32Array): Characte
 	};
 };
 
-export interface CharacterPosition {
+export interface CharacterPosition extends GamingCanvasGridICamera {
 	dataIndex: number; // int
-	r: number; // 0 - 6.28318530 rads
-	x: number; // float
-	y: number; // float
 }
 
 export const CharacterPositionEncode = (characterPosition: CharacterPosition): Float32Array => {
@@ -42,6 +41,7 @@ export const CharacterPositionDecode = (characterPosition: Float32Array): Charac
 		r: characterPosition[1],
 		x: characterPosition[2],
 		y: characterPosition[3],
+		z: 1,
 	};
 };
 

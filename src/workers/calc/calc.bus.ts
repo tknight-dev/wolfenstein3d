@@ -42,6 +42,7 @@ export class CalcBus {
 				r: camera.r,
 				x: camera.x,
 				y: camera.y,
+				z: 1,
 			});
 			CalcBus.worker.postMessage(
 				{

@@ -47,6 +47,7 @@ export class VideoEditorBus {
 				r: camera.r,
 				x: camera.x,
 				y: camera.y,
+				z: 1,
 			});
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			const viewportEncoded: Float32Array = viewport.encode();
