@@ -375,12 +375,19 @@ class VideoEditorEngine {
 
 				// Draw: Rays
 				if (rays !== undefined) {
-					offscreenCanvasContext.lineWidth = 1;
-					offscreenCanvasContext.strokeStyle = 'yellow';
-					for (i = 0; i < rays.length; i += 2) {
+					offscreenCanvasContext.lineWidth = 2;
+					for (i = 0; i < rays.length; i += 4) {
+						offscreenCanvasContext.strokeStyle = 'rgb(0,255,0)';
 						offscreenCanvasContext.beginPath();
 						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
 						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.stroke();
+
+						offscreenCanvasContext.strokeStyle = 'red';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart)); // Origin
+						offscreenCanvasContext.lineTo(cellSizePx * (rays[i + 2] - viewport.widthStart), cellSizePx * (rays[i + 3] - viewport.heightStart));
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
 					}

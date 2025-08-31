@@ -46,18 +46,25 @@ interface GamingCanvasGridRaycastResult {
 }
 
 /**
- * Uses the DDA Algorithm
- *
  * If either `fovInDegrees` or `fovPixels` is undefiend then only one ray is cast
  *
  * @param fovInDegrees (integer) how wide of a field-of-view to cast rays in
  * @param fovPixels (integer) how many rays to cast
  */
-const GamingCanvasGridRaycast = (r: number, x: number, y: number, grid: any, options?: GamingCanvasGridRaycastOptions): GamingCanvasGridRaycastResult => {
+const GamingCanvasGridRaycast = (
+	r: number,
+	x: number,
+	y: number,
+	cellSizePx: number,
+	grid: any,
+	options?: GamingCanvasGridRaycastOptions,
+): GamingCanvasGridRaycastResult => {
 	let cells: Set<number> | undefined,
 		fovInDegreesStart: number = 0,
+		gridData: any = grid.data,
+		gridSideLength: number = grid.sideLength,
 		i: number = 0,
-		length: number = 1,
+		length: number = 2,
 		rayIndex: number = 0,
 		rays: Float32Array | undefined; // Cast 1 ray by default
 
@@ -86,21 +93,76 @@ const GamingCanvasGridRaycast = (r: number, x: number, y: number, grid: any, opt
 		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
 	}
 
-	// Start the algo
-	for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
-		// if (cells !== undefined) {
-		// 	cells.add(1);
-		// }
-		// if (rays !== undefined) {
-		// 	rays[rayIndex] = 1; // x
-		// 	rays[rayIndex + 1] = 1; // y
-		// }
+	if (rays !== undefined) {
+		rays[0] = x;
+		rays[1] = y;
+		rays[2] = x;
+		rays[3] = y;
 	}
 
-	if (rays !== undefined) {
-		rays[0] = 0; // x
-		rays[1] = 0; // y
+	// Start the algo
+	let distance: number,
+		xAngle = Math.sin(r),
+		xIndex: number = x | 0,
+		xRayLength: number,
+		xRayStep: number,
+		xStep: number,
+		yAngle = Math.cos(r),
+		yIndex: number = y | 0,
+		yRayLength: number,
+		yRayStep: number,
+		yStep: number;
+
+	xRayStep = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
+	yRayStep = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
+
+	if (xAngle < 0) {
+		xRayLength = (x - xIndex) * xRayStep;
+		xStep = -1;
+	} else {
+		xRayLength = (1 - (x - xIndex)) * xRayStep;
+		xStep = 1;
 	}
+
+	if (xAngle < 0) {
+		yRayLength = (y - yIndex) * yRayStep;
+		yStep = -1;
+	} else {
+		yRayLength = (1 - (y - yIndex)) * yRayStep;
+		yStep = 1;
+	}
+
+	for (let i = 0; i < gridSideLength; i++) {
+		if (xRayLength < yRayLength) {
+			distance = xRayLength;
+			xIndex += xStep;
+			xRayLength += xRayStep;
+		} else {
+			distance = yRayLength;
+			yIndex += yStep;
+			yRayLength += yRayStep;
+		}
+
+		// Wall is 1
+		if (gridData[xIndex * gridSideLength + yIndex] === 1) {
+			if (rays !== undefined) {
+				rays[0] = x + xAngle * distance;
+				rays[1] = y + yAngle * distance;
+			}
+			break;
+		}
+	}
+
+	// for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
+
+	// 	// if (cells !== undefined) {
+	// 	// 	cells.add(1);
+	// 	// }
+	// 	// if (rays !== undefined) {
+	// 	// 	rays[rayIndex] = 1; // x
+	// 	// 	rays[rayIndex + 1] = 1; // y
+	// 	// }
+	// }
 
 	// Done
 	return {
@@ -126,6 +188,7 @@ class CalcEngine {
 	public static initialize(data: CalcBusInputDataInit): void {
 		// Config
 		CalcEngine.gameMap = data.gameMap;
+		CalcEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
 
 		// Config: CharacterPosition
 		CalcEngine.characterPosition = CharacterPositionDecode(data.characterPosition);
@@ -340,9 +403,9 @@ class CalcEngine {
 					let data: GamingCanvasGridRaycastResult;
 
 					if (cameraMode === true) {
-						data = GamingCanvasGridRaycast(camera.r, camera.x, camera.y, gameMapGrid);
+						data = GamingCanvasGridRaycast(camera.r, camera.x, camera.y, cellSizePx, gameMapGrid);
 					} else {
-						data = GamingCanvasGridRaycast(characterPosition.r, characterPosition.x, characterPosition.y, gameMapGrid);
+						data = GamingCanvasGridRaycast(characterPosition.r, characterPosition.x, characterPosition.y, cellSizePx, gameMapGrid);
 					}
 
 					rays = <Float32Array>data.rays;

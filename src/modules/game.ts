@@ -60,15 +60,15 @@ export class Game {
 		const grid: GamingCanvasGridUint8ClampedArray = new GamingCanvasGridUint8ClampedArray(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
-			zoomInitial: number = 1.5;
+			// zoomInitial: number = 1.5;
+			zoomInitial: number = 2;
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera((90 * Math.PI) / 180, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
 		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
 		// Game Map
-		const gridCenter: number = (gridSideLength ** 2 / 2 + gridSideLength / 2) | 0,
-			valueFloor: number = 0x00,
+		const valueFloor: number = 0x00,
 			valueWall: number = 0x01;
 
 		// Map basic layout
