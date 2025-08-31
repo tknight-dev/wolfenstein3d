@@ -188,6 +188,7 @@ export class Game {
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
+				cells: data.cells,
 				gameMode: false,
 				rays: Float32Array.from(data.rays),
 				viewport: viewport.encode(),
@@ -227,6 +228,7 @@ export class Game {
 			// Second: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
+				cells: data.cells,
 				gameMode: true,
 				rays: raysClone,
 				viewport: viewport.encode(),

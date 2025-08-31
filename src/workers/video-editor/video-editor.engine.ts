@@ -48,6 +48,7 @@ enum CacheId {
 
 class VideoEditorEngine {
 	private static calcCamera: Float32Array;
+	private static calcCells: number[] | undefined;
 	private static calcGameMode: boolean;
 	private static calcNew: boolean;
 	private static calcRays: Float32Array;
@@ -118,6 +119,7 @@ class VideoEditorEngine {
 
 	public static inputCalculations(data: VideoEditorBusInputDataCalculations): void {
 		VideoEditorEngine.calcCamera = data.camera;
+		VideoEditorEngine.calcCells = data.cells;
 		VideoEditorEngine.calcGameMode = data.gameMode;
 		VideoEditorEngine.calcRays = data.rays;
 		VideoEditorEngine.calcViewport = data.viewport;
@@ -188,6 +190,7 @@ class VideoEditorEngine {
 			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheId: CacheId,
+			cells: number[] | undefined,
 			cellSizePx: number = 0,
 			characterPosition: CharacterPosition = CharacterPositionDecode(VideoEditorEngine.characterPosition),
 			characterPositionXEff: number,
@@ -260,6 +263,7 @@ class VideoEditorEngine {
 						VideoEditorEngine.calcNew = false;
 
 						camera.decode(VideoEditorEngine.calcCamera);
+						cells = VideoEditorEngine.calcCells;
 						gameMode = VideoEditorEngine.calcGameMode;
 						rays = VideoEditorEngine.calcRays;
 						viewport.decode(VideoEditorEngine.calcViewport);
@@ -373,21 +377,30 @@ class VideoEditorEngine {
 					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
 				);
 
+				// Draw: Cells
+				if (cells !== undefined) {
+					for (i = 0; i < cells.length; i++) {
+						x = (cells[i] / gameMapGridSideLength) | 0;
+						y = cells[i] % gameMapGridSideLength;
+
+						offscreenCanvasContext.fillStyle = 'rgb(0, 0, 255)';
+						offscreenCanvasContext.fillRect(
+							cellSizePx * (x - viewport.widthStart),
+							cellSizePx * (y - viewport.heightStart),
+							cellSizePx,
+							cellSizePx,
+						);
+					}
+				}
+
 				// Draw: Rays
 				if (rays !== undefined) {
 					offscreenCanvasContext.lineWidth = 2;
-					for (i = 0; i < rays.length; i += 4) {
-						offscreenCanvasContext.strokeStyle = 'rgb(0,255,0)';
+					for (i = 0; i < rays.length; i += 2) {
+						offscreenCanvasContext.strokeStyle = 'red';
 						offscreenCanvasContext.beginPath();
 						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
 						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
-						offscreenCanvasContext.closePath();
-						offscreenCanvasContext.stroke();
-
-						offscreenCanvasContext.strokeStyle = 'red';
-						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart)); // Origin
-						offscreenCanvasContext.lineTo(cellSizePx * (rays[i + 2] - viewport.widthStart), cellSizePx * (rays[i + 3] - viewport.heightStart));
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
 					}

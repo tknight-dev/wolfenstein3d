@@ -63,8 +63,10 @@ const GamingCanvasGridRaycast = (
 		fovInDegreesStart: number = 0,
 		gridData: any = grid.data,
 		gridSideLength: number = grid.sideLength,
+		gridSize: number = gridSideLength * gridSideLength,
 		i: number = 0,
-		length: number = 2,
+		j: number,
+		length: number = 1,
 		rayIndex: number = 0,
 		rays: Float32Array | undefined; // Cast 1 ray by default
 
@@ -79,6 +81,7 @@ const GamingCanvasGridRaycast = (
 
 		if (options.skipCells !== true) {
 			cells = new Set();
+			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 		}
 
 		if (options.skipRays !== true) {
@@ -90,79 +93,77 @@ const GamingCanvasGridRaycast = (
 		}
 	} else {
 		cells = new Set();
-		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
-	}
+		cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 
-	if (rays !== undefined) {
-		rays[0] = x;
-		rays[1] = y;
-		rays[2] = x;
-		rays[3] = y;
+		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
 	}
 
 	// Start the algo
 	let distance: number,
-		xAngle = Math.sin(r),
-		xIndex: number = x | 0,
+		gridIndex: number,
+		xAngle: number,
+		xIndex: number,
 		xRayLength: number,
-		xRayStep: number,
+		xStepRay: number,
 		xStep: number,
-		yAngle = Math.cos(r),
-		yIndex: number = y | 0,
+		yAngle: number,
+		yIndex: number,
 		yRayLength: number,
-		yRayStep: number,
+		yStepRay: number,
 		yStep: number;
 
-	xRayStep = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
-	yRayStep = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
+	for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
+		// Initial angle
+		xAngle = Math.sin(r);
+		yAngle = Math.cos(r);
 
-	if (xAngle < 0) {
-		xRayLength = (x - xIndex) * xRayStep;
-		xStep = -1;
-	} else {
-		xRayLength = (1 - (x - xIndex)) * xRayStep;
-		xStep = 1;
-	}
+		// Initial index
+		xIndex = x | 0;
+		yIndex = y | 0;
 
-	if (xAngle < 0) {
-		yRayLength = (y - yIndex) * yRayStep;
-		yStep = -1;
-	} else {
-		yRayLength = (1 - (y - yIndex)) * yRayStep;
-		yStep = 1;
-	}
+		// Step size to next cell
+		xStep = Math.sign(xAngle);
+		xStepRay = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
+		yStep = Math.sign(yAngle);
+		yStepRay = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
 
-	for (let i = 0; i < gridSideLength; i++) {
-		if (xRayLength < yRayLength) {
-			distance = xRayLength;
-			xIndex += xStep;
-			xRayLength += xRayStep;
-		} else {
-			distance = yRayLength;
-			yIndex += yStep;
-			yRayLength += yRayStep;
-		}
+		// Offset ray length by current position within cell
+		xRayLength = (xAngle < 0 ? x - xIndex : 1 - (x - xIndex)) * xStepRay;
+		yRayLength = (yAngle < 0 ? y - yIndex : 1 - (y - yIndex)) * yStepRay;
 
-		// Wall is 1
-		if (gridData[xIndex * gridSideLength + yIndex] === 1) {
-			if (rays !== undefined) {
-				rays[0] = x + xAngle * distance;
-				rays[1] = y + yAngle * distance;
+		// Increment ray cell by cell
+		for (j = 0; j < gridSideLength; j++) {
+			// Next cell
+			if (xRayLength < yRayLength) {
+				distance = xRayLength;
+				xIndex += xStep;
+				xRayLength += xStepRay;
+			} else {
+				distance = yRayLength;
+				yIndex += yStep;
+				yRayLength += yStepRay;
 			}
-			break;
+
+			// Convert to grid index
+			gridIndex = xIndex * gridSideLength + yIndex;
+
+			// Within grid?
+			if (gridIndex < 0 || gridIndex >= gridSize) {
+				break;
+			}
+
+			// Is terminated?
+			if (gridData[gridIndex] === 1) {
+				if (rays !== undefined) {
+					rays[0] = x + xAngle * distance;
+					rays[1] = y + yAngle * distance;
+				}
+				break;
+			} else if (cells !== undefined) {
+				cells.add(gridIndex);
+			}
 		}
 	}
-
-	// for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
-
-	// 	// if (cells !== undefined) {
-	// 	// 	cells.add(1);
-	// 	// }
-	// 	// if (rays !== undefined) {
-	// 	// 	rays[rayIndex] = 1; // x
-	// 	// 	rays[rayIndex + 1] = 1; // y
-	// 	// }
-	// }
 
 	// Done
 	return {
@@ -259,6 +260,7 @@ class CalcEngine {
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
 			cameraUpdatedReport: boolean = true,
+			cells: Set<number>,
 			cellSizePx: number = 1,
 			characterControl: CharacterControl = {
 				r: CalcEngine.characterPosition.r,
@@ -408,6 +410,7 @@ class CalcEngine {
 						data = GamingCanvasGridRaycast(characterPosition.r, characterPosition.x, characterPosition.y, cellSizePx, gameMapGrid);
 					}
 
+					cells = <Set<number>>data.cells;
 					rays = <Float32Array>data.rays;
 				}
 
@@ -436,6 +439,7 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
+										cells: Array.from(cells),
 										rays: rays,
 									},
 								},
@@ -454,6 +458,7 @@ class CalcEngine {
 								{
 									cmd: CalcBusOutputCmd.CALCULATIONS,
 									data: {
+										cells: Array.from(cells),
 										characterPosition: characterPositionEncoded,
 										rays: rays,
 									},
