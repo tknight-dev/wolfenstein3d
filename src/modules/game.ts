@@ -1,15 +1,13 @@
-import { DOM } from './dom';
-import { CalcBusOutputDataCalculations, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model';
-import { CalcBus } from '../workers/calc/calc.bus';
-import { Camera, CameraDecode, CameraEncode } from '../models/camera.model';
-import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model';
-import { GameMap } from '../models/game.model';
-import { Resolution } from '../models/settings.model';
-import { Viewport } from '../models/viewport.model';
-import { VideoEditorBus } from '../workers/video-editor/video-editor.bus';
-import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model';
-import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.model';
-import { VideoMainBus } from '../workers/video-main/video-main.bus';
+import { DOM } from './dom.js';
+import { CalcBusOutputDataCalculations, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
+import { CalcBus } from '../workers/calc/calc.bus.js';
+import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model.js';
+import { GameMap } from '../models/game.model.js';
+import { Resolution } from '../models/settings.model.js';
+import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
+import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
+import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.model.js';
+import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import {
 	GamingCanvas,
 	GamingCanvasFIFOQueue,
@@ -18,6 +16,7 @@ import {
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
 	GamingCanvasInputPosition,
+	GamingCanvasInputPositionClone,
 	GamingCanvasInputPositionDistance,
 	GamingCanvasInputTouch,
 	GamingCanvasInputTouchAction,
@@ -26,7 +25,12 @@ import {
 	GamingCanvasReport,
 	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
-import { GamingCanvasInputGamepadControllerVendor } from '@tknight-dev/gaming-canvas/dist/engines/gamepad.engine';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridInputOverlaySnapPxTopLeft,
+	GamingCanvasGridUint8ClampedArray,
+	GamingCanvasGridViewport,
+} from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -36,7 +40,7 @@ import { GamingCanvasInputGamepadControllerVendor } from '@tknight-dev/gaming-ca
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
 export class Game {
-	public static camera: Camera;
+	public static camera: GamingCanvasGridCamera;
 	public static dataMaps: Map<number, GameMap> = new Map();
 	public static inputRequest: number;
 	public static modeEdit: boolean;
@@ -50,60 +54,47 @@ export class Game {
 	public static settingsCalc: CalcBusInputDataSettings;
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
 	public static settingsVideoMain: VideoMainBusInputDataSettings;
-	public static viewport: Viewport;
+	public static viewport: GamingCanvasGridViewport;
 
 	static {
-		const gameCameraZoomInitial: number = 80,
-			gameDataWidth: number = 64,
-			positionCenter: number = gameDataWidth / 2;
+		const grid: GamingCanvasGridUint8ClampedArray = new GamingCanvasGridUint8ClampedArray(64),
+			gridSideCenter: number = grid.sideLength / 2,
+			gridSideLength: number = grid.sideLength,
+			zoomInitial: number = 1.5;
 
 		// Camera and Viewport
-		Game.camera = {
-			r: (90 * Math.PI) / 180, // Top (north)
-			x: gameDataWidth / 2 + 0.5,
-			y: gameDataWidth / 2 + 0.5,
-			z: gameCameraZoomInitial, // Def 10
-		};
-		Game.viewport = new Viewport(5, gameDataWidth, gameDataWidth);
+		Game.camera = new GamingCanvasGridCamera((90 * Math.PI) / 180, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
+		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
 		// Game Map
-		const map: Uint8Array = new Uint8Array(gameDataWidth * gameDataWidth),
-			mapCenter: number = (gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0,
-			valueFlooor: number = 0x00,
+		const gridCenter: number = (gridSideLength ** 2 / 2 + gridSideLength / 2) | 0,
+			valueFloor: number = 0x00,
 			valueWall: number = 0x01;
 
 		// Map basic layout
-		map.fill(valueWall);
-
-		// Boundaries
-		// map[0] = 0xff; // top-left
-		// map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2) | 0] = 0xff; // center
-		// map[gameDataWidth ** 2 - gameDataWidth] = 0xff; // top-right
-		// map[gameDataWidth ** 2 - 1] = 0xff; // bottom-right
-		// gameData[gameDataWidth - 1] = 0xff; // bottom-left
+		grid.data.fill(valueWall);
 
 		// Central square...ish
 		let boxSize: number = 3;
-		for (let x = mapCenter - gameDataWidth * boxSize; x <= mapCenter + gameDataWidth * boxSize; x += gameDataWidth) {
+		for (let x = -boxSize; x <= boxSize; x++) {
 			for (let y = -boxSize; y <= boxSize; y++) {
-				map[x + y] = valueFlooor;
+				grid.set(x + gridSideCenter, y + gridSideCenter, valueFloor);
 			}
 		}
 
-		map[(gameDataWidth ** 2 / 2 - gameDataWidth / 2 - 2) | 0] = valueWall; // Top-Left
-		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + gameDataWidth - 2) | 0] = valueWall; // Top-Right
-		map[(gameDataWidth ** 2 / 2 - gameDataWidth / 2 + 2) | 0] = valueWall; // Bottom-Left
-		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + gameDataWidth + 2) | 0] = valueWall; // Bottom-Right
+		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWall); // Top-Left
+		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWall); // Top-Right
+		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWall); // Bottom-Left
+		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Bottom-Right
 
-		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 - (boxSize + 1)) | 0] = valueFlooor; // Top-Center
-		map[(gameDataWidth ** 2 / 2 + gameDataWidth / 2 + (boxSize + 1)) | 0] = valueFlooor; // Bottom-Center
+		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Top-Center
+		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Bottom-Center
 
 		Game.dataMaps.set(0, {
-			cameraZoomIntial: gameCameraZoomInitial,
-			data: map,
-			dataEnds: [],
-			dataLights: [],
-			dataWidth: gameDataWidth,
+			cameraZoomIntial: zoomInitial,
+			grid: grid,
+			gridEnds: [],
+			gridLights: [],
 		});
 	}
 
@@ -140,7 +131,7 @@ export class Game {
 	private static processorBinder(): void {
 		let audioClickVolume: number = 0.25,
 			buffer: Set<number> = new Set(),
-			camera: Camera = Game.camera,
+			camera: GamingCanvasGridCamera = Game.camera,
 			cameraMoveX: number = 0,
 			cameraMoveXOriginal: number = 0,
 			cameraMoveY: number = 0,
@@ -152,10 +143,10 @@ export class Game {
 			cameraXOriginal: number = 0,
 			cameraYOriginal: number = 0,
 			cameraZoom: number = camera.z,
-			cameraZoomMax: number = 100,
-			cameraZoomMin: number = 10,
+			cameraZoomMax: number = 2,
+			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
-			cameraZoomStep: number = 10,
+			cameraZoomStep: number = 0.05,
 			characterControl: CharacterControl = {
 				r: Game.camera.r, // initial value
 				x: 0,
@@ -180,7 +171,7 @@ export class Game {
 			cellSizePx: number = Game.viewport.cellSizePx,
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
 			queueInput: GamingCanvasInput | undefined,
-			queueInputOverlay: GamingCanvasInput,
+			queueInputOverlay: GamingCanvasInputPosition,
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
 			touchAdded: boolean,
@@ -188,7 +179,7 @@ export class Game {
 			touchDistancePrevious: number = -1,
 			updated: boolean,
 			value: number,
-			viewport: Viewport = Game.viewport,
+			viewport: GamingCanvasGridViewport = Game.viewport,
 			x: number,
 			y: number;
 
@@ -196,7 +187,7 @@ export class Game {
 		CalcBus.setCallbackCamera((data: CalcBusOutputDataCamera) => {
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
-				camera: CameraEncode(camera),
+				camera: camera.encode(),
 				gameMode: false,
 				rays: Float32Array.from(data.rays),
 				viewport: viewport.encode(),
@@ -229,13 +220,13 @@ export class Game {
 
 			// First: VideoMain
 			VideoMainBus.outputCalculations({
-				camera: CameraEncode(camera),
+				camera: camera.encode(),
 				rays: rays,
 			});
 
 			// Second: VideoEditor
 			VideoEditorBus.outputCalculations({
-				camera: CameraEncode(camera),
+				camera: camera.encode(),
 				gameMode: true,
 				rays: raysClone,
 				viewport: viewport.encode(),
@@ -255,13 +246,13 @@ export class Game {
 
 						cellSizePx = viewport.cellSizePx;
 					} else if (updated === true) {
-						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.widthC;
-						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.heightC;
+						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
+						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
 					}
 					viewport.apply(camera);
 
 					// Calc: Camera Mode
-					CalcBus.outputCamera(CameraEncode(camera));
+					CalcBus.outputCamera(camera.encode());
 				} else {
 					// Calc: Game Mode
 					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
@@ -292,8 +283,9 @@ export class Game {
 							processorKeyboard(queueInput);
 							break;
 						case GamingCanvasInputType.MOUSE:
+							queueInputOverlay = GamingCanvasInputPositionClone(queueInput.propriatary.position);
 							GamingCanvas.relativizeInputToCanvas(queueInput);
-							processorMouse(queueInput);
+							processorMouse(queueInput, queueInputOverlay);
 							break;
 						case GamingCanvasInputType.TOUCH:
 							GamingCanvas.relativizeInputToCanvas(queueInput);
@@ -357,7 +349,7 @@ export class Game {
 			}
 		};
 
-		const processorMouse = (input: GamingCanvasInputMouse) => {
+		const processorMouse = (input: GamingCanvasInputMouse, inputOverlayPosition: GamingCanvasInputPosition) => {
 			position1 = input.propriatary.position;
 			if (input.propriatary.down !== undefined) {
 				down = input.propriatary.down;
@@ -380,7 +372,7 @@ export class Game {
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					// processorMouseCellHighlight(input.propriatary.position);
+					// processorMouseCellHighlight(inputOverlayPosition);
 
 					if (modeEdit === true) {
 						if (downMode === true) {
@@ -394,7 +386,7 @@ export class Game {
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
-					// processorMouseCellHighlight(input.propriatary.position);
+					// processorMouseCellHighlight(inputOverlayPosition);
 
 					if (modeEdit === true) {
 						cameraZoomPrevious = cameraZoom;
@@ -410,12 +402,12 @@ export class Game {
 		const processorMouseCellHighlight = (position: GamingCanvasInputPosition) => {
 			// Timeout allows for the viewport to be updated before the input before fitting the cell highlight
 			setTimeout(() => {
+				const leftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, viewport);
+
 				elEditStyle.display = 'block';
 				elEditStyle.height = cellSizePx + 'px';
-				elEditStyle.left =
-					(position.xRelative * viewport.widthC - ((position.xRelative * viewport.widthC + viewport.widthStartC) % 1)) * cellSizePx + 'px';
-				elEditStyle.top =
-					(position.yRelative * viewport.heightC - ((position.yRelative * viewport.heightC + viewport.heightStartC) % 1)) * cellSizePx + 'px';
+				elEditStyle.left = leftTop[0] + 'px';
+				elEditStyle.top = leftTop[1] + 'px';
 				elEditStyle.width = cellSizePx + 'px';
 			}, inputLimitPerMs + 10);
 		};

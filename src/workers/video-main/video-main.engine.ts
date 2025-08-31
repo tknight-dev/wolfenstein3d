@@ -1,6 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { Camera, CameraDecode } from '../../models/camera.model';
-import { GameMap } from '../../models/game.model';
+import { GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -9,7 +8,8 @@ import {
 	VideoMainBusInputPayload,
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputPayload,
-} from './video-main.model';
+} from './video-main.model.js';
+import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -54,6 +54,7 @@ class VideoMainEngine {
 	public static initialize(data: VideoMainBusInputDataInit): void {
 		// Config
 		VideoMainEngine.gameMap = data.gameMap;
+		VideoMainEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
 
 		// Config: Canvas
 		VideoMainEngine.offscreenCanvas = data.offscreenCanvas;
@@ -140,7 +141,7 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: Camera,
+		let camera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculationsCamera),
 			fpms: number = VideoMainEngine.settingsFPMS,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
@@ -164,7 +165,7 @@ class VideoMainEngine {
 				if (VideoMainEngine.calculationsNew === true) {
 					VideoMainEngine.calculationsNew = false;
 
-					camera = CameraDecode(VideoMainEngine.calculationsCamera);
+					camera.decode(VideoMainEngine.calculationsCamera);
 					rays = VideoMainEngine.calculationsRays;
 				}
 

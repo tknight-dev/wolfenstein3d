@@ -1,7 +1,5 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { Camera, CameraEncode } from '../../models/camera.model';
-import { GameMap } from '../../models/game.model';
-import { Viewport } from '../../models/viewport.model';
+import { GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -9,8 +7,9 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputDataStats,
 	VideoEditorBusOutputPayload,
-} from './video-editor.model';
-import { CharacterPosition, CharacterPositionEncode } from '../../models/character.model';
+} from './video-editor.model.js';
+import { CharacterPosition, CharacterPositionEncode } from '../../models/character.model.js';
+import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -22,11 +21,11 @@ export class VideoEditorBus {
 	private static worker: Worker;
 
 	public static initialize(
-		camera: Camera,
+		camera: GamingCanvasGridCamera,
 		canvas: HTMLCanvasElement,
 		gameMap: GameMap,
 		settings: VideoEditorBusInputDataSettings,
-		viewport: Viewport,
+		viewport: GamingCanvasGridViewport,
 		callback: (status: boolean) => void,
 	): void {
 		VideoEditorBus.callbackInitComplete = callback;
@@ -42,9 +41,9 @@ export class VideoEditorBus {
 			VideoEditorBus.input();
 
 			// Init the webworker
-			const cameraEncoded: Float32Array = CameraEncode(camera);
+			const cameraEncoded: Float32Array = camera.encode();
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
-				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
+				dataIndex: (camera.x | 0) * gameMap.grid.sideLength + (camera.y | 0),
 				r: camera.r,
 				x: camera.x,
 				y: camera.y,

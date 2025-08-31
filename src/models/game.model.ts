@@ -1,3 +1,5 @@
+import { GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
+
 /**
  * @author tknight-dev
  */
@@ -7,10 +9,9 @@
  */
 export interface GameMap {
 	cameraZoomIntial: number;
-	data: Uint8Array;
-	dataEnds: number[]; // Level ending cells array by data index
-	dataLights: number[]; // Level ending cells array by data index
-	dataWidth: number;
+	grid: GamingCanvasGridUint8ClampedArray;
+	gridEnds: number[]; // Level ending cells array by data index
+	gridLights: number[]; // Level ending cells array by data index
 }
 
 export enum GameMapCellMasks {

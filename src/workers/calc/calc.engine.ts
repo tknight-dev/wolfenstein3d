@@ -1,8 +1,8 @@
-import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model';
-import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model';
-import { Camera, CameraDecode, CameraEncode } from '../../models/camera.model';
-import { GameMap, GameMapCellMasks } from '../../models/game.model';
+import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model.js';
+import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model.js';
+import { GameMap, GameMapCellMasks } from '../../models/game.model.js';
 import { GamingCanvasReport, GamingCanvasUtilArrayExpand } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -115,12 +115,7 @@ class CalcEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: Camera = {
-				r: CalcEngine.characterPosition.r,
-				x: 0,
-				y: 0,
-				z: 1,
-			},
+		let camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(CalcEngine.characterPosition.r),
 			cameraEncoded: Float32Array,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
@@ -144,7 +139,9 @@ class CalcEngine {
 			characterSizeInCEff: number,
 			cycleMinMs: number = 10,
 			gameMap: GameMap = CalcEngine.gameMap,
-			gameMapData: Uint8Array = CalcEngine.gameMap.data,
+			gameMapGrid: GamingCanvasGridUint8ClampedArray = CalcEngine.gameMap.grid,
+			gameMapGridData: Uint8ClampedArray = CalcEngine.gameMap.grid.data,
+			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			i: number,
 			pi: number = Math.PI,
 			piDouble: number = Math.PI * 2,
@@ -181,7 +178,7 @@ class CalcEngine {
 				if (CalcEngine.cameraNew) {
 					CalcEngine.cameraNew = false;
 
-					camera = CameraDecode(CalcEngine.camera);
+					camera = GamingCanvasGridCamera.from(CalcEngine.camera);
 					cameraMode = true; // Snap back to camera
 					cameraUpdated = true;
 					cameraUpdatedReport = true;
@@ -193,7 +190,7 @@ class CalcEngine {
 					report = CalcEngine.report;
 
 					// Same as viewport but without the z factor
-					cellSizePx = Math.max(1, report.canvasWidth / gameMap.dataWidth);
+					cellSizePx = Math.max(1, report.canvasWidth / gameMapGrid.sideLength);
 
 					if (report.canvasWidth * 2 > rays.length) {
 						GamingCanvasUtilArrayExpand(rays, report.canvasWidth * 2 - rays.length);
@@ -237,9 +234,9 @@ class CalcEngine {
 						(Math.cos(characterControl.r) * -characterControl.x + Math.sin(characterControl.r) * -characterControl.y) * characterControlFactor;
 
 					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
-					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMap.dataWidth;
+					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMapGridSideLength;
 
-					if ((gameMapData[characterControlXIndex + (characterPosition.y | 0)] & GameMapCellMasks.TYPE_WALL) !== 1) {
+					if ((gameMapGridData[characterControlXIndex + (characterPosition.y | 0)] & GameMapCellMasks.TYPE_WALL) !== 1) {
 						characterPosition.x += characterControlX;
 						characterPositionUpdated = true;
 						characterPositionUpdatedReport = true;
@@ -252,14 +249,14 @@ class CalcEngine {
 					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;
 
-					if ((gameMapData[(characterPosition.x | 0) * gameMap.dataWidth + characterControlYIndex] & GameMapCellMasks.TYPE_WALL) !== 1) {
+					if ((gameMapGridData[(characterPosition.x | 0) * gameMapGridSideLength + characterControlYIndex] & GameMapCellMasks.TYPE_WALL) !== 1) {
 						characterPosition.y += characterControlY;
 						characterPositionUpdated = true;
 						characterPositionUpdatedReport = true;
 					}
 
 					// Current cell
-					characterPosition.dataIndex = (characterPosition.x | 0) * gameMap.dataWidth + (characterPosition.y | 0);
+					characterPosition.dataIndex = (characterPosition.x | 0) * gameMapGridSideLength + (characterPosition.y | 0);
 				}
 
 				/**
@@ -309,7 +306,7 @@ class CalcEngine {
 					if (cameraUpdatedReport === true) {
 						cameraUpdatedReport = false;
 
-						cameraEncoded = CameraEncode(camera);
+						cameraEncoded = camera.encode();
 						raysEncoded = Float32Array.from(rays.slice(0, raysIndex));
 
 						CalcEngine.post(

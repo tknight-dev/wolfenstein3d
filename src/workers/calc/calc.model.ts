@@ -1,6 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model';
-import { FPS } from '../../models/settings.model';
+import { GameMap } from '../../models/game.model.js';
+import { FPS } from '../../models/settings.model.js';
 
 /**
  * @author tknight-dev

@@ -1,6 +1,5 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { Camera, CameraEncode } from '../../models/camera.model';
-import { GameMap } from '../../models/game.model';
+import { GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -8,7 +7,8 @@ import {
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputDataStats,
 	VideoMainBusOutputPayload,
-} from './video-main.model';
+} from './video-main.model.js';
+import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -20,7 +20,7 @@ export class VideoMainBus {
 	private static worker: Worker;
 
 	public static initialize(
-		camera: Camera,
+		camera: GamingCanvasGridCamera,
 		canvas: HTMLCanvasElement,
 		gameMap: GameMap,
 		settings: VideoMainBusInputDataSettings,
@@ -39,7 +39,7 @@ export class VideoMainBus {
 			VideoMainBus.input();
 
 			// Init the webworker
-			const cameraEncoded: Float32Array = CameraEncode(camera);
+			const cameraEncoded: Float32Array = camera.encode();
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			VideoMainBus.worker.postMessage(
 				{

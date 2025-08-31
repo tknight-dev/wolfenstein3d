@@ -1,5 +1,4 @@
-import { Camera } from '../../models/camera.model';
-import { CharacterPositionEncode } from '../../models/character.model';
+import { CharacterPositionEncode } from '../../models/character.model.js';
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	CalcBusInputCmd,
@@ -9,8 +8,9 @@ import {
 	CalcBusOutputDataCalculations,
 	CalcBusOutputDataStats,
 	CalcBusOutputPayload,
-} from './calc.model';
-import { GameMap } from '../../models/game.model';
+} from './calc.model.js';
+import { GameMap } from '../../models/game.model.js';
+import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -23,7 +23,7 @@ export class CalcBus {
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(camera: Camera, settings: CalcBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
+	public static initialize(camera: GamingCanvasGridCamera, settings: CalcBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
 		CalcBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -38,7 +38,7 @@ export class CalcBus {
 
 			// Init the webworker
 			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
-				dataIndex: (camera.x | 0) * gameMap.dataWidth + (camera.y | 0),
+				dataIndex: (camera.x | 0) * gameMap.grid.sideLength + (camera.y | 0),
 				r: camera.r,
 				x: camera.x,
 				y: camera.y,

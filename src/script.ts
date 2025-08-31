@@ -1,16 +1,15 @@
-import { CalcBus } from './workers/calc/calc.bus';
-import { CalcBusOutputDataStats } from './workers/calc/calc.model';
-import { DOM } from './modules/dom';
-import { Game } from './modules/game';
-import { Camera } from './models/camera.model';
-import { GameMap } from './models/game.model';
-import { FPS, Resolution } from './models/settings.model';
-import { Viewport } from './models/viewport.model';
+import { CalcBus } from './workers/calc/calc.bus.js';
+import { CalcBusOutputDataStats } from './workers/calc/calc.model.js';
+import { DOM } from './modules/dom.js';
+import { Game } from './modules/game.js';
+import { GameMap } from './models/game.model.js';
+import { FPS, Resolution } from './models/settings.model.js';
 import { GamingCanvas, GamingCanvasReport, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
-import { VideoEditorBus } from './workers/video-editor/video-editor.bus';
-import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model';
-import { VideoMainBus } from './workers/video-main/video-main.bus';
-import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model';
+import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
+import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
+import { VideoMainBus } from './workers/video-main/video-main.bus.js';
+import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
+import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -127,10 +126,10 @@ class Blockenstein {
 	}
 
 	private static initializeWorkers(): Promise<void> {
-		let camera: Camera = Game.camera,
+		let camera: GamingCanvasGridCamera = Game.camera,
 			gameMap: GameMap = <GameMap>Game.dataMaps.get(0),
 			then: number = performance.now(),
-			viewport: Viewport = Game.viewport;
+			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Camera to viewport
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());

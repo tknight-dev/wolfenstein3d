@@ -1,7 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { Camera, CameraDecode } from '../../models/camera.model';
-import { GameMap, GameMapCellMasks } from '../../models/game.model';
-import { Viewport } from '../../models/viewport.model';
+import { GameMap, GameMapCellMasks } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -10,8 +8,9 @@ import {
 	VideoEditorBusInputPayload,
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
-} from './video-editor.model';
-import { CharacterPosition, CharacterPositionDecode } from '../../models/character.model';
+} from './video-editor.model.js';
+import { CharacterPosition, CharacterPositionDecode } from '../../models/character.model.js';
+import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -66,6 +65,7 @@ class VideoEditorEngine {
 	public static initialize(data: VideoEditorBusInputDataInit): void {
 		// Config
 		VideoEditorEngine.gameMap = data.gameMap;
+		VideoEditorEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
 
 		// Config: Canvas
 		VideoEditorEngine.offscreenCanvas = data.offscreenCanvas;
@@ -130,7 +130,7 @@ class VideoEditorEngine {
 		let index: number, value: number;
 
 		for ([index, value] of data) {
-			VideoEditorEngine.gameMap.data[index] = value;
+			VideoEditorEngine.gameMap.grid.data[index] = value;
 		}
 	}
 
@@ -161,7 +161,7 @@ class VideoEditorEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: Camera,
+		let camera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calcCamera),
 			cacheCanvas: Map<number, OffscreenCanvas> = new Map(),
 			cacheCanvasContextOptionsNoAlpha = {
 				alpha: false,
@@ -192,8 +192,9 @@ class VideoEditorEngine {
 			characterPosition: CharacterPosition = CharacterPositionDecode(VideoEditorEngine.characterPosition),
 			characterPositionXEff: number,
 			characterPositionYEff: number,
-			gameData: Uint8Array = VideoEditorEngine.gameMap.data,
-			gameDataWidth: number = VideoEditorEngine.gameMap.dataWidth,
+			gameMapGrid: GamingCanvasGridUint8ClampedArray = VideoEditorEngine.gameMap.grid,
+			gameMapGridData: Uint8ClampedArray = VideoEditorEngine.gameMap.grid.data,
+			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
 			gameMode: boolean,
 			fpms: number = VideoEditorEngine.settingsFPMS,
 			i: number,
@@ -214,11 +215,11 @@ class VideoEditorEngine {
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
 			value: number,
-			viewport: Viewport = new Viewport(),
-			viewPortHeightStartCEff: number,
-			viewPortHeightStopCEff: number,
-			viewPortWidthStartCEff: number,
-			viewPortWidthStopCEff: number,
+			viewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calcViewport),
+			viewPortHeightStartEff: number,
+			viewPortHeightStopEff: number,
+			viewPortWidthStartEff: number,
+			viewPortWidthStopEff: number,
 			x: number,
 			y: number;
 
@@ -258,7 +259,7 @@ class VideoEditorEngine {
 					if (VideoEditorEngine.calcNew === true) {
 						VideoEditorEngine.calcNew = false;
 
-						camera = CameraDecode(VideoEditorEngine.calcCamera);
+						camera.decode(VideoEditorEngine.calcCamera);
 						gameMode = VideoEditorEngine.calcGameMode;
 						rays = VideoEditorEngine.calcRays;
 						viewport.decode(VideoEditorEngine.calcViewport);
@@ -270,10 +271,10 @@ class VideoEditorEngine {
 						}
 
 						cellSizePx = viewport.cellSizePx;
-						characterPositionXEff = characterPosition.x - viewport.widthStartC;
-						characterPositionYEff = characterPosition.y - viewport.heightStartC;
-						rayOriginXPx = (camera.x - viewport.widthStartC) * cellSizePx;
-						rayOriginYPx = (camera.y - viewport.heightStartC) * cellSizePx;
+						characterPositionXEff = characterPosition.x - viewport.widthStart;
+						characterPositionYEff = characterPosition.y - viewport.heightStart;
+						rayOriginXPx = (camera.x - viewport.widthStart) * cellSizePx;
+						rayOriginYPx = (camera.y - viewport.heightStart) * cellSizePx;
 					}
 
 					// Report
@@ -287,7 +288,6 @@ class VideoEditorEngine {
 					}
 
 					// Settings
-					gameData = VideoEditorEngine.gameMap.data;
 					fpms = VideoEditorEngine.settingsFPMS;
 
 					// Cache
@@ -329,33 +329,38 @@ class VideoEditorEngine {
 
 				// Draw: Config
 				// statDrawAvg.watchStart();
-				viewPortHeightStartCEff = viewport.heightStartC - 1;
-				viewPortHeightStopCEff = viewport.heightStopC + 1;
-				viewPortWidthStartCEff = viewport.widthStartC - 1;
-				viewPortWidthStopCEff = viewport.widthStopC;
+				viewPortHeightStartEff = viewport.heightStart - 1;
+				viewPortHeightStopEff = viewport.heightStop + 1;
+				viewPortWidthStartEff = viewport.widthStart - 1;
+				viewPortWidthStopEff = viewport.widthStop;
 
-				// console.log(viewPortWidthStartCEff, viewPortWidthStopCEff);
+				// console.log(viewPortWidthStartEff, viewPortWidthStopEff);
 
 				// Draw: Clear
 				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
 				// Draw: Cells
-				for ([i, value] of gameData.entries()) {
-					cacheId = (value & GameMapCellMasks.TYPE_WALL) !== 0 ? CacheId.WALL : CacheId.FLOOR;
+				for ([i, value] of gameMapGridData.entries()) {
+					x = (i / gameMapGridSideLength) | 0;
 
-					x = (i / gameDataWidth) | 0;
-					if (x > viewPortWidthStartCEff && x < viewPortWidthStopCEff) {
-						y = i % gameDataWidth;
+					// if (i === 0) {
+					// 	console.log(i, x, viewPortWidthStartEff, viewPortWidthStopEff, value, x > viewPortWidthStartEff && x < viewPortWidthStopEff);
+					// }
+					// console.log(i, x, x > viewPortWidthStartEff && x < viewPortWidthStopEff);
 
-						if (y > viewPortHeightStartCEff && y < viewPortHeightStopCEff) {
+					if (x > viewPortWidthStartEff && x < viewPortWidthStopEff) {
+						y = i % gameMapGridSideLength;
+
+						if (y > viewPortHeightStartEff && y < viewPortHeightStopEff) {
 							// if (i === 0) {
-							// 	console.log(i, x, y, (x - viewport.widthStartC) * cellSizePx, (y - viewport.heightStartC - 1) * cellSizePx);
+							// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
 							// }
 
+							cacheId = (value & GameMapCellMasks.TYPE_WALL) !== 0 ? CacheId.WALL : CacheId.FLOOR;
 							offscreenCanvasContext.drawImage(
 								<OffscreenCanvas>cacheCanvas.get(cacheId),
-								(x - viewport.widthStartC) * cellSizePx,
-								(y - viewport.heightStartC) * cellSizePx,
+								(x - viewport.widthStart) * cellSizePx,
+								(y - viewport.heightStart) * cellSizePx,
 							);
 						}
 					}
@@ -369,17 +374,17 @@ class VideoEditorEngine {
 				);
 
 				// Draw: Rays
-				if (rays !== undefined) {
-					offscreenCanvasContext.lineWidth = 1;
-					offscreenCanvasContext.strokeStyle = 'yellow';
-					for (i = 0; i < rays.length; i += 2) {
-						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
-						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStartC), cellSizePx * (rays[i + 1] - viewport.heightStartC));
-						offscreenCanvasContext.closePath();
-						offscreenCanvasContext.stroke();
-					}
-				}
+				// if (rays !== undefined) {
+				// 	offscreenCanvasContext.lineWidth = 1;
+				// 	offscreenCanvasContext.strokeStyle = 'yellow';
+				// 	for (i = 0; i < rays.length; i += 2) {
+				// 		offscreenCanvasContext.beginPath();
+				// 		offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
+				// 		offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
+				// 		offscreenCanvasContext.closePath();
+				// 		offscreenCanvasContext.stroke();
+				// 	}
+				// }
 
 				// Draw: Character Direction
 				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;

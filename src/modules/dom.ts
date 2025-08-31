@@ -1,4 +1,4 @@
-import packageJSON from '../../package.json';
+import packageJSON from '../../package.json' with { type: 'json' };
 
 /**
  * @author tknight-dev
