@@ -1,6 +1,6 @@
 import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model.js';
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model.js';
-import { GameMap, GameMapCellMasks } from '../../models/game.model.js';
+import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
 import { GamingCanvasReport, GamingCanvasUtilArrayExpand } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCamera,
@@ -234,7 +234,10 @@ class CalcEngine {
 					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMapGridSideLength;
 
-					if ((gameMapGridData[characterControlXIndex + (characterPosition.y | 0)] & GameMapCellMasks.TYPE_WALL) !== 1) {
+					if (
+						(gameMapGridData[characterControlXIndex + (characterPosition.y | 0)] & GameGridCellMaskAndValues.WALL_MASK) !==
+						GameGridCellMaskAndValues.WALL_VALUE
+					) {
 						characterPosition.x += characterControlX;
 						characterPositionUpdated = true;
 						characterPositionUpdatedReport = true;
@@ -247,7 +250,10 @@ class CalcEngine {
 					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;
 
-					if ((gameMapGridData[(characterPosition.x | 0) * gameMapGridSideLength + characterControlYIndex] & GameMapCellMasks.TYPE_WALL) !== 1) {
+					if (
+						(gameMapGridData[(characterPosition.x | 0) * gameMapGridSideLength + characterControlYIndex] & GameGridCellMaskAndValues.WALL_MASK) !==
+						GameGridCellMaskAndValues.WALL_VALUE
+					) {
 						characterPosition.y += characterControlY;
 						characterPositionUpdated = true;
 						characterPositionUpdatedReport = true;
@@ -272,9 +278,15 @@ class CalcEngine {
 					};
 
 					if (cameraMode === true) {
-						data = GamingCanvasGridRaycast(camera, gameMapGrid, 0x01, 0x01, options);
+						data = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMaskAndValues.WALL_MASK, GameGridCellMaskAndValues.WALL_VALUE, options);
 					} else {
-						data = GamingCanvasGridRaycast(characterPosition, gameMapGrid, 0x01, 0x01, options);
+						data = GamingCanvasGridRaycast(
+							characterPosition,
+							gameMapGrid,
+							GameGridCellMaskAndValues.WALL_MASK,
+							GameGridCellMaskAndValues.WALL_VALUE,
+							options,
+						);
 					}
 
 					cells = <Set<Number>>data.cells;

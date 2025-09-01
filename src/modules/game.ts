@@ -2,7 +2,7 @@ import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model.js';
-import { GameMap } from '../models/game.model.js';
+import { GameGridCellMaskAndValues, GameMap } from '../models/game.model.js';
 import { Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -67,15 +67,19 @@ export class Game {
 		Game.camera = new GamingCanvasGridCamera((90 * Math.PI) / 180, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
 		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
-		// Game Map
-		const valueFloor: number = 0x00,
-			valueWall: number = 0x01;
+		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
+			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE;
 
-		// Map basic layout
-		grid.data.fill(valueWall);
+		// Walls
+		let boxSize: number = 4;
+		for (let x = -boxSize; x <= boxSize; x++) {
+			for (let y = -boxSize; y <= boxSize; y++) {
+				grid.set(x + gridSideCenter, y + gridSideCenter, valueWall);
+			}
+		}
 
-		// Central square...ish
-		let boxSize: number = 3;
+		// Floors
+		boxSize = 3;
 		for (let x = -boxSize; x <= boxSize; x++) {
 			for (let y = -boxSize; y <= boxSize; y++) {
 				grid.set(x + gridSideCenter, y + gridSideCenter, valueFloor);
@@ -88,7 +92,9 @@ export class Game {
 		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Bottom-Right
 
 		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Top-Center
+		grid.set(gridSideCenter, gridSideCenter + 5, valueWall); // Top-Center
 		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Bottom-Center
+		grid.set(gridSideCenter, gridSideCenter - 5, valueWall); // Bottom-Center
 
 		Game.dataMaps.set(0, {
 			cameraZoomIntial: zoomInitial,
