@@ -2,7 +2,13 @@ import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterP
 import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model.js';
 import { GameMap, GameMapCellMasks } from '../../models/game.model.js';
 import { GamingCanvasReport, GamingCanvasUtilArrayExpand } from '@tknight-dev/gaming-canvas';
-import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridRaycast,
+	GamingCanvasGridRaycastOptions,
+	GamingCanvasGridRaycastResult,
+	GamingCanvasGridUint8ClampedArray,
+} from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -31,140 +37,6 @@ self.onmessage = (event: MessageEvent) => {
 			CalcEngine.inputSettings(<CalcBusInputDataSettings>payload.data);
 			break;
 	}
-};
-
-interface GamingCanvasGridRaycastOptions {
-	fovInDegrees?: number;
-	fovPixels?: number;
-	skipCells?: boolean;
-	skipRays?: boolean;
-}
-
-interface GamingCanvasGridRaycastResult {
-	cells?: Set<number>; // to be Uint*Array typed with in the actual canvas project with types available
-	rays?: Float32Array;
-}
-
-/**
- * If either `fovInDegrees` or `fovPixels` is undefiend then only one ray is cast
- *
- * @param fovInDegrees (integer) how wide of a field-of-view to cast rays in
- * @param fovPixels (integer) how many rays to cast
- * @return .cells are indexes for each cell touched by a ray | .rays are the (x,y) coordinates, from the camera postion, that form a ray (line)
- */
-const GamingCanvasGridRaycast = (camera: GamingCanvasGridICamera, grid: any, options?: GamingCanvasGridRaycastOptions): GamingCanvasGridRaycastResult => {
-	let cells: Set<number> | undefined,
-		distance: number,
-		fovInDegreesStart: number = 0,
-		gridData: any = grid.data,
-		gridIndex: number,
-		gridSideLength: number = grid.sideLength,
-		gridSize: number = gridSideLength * gridSideLength,
-		i: number = 0,
-		j: number,
-		length: number = 1,
-		r: number = camera.r,
-		rayIndex: number = 0,
-		rays: Float32Array | undefined, // Cast 1 ray by default
-		x: number = camera.x,
-		xAngle: number,
-		xIndex: number,
-		xRayLength: number,
-		xStep: number,
-		xStepRay: number,
-		y: number = camera.y,
-		yAngle: number,
-		yIndex: number,
-		yRayLength: number,
-		yStep: number,
-		yStepRay: number;
-
-	if (options !== undefined) {
-		if (options.fovInDegrees !== undefined && options.fovPixels !== undefined) {
-			options.fovInDegrees = options.fovInDegrees | 0;
-
-			fovInDegreesStart = options.fovInDegrees - ((options.fovInDegrees / 2) | 0);
-
-			length = options.fovPixels | 0;
-		}
-
-		if (options.skipCells !== true) {
-			cells = new Set();
-			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
-		}
-
-		if (options.skipRays !== true) {
-			rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
-		}
-
-		if (cells === undefined && rays === undefined) {
-			return {};
-		}
-	} else {
-		cells = new Set();
-		cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
-
-		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
-	}
-
-	for (; i < length; i++, fovInDegreesStart++, rayIndex += 2) {
-		// Initial angle
-		xAngle = Math.sin(r);
-		yAngle = Math.cos(r);
-
-		// Initial index
-		xIndex = x | 0;
-		yIndex = y | 0;
-
-		// Step size to next cell
-		xStep = Math.sign(xAngle);
-		xStepRay = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
-		yStep = Math.sign(yAngle);
-		yStepRay = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
-
-		// Offset ray length by current position within cell
-		xRayLength = (xAngle < 0 ? x - xIndex : 1 - (x - xIndex)) * xStepRay;
-		yRayLength = (yAngle < 0 ? y - yIndex : 1 - (y - yIndex)) * yStepRay;
-
-		// Increment ray cell by cell
-		for (j = 0; j < gridSideLength; j++) {
-			// Next cell
-			if (xRayLength < yRayLength) {
-				distance = xRayLength;
-				xIndex += xStep;
-				xRayLength += xStepRay;
-			} else {
-				distance = yRayLength;
-				yIndex += yStep;
-				yRayLength += yStepRay;
-			}
-
-			// Convert to grid index
-			gridIndex = xIndex * gridSideLength + yIndex;
-
-			// Within grid?
-			if (gridIndex < 0 || gridIndex >= gridSize) {
-				break;
-			}
-
-			// Is terminated?
-			if (gridData[gridIndex] === 1) {
-				if (rays !== undefined) {
-					rays[0] = x + xAngle * distance;
-					rays[1] = y + yAngle * distance;
-				}
-				break;
-			} else if (cells !== undefined) {
-				cells.add(gridIndex);
-			}
-		}
-	}
-
-	// Done
-	return {
-		cells: cells,
-		rays: rays,
-	};
 };
 
 class CalcEngine {
@@ -255,8 +127,9 @@ class CalcEngine {
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
 			cameraUpdatedReport: boolean = true,
-			cells: Set<number>,
-			cellSizePx: number = 1,
+			cells: Set<Number>,
+			cellsEncoded: Uint8Array,
+			// cellSizePx: number,
 			characterControl: CharacterControl = {
 				r: CalcEngine.characterPosition.r,
 				x: 0,
@@ -274,18 +147,12 @@ class CalcEngine {
 			characterSizeInC: number = 0.25,
 			characterSizeInCEff: number,
 			cycleMinMs: number = 10,
-			gameMap: GameMap = CalcEngine.gameMap,
 			gameMapGrid: GamingCanvasGridUint8ClampedArray = CalcEngine.gameMap.grid,
 			gameMapGridData: Uint8ClampedArray = CalcEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
-			i: number,
-			pi: number = Math.PI,
-			piDouble: number = Math.PI * 2,
 			rays: Float32Array,
 			report: GamingCanvasReport = CalcEngine.report,
 			settingsFOV: number = CalcEngine.settingsFOV,
-			settingsFOVHalf: number = CalcEngine.settingsFOV / 2,
-			settingsFOVStepAngle: number = CalcEngine.settingsFOV / 2,
 			settingsFPMS: number = CalcEngine.settingsFPMS,
 			timestampDelta: number,
 			timestampFPSDelta: number,
@@ -323,7 +190,7 @@ class CalcEngine {
 					report = CalcEngine.report;
 
 					// Same as viewport but without the z factor
-					cellSizePx = Math.max(1, report.canvasWidth / gameMapGrid.sideLength);
+					// cellSizePx = Math.max(1, report.canvasWidth / gameMapGrid.sideLength);
 
 					// if (report.canvasWidth * 2 > rays.length) {
 					// 	GamingCanvasUtilArrayExpand(rays, report.canvasWidth * 2 - rays.length);
@@ -351,9 +218,7 @@ class CalcEngine {
 					cameraUpdated = true; // This or position works
 					// raysSize = report.canvasWidth;
 					settingsFOV = CalcEngine.settingsFOV;
-					settingsFOVHalf = settingsFOV / 2;
 					settingsFPMS = CalcEngine.settingsFPMS;
-					settingsFOVStepAngle = settingsFOV / report.canvasWidth;
 				}
 
 				/**
@@ -400,17 +265,19 @@ class CalcEngine {
 					let data: GamingCanvasGridRaycastResult;
 
 					let options: GamingCanvasGridRaycastOptions = {
-						fovInDegrees: 60,
-						fovPixels: 5,
+						cellEnable: true,
+						rayCount: 50,
+						// rayCount: report.canvasWidth,
+						rayFOV: (60 * Math.PI) / 180,
 					};
 
 					if (cameraMode === true) {
-						data = GamingCanvasGridRaycast(camera, gameMapGrid, options);
+						data = GamingCanvasGridRaycast(camera, gameMapGrid, 0x01, 0x01, options);
 					} else {
-						data = GamingCanvasGridRaycast(characterPosition, gameMapGrid, options);
+						data = GamingCanvasGridRaycast(characterPosition, gameMapGrid, 0x01, 0x01, options);
 					}
 
-					cells = <Set<number>>data.cells;
+					cells = <Set<Number>>data.cells;
 					rays = <Float32Array>data.rays;
 				}
 
@@ -432,6 +299,7 @@ class CalcEngine {
 						cameraUpdatedReport = false;
 
 						cameraEncoded = camera.encode();
+						cellsEncoded = Uint8Array.from(cells);
 
 						CalcEngine.post(
 							[
@@ -439,12 +307,12 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
-										cells: Array.from(cells),
+										cells: cellsEncoded,
 										rays: rays,
 									},
 								},
 							],
-							[cameraEncoded.buffer],
+							[cameraEncoded.buffer, cellsEncoded.buffer],
 						);
 					}
 				} else {
@@ -452,19 +320,20 @@ class CalcEngine {
 						characterPositionUpdatedReport = false;
 
 						characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
+						cellsEncoded = Uint8Array.from(cells);
 
 						CalcEngine.post(
 							[
 								{
 									cmd: CalcBusOutputCmd.CALCULATIONS,
 									data: {
-										cells: Array.from(cells),
+										cells: cellsEncoded,
 										characterPosition: characterPositionEncoded,
 										rays: rays,
 									},
 								},
 							],
-							[characterPositionEncoded.buffer],
+							[cellsEncoded.buffer, characterPositionEncoded.buffer],
 						);
 					}
 				}

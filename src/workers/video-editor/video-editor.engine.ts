@@ -48,7 +48,7 @@ enum CacheId {
 
 class VideoEditorEngine {
 	private static calcCamera: Float32Array;
-	private static calcCells: number[] | undefined;
+	private static calcCells: Uint8Array;
 	private static calcGameMode: boolean;
 	private static calcNew: boolean;
 	private static calcRays: Float32Array;
@@ -190,7 +190,7 @@ class VideoEditorEngine {
 			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheId: CacheId,
-			cells: number[] | undefined,
+			cells: Uint8Array,
 			cellSizePx: number = 0,
 			characterPosition: CharacterPosition = CharacterPositionDecode(VideoEditorEngine.characterPosition),
 			characterPositionXEff: number,
@@ -383,7 +383,7 @@ class VideoEditorEngine {
 						x = (cells[i] / gameMapGridSideLength) | 0;
 						y = cells[i] % gameMapGridSideLength;
 
-						offscreenCanvasContext.fillStyle = 'rgb(0, 0, 255)';
+						offscreenCanvasContext.fillStyle = 'rgb(192, 192, 192)';
 						offscreenCanvasContext.fillRect(
 							cellSizePx * (x - viewport.widthStart),
 							cellSizePx * (y - viewport.heightStart),
@@ -396,8 +396,8 @@ class VideoEditorEngine {
 				// Draw: Rays
 				if (rays !== undefined) {
 					offscreenCanvasContext.lineWidth = 2;
-					for (i = 0; i < rays.length; i += 2) {
-						offscreenCanvasContext.strokeStyle = 'red';
+					for (i = 0; i < rays.length; i += 4) {
+						offscreenCanvasContext.strokeStyle = 'yellow';
 						offscreenCanvasContext.beginPath();
 						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
 						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));

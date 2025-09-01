@@ -45,12 +45,12 @@ export enum CalcBusOutputCmd {
 
 export interface CalcBusOutputDataCamera {
 	camera: Float32Array;
-	cells: number[];
+	cells: Uint8Array;
 	rays: Float32Array;
 }
 
 export interface CalcBusOutputDataCalculations {
-	cells: number[];
+	cells: Uint8Array;
 	characterPosition: Float32Array;
 	rays: Float32Array;
 }

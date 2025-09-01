@@ -190,7 +190,7 @@ export class Game {
 				camera: camera.encode(),
 				cells: data.cells,
 				gameMode: false,
-				rays: Float32Array.from(data.rays),
+				rays: Float32Array.from(data.rays), // Duplicate
 				viewport: viewport.encode(),
 			});
 
