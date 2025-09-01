@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
+import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -9,7 +9,7 @@ import {
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -54,7 +54,7 @@ class VideoMainEngine {
 	public static initialize(data: VideoMainBusInputDataInit): void {
 		// Config
 		VideoMainEngine.gameMap = data.gameMap;
-		VideoMainEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
+		VideoMainEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
 
 		// Config: Canvas
 		VideoMainEngine.offscreenCanvas = data.offscreenCanvas;

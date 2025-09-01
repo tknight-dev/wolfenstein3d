@@ -10,7 +10,7 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
 import { CharacterPosition, CharacterPositionDecode } from '../../models/character.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridUint8ClampedArray, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridUint16Array, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -66,7 +66,7 @@ class VideoEditorEngine {
 	public static initialize(data: VideoEditorBusInputDataInit): void {
 		// Config
 		VideoEditorEngine.gameMap = data.gameMap;
-		VideoEditorEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
+		VideoEditorEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
 
 		// Config: Canvas
 		VideoEditorEngine.offscreenCanvas = data.offscreenCanvas;
@@ -195,8 +195,8 @@ class VideoEditorEngine {
 			characterPosition: CharacterPosition = CharacterPositionDecode(VideoEditorEngine.characterPosition),
 			characterPositionXEff: number,
 			characterPositionYEff: number,
-			gameMapGrid: GamingCanvasGridUint8ClampedArray = VideoEditorEngine.gameMap.grid,
-			gameMapGridData: Uint8ClampedArray = VideoEditorEngine.gameMap.grid.data,
+			gameMapGrid: GamingCanvasGridUint16Array = VideoEditorEngine.gameMap.grid,
+			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
 			gameMode: boolean,
 			fpms: number = VideoEditorEngine.settingsFPMS,

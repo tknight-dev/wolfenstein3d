@@ -28,7 +28,7 @@ import {
 import {
 	GamingCanvasGridCamera,
 	GamingCanvasGridInputOverlaySnapPxTopLeft,
-	GamingCanvasGridUint8ClampedArray,
+	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
 } from '@tknight-dev/gaming-canvas/grid';
 
@@ -57,7 +57,7 @@ export class Game {
 	public static viewport: GamingCanvasGridViewport;
 
 	static {
-		const grid: GamingCanvasGridUint8ClampedArray = new GamingCanvasGridUint8ClampedArray(64),
+		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
 			// zoomInitial: number = 1.5;

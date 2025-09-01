@@ -1,4 +1,4 @@
-import { GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -8,11 +8,20 @@ import { GamingCanvasGridUint8ClampedArray } from '@tknight-dev/gaming-canvas/gr
  * Values are shifted to mask position
  */
 export enum GameGridCellMaskAndValues {
+	ASSET_ID_MASK = 0xfff0, // 4095 Possible
+	DOOR_MASK = 0x04,
+	DOOR_VALUE = 0,
+	FLOOR_MASK = 0x02,
+	FLOOR_VALUE = 0,
 	NULL_MASK = 0x01,
 	NULL_VALUE = 0,
 	NULL_VALUE_NOT = 1,
-	FLOOR_MASK = 0x02,
-	FLOOR_VALUE = 0,
+	RESERVED_1_MASK = 0x04,
+	RESERVED_1_VALUE = 1,
+	RESERVED_2_MASK = 0x08,
+	RESERVED_2_VALUE = 0,
+	RESERVED_3_MASK = 0x08,
+	RESERVED_3_VALUE = 1,
 	WALL_MASK = 0x02,
 	WALL_VALUE = 2, // 1 << 1
 }
@@ -22,13 +31,7 @@ export enum GameGridCellMaskAndValues {
  */
 export interface GameMap {
 	cameraZoomIntial: number;
-	grid: GamingCanvasGridUint8ClampedArray;
+	grid: GamingCanvasGridUint16Array;
 	gridEnds: number[]; // Level ending cells array by data index
 	gridLights: number[]; // Level ending cells array by data index
 }
-
-// export enum GameMapCellMasks {
-// 	ASSET_ID = 0xfc, // 63 possible
-// 	TYPE_DOOR = 0x02, // 1 is door, 0 is nothing
-// 	TYPE_WALL = 0x01, // 1 is wall, 0 is floor
-// }

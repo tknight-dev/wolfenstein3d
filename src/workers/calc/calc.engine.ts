@@ -7,7 +7,7 @@ import {
 	GamingCanvasGridRaycast,
 	GamingCanvasGridRaycastOptions,
 	GamingCanvasGridRaycastResult,
-	GamingCanvasGridUint8ClampedArray,
+	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 
 /**
@@ -56,7 +56,7 @@ class CalcEngine {
 	public static initialize(data: CalcBusInputDataInit): void {
 		// Config
 		CalcEngine.gameMap = data.gameMap;
-		CalcEngine.gameMap.grid = GamingCanvasGridUint8ClampedArray.from(data.gameMap.grid.data);
+		CalcEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
 
 		// Config: CharacterPosition
 		CalcEngine.characterPosition = CharacterPositionDecode(data.characterPosition);
@@ -147,8 +147,8 @@ class CalcEngine {
 			characterSizeInC: number = 0.25,
 			characterSizeInCEff: number,
 			cycleMinMs: number = 10,
-			gameMapGrid: GamingCanvasGridUint8ClampedArray = CalcEngine.gameMap.grid,
-			gameMapGridData: Uint8ClampedArray = CalcEngine.gameMap.grid.data,
+			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
+			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			rays: Float32Array,
 			report: GamingCanvasReport = CalcEngine.report,
