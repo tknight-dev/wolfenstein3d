@@ -272,8 +272,8 @@ class CalcEngine {
 
 					let options: GamingCanvasGridRaycastOptions = {
 						cellEnable: true,
-						rayCount: 50,
-						// rayCount: report.canvasWidth,
+						// rayCount: 50,
+						rayCount: report.canvasWidth,
 						rayFOV: (60 * Math.PI) / 180,
 					};
 

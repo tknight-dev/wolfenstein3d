@@ -9,6 +9,7 @@ import {
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
+import { GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 import { GamingCanvasGridCamera, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
@@ -145,6 +146,8 @@ class VideoMainEngine {
 			fpms: number = VideoMainEngine.settingsFPMS,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
+			offscreenCanvasImage: OffscreenCanvas = new OffscreenCanvas(64, 64),
+			offscreenCanvasImageContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>offscreenCanvasImage.getContext('2d'),
 			frameCount: number = 0,
 			rays: Float32Array,
 			timestampDelta: number,
@@ -175,6 +178,22 @@ class VideoMainEngine {
 					// This isn't necessary when you are using a fixed resolution
 					offscreenCanvas.height = VideoMainEngine.reportHeightPx;
 					offscreenCanvas.width = VideoMainEngine.reportWidthPx;
+
+					offscreenCanvasImageContext.clearRect(0, 0, offscreenCanvasImage.width, offscreenCanvasImage.height);
+					offscreenCanvasImageContext.fillStyle = 'grey';
+					offscreenCanvasImageContext.fillRect(0, 0, 64, 64);
+
+					offscreenCanvasImageContext.fillStyle = 'red';
+					offscreenCanvasImageContext.fillRect(0, 0, 32, 32);
+
+					offscreenCanvasImageContext.fillStyle = 'blue';
+					offscreenCanvasImageContext.fillRect(32, 32, 32, 32);
+
+					offscreenCanvasImageContext.fillStyle = 'green';
+					offscreenCanvasImageContext.beginPath();
+					offscreenCanvasImageContext.arc(32, 32, 16, 0, 2 * Math.PI);
+					offscreenCanvasImageContext.closePath();
+					offscreenCanvasImageContext.fill();
 				}
 
 				if (VideoMainEngine.settingsNew === true) {
@@ -184,10 +203,33 @@ class VideoMainEngine {
 				}
 
 				// Your code Here
-				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-				offscreenCanvasContext.fillStyle = 'red';
-				offscreenCanvasContext.font = '48px serif';
-				offscreenCanvasContext.fillText('Video: Main', 5, 50);
+				if (rays !== undefined) {
+					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+					for (let i = 0, j = 0; i < rays.length; i += 4, j++) {
+						let wallHeight = (offscreenCanvas.height / rays[i + 2]) * 1.5;
+						let color: number = GamingCanvasUtilScale(wallHeight, 0, offscreenCanvas.height, 20, 200);
+
+						// offscreenCanvasContext.fillStyle = `rgb(${color}, ${color}, ${colsaor})`;
+						// offscreenCanvasContext.fillRect(j, offscreenCanvas.height / 2 - wallHeight / 2, 1, wallHeight);
+
+						offscreenCanvasContext.drawImage(
+							offscreenCanvasImage,
+							GamingCanvasUtilScale(rays[i + 3], 0, 1, 0, 63),
+							0,
+							1,
+							64,
+							j,
+							offscreenCanvas.height / 2 - wallHeight / 2,
+							1,
+							wallHeight,
+						);
+					}
+				}
+
+				// offscreenCanvasContext.fillStyle = 'red';
+				// offscreenCanvasContext.font = '48px serif';
+				// offscreenCanvasContext.fillText('Video: Main', 5, 50);
 			}
 
 			// Stats: sent once per second

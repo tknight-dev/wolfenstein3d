@@ -373,11 +373,11 @@ class VideoEditorEngine {
 				}
 
 				// Draw: Grid
-				offscreenCanvasContext.drawImage(
-					cacheCanvasGrid,
-					-(viewport.widthStartPx % cellSizePx) - cellSizePx,
-					-(viewport.heightStartPx % cellSizePx) - cellSizePx,
-				);
+				// offscreenCanvasContext.drawImage(
+				// 	cacheCanvasGrid,
+				// 	-(viewport.widthStartPx % cellSizePx) - cellSizePx,
+				// 	-(viewport.heightStartPx % cellSizePx) - cellSizePx,
+				// );
 
 				// Draw: Cells
 				if (cells !== undefined) {
