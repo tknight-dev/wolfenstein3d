@@ -11,6 +11,7 @@ import {
 } from './video-main.model.js';
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import { GamingCanvasGridCamera, GamingCanvasGridRaycast3DProjectionTestImageCreate, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { RaycastQuality } from '../../models/settings.model.js';
 
 /**
  * @author tknight-dev
@@ -162,6 +163,7 @@ class VideoMainEngine {
 			renderWidthOffset: number,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
+			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0;
@@ -201,6 +203,7 @@ class VideoMainEngine {
 
 					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
 					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
+					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
 					renderEnable = player1 || settingsPlayer2Enable === true;
 				}
@@ -233,7 +236,7 @@ class VideoMainEngine {
 							renderWidthOffset = 0;
 						}
 
-						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel++) {
+						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel += settingsRaycastQuality) {
 							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[i + 2]) * 1.5;
 
 							offscreenCanvasContext.drawImage(
@@ -244,7 +247,7 @@ class VideoMainEngine {
 								testImage.height, // (height-source) height of our test image
 								renderPixel + renderWidthOffset, // (x-destination) Draw sliced image at pixel
 								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								1, // (width-destination) Draw the sliced image as 1 pixel wide
+								settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide
 								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 							);
 						}
@@ -263,7 +266,7 @@ class VideoMainEngine {
 							renderHeightOffset = offscreenCanvasHeightPx / 3;
 						}
 
-						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel++) {
+						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel += settingsRaycastQuality) {
 							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[i + 2]) * 1.5;
 
 							offscreenCanvasContext.drawImage(
@@ -274,7 +277,7 @@ class VideoMainEngine {
 								testImage.height, // (height-source) height of our test image
 								renderPixel, // (x-destination) Draw sliced image at pixel
 								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								1, // (width-destination) Draw the sliced image as 1 pixel wide
+								settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide
 								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 							);
 						}

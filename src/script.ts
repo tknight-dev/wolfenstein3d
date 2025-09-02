@@ -3,7 +3,7 @@ import { CalcBusOutputDataStats } from './workers/calc/calc.model.js';
 import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { FPS, Resolution } from './models/settings.model.js';
+import { FPS, RaycastQuality, Resolution } from './models/settings.model.js';
 import { GamingCanvas, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
@@ -25,9 +25,9 @@ class Blockenstein {
 			dpiSupportEnable: Game.settingDPISupport,
 			// elementInteractive: DOM.elVideoInteractive,
 			elementInjectAsOverlay: [DOM.elEdit],
+			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
 			inputMouseEnable: true,
-			inputTouchEnable: true,
 			orientationCanvasRotateEnable: false,
 			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
@@ -46,6 +46,7 @@ class Blockenstein {
 		Game.settingDebug = false; // def: false
 		Game.settingDPISupport = false; // def: false
 		Game.settingFPSDisplay = true; // def: true
+		Game.settingPlayer1Keyboard = true; // def: true, false is gamepad (player 2 is the inverse)
 		// Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		Game.settingResolution = 640;
 
@@ -56,6 +57,7 @@ class Blockenstein {
 			fov: (60 * Math.PI) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,
+			raycastQuality: RaycastQuality.THIRD,
 		};
 
 		Game.settingsVideoEditor = {
@@ -68,6 +70,7 @@ class Blockenstein {
 			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
 			player2Enable: Game.settingsCalc.player2Enable,
+			raycastQuality: Game.settingsCalc.raycastQuality,
 		};
 
 		/**

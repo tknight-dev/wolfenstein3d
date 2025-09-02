@@ -24,6 +24,7 @@ import {
 	GamingCanvasGridRaycastResult,
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
+import { RaycastQuality } from '../../models/settings.model.js';
 
 /**
  * @author tknight-dev
@@ -206,6 +207,7 @@ class CalcEngine {
 			reportOrientationForce: boolean,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
+			settingsRaycastQuality: RaycastQuality = CalcEngine.settings.raycastQuality,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
@@ -257,6 +259,10 @@ class CalcEngine {
 							raycastOptions.rayCount = (report.canvasWidth / 2) | 0;
 						}
 					}
+
+					if (CalcEngine.settings.raycastQuality !== RaycastQuality.FULL) {
+						raycastOptions.rayCount = (raycastOptions.rayCount / CalcEngine.settings.raycastQuality) | 0;
+					}
 				}
 
 				// Character Control: Update
@@ -274,6 +280,7 @@ class CalcEngine {
 					cameraUpdated = true; // This or position works
 					raycastOptions.rayFOV = CalcEngine.settings.fov;
 					settingsFPMS = 1000 / CalcEngine.settings.fps;
+					settingsRaycastQuality = CalcEngine.settings.raycastQuality;
 				}
 
 				/**

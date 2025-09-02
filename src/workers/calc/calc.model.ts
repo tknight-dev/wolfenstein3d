@@ -1,6 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
-import { FPS } from '../../models/settings.model.js';
+import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
 
 /**
@@ -32,6 +32,7 @@ export interface CalcBusInputDataSettings {
 	fov: number;
 	fps: FPS;
 	player2Enable: boolean;
+	raycastQuality: RaycastQuality;
 }
 
 export interface CalcBusInputPayload {
