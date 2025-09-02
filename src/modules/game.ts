@@ -11,6 +11,7 @@ import {
 	GamingCanvas,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
+	GamingCanvasInputGamepad,
 	GamingCanvasInputKeyboard,
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
@@ -171,6 +172,7 @@ export class Game {
 					y: 0, // -1 to 1 (-1 is up)
 				},
 			},
+			characterPlayerInputPlayer: GamingCanvasGridCharacterInput,
 			down: boolean,
 			downMode: boolean,
 			downModeWheel: boolean,
@@ -314,9 +316,9 @@ export class Game {
 					queueInput = <GamingCanvasInput>queue.pop();
 
 					switch (queueInput.type) {
-						// case GamingCanvasInputType.GAMEPAD:
-						// 	processorGamepad(queueInput);
-						// 	break;
+						case GamingCanvasInputType.GAMEPAD:
+							processorGamepad(queueInput);
+							break;
 						case GamingCanvasInputType.KEYBOARD:
 							processorKeyboard(queueInput);
 							break;
@@ -335,56 +337,82 @@ export class Game {
 		};
 		Game.processor = processor;
 
+		const processorGamepad = (input: GamingCanvasInputGamepad) => {
+			if (modeEdit !== true) {
+				if (Game.settingPlayer1Keyboard === true) {
+					characterPlayerInputPlayer = characterPlayerInput.player2;
+				} else {
+					characterPlayerInputPlayer = characterPlayerInput.player1;
+				}
+
+				if (input.propriatary.axes) {
+					characterPlayerInputPlayer.x = input.propriatary.axes[0];
+					characterPlayerInputPlayer.y = input.propriatary.axes[1];
+					characterPlayerInputPlayer.r = input.propriatary.axes[2];
+				} else {
+					// Button
+				}
+
+				updated = true;
+			}
+		};
+
 		const processorKeyboard = (input: GamingCanvasInputKeyboard) => {
 			down = input.propriatary.down;
 
 			if (modeEdit !== true) {
+				if (Game.settingPlayer1Keyboard === true) {
+					characterPlayerInputPlayer = characterPlayerInput.player1;
+				} else {
+					characterPlayerInputPlayer = characterPlayerInput.player2;
+				}
+
 				switch (input.propriatary.action.code) {
 					case 'ArrowLeft':
 						if (down) {
-							characterPlayerInput.player1.r = -1;
-						} else if (characterPlayerInput.player1.r === -1) {
-							characterPlayerInput.player1.r = 0;
+							characterPlayerInputPlayer.r = -1;
+						} else if (characterPlayerInputPlayer.r === -1) {
+							characterPlayerInputPlayer.r = 0;
 						}
 						updated = true;
 						break;
 					case 'ArrowRight':
 						if (down) {
-							characterPlayerInput.player1.r = 1;
-						} else if (characterPlayerInput.player1.r === 1) {
-							characterPlayerInput.player1.r = 0;
+							characterPlayerInputPlayer.r = 1;
+						} else if (characterPlayerInputPlayer.r === 1) {
+							characterPlayerInputPlayer.r = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyA':
 						if (down) {
-							characterPlayerInput.player1.x = -1;
-						} else if (characterPlayerInput.player1.x === -1) {
-							characterPlayerInput.player1.x = 0;
+							characterPlayerInputPlayer.x = -1;
+						} else if (characterPlayerInputPlayer.x === -1) {
+							characterPlayerInputPlayer.x = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyD':
 						if (down) {
-							characterPlayerInput.player1.x = 1;
-						} else if (characterPlayerInput.player1.x === 1) {
-							characterPlayerInput.player1.x = 0;
+							characterPlayerInputPlayer.x = 1;
+						} else if (characterPlayerInputPlayer.x === 1) {
+							characterPlayerInputPlayer.x = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyW':
 						if (down) {
-							characterPlayerInput.player1.y = -1;
-						} else if (characterPlayerInput.player1.y === -1) {
-							characterPlayerInput.player1.y = 0;
+							characterPlayerInputPlayer.y = -1;
+						} else if (characterPlayerInputPlayer.y === -1) {
+							characterPlayerInputPlayer.y = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyS':
 						if (down) {
-							characterPlayerInput.player1.y = 1;
-						} else if (characterPlayerInput.player1.y === 1) {
-							characterPlayerInput.player1.y = 0;
+							characterPlayerInputPlayer.y = 1;
+						} else if (characterPlayerInputPlayer.y === 1) {
+							characterPlayerInputPlayer.y = 0;
 						}
 						updated = true;
 						break;

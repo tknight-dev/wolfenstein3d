@@ -57,7 +57,7 @@ class Blockenstein {
 			fov: (60 * Math.PI) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,
-			raycastQuality: RaycastQuality.THIRD,
+			raycastQuality: RaycastQuality.FULL,
 		};
 
 		Game.settingsVideoEditor = {
