@@ -249,9 +249,9 @@ class VideoMainEngine {
 							);
 						}
 					} else {
-						if (settingsPlayer2Enable === true) {
-							renderHeightFactor = 2.5;
+						renderHeightFactor = 2.5;
 
+						if (settingsPlayer2Enable === true) {
 							if (player1 === false) {
 								renderHeightOffset = offscreenCanvasHeightPx / 2;
 								renderHeightOffsetInverse = 0;
@@ -260,7 +260,6 @@ class VideoMainEngine {
 								renderHeightOffsetInverse = offscreenCanvasHeightPxHalf;
 							}
 						} else {
-							renderHeightFactor = 2.5;
 							renderHeightOffset = offscreenCanvasHeightPx / 3;
 						}
 

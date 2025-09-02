@@ -71,12 +71,7 @@ class CalcEngine {
 	public static initialize(data: CalcBusInputDataInit): void {
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
-			camera: {
-				r: data.gameMap.cameraRIntial,
-				x: data.gameMap.gridStartX + 0.5,
-				y: data.gameMap.gridStartY + 0.5,
-				z: 1,
-			},
+			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: 100,
 			id: 0,
@@ -87,12 +82,7 @@ class CalcEngine {
 			timestampPrevious: 0,
 		};
 		CalcEngine.characterPlayer2 = {
-			camera: {
-				r: CalcEngine.characterPlayer1.camera.r,
-				x: CalcEngine.characterPlayer1.camera.x,
-				y: CalcEngine.characterPlayer1.camera.y,
-				z: CalcEngine.characterPlayer1.camera.z,
-			},
+			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: CalcEngine.characterPlayer1.health,
 			id: 1,
@@ -176,9 +166,10 @@ class CalcEngine {
 			cameraEncoded: Float32Array,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
+			buffers: ArrayBufferLike[] = [],
 			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
 				clip: true,
-				factorPosition: 0.005,
+				factorPosition: 0.00425,
 				factorRotation: 0.00225,
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},
@@ -211,6 +202,8 @@ class CalcEngine {
 				rayFOV: CalcEngine.settings.fov,
 			},
 			report: GamingCanvasReport = CalcEngine.report,
+			reportOrientation: GamingCanvasOrientation = CalcEngine.report.orientation,
+			reportOrientationForce: boolean,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
 			timestampDelta: number,
@@ -254,6 +247,11 @@ class CalcEngine {
 					report = CalcEngine.report;
 					raycastOptions.rayCount = report.canvasWidth;
 
+					if (reportOrientation !== report.orientation) {
+						reportOrientation = report.orientation;
+						reportOrientationForce = true;
+					}
+
 					if (CalcEngine.settings.player2Enable === true) {
 						if (report.orientation === GamingCanvasOrientation.LANDSCAPE) {
 							raycastOptions.rayCount = (report.canvasWidth / 2) | 0;
@@ -295,7 +293,7 @@ class CalcEngine {
 						);
 
 					// Player 1: Raycast
-					if (characterPlayer1Changed) {
+					if (characterPlayer1Changed === true || reportOrientationForce === true) {
 						characterPlayer1Raycast = GamingCanvasGridRaycast(
 							characterPlayer1.camera,
 							gameMapGrid,
@@ -322,7 +320,7 @@ class CalcEngine {
 							);
 
 						// Player 2: Raycast
-						if (characterPlayer2Changed) {
+						if (characterPlayer2Changed === true || reportOrientationForce === true) {
 							characterPlayer2Raycast = GamingCanvasGridRaycast(
 								characterPlayer2.camera,
 								gameMapGrid,
@@ -370,6 +368,8 @@ class CalcEngine {
 				if (cameraMode === true) {
 					if (characterPlayer1RaycastRays !== undefined) {
 						cameraEncoded = camera.encode();
+						characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
+						characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
 
 						CalcEngine.post(
 							[
@@ -377,29 +377,40 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
+										player1Camera: characterPlayer1CameraEncoded,
+										player2Camera: characterPlayer2CameraEncoded,
 										rays: characterPlayer1RaycastRays,
 									},
 								},
 							],
-							[characterPlayer1RaycastRays.buffer],
+							[
+								cameraEncoded.buffer,
+								characterPlayer1CameraEncoded.buffer,
+								characterPlayer2CameraEncoded.buffer,
+								characterPlayer1RaycastRays.buffer,
+							],
 						);
 
 						characterPlayer1RaycastRays = undefined;
 					}
 				} else {
 					if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {
-						let buffers: ArrayBufferLike[] = [];
+						buffers.length = 0;
 
 						if (characterPlayer1RaycastRays !== undefined) {
 							buffers.push(characterPlayer1RaycastRays.buffer);
+
 							characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
+							buffers.push(characterPlayer1CameraEncoded.buffer);
 						} else {
 							characterPlayer1CameraEncoded = undefined;
 						}
 
 						if (characterPlayer2RaycastRays !== undefined) {
 							buffers.push(characterPlayer2RaycastRays.buffer);
+
 							characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
+							buffers.push(characterPlayer2CameraEncoded.buffer);
 						} else {
 							characterPlayer2CameraEncoded = undefined;
 						}

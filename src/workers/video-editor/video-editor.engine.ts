@@ -50,6 +50,7 @@ class VideoEditorEngine {
 	private static calculations: VideoEditorBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static characterPlayer1: Character;
+	private static characterPlayer2: Character;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
@@ -79,12 +80,7 @@ class VideoEditorEngine {
 
 		// Config: Character
 		VideoEditorEngine.characterPlayer1 = {
-			camera: {
-				r: data.gameMap.cameraRIntial,
-				x: data.gameMap.gridStartX + 0.5,
-				y: data.gameMap.gridStartY + 0.5,
-				z: 1,
-			},
+			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: 100,
 			id: 0,
@@ -93,6 +89,17 @@ class VideoEditorEngine {
 			size: 0.25,
 			timestamp: 0,
 			timestampPrevious: 0,
+		};
+		VideoEditorEngine.characterPlayer2 = {
+			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
+			cameraPrevious: <GamingCanvasGridICamera>{},
+			health: VideoEditorEngine.characterPlayer1.health,
+			id: 1,
+			npc: false,
+			player1: false,
+			size: VideoEditorEngine.characterPlayer1.size,
+			timestamp: VideoEditorEngine.characterPlayer1.timestamp,
+			timestampPrevious: VideoEditorEngine.characterPlayer1.timestampPrevious,
 		};
 
 		// Config: Report
@@ -214,6 +221,9 @@ class VideoEditorEngine {
 			characterPlayer1: Character = VideoEditorEngine.characterPlayer1,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
+			characterPlayer2: Character = VideoEditorEngine.characterPlayer2,
+			characterPlayer2XEff: number,
+			characterPlayer2YEff: number,
 			gameMapGrid: GamingCanvasGridUint16Array = VideoEditorEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
@@ -228,6 +238,7 @@ class VideoEditorEngine {
 			pi2: number = Math.PI * 2,
 			report: GamingCanvasReport = VideoEditorEngine.report,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
+			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
@@ -273,14 +284,23 @@ class VideoEditorEngine {
 
 						calculationsCamera.decode(VideoEditorEngine.calculations.camera);
 						calculationsGameMode = VideoEditorEngine.calculations.gameMode;
-						calculationsRays = VideoEditorEngine.calculations.rays;
 						calculationsViewport.decode(VideoEditorEngine.calculations.viewport);
 
-						if (calculationsGameMode === true) {
-							characterPlayer1.camera.r = calculationsCamera.r;
-							characterPlayer1.camera.x = calculationsCamera.x;
-							characterPlayer1.camera.y = calculationsCamera.y;
+						if (VideoEditorEngine.calculations.player1Camera !== undefined) {
+							(<GamingCanvasGridCamera>characterPlayer1.camera).decode(VideoEditorEngine.calculations.player1Camera);
 						}
+						if (VideoEditorEngine.calculations.player2Camera !== undefined) {
+							(<GamingCanvasGridCamera>characterPlayer2.camera).decode(VideoEditorEngine.calculations.player2Camera);
+						}
+						if (VideoEditorEngine.calculations.rays !== undefined) {
+							calculationsRays = VideoEditorEngine.calculations.rays;
+						}
+
+						// if (calculationsGameMode === true) {
+						// 	characterPlayer1.camera.r = calculationsCamera.r;
+						// 	characterPlayer1.camera.x = calculationsCamera.x;
+						// 	characterPlayer1.camera.y = calculationsCamera.y;
+						// }
 
 						calculationsViewportCellSizePx = calculationsViewport.cellSizePx;
 						calculationsViewportHeightStart = calculationsViewport.heightStart;
@@ -290,6 +310,8 @@ class VideoEditorEngine {
 
 						characterPlayer1XEff = characterPlayer1.camera.x - calculationsViewportWidthStart;
 						characterPlayer1YEff = characterPlayer1.camera.y - calculationsViewportHeightStart;
+						characterPlayer2XEff = characterPlayer2.camera.x - calculationsViewportWidthStart;
+						characterPlayer2YEff = characterPlayer2.camera.y - calculationsViewportHeightStart;
 						calculationsRayOriginXPx = (calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx;
 						calculationsRayOriginYPx = (calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx;
 					}
@@ -306,6 +328,7 @@ class VideoEditorEngine {
 
 					// Settings
 					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
+					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
 
 					// Cache
 					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
@@ -410,22 +433,22 @@ class VideoEditorEngine {
 				// }
 
 				// Draw: Rays
-				if (calculationsRays !== undefined) {
-					offscreenCanvasContext.lineWidth = 2;
-					for (i = 0; i < calculationsRays.length; i += 4) {
-						offscreenCanvasContext.strokeStyle = 'yellow';
-						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(calculationsRayOriginXPx, calculationsRayOriginYPx); // Origin
-						offscreenCanvasContext.lineTo(
-							calculationsViewportCellSizePx * (calculationsRays[i] - calculationsViewportWidthStart),
-							calculationsViewportCellSizePx * (calculationsRays[i + 1] - calculationsViewportHeightStart),
-						);
-						offscreenCanvasContext.closePath();
-						offscreenCanvasContext.stroke();
-					}
-				}
+				// if (calculationsRays !== undefined) {
+				// 	offscreenCanvasContext.lineWidth = 2;
+				// 	for (i = 0; i < calculationsRays.length; i += 4) {
+				// 		offscreenCanvasContext.strokeStyle = 'yellow';
+				// 		offscreenCanvasContext.beginPath();
+				// 		offscreenCanvasContext.moveTo(calculationsRayOriginXPx, calculationsRayOriginYPx); // Origin
+				// 		offscreenCanvasContext.lineTo(
+				// 			calculationsViewportCellSizePx * (calculationsRays[i] - calculationsViewportWidthStart),
+				// 			calculationsViewportCellSizePx * (calculationsRays[i + 1] - calculationsViewportHeightStart),
+				// 		);
+				// 		offscreenCanvasContext.closePath();
+				// 		offscreenCanvasContext.stroke();
+				// 	}
+				// }
 
-				// Draw: Character Direction
+				// Draw: Player1 Direction
 				offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
 				offscreenCanvasContext.strokeStyle = 'blue';
 				offscreenCanvasContext.beginPath();
@@ -437,7 +460,7 @@ class VideoEditorEngine {
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.stroke();
 
-				// Draw: Character Position
+				// Draw: Player2 Position
 				offscreenCanvasContext.fillStyle = 'red';
 				offscreenCanvasContext.beginPath();
 				offscreenCanvasContext.arc(
@@ -449,6 +472,64 @@ class VideoEditorEngine {
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.fill();
+
+				if (settingsPlayer2Enabled === true) {
+					// Draw: Player2 Direction
+					offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
+					offscreenCanvasContext.strokeStyle = 'green';
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.moveTo(characterPlayer2XEff * calculationsViewportCellSizePx, characterPlayer2YEff * calculationsViewportCellSizePx); // Center
+					offscreenCanvasContext.lineTo(
+						calculationsViewportCellSizePx * (Math.sin(characterPlayer2.camera.r) + characterPlayer2XEff),
+						calculationsViewportCellSizePx * (Math.cos(characterPlayer2.camera.r) + characterPlayer2YEff),
+					);
+					offscreenCanvasContext.closePath();
+					offscreenCanvasContext.stroke();
+
+					// Draw: Player2 Position
+					offscreenCanvasContext.fillStyle = 'red';
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.arc(
+						characterPlayer2XEff * calculationsViewportCellSizePx,
+						characterPlayer2YEff * calculationsViewportCellSizePx,
+						calculationsViewportCellSizePx / 4,
+						0,
+						pi2,
+					);
+					offscreenCanvasContext.closePath();
+					offscreenCanvasContext.fill();
+				}
+
+				// Draw camera dot
+				if (calculationsGameMode !== true) {
+					// Direction
+					offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
+					offscreenCanvasContext.strokeStyle = 'magenta';
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.moveTo(
+						(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+						(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+					); // Center
+					offscreenCanvasContext.lineTo(
+						calculationsViewportCellSizePx * (Math.sin(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
+						calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
+					);
+					offscreenCanvasContext.closePath();
+					offscreenCanvasContext.stroke();
+
+					// Position
+					offscreenCanvasContext.fillStyle = 'magenta';
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.arc(
+						(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+						(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+						calculationsViewportCellSizePx / 4,
+						0,
+						pi2,
+					);
+					offscreenCanvasContext.closePath();
+					offscreenCanvasContext.fill();
+				}
 
 				// statDrawAvg.watchStop();
 			}

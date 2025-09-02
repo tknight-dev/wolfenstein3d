@@ -61,15 +61,16 @@ export class Game {
 		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
+			rInitial: number = (180 * Math.PI) / 180,
 			zoomInitial: number = 2;
-
-		// Camera and Viewport
-		Game.camera = new GamingCanvasGridCamera((90 * Math.PI) / 180, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
-		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
 		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
 			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE,
 			valueWallSpecial: number = valueWall | 0x80;
+
+		// Camera and Viewport
+		Game.camera = new GamingCanvasGridCamera(rInitial, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
+		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
 		// Walls
 		let boxSize: number = 4;
@@ -98,7 +99,7 @@ export class Game {
 		grid.set(gridSideCenter, gridSideCenter - 5, valueWallSpecial); // Bottom-Center
 
 		Game.dataMaps.set(0, {
-			cameraRIntial: (90 * Math.PI) / 180,
+			cameraRIntial: rInitial,
 			cameraZoomIntial: zoomInitial,
 			grid: grid,
 			gridEnds: [],
@@ -153,7 +154,7 @@ export class Game {
 			cameraXOriginal: number = 0,
 			cameraYOriginal: number = 0,
 			cameraZoom: number = camera.z,
-			cameraZoomMax: number = 2,
+			cameraZoomMax: number = 5,
 			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 0.05,
@@ -171,6 +172,7 @@ export class Game {
 			},
 			down: boolean,
 			downMode: boolean,
+			downModeWheel: boolean,
 			elEditStyle: CSSStyleDeclaration = DOM.elEdit.style,
 			elEditX: number,
 			elEditY: number,
@@ -195,6 +197,7 @@ export class Game {
 			touchDistance: number,
 			touchDistancePrevious: number = -1,
 			updated: boolean,
+			updatedR: boolean,
 			value: number,
 			viewport: GamingCanvasGridViewport = Game.viewport,
 			x: number,
@@ -205,8 +208,9 @@ export class Game {
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
+				player1Camera: data.player1Camera,
+				player2Camera: data.player2Camera,
 				gameMode: false,
-				rays: Float32Array.from(data.rays), // Duplicate
 				viewport: viewport.encode(),
 			});
 
@@ -242,8 +246,17 @@ export class Game {
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
+					player1Camera: data.characterPlayer1Camera,
+					player2Camera: data.characterPlayer2Camera ? Float32Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
-					rays: <Float32Array>data.characterPlayer1Rays,
+					viewport: viewport.encode(),
+				});
+			} else {
+				// Second: VideoEditor
+				VideoEditorBus.outputCalculations({
+					camera: camera.encode(),
+					player2Camera: data.characterPlayer2Camera ? Float32Array.from(data.characterPlayer2Camera) : undefined, // Clone
+					gameMode: true,
 					viewport: viewport.encode(),
 				});
 			}
@@ -258,7 +271,7 @@ export class Game {
 
 		// Limit how often a camera update can be sent via the bus
 		setInterval(() => {
-			if (updated || Game.reportNew) {
+			if (updated || updatedR || Game.reportNew) {
 				report = Game.report;
 
 				if (modeEdit === true) {
@@ -268,7 +281,7 @@ export class Game {
 						viewport.applyZ(camera, report);
 
 						cellSizePx = viewport.cellSizePx;
-					} else if (updated === true) {
+					} else if (updated === true || updatedR !== true) {
 						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
 						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
 					}
@@ -282,6 +295,7 @@ export class Game {
 				}
 
 				updated = false;
+				updatedR = false;
 				Game.reportNew = false;
 			}
 		}, inputLimitPerMs);
@@ -325,14 +339,6 @@ export class Game {
 
 			if (modeEdit !== true) {
 				switch (input.propriatary.action.code) {
-					case 'KeyQ':
-						if (down) {
-							characterPlayerInput.player2.r = -1;
-						} else if (characterPlayerInput.player2.r === -1) {
-							characterPlayerInput.player2.r = 0;
-						}
-						updated = true;
-						break;
 					case 'ArrowLeft':
 						if (down) {
 							characterPlayerInput.player1.r = -1;
@@ -382,17 +388,6 @@ export class Game {
 						updated = true;
 						break;
 				}
-			} else {
-				switch (input.propriatary.action.code) {
-					case 'KeyQ':
-						// down
-						// Rotate camera left
-						break;
-					case 'KeyE':
-						// down
-						// Rotate camera right
-						break;
-				}
 			}
 		};
 
@@ -418,6 +413,9 @@ export class Game {
 						downMode = down;
 					}
 					break;
+				case GamingCanvasInputMouseAction.WHEEL:
+					downModeWheel = down;
+					break;
 				case GamingCanvasInputMouseAction.MOVE:
 					// processorMouseCellHighlight(inputOverlayPosition);
 
@@ -426,10 +424,10 @@ export class Game {
 							cameraMoveX = 1 - position1.xRelative;
 							cameraMoveY = 1 - position1.yRelative;
 							updated = true;
+						} else if (downModeWheel === true) {
+							camera.r = position1.xRelative * 2 * Math.PI;
+							updatedR = true;
 						}
-					} else {
-						// characterPlayerInput.player1.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
-						// updated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:

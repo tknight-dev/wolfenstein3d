@@ -51,6 +51,8 @@ export enum CalcBusOutputCmd {
 
 export interface CalcBusOutputDataCamera {
 	camera: Float32Array;
+	player1Camera: Float32Array;
+	player2Camera: Float32Array;
 	rays: Float32Array;
 }
 

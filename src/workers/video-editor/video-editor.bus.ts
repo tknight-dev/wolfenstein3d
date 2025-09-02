@@ -90,13 +90,18 @@ export class VideoEditorBus {
 	 */
 
 	public static outputCalculations(data: VideoEditorBusInputDataCalculations): void {
+		let buffers: ArrayBufferLike[] = [];
+
+		data.player1Camera !== undefined && buffers.push(data.player1Camera.buffer);
+		data.player2Camera !== undefined && buffers.push(data.player2Camera.buffer);
+
 		if (data.viewport !== undefined) {
 			VideoEditorBus.worker.postMessage(
 				{
 					cmd: VideoEditorBusInputCmd.CALCULATIONS,
 					data: data,
 				},
-				[data.camera.buffer, data.rays.buffer, data.viewport.buffer],
+				[data.camera.buffer, data.viewport.buffer, ...buffers],
 			);
 		} else {
 			VideoEditorBus.worker.postMessage(
@@ -104,7 +109,7 @@ export class VideoEditorBus {
 					cmd: VideoEditorBusInputCmd.CALCULATIONS,
 					data: data,
 				},
-				[data.camera.buffer, data.rays.buffer],
+				[data.camera.buffer, ...buffers],
 			);
 		}
 	}

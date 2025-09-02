@@ -19,8 +19,10 @@ export enum VideoEditorBusInputCmd {
 
 export interface VideoEditorBusInputDataCalculations {
 	camera: Float32Array;
+	player1Camera?: Float32Array;
+	player2Camera?: Float32Array;
 	gameMode: boolean;
-	rays: Float32Array;
+	rays?: Float32Array;
 	viewport: Float32Array;
 }
 
