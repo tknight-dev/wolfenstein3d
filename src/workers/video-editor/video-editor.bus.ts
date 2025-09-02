@@ -105,7 +105,7 @@ export class VideoEditorBus {
 					cmd: VideoEditorBusInputCmd.CALCULATIONS,
 					data: data,
 				},
-				[data.camera.buffer, data.cells.buffer, data.rays.buffer, data.viewport.buffer],
+				[data.camera.buffer, data.rays.buffer, data.viewport.buffer],
 			);
 		} else {
 			VideoEditorBus.worker.postMessage(

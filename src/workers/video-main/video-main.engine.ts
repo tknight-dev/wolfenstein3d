@@ -10,7 +10,7 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
-import { GamingCanvasGridCamera, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridRaycast3DProjectionTestImageCreate, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -39,17 +39,15 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
-	private static calculationsCamera: Float32Array;
-	private static calculationsRays: Float32Array;
+	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
-	private static reportHeightPx: number;
-	private static reportWidthPx: number;
+	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static settingsFPMS: number;
+	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
 
 	public static initialize(data: VideoMainBusInputDataInit): void {
@@ -107,23 +105,21 @@ class VideoMainEngine {
 	 */
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
-		VideoMainEngine.calculationsCamera = data.camera;
-		VideoMainEngine.calculationsRays = data.rays;
+		VideoMainEngine.calculations = data;
 
 		// Last
 		VideoMainEngine.calculationsNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
-		VideoMainEngine.reportHeightPx = report.canvasHeight;
-		VideoMainEngine.reportWidthPx = report.canvasWidth;
+		VideoMainEngine.report = report;
 
 		// Last
 		VideoMainEngine.reportNew = true;
 	}
 
 	public static inputSettings(data: VideoMainBusInputDataSettings): void {
-		VideoMainEngine.settingsFPMS = 1000 / data.fps;
+		VideoMainEngine.settings = data;
 
 		// Last
 		VideoMainEngine.settingsNew = true;
@@ -142,14 +138,20 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculationsCamera),
-			fpms: number = VideoMainEngine.settingsFPMS,
+		let calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
+			calculationsRays: Float32Array = VideoMainEngine.calculations.rays,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
+			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeight,
+			offscreenCanvasHeightPxHalf: number = offscreenCanvasHeightPx / 2,
+			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidth,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
-			offscreenCanvasImage: OffscreenCanvas = new OffscreenCanvas(64, 64),
-			offscreenCanvasImageContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>offscreenCanvasImage.getContext('2d'),
+			testImage: OffscreenCanvas = GamingCanvasGridRaycast3DProjectionTestImageCreate(64),
 			frameCount: number = 0,
-			rays: Float32Array,
+			gameMap: GameMap = VideoMainEngine.gameMap,
+			i: number,
+			renderPixel: number,
+			renderWallHeight: number,
+			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0;
@@ -160,76 +162,56 @@ class VideoMainEngine {
 
 			// Main code
 			timestampDelta = timestampNow - timestampThen;
-			if (timestampDelta > fpms) {
+			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
-				timestampThen = timestampNow - (timestampDelta % fpms);
+				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
 				frameCount++;
 
 				if (VideoMainEngine.calculationsNew === true) {
 					VideoMainEngine.calculationsNew = false;
 
-					camera.decode(VideoMainEngine.calculationsCamera);
-					rays = VideoMainEngine.calculationsRays;
+					calculationsCamera.decode(VideoMainEngine.calculations.camera);
+					calculationsRays = VideoMainEngine.calculations.rays;
 				}
 
 				if (VideoMainEngine.reportNew === true) {
 					VideoMainEngine.reportNew = false;
 
 					// This isn't necessary when you are using a fixed resolution
-					offscreenCanvas.height = VideoMainEngine.reportHeightPx;
-					offscreenCanvas.width = VideoMainEngine.reportWidthPx;
+					offscreenCanvasHeightPx = VideoMainEngine.report.canvasHeight;
+					offscreenCanvasHeightPxHalf = offscreenCanvasHeightPx / 2;
+					offscreenCanvasWidthPx = VideoMainEngine.report.canvasWidth;
 
-					offscreenCanvasImageContext.clearRect(0, 0, offscreenCanvasImage.width, offscreenCanvasImage.height);
-					offscreenCanvasImageContext.fillStyle = 'grey';
-					offscreenCanvasImageContext.fillRect(0, 0, 64, 64);
-
-					offscreenCanvasImageContext.fillStyle = 'red';
-					offscreenCanvasImageContext.fillRect(0, 0, 32, 32);
-
-					offscreenCanvasImageContext.fillStyle = 'blue';
-					offscreenCanvasImageContext.fillRect(32, 32, 32, 32);
-
-					offscreenCanvasImageContext.fillStyle = 'green';
-					offscreenCanvasImageContext.beginPath();
-					offscreenCanvasImageContext.arc(32, 32, 16, 0, 2 * Math.PI);
-					offscreenCanvasImageContext.closePath();
-					offscreenCanvasImageContext.fill();
+					offscreenCanvas.height = offscreenCanvasHeightPx;
+					offscreenCanvas.width = offscreenCanvasWidthPx;
 				}
 
 				if (VideoMainEngine.settingsNew === true) {
 					VideoMainEngine.settingsNew = false;
 
-					fpms = VideoMainEngine.settingsFPMS;
+					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
 				}
 
-				// Your code Here
-				if (rays !== undefined) {
-					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+				// 3D project rays
+				if (calculationsRays !== undefined) {
+					offscreenCanvasContext.clearRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
-					for (let i = 0, j = 0; i < rays.length; i += 4, j++) {
-						let wallHeight = (offscreenCanvas.height / rays[i + 2]) * 1.5;
-						let color: number = GamingCanvasUtilScale(wallHeight, 0, offscreenCanvas.height, 20, 200);
-
-						// offscreenCanvasContext.fillStyle = `rgb(${color}, ${color}, ${colsaor})`;
-						// offscreenCanvasContext.fillRect(j, offscreenCanvas.height / 2 - wallHeight / 2, 1, wallHeight);
+					for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel++) {
+						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[i + 2]) * 1.5;
 
 						offscreenCanvasContext.drawImage(
-							offscreenCanvasImage,
-							GamingCanvasUtilScale(rays[i + 3], 0, 1, 0, 63),
-							0,
-							1,
-							64,
-							j,
-							offscreenCanvas.height / 2 - wallHeight / 2,
-							1,
-							wallHeight,
+							testImage, // (image) Draw from our test image
+							calculationsRays[i + 3] * (testImage.width - 1), // (x-source) Specific how far from the left to draw from the test image
+							0, // (y-source) Start at the bottom of the image (y pixel)
+							1, // (width-source) Slice 1 pixel wide
+							testImage.height, // (height-source) height of our test image
+							renderPixel, // (x-destination) Draw sliced image at pixel
+							offscreenCanvasHeightPxHalf - renderWallHeight / 2, // (y-destination) how far off the ground to start drawing
+							1, // (width-destination) Draw the sliced image as 1 pixel wide
+							renderWallHeight, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 					}
 				}
-
-				// offscreenCanvasContext.fillStyle = 'red';
-				// offscreenCanvasContext.font = '48px serif';
-				// offscreenCanvasContext.fillText('Video: Main', 5, 50);
 			}
 
 			// Stats: sent once per second

@@ -10,7 +10,7 @@ export interface Character extends CharacterPosition {
 }
 
 export class CharacterControl {
-	r: number; // 0 - 6.28318530 rads
+	r: number; // -1 to 1
 	x: number; // -1 to 1
 	y: number; // -1 to 1
 }

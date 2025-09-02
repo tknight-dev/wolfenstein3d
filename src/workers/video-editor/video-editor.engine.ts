@@ -47,12 +47,8 @@ enum CacheId {
 }
 
 class VideoEditorEngine {
-	private static calcCamera: Float32Array;
-	private static calcCells: Uint8Array;
-	private static calcGameMode: boolean;
-	private static calcNew: boolean;
-	private static calcRays: Float32Array;
-	private static calcViewport: Float32Array;
+	private static calculations: VideoEditorBusInputDataCalculations;
+	private static calculationsNew: boolean;
 	private static characterPosition: Float32Array;
 	private static gameMap: GameMap;
 	private static offscreenCanvas: OffscreenCanvas;
@@ -60,7 +56,7 @@ class VideoEditorEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static settingsFPMS: number;
+	private static settings: VideoEditorBusInputDataSettings;
 	private static settingsNew: boolean;
 
 	public static initialize(data: VideoEditorBusInputDataInit): void {
@@ -118,14 +114,10 @@ class VideoEditorEngine {
 	 */
 
 	public static inputCalculations(data: VideoEditorBusInputDataCalculations): void {
-		VideoEditorEngine.calcCamera = data.camera;
-		VideoEditorEngine.calcCells = data.cells;
-		VideoEditorEngine.calcGameMode = data.gameMode;
-		VideoEditorEngine.calcRays = data.rays;
-		VideoEditorEngine.calcViewport = data.viewport;
+		VideoEditorEngine.calculations = data;
 
 		// Last
-		VideoEditorEngine.calcNew = true;
+		VideoEditorEngine.calculationsNew = true;
 	}
 
 	public static inputDataSegment(data: Map<number, number>): void {
@@ -144,7 +136,7 @@ class VideoEditorEngine {
 	}
 
 	public static inputSettings(data: VideoEditorBusInputDataSettings): void {
-		VideoEditorEngine.settingsFPMS = 1000 / data.fps;
+		VideoEditorEngine.settings = data;
 
 		// Last
 		VideoEditorEngine.settingsNew = true;
@@ -163,7 +155,21 @@ class VideoEditorEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calcCamera),
+		let calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
+			calculationsGameMode: boolean,
+			calculationsRayOriginXPx: number,
+			calculationsRayOriginYPx: number,
+			calculationsRays: Float32Array,
+			calculationsViewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calculations.viewport),
+			calculationsViewportCellSizePx: number,
+			calculationsViewportHeightStart: number,
+			calculationsViewportHeightStartEff: number,
+			calculationsViewportHeightStartPx: number,
+			calculationsViewportHeightStopEff: number,
+			calculationsViewportWidthStart: number,
+			calculationsViewportWidthStartEff: number,
+			calculationsViewportWidthStartPx: number,
+			calculationsViewportWidthStopEff: number,
 			cacheCanvas: Map<number, OffscreenCanvas> = new Map(),
 			cacheCanvasContextOptionsNoAlpha = {
 				alpha: false,
@@ -190,16 +196,12 @@ class VideoEditorEngine {
 			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheId: CacheId,
-			cells: Uint8Array,
-			cellSizePx: number = 0,
 			characterPosition: CharacterPosition = CharacterPositionDecode(VideoEditorEngine.characterPosition),
 			characterPositionXEff: number,
 			characterPositionYEff: number,
 			gameMapGrid: GamingCanvasGridUint16Array = VideoEditorEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
-			gameMode: boolean,
-			fpms: number = VideoEditorEngine.settingsFPMS,
 			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoEditorEngine.offscreenCanvasContext,
@@ -208,21 +210,13 @@ class VideoEditorEngine {
 			offscreenCanvasWidthPx: number = 0,
 			offscreenCanvasWidthPxEff: number = 0,
 			frameCount: number = 0,
-			pi: number = Math.PI,
 			pi2: number = Math.PI * 2,
-			rayOriginXPx: number,
-			rayOriginYPx: number,
-			rays: Float32Array,
 			report: GamingCanvasReport = VideoEditorEngine.report,
+			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
 			value: number,
-			viewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calcViewport),
-			viewPortHeightStartEff: number,
-			viewPortHeightStopEff: number,
-			viewPortWidthStartEff: number,
-			viewPortWidthStopEff: number,
 			x: number,
 			y: number;
 
@@ -249,36 +243,40 @@ class VideoEditorEngine {
 
 			// Main code
 			timestampDelta = timestampNow - timestampThen;
-			if (timestampDelta > fpms) {
+			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
-				timestampThen = timestampNow - (timestampDelta % fpms);
+				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
 				frameCount++;
 
-				if (VideoEditorEngine.calcNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
+				if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
 					VideoEditorEngine.reportNew = false;
 					VideoEditorEngine.settingsNew = false;
 
 					// Calculations
-					if (VideoEditorEngine.calcNew === true) {
-						VideoEditorEngine.calcNew = false;
+					if (VideoEditorEngine.calculationsNew === true) {
+						VideoEditorEngine.calculationsNew = false;
 
-						camera.decode(VideoEditorEngine.calcCamera);
-						cells = VideoEditorEngine.calcCells;
-						gameMode = VideoEditorEngine.calcGameMode;
-						rays = VideoEditorEngine.calcRays;
-						viewport.decode(VideoEditorEngine.calcViewport);
+						calculationsCamera.decode(VideoEditorEngine.calculations.camera);
+						calculationsGameMode = VideoEditorEngine.calculations.gameMode;
+						calculationsRays = VideoEditorEngine.calculations.rays;
+						calculationsViewport.decode(VideoEditorEngine.calculations.viewport);
 
-						if (gameMode === true) {
-							characterPosition.r = camera.r;
-							characterPosition.x = camera.x;
-							characterPosition.y = camera.y;
+						if (calculationsGameMode === true) {
+							characterPosition.r = calculationsCamera.r;
+							characterPosition.x = calculationsCamera.x;
+							characterPosition.y = calculationsCamera.y;
 						}
 
-						cellSizePx = viewport.cellSizePx;
-						characterPositionXEff = characterPosition.x - viewport.widthStart;
-						characterPositionYEff = characterPosition.y - viewport.heightStart;
-						rayOriginXPx = (camera.x - viewport.widthStart) * cellSizePx;
-						rayOriginYPx = (camera.y - viewport.heightStart) * cellSizePx;
+						calculationsViewportCellSizePx = calculationsViewport.cellSizePx;
+						calculationsViewportHeightStart = calculationsViewport.heightStart;
+						calculationsViewportHeightStartPx = calculationsViewport.heightStartPx;
+						calculationsViewportWidthStart = calculationsViewport.widthStart;
+						calculationsViewportWidthStartPx = calculationsViewport.widthStartPx;
+
+						characterPositionXEff = characterPosition.x - calculationsViewportWidthStart;
+						characterPositionYEff = characterPosition.y - calculationsViewportHeightStart;
+						calculationsRayOriginXPx = (calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx;
+						calculationsRayOriginYPx = (calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx;
 					}
 
 					// Report
@@ -292,21 +290,21 @@ class VideoEditorEngine {
 					}
 
 					// Settings
-					fpms = VideoEditorEngine.settingsFPMS;
+					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
 
 					// Cache
 					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
-						cacheCanvasInstance.height = cellSizePx;
-						cacheCanvasInstance.width = cellSizePx;
+						cacheCanvasInstance.height = calculationsViewportCellSizePx;
+						cacheCanvasInstance.width = calculationsViewportCellSizePx;
 					}
 					for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
 						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(255,255,255)' : 'rgb(128,128,128)';
-						cacheCanvasContextInstance.fillRect(0, 0, cellSizePx, cellSizePx);
+						cacheCanvasContextInstance.fillRect(0, 0, calculationsViewportCellSizePx, calculationsViewportCellSizePx);
 					}
 
 					// Grid: Cache
-					offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + cellSizePx * 2;
-					offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + cellSizePx * 2;
+					offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
+					offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
 
 					cacheCanvasGridH.height = 1;
 					cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
@@ -322,23 +320,23 @@ class VideoEditorEngine {
 					cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
 
 					// Grid: Horizontal
-					for (y = 0; y < offscreenCanvasHeightPxEff; y += cellSizePx) {
+					for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
 						cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
 					}
 					// Grid: Vertical
-					for (x = 0; x < offscreenCanvasWidthPxEff; x += cellSizePx) {
+					for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
 						cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
 					}
 				}
 
 				// Draw: Config
 				// statDrawAvg.watchStart();
-				viewPortHeightStartEff = viewport.heightStart - 1;
-				viewPortHeightStopEff = viewport.heightStop + 1;
-				viewPortWidthStartEff = viewport.widthStart - 1;
-				viewPortWidthStopEff = viewport.widthStop;
+				calculationsViewportHeightStartEff = calculationsViewportHeightStart - 1;
+				calculationsViewportHeightStopEff = calculationsViewport.heightStop + 1;
+				calculationsViewportWidthStartEff = calculationsViewportWidthStart - 1;
+				calculationsViewportWidthStopEff = calculationsViewport.widthStop;
 
-				// console.log(viewPortWidthStartEff, viewPortWidthStopEff);
+				// console.log(calculationsViewportWidthStartEff, calculationsViewportWidthStopEff);
 
 				// Draw: Clear
 				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
@@ -348,24 +346,25 @@ class VideoEditorEngine {
 					x = (i / gameMapGridSideLength) | 0;
 
 					// if (i === 0) {
-					// 	console.log(i, x, viewPortWidthStartEff, viewPortWidthStopEff, value, x > viewPortWidthStartEff && x < viewPortWidthStopEff);
+					// 	console.log(i, x, calculationsViewportWidthStartEff, calculationsViewportWidthStopEff, value, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
 					// }
-					// console.log(i, x, x > viewPortWidthStartEff && x < viewPortWidthStopEff);
+					// console.log(i, x, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
 
-					if (x > viewPortWidthStartEff && x < viewPortWidthStopEff) {
+					if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
 						y = i % gameMapGridSideLength;
 
-						if (y > viewPortHeightStartEff && y < viewPortHeightStopEff) {
+						if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
 							// if (i === 0) {
 							// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
 							// }
 
 							if ((value & GameGridCellMaskAndValues.NULL_MASK) === GameGridCellMaskAndValues.NULL_VALUE_NOT) {
 								cacheId = (value & GameGridCellMaskAndValues.WALL_MASK) === GameGridCellMaskAndValues.WALL_VALUE ? CacheId.WALL : CacheId.FLOOR;
+
 								offscreenCanvasContext.drawImage(
 									<OffscreenCanvas>cacheCanvas.get(cacheId),
-									(x - viewport.widthStart) * cellSizePx,
-									(y - viewport.heightStart) * cellSizePx,
+									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 								);
 							}
 						}
@@ -373,49 +372,52 @@ class VideoEditorEngine {
 				}
 
 				// Draw: Grid
-				// offscreenCanvasContext.drawImage(
-				// 	cacheCanvasGrid,
-				// 	-(viewport.widthStartPx % cellSizePx) - cellSizePx,
-				// 	-(viewport.heightStartPx % cellSizePx) - cellSizePx,
-				// );
+				offscreenCanvasContext.drawImage(
+					cacheCanvasGrid,
+					-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+					-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+				);
 
 				// Draw: Cells
-				if (cells !== undefined) {
-					for (i = 0; i < cells.length; i++) {
-						x = (cells[i] / gameMapGridSideLength) | 0;
-						y = cells[i] % gameMapGridSideLength;
+				// if (cells !== undefined) {
+				// 	for (i = 0; i < cells.length; i++) {
+				// 		x = (cells[i] / gameMapGridSideLength) | 0;
+				// 		y = cells[i] % gameMapGridSideLength;
 
-						offscreenCanvasContext.fillStyle = 'rgb(192, 192, 192)';
-						offscreenCanvasContext.fillRect(
-							cellSizePx * (x - viewport.widthStart),
-							cellSizePx * (y - viewport.heightStart),
-							cellSizePx,
-							cellSizePx,
-						);
-					}
-				}
+				// 		offscreenCanvasContext.fillStyle = 'rgb(192, 192, 192)';
+				// 		offscreenCanvasContext.fillRect(
+				// 			cellSizePx * (x - viewport.widthStart),
+				// 			cellSizePx * (y - viewport.heightStart),
+				// 			cellSizePx,
+				// 			cellSizePx,
+				// 		);
+				// 	}
+				// }
 
 				// Draw: Rays
-				if (rays !== undefined) {
+				if (calculationsRays !== undefined) {
 					offscreenCanvasContext.lineWidth = 2;
-					for (i = 0; i < rays.length; i += 4) {
+					for (i = 0; i < calculationsRays.length; i += 4) {
 						offscreenCanvasContext.strokeStyle = 'yellow';
 						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(rayOriginXPx, rayOriginYPx); // Origin
-						offscreenCanvasContext.lineTo(cellSizePx * (rays[i] - viewport.widthStart), cellSizePx * (rays[i + 1] - viewport.heightStart));
+						offscreenCanvasContext.moveTo(calculationsRayOriginXPx, calculationsRayOriginYPx); // Origin
+						offscreenCanvasContext.lineTo(
+							calculationsViewportCellSizePx * (calculationsRays[i] - calculationsViewportWidthStart),
+							calculationsViewportCellSizePx * (calculationsRays[i + 1] - calculationsViewportHeightStart),
+						);
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
 					}
 				}
 
 				// Draw: Character Direction
-				offscreenCanvasContext.lineWidth = viewport.cellSizePx / 3;
+				offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
 				offscreenCanvasContext.strokeStyle = 'blue';
 				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.moveTo(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx); // Center
+				offscreenCanvasContext.moveTo(characterPositionXEff * calculationsViewportCellSizePx, characterPositionYEff * calculationsViewportCellSizePx); // Center
 				offscreenCanvasContext.lineTo(
-					cellSizePx * (Math.sin(characterPosition.r) + characterPositionXEff),
-					cellSizePx * (Math.cos(characterPosition.r) + characterPositionYEff),
+					calculationsViewportCellSizePx * (Math.sin(characterPosition.r) + characterPositionXEff),
+					calculationsViewportCellSizePx * (Math.cos(characterPosition.r) + characterPositionYEff),
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.stroke();
@@ -423,7 +425,13 @@ class VideoEditorEngine {
 				// Draw: Character Position
 				offscreenCanvasContext.fillStyle = 'red';
 				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.arc(characterPositionXEff * cellSizePx, characterPositionYEff * cellSizePx, cellSizePx / 4, 0, pi2);
+				offscreenCanvasContext.arc(
+					characterPositionXEff * calculationsViewportCellSizePx,
+					characterPositionYEff * calculationsViewportCellSizePx,
+					calculationsViewportCellSizePx / 4,
+					0,
+					pi2,
+				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.fill();
 

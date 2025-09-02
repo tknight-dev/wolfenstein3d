@@ -49,8 +49,7 @@ class CalcEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static settingsFOV: number;
-	private static settingsFPMS: number;
+	private static settings: CalcBusInputDataSettings;
 	private static settingsNew: boolean;
 
 	public static initialize(data: CalcBusInputDataInit): void {
@@ -102,8 +101,7 @@ class CalcEngine {
 	}
 
 	public static inputSettings(data: CalcBusInputDataSettings): void {
-		CalcEngine.settingsFOV = data.fov;
-		CalcEngine.settingsFPMS = 1000 / data.fps;
+		CalcEngine.settings = data;
 
 		// Last
 		CalcEngine.settingsNew = true;
@@ -127,15 +125,13 @@ class CalcEngine {
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
 			cameraUpdatedReport: boolean = true,
-			cells: Set<Number>,
-			cellsEncoded: Uint8Array,
-			// cellSizePx: number,
 			characterControl: CharacterControl = {
-				r: CalcEngine.characterPosition.r,
+				r: 0,
 				x: 0,
 				y: 0,
 			},
-			characterControlFactor: number = 0.06,
+			characterControlFactor: number = 0.05,
+			characterControlR: number,
 			characterControlX: number,
 			characterControlXIndex: number,
 			characterControlY: number,
@@ -152,8 +148,8 @@ class CalcEngine {
 			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			rays: Float32Array,
 			report: GamingCanvasReport = CalcEngine.report,
-			settingsFOV: number = CalcEngine.settingsFOV,
-			settingsFPMS: number = CalcEngine.settingsFPMS,
+			settingsFOV: number = CalcEngine.settings.fov,
+			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
@@ -188,14 +184,6 @@ class CalcEngine {
 					CalcEngine.reportNew = false;
 
 					report = CalcEngine.report;
-
-					// Same as viewport but without the z factor
-					// cellSizePx = Math.max(1, report.canvasWidth / gameMapGrid.sideLength);
-
-					// if (report.canvasWidth * 2 > rays.length) {
-					// 	GamingCanvasUtilArrayExpand(rays, report.canvasWidth * 2 - rays.length);
-					// 	raysIndex = 0; // Reset ray calculation
-					// }
 				}
 
 				// Character Control: Update
@@ -204,32 +192,32 @@ class CalcEngine {
 
 					cameraMode = false; // Snap back to player
 					characterControl = CharacterControlDecode(CalcEngine.characterControl);
-
-					if (characterPosition.r !== characterControl.r) {
-						characterPosition.r = characterControl.r;
-						characterPositionUpdated = true;
-						characterPositionUpdatedReport = true;
-					}
 				}
 
 				if (CalcEngine.settingsNew) {
 					CalcEngine.settingsNew = false;
 
 					cameraUpdated = true; // This or position works
-					// raysSize = report.canvasWidth;
-					settingsFOV = CalcEngine.settingsFOV;
-					settingsFPMS = CalcEngine.settingsFPMS;
+					settingsFOV = CalcEngine.settings.fov;
+					settingsFPMS = 1000 / CalcEngine.settings.fps;
 				}
 
 				/**
 				 * Calc: Position
 				 */
-				if (cameraMode === false && (characterControl.x !== 0 || characterControl.y !== 0)) {
+				if (cameraMode === false && (characterControl.r !== 0 || characterControl.x !== 0 || characterControl.y !== 0)) {
 					characterPositionUpdatedReport = true;
+
+					// R
+					if (characterControl.r !== 0) {
+						characterPosition.r -= characterControl.r * characterControlFactor;
+						characterPositionUpdated = true;
+						characterPositionUpdatedReport = true;
+					}
 
 					// X
 					characterControlX =
-						(Math.cos(characterControl.r) * -characterControl.x + Math.sin(characterControl.r) * -characterControl.y) * characterControlFactor;
+						(Math.cos(characterPosition.r) * -characterControl.x + Math.sin(characterPosition.r) * -characterControl.y) * characterControlFactor;
 
 					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMapGridSideLength;
@@ -245,7 +233,7 @@ class CalcEngine {
 
 					// Y
 					characterControlY =
-						(Math.sin(characterControl.r) * characterControl.x + Math.cos(characterControl.r) * -characterControl.y) * characterControlFactor;
+						(Math.sin(characterPosition.r) * characterControl.x + Math.cos(characterPosition.r) * -characterControl.y) * characterControlFactor;
 
 					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
 					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;
@@ -271,10 +259,8 @@ class CalcEngine {
 					let data: GamingCanvasGridRaycastResult;
 
 					let options: GamingCanvasGridRaycastOptions = {
-						cellEnable: true,
-						// rayCount: 50,
 						rayCount: report.canvasWidth,
-						rayFOV: (60 * Math.PI) / 180,
+						rayFOV: settingsFOV,
 					};
 
 					if (cameraMode === true) {
@@ -289,7 +275,6 @@ class CalcEngine {
 						);
 					}
 
-					cells = <Set<Number>>data.cells;
 					rays = <Float32Array>data.rays;
 				}
 
@@ -311,7 +296,6 @@ class CalcEngine {
 						cameraUpdatedReport = false;
 
 						cameraEncoded = camera.encode();
-						cellsEncoded = Uint8Array.from(cells);
 
 						CalcEngine.post(
 							[
@@ -319,12 +303,11 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
-										cells: cellsEncoded,
 										rays: rays,
 									},
 								},
 							],
-							[cameraEncoded.buffer, cellsEncoded.buffer],
+							[cameraEncoded.buffer],
 						);
 					}
 				} else {
@@ -332,20 +315,18 @@ class CalcEngine {
 						characterPositionUpdatedReport = false;
 
 						characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
-						cellsEncoded = Uint8Array.from(cells);
 
 						CalcEngine.post(
 							[
 								{
 									cmd: CalcBusOutputCmd.CALCULATIONS,
 									data: {
-										cells: cellsEncoded,
 										characterPosition: characterPositionEncoded,
 										rays: rays,
 									},
 								},
 							],
-							[cellsEncoded.buffer, characterPositionEncoded.buffer],
+							[characterPositionEncoded.buffer],
 						);
 					}
 				}

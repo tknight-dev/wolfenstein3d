@@ -47,7 +47,7 @@ class Blockenstein {
 		Game.settingDPISupport = false; // def: false
 		Game.settingFPSDisplay = true; // def: true
 		// Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
-		Game.settingResolution = null;
+		Game.settingResolution = 640;
 
 		/**
 		 * Worker specific

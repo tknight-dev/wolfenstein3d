@@ -68,7 +68,8 @@ export class Game {
 		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
 
 		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
-			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE;
+			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE,
+			valueWallSpecial: number = valueWall | 0x80;
 
 		// Walls
 		let boxSize: number = 4;
@@ -86,15 +87,15 @@ export class Game {
 			}
 		}
 
-		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWall); // Top-Left
-		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWall); // Top-Right
-		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWall); // Bottom-Left
-		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Bottom-Right
+		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWallSpecial); // Top-Left
+		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWallSpecial); // Top-Right
+		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWallSpecial); // Bottom-Left
+		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWallSpecial); // Bottom-Right
 
 		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Top-Center
-		grid.set(gridSideCenter, gridSideCenter + 5, valueWall); // Top-Center
+		grid.set(gridSideCenter, gridSideCenter + 5, valueWallSpecial); // Top-Center
 		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Bottom-Center
-		grid.set(gridSideCenter, gridSideCenter - 5, valueWall); // Bottom-Center
+		grid.set(gridSideCenter, gridSideCenter - 5, valueWallSpecial); // Bottom-Center
 
 		Game.dataMaps.set(0, {
 			cameraZoomIntial: zoomInitial,
@@ -194,7 +195,6 @@ export class Game {
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
-				cells: data.cells,
 				gameMode: false,
 				rays: Float32Array.from(data.rays), // Duplicate
 				viewport: viewport.encode(),
@@ -234,7 +234,6 @@ export class Game {
 			// Second: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
-				cells: data.cells,
 				gameMode: true,
 				rays: raysClone,
 				viewport: viewport.encode(),
@@ -310,6 +309,22 @@ export class Game {
 
 			if (modeEdit !== true) {
 				switch (input.propriatary.action.code) {
+					case 'ArrowLeft':
+						if (down) {
+							characterControl.r = -1;
+						} else if (characterControl.r === -1) {
+							characterControl.r = 0;
+						}
+						updated = true;
+						break;
+					case 'ArrowRight':
+						if (down) {
+							characterControl.r = 1;
+						} else if (characterControl.r === 1) {
+							characterControl.r = 0;
+						}
+						updated = true;
+						break;
 					case 'KeyA':
 						if (down) {
 							characterControl.x = -1;
@@ -389,8 +404,8 @@ export class Game {
 							updated = true;
 						}
 					} else {
-						characterControl.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
-						updated = true;
+						// characterControl.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
+						// updated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
