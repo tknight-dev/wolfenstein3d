@@ -4,7 +4,7 @@ import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
 import { FPS, Resolution } from './models/settings.model.js';
-import { GamingCanvas, GamingCanvasReport, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
@@ -21,7 +21,7 @@ new EventSource('/esbuild').addEventListener('change', () => location.reload());
 class Blockenstein {
 	private static initializeGamingCanvas(): void {
 		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
-			canvasCount: 2,
+			canvasCount: 3,
 			dpiSupportEnable: Game.settingDPISupport,
 			// elementInteractive: DOM.elVideoInteractive,
 			elementInjectAsOverlay: [DOM.elEdit],
@@ -55,16 +55,19 @@ class Blockenstein {
 		Game.settingsCalc = {
 			fov: (60 * Math.PI) / 180, // 60 deg
 			fps: FPS._60,
+			player2Enable: false,
 		};
 
 		Game.settingsVideoEditor = {
 			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
+			player2Enable: Game.settingsCalc.player2Enable,
 		};
 
 		Game.settingsVideoMain = {
 			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
+			player2Enable: Game.settingsCalc.player2Enable,
 		};
 
 		/**
@@ -122,7 +125,7 @@ class Blockenstein {
 		/**
 		 * Video: Main
 		 */
-		VideoMainBus.setCallbackStats((stats: VideoMainBusOutputDataStats) => {});
+		VideoMainBus.setCallbackStats((player1: boolean, stats: VideoMainBusOutputDataStats) => {});
 	}
 
 	private static initializeWorkers(): Promise<void> {
@@ -136,19 +139,19 @@ class Blockenstein {
 		Game.viewport.apply(Game.camera, false);
 
 		return new Promise<void>((resolve: any) => {
-			CalcBus.initialize(camera, Game.settingsCalc, gameMap, () => {
+			CalcBus.initialize(Game.settingsCalc, gameMap, () => {
 				// Done
 				console.log('CalcEngine Loaded in', performance.now() - then, 'ms');
 
 				// Load video-editor
 				then = performance.now();
-				VideoEditorBus.initialize(camera, GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoEditor, viewport, () => {
+				VideoEditorBus.initialize(camera, GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
 					// Done
 					console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[0], gameMap, Game.settingsVideoMain, () => {
+					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[1], GamingCanvas.getCanvases()[0], gameMap, Game.settingsVideoMain, () => {
 						// Done
 						console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
 

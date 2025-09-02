@@ -25,12 +25,14 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 	camera: Float32Array;
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
+	player1: boolean;
 	report: GamingCanvasReport;
 }
 
 export interface VideoMainBusInputDataSettings {
 	fov: number;
 	fps: FPS;
+	player2Enable: boolean;
 }
 
 export interface VideoMainBusInputPayload {

@@ -30,8 +30,10 @@ export enum GameGridCellMaskAndValues {
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
+	cameraRIntial: number;
 	cameraZoomIntial: number;
 	grid: GamingCanvasGridUint16Array;
 	gridEnds: number[]; // Level ending cells array by data index
-	gridLights: number[]; // Level ending cells array by data index
+	gridStartX: number;
+	gridStartY: number;
 }

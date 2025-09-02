@@ -1,7 +1,6 @@
 import { DOM } from './dom.js';
-import { CalcBusOutputDataCalculations, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
+import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
-import { CharacterControl, CharacterControlEncode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../models/character.model.js';
 import { GameGridCellMaskAndValues, GameMap } from '../models/game.model.js';
 import { Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
@@ -27,6 +26,8 @@ import {
 } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCamera,
+	GamingCanvasGridICamera,
+	GamingCanvasGridCharacterInput,
 	GamingCanvasGridInputOverlaySnapPxTopLeft,
 	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
@@ -60,7 +61,6 @@ export class Game {
 		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
-			// zoomInitial: number = 1.5;
 			zoomInitial: number = 2;
 
 		// Camera and Viewport
@@ -98,10 +98,12 @@ export class Game {
 		grid.set(gridSideCenter, gridSideCenter - 5, valueWallSpecial); // Bottom-Center
 
 		Game.dataMaps.set(0, {
+			cameraRIntial: (90 * Math.PI) / 180,
 			cameraZoomIntial: zoomInitial,
 			grid: grid,
 			gridEnds: [],
-			gridLights: [],
+			gridStartX: gridSideCenter,
+			gridStartY: gridSideCenter,
 		});
 	}
 
@@ -124,6 +126,7 @@ export class Game {
 			Game.report = report;
 			Game.reportNew = true;
 
+			CalcBus.outputReport(report);
 			VideoEditorBus.outputReport(report);
 			VideoMainBus.outputReport(report);
 		});
@@ -154,10 +157,17 @@ export class Game {
 			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 0.05,
-			characterControl: CharacterControl = {
-				r: Game.camera.r, // initial value
-				x: 0,
-				y: 0,
+			characterPlayerInput: CalcBusInputDataPlayerInput = {
+				player1: {
+					r: 0, // -1 to 1 (-1 is increase r)
+					x: 0, // -1 to 1 (-1 is left)
+					y: 0, // -1 to 1 (-1 is up)
+				},
+				player2: {
+					r: 0, // -1 to 1 (-1 is increase r)
+					x: 0, // -1 to 1 (-1 is left)
+					y: 0, // -1 to 1 (-1 is up)
+				},
 			},
 			down: boolean,
 			downMode: boolean,
@@ -201,7 +211,11 @@ export class Game {
 			});
 
 			// Second: VideoMain
-			VideoMainBus.outputCalculations({
+			VideoMainBus.outputCalculations(true, {
+				camera: Float32Array.from(data.camera),
+				rays: Float32Array.from(data.rays),
+			});
+			VideoMainBus.outputCalculations(false, {
 				camera: data.camera,
 				rays: data.rays,
 			});
@@ -209,35 +223,37 @@ export class Game {
 
 		// Calc: Game Mode
 		CalcBus.setCallbackCalculations((data: CalcBusOutputDataCalculations) => {
-			const characterPosition: CharacterPosition = CharacterPositionDecode(data.characterPosition);
-			const rays: Float32Array = data.rays;
-			const raysClone: Float32Array = Float32Array.from(rays);
+			if (data.characterPlayer1Camera) {
+				camera.decode(data.characterPlayer1Camera);
+				camera.z = gamepadMap.cameraZoomIntial;
 
-			camera.r = characterPosition.r;
-			camera.x = characterPosition.x;
-			camera.y = characterPosition.y;
-			camera.z = gamepadMap.cameraZoomIntial;
-			raysClone.set(rays);
+				if (cameraZoom !== camera.z) {
+					cameraZoom = camera.z;
+					viewport.applyZ(camera, report);
+				}
+				viewport.apply(camera);
 
-			if (cameraZoom !== camera.z) {
-				cameraZoom = camera.z;
-				viewport.applyZ(camera, report);
+				// First: VideoMain
+				VideoMainBus.outputCalculations(true, {
+					camera: camera.encode(),
+					rays: Float32Array.from(<Float32Array>data.characterPlayer1Rays), // Clone
+				});
+
+				// Second: VideoEditor
+				VideoEditorBus.outputCalculations({
+					camera: camera.encode(),
+					gameMode: true,
+					rays: <Float32Array>data.characterPlayer1Rays,
+					viewport: viewport.encode(),
+				});
 			}
-			viewport.apply(camera);
 
-			// First: VideoMain
-			VideoMainBus.outputCalculations({
-				camera: camera.encode(),
-				rays: rays,
-			});
-
-			// Second: VideoEditor
-			VideoEditorBus.outputCalculations({
-				camera: camera.encode(),
-				gameMode: true,
-				rays: raysClone,
-				viewport: viewport.encode(),
-			});
+			if (data.characterPlayer2Camera) {
+				VideoMainBus.outputCalculations(false, {
+					camera: data.characterPlayer2Camera,
+					rays: <Float32Array>data.characterPlayer2Rays,
+				});
+			}
 		});
 
 		// Limit how often a camera update can be sent via the bus
@@ -262,7 +278,7 @@ export class Game {
 					CalcBus.outputCamera(camera.encode());
 				} else {
 					// Calc: Game Mode
-					CalcBus.outputCharacterControl(CharacterControlEncode(characterControl));
+					CalcBus.outputCharacterInput(characterPlayerInput);
 				}
 
 				updated = false;
@@ -309,51 +325,59 @@ export class Game {
 
 			if (modeEdit !== true) {
 				switch (input.propriatary.action.code) {
+					case 'KeyQ':
+						if (down) {
+							characterPlayerInput.player2.r = -1;
+						} else if (characterPlayerInput.player2.r === -1) {
+							characterPlayerInput.player2.r = 0;
+						}
+						updated = true;
+						break;
 					case 'ArrowLeft':
 						if (down) {
-							characterControl.r = -1;
-						} else if (characterControl.r === -1) {
-							characterControl.r = 0;
+							characterPlayerInput.player1.r = -1;
+						} else if (characterPlayerInput.player1.r === -1) {
+							characterPlayerInput.player1.r = 0;
 						}
 						updated = true;
 						break;
 					case 'ArrowRight':
 						if (down) {
-							characterControl.r = 1;
-						} else if (characterControl.r === 1) {
-							characterControl.r = 0;
+							characterPlayerInput.player1.r = 1;
+						} else if (characterPlayerInput.player1.r === 1) {
+							characterPlayerInput.player1.r = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyA':
 						if (down) {
-							characterControl.x = -1;
-						} else if (characterControl.x === -1) {
-							characterControl.x = 0;
+							characterPlayerInput.player1.x = -1;
+						} else if (characterPlayerInput.player1.x === -1) {
+							characterPlayerInput.player1.x = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyD':
 						if (down) {
-							characterControl.x = 1;
-						} else if (characterControl.x === 1) {
-							characterControl.x = 0;
+							characterPlayerInput.player1.x = 1;
+						} else if (characterPlayerInput.player1.x === 1) {
+							characterPlayerInput.player1.x = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyW':
 						if (down) {
-							characterControl.y = -1;
-						} else if (characterControl.y === -1) {
-							characterControl.y = 0;
+							characterPlayerInput.player1.y = -1;
+						} else if (characterPlayerInput.player1.y === -1) {
+							characterPlayerInput.player1.y = 0;
 						}
 						updated = true;
 						break;
 					case 'KeyS':
 						if (down) {
-							characterControl.y = 1;
-						} else if (characterControl.y === 1) {
-							characterControl.y = 0;
+							characterPlayerInput.player1.y = 1;
+						} else if (characterPlayerInput.player1.y === 1) {
+							characterPlayerInput.player1.y = 0;
 						}
 						updated = true;
 						break;
@@ -404,7 +428,7 @@ export class Game {
 							updated = true;
 						}
 					} else {
-						// characterControl.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
+						// characterPlayerInput.player1.r = (GamingCanvasUtilScale(position1.xRelative, 0, 1, 360, 0) * Math.PI) / 180;
 						// updated = true;
 					}
 					break;

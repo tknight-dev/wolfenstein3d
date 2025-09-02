@@ -1,9 +1,24 @@
-import { CharacterControl, CharacterControlDecode, CharacterPosition, CharacterPositionDecode, CharacterPositionEncode } from '../../models/character.model.js';
-import { CalcBusInputCmd, CalcBusInputDataInit, CalcBusInputDataSettings, CalcBusInputPayload, CalcBusOutputCmd, CalcBusOutputPayload } from './calc.model.js';
+import { Character } from '../../models/character.model.js';
+import {
+	CalcBusInputCmd,
+	CalcBusInputDataInit,
+	CalcBusInputDataPlayerInput,
+	CalcBusInputDataSettings,
+	CalcBusInputPayload,
+	CalcBusOutputCmd,
+	CalcBusOutputPayload,
+} from './calc.model.js';
 import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
-import { GamingCanvasReport, GamingCanvasUtilArrayExpand } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasOrientation, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvasGridCharacterControl,
+	GamingCanvasGridCharacterControlStyle,
+	GamingCanvasGridCharacterControlOptions,
+	GamingCanvasGridCharacterInput,
+} from '@tknight-dev/gaming-canvas/grid';
 import {
 	GamingCanvasGridCamera,
+	GamingCanvasGridICamera,
 	GamingCanvasGridRaycast,
 	GamingCanvasGridRaycastOptions,
 	GamingCanvasGridRaycastResult,
@@ -24,8 +39,8 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcBusInputCmd.CAMERA:
 			CalcEngine.inputCamera(<Float32Array>payload.data);
 			break;
-		case CalcBusInputCmd.CHARACTER_CONTROL:
-			CalcEngine.inputCharacterControl(<Float32Array>payload.data);
+		case CalcBusInputCmd.CHARACTER_INPUT:
+			CalcEngine.inputCharacterInput(<CalcBusInputDataPlayerInput>payload.data);
 			break;
 		case CalcBusInputCmd.INIT:
 			CalcEngine.initialize(<CalcBusInputDataInit>payload.data);
@@ -42,9 +57,10 @@ self.onmessage = (event: MessageEvent) => {
 class CalcEngine {
 	private static camera: Float32Array;
 	private static cameraNew: boolean;
-	private static characterControl: Float32Array;
-	private static characterControlNew: boolean;
-	private static characterPosition: CharacterPosition;
+	private static characterPlayerInput: CalcBusInputDataPlayerInput;
+	private static characterPlayerInputNew: boolean;
+	private static characterPlayer1: Character;
+	private static characterPlayer2: Character;
 	private static gameMap: GameMap;
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
@@ -53,12 +69,43 @@ class CalcEngine {
 	private static settingsNew: boolean;
 
 	public static initialize(data: CalcBusInputDataInit): void {
-		// Config
+		// Config: Character
+		CalcEngine.characterPlayer1 = {
+			camera: {
+				r: data.gameMap.cameraRIntial,
+				x: data.gameMap.gridStartX + 0.5,
+				y: data.gameMap.gridStartY + 0.5,
+				z: 1,
+			},
+			cameraPrevious: <GamingCanvasGridICamera>{},
+			health: 100,
+			id: 0,
+			npc: false,
+			player1: true,
+			size: 0.25,
+			timestamp: 0,
+			timestampPrevious: 0,
+		};
+		CalcEngine.characterPlayer2 = {
+			camera: {
+				r: CalcEngine.characterPlayer1.camera.r,
+				x: CalcEngine.characterPlayer1.camera.x,
+				y: CalcEngine.characterPlayer1.camera.y,
+				z: CalcEngine.characterPlayer1.camera.z,
+			},
+			cameraPrevious: <GamingCanvasGridICamera>{},
+			health: CalcEngine.characterPlayer1.health,
+			id: 1,
+			npc: false,
+			player1: false,
+			size: CalcEngine.characterPlayer1.size,
+			timestamp: CalcEngine.characterPlayer1.timestamp,
+			timestampPrevious: CalcEngine.characterPlayer1.timestampPrevious,
+		};
+
+		// Config: Game Map
 		CalcEngine.gameMap = data.gameMap;
 		CalcEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
-
-		// Config: CharacterPosition
-		CalcEngine.characterPosition = CharacterPositionDecode(data.characterPosition);
 
 		// Config: Report
 		CalcEngine.inputReport(data.report);
@@ -88,9 +135,9 @@ class CalcEngine {
 		CalcEngine.cameraNew = true;
 	}
 
-	public static inputCharacterControl(data: Float32Array): void {
-		CalcEngine.characterControl = data;
-		CalcEngine.characterControlNew = true;
+	public static inputCharacterInput(data: CalcBusInputDataPlayerInput): void {
+		CalcEngine.characterPlayerInput = data;
+		CalcEngine.characterPlayerInputNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -120,36 +167,52 @@ class CalcEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(CalcEngine.characterPosition.r),
+		let camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
+				CalcEngine.characterPlayer1.camera.r,
+				CalcEngine.characterPlayer1.camera.x,
+				CalcEngine.characterPlayer1.camera.y,
+				CalcEngine.characterPlayer1.camera.z,
+			),
 			cameraEncoded: Float32Array,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
-			cameraUpdatedReport: boolean = true,
-			characterControl: CharacterControl = {
+			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
+				clip: true,
+				factorPosition: 0.005,
+				factorRotation: 0.00225,
+				style: GamingCanvasGridCharacterControlStyle.STRAFE,
+			},
+			characterPlayer1Input: GamingCanvasGridCharacterInput = {
 				r: 0,
 				x: 0,
 				y: 0,
 			},
-			characterControlFactor: number = 0.05,
-			characterControlR: number,
-			characterControlX: number,
-			characterControlXIndex: number,
-			characterControlY: number,
-			characterControlYIndex: number,
-			characterPosition: CharacterPosition = CalcEngine.characterPosition,
-			characterPositionEncoded: Float32Array,
-			characterPositionUpdated: boolean = false,
-			characterPositionUpdatedReport: boolean = false,
-			characterSizeInC: number = 0.25,
-			characterSizeInCEff: number,
+			characterPlayer1: Character = CalcEngine.characterPlayer1,
+			characterPlayer1CameraEncoded: Float32Array | undefined,
+			characterPlayer1Changed: boolean,
+			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
+			characterPlayer1RaycastRays: Float32Array | undefined,
+			characterPlayer2Input: GamingCanvasGridCharacterInput = {
+				r: 0,
+				x: 0,
+				y: 0,
+			},
+			characterPlayer2: Character = CalcEngine.characterPlayer2,
+			characterPlayer2CameraEncoded: Float32Array | undefined,
+			characterPlayer2Changed: boolean,
+			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
+			characterPlayer2RaycastRays: Float32Array | undefined,
 			cycleMinMs: number = 10,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
-			rays: Float32Array,
+			raycastOptions: GamingCanvasGridRaycastOptions = {
+				rayCount: CalcEngine.report.canvasWidth,
+				rayFOV: CalcEngine.settings.fov,
+			},
 			report: GamingCanvasReport = CalcEngine.report,
-			settingsFOV: number = CalcEngine.settings.fov,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
+			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
@@ -170,6 +233,12 @@ class CalcEngine {
 				/**
 				 * Calc: Environment
 				 */
+				cameraUpdated = false;
+				characterPlayer1.timestamp = timestampNow;
+				characterPlayer1Changed = false;
+
+				characterPlayer2.timestamp = timestampNow;
+				characterPlayer2Changed = false;
 
 				if (CalcEngine.cameraNew) {
 					CalcEngine.cameraNew = false;
@@ -177,110 +246,117 @@ class CalcEngine {
 					camera = GamingCanvasGridCamera.from(CalcEngine.camera);
 					cameraMode = true; // Snap back to camera
 					cameraUpdated = true;
-					cameraUpdatedReport = true;
 				}
 
 				if (CalcEngine.reportNew) {
 					CalcEngine.reportNew = false;
 
 					report = CalcEngine.report;
+					raycastOptions.rayCount = report.canvasWidth;
+
+					if (CalcEngine.settings.player2Enable === true) {
+						if (report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+							raycastOptions.rayCount = (report.canvasWidth / 2) | 0;
+						}
+					}
 				}
 
 				// Character Control: Update
-				if (CalcEngine.characterControlNew === true) {
-					CalcEngine.characterControlNew = false;
+				if (CalcEngine.characterPlayerInputNew === true) {
+					CalcEngine.characterPlayerInputNew = false;
 
 					cameraMode = false; // Snap back to player
-					characterControl = CharacterControlDecode(CalcEngine.characterControl);
+					characterPlayer1Input = CalcEngine.characterPlayerInput.player1;
+					characterPlayer2Input = CalcEngine.characterPlayerInput.player2;
 				}
 
 				if (CalcEngine.settingsNew) {
 					CalcEngine.settingsNew = false;
 
 					cameraUpdated = true; // This or position works
-					settingsFOV = CalcEngine.settings.fov;
+					raycastOptions.rayFOV = CalcEngine.settings.fov;
 					settingsFPMS = 1000 / CalcEngine.settings.fps;
 				}
 
 				/**
 				 * Calc: Position
 				 */
-				if (cameraMode === false && (characterControl.r !== 0 || characterControl.x !== 0 || characterControl.y !== 0)) {
-					characterPositionUpdatedReport = true;
-
-					// R
-					if (characterControl.r !== 0) {
-						characterPosition.r -= characterControl.r * characterControlFactor;
-						characterPositionUpdated = true;
-						characterPositionUpdatedReport = true;
-					}
-
-					// X
-					characterControlX =
-						(Math.cos(characterPosition.r) * -characterControl.x + Math.sin(characterPosition.r) * -characterControl.y) * characterControlFactor;
-
-					characterSizeInCEff = characterControlX > 0 ? characterSizeInC : -characterSizeInC;
-					characterControlXIndex = ((characterPosition.x + characterControlX + characterSizeInCEff) | 0) * gameMapGridSideLength;
-
-					if (
-						(gameMapGridData[characterControlXIndex + (characterPosition.y | 0)] & GameGridCellMaskAndValues.WALL_MASK) !==
-						GameGridCellMaskAndValues.WALL_VALUE
-					) {
-						characterPosition.x += characterControlX;
-						characterPositionUpdated = true;
-						characterPositionUpdatedReport = true;
-					}
-
-					// Y
-					characterControlY =
-						(Math.sin(characterPosition.r) * characterControl.x + Math.cos(characterPosition.r) * -characterControl.y) * characterControlFactor;
-
-					characterSizeInCEff = characterControlY > 0 ? characterSizeInC : -characterSizeInC;
-					characterControlYIndex = (characterPosition.y + characterControlY + characterSizeInCEff) | 0;
-
-					if (
-						(gameMapGridData[(characterPosition.x | 0) * gameMapGridSideLength + characterControlYIndex] & GameGridCellMaskAndValues.WALL_MASK) !==
-						GameGridCellMaskAndValues.WALL_VALUE
-					) {
-						characterPosition.y += characterControlY;
-						characterPositionUpdated = true;
-						characterPositionUpdatedReport = true;
-					}
-
-					// Current cell
-					characterPosition.dataIndex = (characterPosition.x | 0) * gameMapGridSideLength + (characterPosition.y | 0);
-				}
-
-				/**
-				 * Calc: Raycasting (DDA Algorithm)
-				 */
-
-				if (cameraUpdated === true || characterPositionUpdated === true) {
-					let data: GamingCanvasGridRaycastResult;
-
-					let options: GamingCanvasGridRaycastOptions = {
-						rayCount: report.canvasWidth,
-						rayFOV: settingsFOV,
-					};
-
-					if (cameraMode === true) {
-						data = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMaskAndValues.WALL_MASK, GameGridCellMaskAndValues.WALL_VALUE, options);
-					} else {
-						data = GamingCanvasGridRaycast(
-							characterPosition,
+				if (cameraMode === false) {
+					// Player 1: Position
+					characterPlayer1Changed =
+						characterPlayer1Changed ||
+						GamingCanvasGridCharacterControl(
+							characterPlayer1,
+							characterPlayer1Input,
 							gameMapGrid,
 							GameGridCellMaskAndValues.WALL_MASK,
 							GameGridCellMaskAndValues.WALL_VALUE,
-							options,
+							characterControlOptions,
 						);
+
+					// Player 1: Raycast
+					if (characterPlayer1Changed) {
+						characterPlayer1Raycast = GamingCanvasGridRaycast(
+							characterPlayer1.camera,
+							gameMapGrid,
+							GameGridCellMaskAndValues.WALL_MASK,
+							GameGridCellMaskAndValues.WALL_VALUE,
+							raycastOptions,
+						);
+						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
+					} else {
+						characterPlayer1Raycast = undefined;
 					}
 
-					rays = <Float32Array>data.rays;
+					if (settingsPlayer2Enable === true) {
+						// Player 2: Position
+						characterPlayer2Changed =
+							characterPlayer2Changed ||
+							GamingCanvasGridCharacterControl(
+								characterPlayer2,
+								characterPlayer2Input,
+								gameMapGrid,
+								GameGridCellMaskAndValues.WALL_MASK,
+								GameGridCellMaskAndValues.WALL_VALUE,
+								characterControlOptions,
+							);
+
+						// Player 2: Raycast
+						if (characterPlayer2Changed) {
+							characterPlayer2Raycast = GamingCanvasGridRaycast(
+								characterPlayer2.camera,
+								gameMapGrid,
+								GameGridCellMaskAndValues.WALL_MASK,
+								GameGridCellMaskAndValues.WALL_VALUE,
+								raycastOptions,
+							);
+							characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
+						} else {
+							characterPlayer2Raycast = undefined;
+						}
+					} else {
+						characterPlayer2Raycast = undefined;
+					}
+				} else if (cameraUpdated) {
+					// Camera mode means we only need one raycast no matter how many players
+					characterPlayer1Raycast = GamingCanvasGridRaycast(
+						camera,
+						gameMapGrid,
+						GameGridCellMaskAndValues.WALL_MASK,
+						GameGridCellMaskAndValues.WALL_VALUE,
+						raycastOptions,
+					);
+					characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
+					characterPlayer2Raycast = undefined;
+				} else {
+					characterPlayer1Raycast = undefined;
+					characterPlayer2Raycast = undefined;
 				}
 
 				// Done
 				cameraUpdated = false;
-				characterPositionUpdated = false;
+				characterPlayer1.timestampPrevious = timestampNow;
+				characterPlayer2.timestampPrevious = timestampNow;
 			}
 
 			/**
@@ -292,9 +368,7 @@ class CalcEngine {
 				timestampFPSThen = timestampNow - (timestampFPSDelta % settingsFPMS);
 
 				if (cameraMode === true) {
-					if (cameraUpdatedReport === true) {
-						cameraUpdatedReport = false;
-
+					if (characterPlayer1RaycastRays !== undefined) {
 						cameraEncoded = camera.encode();
 
 						CalcEngine.post(
@@ -303,31 +377,50 @@ class CalcEngine {
 									cmd: CalcBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
-										rays: rays,
+										rays: characterPlayer1RaycastRays,
 									},
 								},
 							],
-							[cameraEncoded.buffer],
+							[characterPlayer1RaycastRays.buffer],
 						);
+
+						characterPlayer1RaycastRays = undefined;
 					}
 				} else {
-					if (characterPositionUpdatedReport === true) {
-						characterPositionUpdatedReport = false;
+					if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {
+						let buffers: ArrayBufferLike[] = [];
 
-						characterPositionEncoded = CharacterPositionEncode(CalcEngine.characterPosition);
+						if (characterPlayer1RaycastRays !== undefined) {
+							buffers.push(characterPlayer1RaycastRays.buffer);
+							characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
+						} else {
+							characterPlayer1CameraEncoded = undefined;
+						}
+
+						if (characterPlayer2RaycastRays !== undefined) {
+							buffers.push(characterPlayer2RaycastRays.buffer);
+							characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
+						} else {
+							characterPlayer2CameraEncoded = undefined;
+						}
 
 						CalcEngine.post(
 							[
 								{
 									cmd: CalcBusOutputCmd.CALCULATIONS,
 									data: {
-										characterPosition: characterPositionEncoded,
-										rays: rays,
+										characterPlayer1Camera: characterPlayer1CameraEncoded,
+										characterPlayer1Rays: characterPlayer1RaycastRays,
+										characterPlayer2Camera: characterPlayer2CameraEncoded,
+										characterPlayer2Rays: characterPlayer2RaycastRays,
 									},
 								},
 							],
-							[characterPositionEncoded.buffer],
+							buffers,
 						);
+
+						characterPlayer1RaycastRays = undefined;
+						characterPlayer2RaycastRays = undefined;
 					}
 				}
 			}

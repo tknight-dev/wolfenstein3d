@@ -8,7 +8,6 @@ import {
 	VideoEditorBusOutputDataStats,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
-import { CharacterPosition, CharacterPositionEncode } from '../../models/character.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 
 /**
@@ -42,13 +41,6 @@ export class VideoEditorBus {
 
 			// Init the webworker
 			const cameraEncoded: Float32Array = camera.encode();
-			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
-				dataIndex: (camera.x | 0) * gameMap.grid.sideLength + (camera.y | 0),
-				r: camera.r,
-				x: camera.x,
-				y: camera.y,
-				z: 1,
-			});
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			const viewportEncoded: Float32Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
@@ -57,7 +49,6 @@ export class VideoEditorBus {
 					data: Object.assign(
 						{
 							camera: cameraEncoded,
-							characterPosition: characterPositionEncoded,
 							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
 							rays: new Float32Array(),
@@ -67,7 +58,7 @@ export class VideoEditorBus {
 						settings,
 					),
 				},
-				[cameraEncoded.buffer, characterPositionEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
+				[cameraEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');

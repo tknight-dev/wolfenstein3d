@@ -25,7 +25,6 @@ export interface VideoEditorBusInputDataCalculations {
 }
 
 export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalculations, VideoEditorBusInputDataSettings {
-	characterPosition: Float32Array;
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
 	report: GamingCanvasReport;
@@ -34,6 +33,7 @@ export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalc
 export interface VideoEditorBusInputDataSettings {
 	fov: number;
 	fps: FPS;
+	player2Enable: boolean;
 }
 
 export interface VideoEditorBusInputPayload {

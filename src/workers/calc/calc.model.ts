@@ -1,6 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS } from '../../models/settings.model.js';
+import { GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -11,26 +12,31 @@ import { FPS } from '../../models/settings.model.js';
  */
 export enum CalcBusInputCmd {
 	CAMERA,
-	CHARACTER_CONTROL,
+	CHARACTER_INPUT,
 	INIT,
 	REPORT,
 	SETTINGS,
 }
 
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
-	characterPosition: Float32Array;
 	gameMap: GameMap;
 	report: GamingCanvasReport;
+}
+
+export interface CalcBusInputDataPlayerInput {
+	player1: GamingCanvasGridCharacterInput;
+	player2: GamingCanvasGridCharacterInput;
 }
 
 export interface CalcBusInputDataSettings {
 	fov: number;
 	fps: FPS;
+	player2Enable: boolean;
 }
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataSettings | Float32Array | GamingCanvasReport;
+	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float32Array | GamingCanvasGridCharacterInput | GamingCanvasReport;
 }
 
 /*
@@ -45,14 +51,14 @@ export enum CalcBusOutputCmd {
 
 export interface CalcBusOutputDataCamera {
 	camera: Float32Array;
-	cells: Uint8Array;
 	rays: Float32Array;
 }
 
 export interface CalcBusOutputDataCalculations {
-	cells: Uint8Array;
-	characterPosition: Float32Array;
-	rays: Float32Array;
+	characterPlayer1Camera?: Float32Array;
+	characterPlayer1Rays?: Float32Array;
+	characterPlayer2Camera?: Float32Array;
+	characterPlayer2Rays?: Float32Array;
 }
 
 export interface CalcBusOutputDataStats {}

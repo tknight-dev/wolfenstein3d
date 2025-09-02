@@ -1,7 +1,7 @@
-import { CharacterPositionEncode } from '../../models/character.model.js';
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	CalcBusInputCmd,
+	CalcBusInputDataPlayerInput,
 	CalcBusInputDataSettings,
 	CalcBusOutputCmd,
 	CalcBusOutputDataCamera,
@@ -10,7 +10,7 @@ import {
 	CalcBusOutputPayload,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
-import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -23,7 +23,7 @@ export class CalcBus {
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(camera: GamingCanvasGridCamera, settings: CalcBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
+	public static initialize(settings: CalcBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
 		CalcBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -37,27 +37,16 @@ export class CalcBus {
 			CalcBus.input();
 
 			// Init the webworker
-			const characterPositionEncoded: Float32Array = CharacterPositionEncode({
-				dataIndex: (camera.x | 0) * gameMap.grid.sideLength + (camera.y | 0),
-				r: camera.r,
-				x: camera.x,
-				y: camera.y,
-				z: 1,
+			CalcBus.worker.postMessage({
+				cmd: CalcBusInputCmd.INIT,
+				data: Object.assign(
+					{
+						gameMap: gameMap,
+						report: GamingCanvas.getReport(),
+					},
+					settings,
+				),
 			});
-			CalcBus.worker.postMessage(
-				{
-					cmd: CalcBusInputCmd.INIT,
-					data: Object.assign(
-						{
-							characterPosition: characterPositionEncoded,
-							gameMap: gameMap,
-							report: GamingCanvas.getReport(),
-						},
-						settings,
-					),
-				},
-				[characterPositionEncoded.buffer],
-			);
 		} else {
 			alert('Web Workers are not supported by your browser');
 			CalcBus.callbackInitComplete(false);
@@ -103,14 +92,11 @@ export class CalcBus {
 		);
 	}
 
-	public static outputCharacterControl(characterControl: Float32Array): void {
-		CalcBus.worker.postMessage(
-			{
-				cmd: CalcBusInputCmd.CHARACTER_CONTROL,
-				data: characterControl,
-			},
-			[characterControl.buffer],
-		);
+	public static outputCharacterInput(data: CalcBusInputDataPlayerInput): void {
+		CalcBus.worker.postMessage({
+			cmd: CalcBusInputCmd.CHARACTER_INPUT,
+			data: data,
+		});
 	}
 
 	// Non-fixed resolution canvas has changed in size
