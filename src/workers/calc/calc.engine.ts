@@ -196,18 +196,15 @@ class CalcEngine {
 			characterPlayer2RaycastRays: Float32Array | undefined,
 			cycleMinMs: number = 10,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
-			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
-			gameMapGridSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				rayCount: CalcEngine.report.canvasWidth,
 				rayFOV: CalcEngine.settings.fov,
 			},
 			report: GamingCanvasReport = CalcEngine.report,
 			reportOrientation: GamingCanvasOrientation = CalcEngine.report.orientation,
-			reportOrientationForce: boolean,
+			reportOrientationForce: boolean = true,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
-			settingsRaycastQuality: RaycastQuality = CalcEngine.settings.raycastQuality,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
@@ -280,7 +277,6 @@ class CalcEngine {
 					cameraUpdated = true; // This or position works
 					raycastOptions.rayFOV = CalcEngine.settings.fov;
 					settingsFPMS = 1000 / CalcEngine.settings.fps;
-					settingsRaycastQuality = CalcEngine.settings.raycastQuality;
 				}
 
 				/**
