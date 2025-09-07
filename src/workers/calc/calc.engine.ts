@@ -15,6 +15,7 @@ import {
 	GamingCanvasGridCharacterControlStyle,
 	GamingCanvasGridCharacterControlOptions,
 	GamingCanvasGridCharacterInput,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
 	GamingCanvasGridCamera,
@@ -183,6 +184,8 @@ class CalcEngine {
 			characterPlayer1CameraEncoded: Float32Array | undefined,
 			characterPlayer1Changed: boolean,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
+			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
+			characterPlayer1RaycastDistanceMapKeysSorted: Uint32Array,
 			characterPlayer1RaycastRays: Float32Array | undefined,
 			characterPlayer2Input: GamingCanvasGridCharacterInput = {
 				r: 0,
@@ -192,11 +195,15 @@ class CalcEngine {
 			characterPlayer2: Character = CalcEngine.characterPlayer2,
 			characterPlayer2CameraEncoded: Float32Array | undefined,
 			characterPlayer2Changed: boolean,
+			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
+			characterPlayer2RaycastDistanceMapKeysSorted: Uint32Array,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer2RaycastRays: Float32Array | undefined,
 			cycleMinMs: number = 10,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
+				cellEnable: true,
+				distanceMapEnable: true,
 				rayCount: CalcEngine.report.canvasWidth,
 				rayFOV: CalcEngine.settings.fov,
 			},
@@ -304,6 +311,8 @@ class CalcEngine {
 							GameGridCellMaskAndValues.WALL_VALUE,
 							raycastOptions,
 						);
+						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
+						characterPlayer1RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer1Raycast.distanceMapKeysSorted;
 						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					} else {
 						characterPlayer1Raycast = undefined;
@@ -331,6 +340,10 @@ class CalcEngine {
 								GameGridCellMaskAndValues.WALL_VALUE,
 								raycastOptions,
 							);
+							characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
+								characterPlayer2Raycast.distanceMap
+							);
+							characterPlayer2RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer2Raycast.distanceMapKeysSorted;
 							characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
 						} else {
 							characterPlayer2Raycast = undefined;
@@ -347,6 +360,8 @@ class CalcEngine {
 						GameGridCellMaskAndValues.WALL_VALUE,
 						raycastOptions,
 					);
+					characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
+					characterPlayer1RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer1Raycast.distanceMapKeysSorted;
 					characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					characterPlayer2Raycast = undefined;
 				} else {
@@ -383,6 +398,8 @@ class CalcEngine {
 										player1Camera: characterPlayer1CameraEncoded,
 										player2Camera: characterPlayer2CameraEncoded,
 										rays: characterPlayer1RaycastRays,
+										raysMap: characterPlayer1RaycastDistanceMap,
+										raysMapKeysSorted: characterPlayer1RaycastDistanceMapKeysSorted,
 									},
 								},
 							],
@@ -391,6 +408,7 @@ class CalcEngine {
 								characterPlayer1CameraEncoded.buffer,
 								characterPlayer2CameraEncoded.buffer,
 								characterPlayer1RaycastRays.buffer,
+								characterPlayer1RaycastDistanceMapKeysSorted.buffer,
 							],
 						);
 
@@ -402,6 +420,7 @@ class CalcEngine {
 
 						if (characterPlayer1RaycastRays !== undefined) {
 							buffers.push(characterPlayer1RaycastRays.buffer);
+							buffers.push(characterPlayer1RaycastDistanceMapKeysSorted.buffer);
 
 							characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
 							buffers.push(characterPlayer1CameraEncoded.buffer);
@@ -411,6 +430,7 @@ class CalcEngine {
 
 						if (characterPlayer2RaycastRays !== undefined) {
 							buffers.push(characterPlayer2RaycastRays.buffer);
+							buffers.push(characterPlayer2RaycastDistanceMapKeysSorted.buffer);
 
 							characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
 							buffers.push(characterPlayer2CameraEncoded.buffer);
@@ -425,8 +445,12 @@ class CalcEngine {
 									data: {
 										characterPlayer1Camera: characterPlayer1CameraEncoded,
 										characterPlayer1Rays: characterPlayer1RaycastRays,
+										characterPlayer1RaysMap: characterPlayer1RaycastDistanceMap,
+										characterPlayer1RaysMapKeysSorted: characterPlayer1RaycastDistanceMapKeysSorted,
 										characterPlayer2Camera: characterPlayer2CameraEncoded,
 										characterPlayer2Rays: characterPlayer2RaycastRays,
+										characterPlayer2RaysMap: characterPlayer2RaycastDistanceMap,
+										characterPlayer2RaysMapKeysSorted: characterPlayer2RaycastDistanceMapKeysSorted,
 									},
 								},
 							],

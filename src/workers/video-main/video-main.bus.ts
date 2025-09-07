@@ -118,7 +118,7 @@ export class VideoMainBus {
 				cmd: VideoMainBusInputCmd.CALCULATIONS,
 				data: data,
 			},
-			[data.camera.buffer, data.rays.buffer],
+			[data.camera.buffer, data.rays.buffer, data.raysMapKeysSorted.buffer],
 		);
 	}
 

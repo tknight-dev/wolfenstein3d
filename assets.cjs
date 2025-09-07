@@ -25,7 +25,6 @@ setTimeout(async () => {
 	});
 
 	archive.pipe(fs.createWriteStream(__dirname + '/dist/assets'));
-	archive.pipe(fs.createWriteStream(__dirname + '/src/assets'));
 	archive.directory(__dirname + '/assets', false);
 	archive.finalize();
 });

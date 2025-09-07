@@ -1,7 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
-import { GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCharacterInput, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -55,13 +55,19 @@ export interface CalcBusOutputDataCamera {
 	player1Camera: Float32Array;
 	player2Camera: Float32Array;
 	rays: Float32Array;
+	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
+	raysMapKeysSorted: Uint32Array;
 }
 
 export interface CalcBusOutputDataCalculations {
 	characterPlayer1Camera?: Float32Array;
 	characterPlayer1Rays?: Float32Array;
+	characterPlayer1RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
+	characterPlayer1RaysMapKeysSorted?: Uint32Array;
 	characterPlayer2Camera?: Float32Array;
 	characterPlayer2Rays?: Float32Array;
+	characterPlayer2RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
+	characterPlayer2RaysMapKeysSorted?: Uint32Array;
 }
 
 export interface CalcBusOutputDataStats {}

@@ -10,6 +10,12 @@ export enum FPS {
 	_144 = 144,
 }
 
+export enum LightingQuality {
+	NONE = 0,
+	BASIC = 1,
+	FULL = 2,
+}
+
 export enum RaycastQuality {
 	FULL = 1, // ray = 1px
 	HALF = 2, // ray = 2px

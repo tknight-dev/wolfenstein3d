@@ -1,6 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS } from '../../models/settings.model.js';
+import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -23,6 +24,8 @@ export interface VideoEditorBusInputDataCalculations {
 	player2Camera?: Float32Array;
 	gameMode: boolean;
 	rays?: Float32Array;
+	raysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
+	raysMapKeysSorted?: Uint32Array;
 	viewport: Float32Array;
 }
 

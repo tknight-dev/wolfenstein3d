@@ -77,6 +77,7 @@ if (production) {
 	await ctx.serve({
 		host: host,
 		port: port,
+		servedir: 'dist',
 	});
 
 	// Report and open Browser instance

@@ -32,7 +32,9 @@ import {
 	GamingCanvasGridInputOverlaySnapPxTopLeft,
 	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
 } from '@tknight-dev/gaming-canvas/grid';
+import { AssetId } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -67,8 +69,11 @@ export class Game {
 			zoomInitial: number = 2;
 
 		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
-			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE,
-			valueWallSpecial: number = valueWall | 0x80;
+			valueSprite: number = valueFloor | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING << 12),
+			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_BRICK_BLUE << 12),
+			valueWallCell: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE << 12),
+			valueWallCellSkeleton: number =
+				GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << 12);
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera(rInitial, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
@@ -90,15 +95,20 @@ export class Game {
 			}
 		}
 
-		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWallSpecial); // Top-Left
-		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWallSpecial); // Top-Right
-		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWallSpecial); // Bottom-Left
-		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWallSpecial); // Bottom-Right
+		// grid.set(gridSideCenter - 1, gridSideCenter + 3, valueSprite); // Bottom-Left
+		// grid.set(gridSideCenter + 1, gridSideCenter + 3, valueSprite); // Bottom-Right
+		// grid.set(gridSideCenter - 1, gridSideCenter - 3, valueSprite); // Top-Left
+		grid.set(gridSideCenter + 1, gridSideCenter - 3, valueSprite); // Top-Right
 
-		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Top-Center
-		grid.set(gridSideCenter, gridSideCenter + 5, valueWallSpecial); // Top-Center
-		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Bottom-Center
-		grid.set(gridSideCenter, gridSideCenter - 5, valueWallSpecial); // Bottom-Center
+		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWall); // Top-Left
+		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Top-Right
+		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWall); // Bottom-Left
+		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWall); // Bottom-Right
+
+		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Bottom-Center
+		grid.set(gridSideCenter, gridSideCenter + 5, valueWallCellSkeleton); // Bottom-Center
+		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Top-Center
+		grid.set(gridSideCenter, gridSideCenter - 5, valueWallCell); // Top-Center
 
 		Game.dataMaps.set(0, {
 			cameraRIntial: rInitial,
@@ -221,10 +231,14 @@ export class Game {
 			VideoMainBus.outputCalculations(true, {
 				camera: Float32Array.from(data.camera),
 				rays: Float32Array.from(data.rays),
+				raysMap: data.raysMap,
+				raysMapKeysSorted: Uint32Array.from(data.raysMapKeysSorted),
 			});
 			VideoMainBus.outputCalculations(false, {
 				camera: data.camera,
 				rays: data.rays,
+				raysMap: data.raysMap,
+				raysMapKeysSorted: data.raysMapKeysSorted,
 			});
 		});
 
@@ -243,7 +257,9 @@ export class Game {
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
 					camera: camera.encode(),
-					rays: Float32Array.from(<Float32Array>data.characterPlayer1Rays), // Clone
+					rays: <Float32Array>data.characterPlayer1Rays,
+					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
+					raysMapKeysSorted: <Uint32Array>data.characterPlayer1RaysMapKeysSorted,
 				});
 
 				// Second: VideoEditor
@@ -268,6 +284,8 @@ export class Game {
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
 					rays: <Float32Array>data.characterPlayer2Rays,
+					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
+					raysMapKeysSorted: <Uint32Array>data.characterPlayer2RaysMapKeysSorted,
 				});
 			}
 		});
@@ -567,7 +585,7 @@ export class Game {
 			// DOM
 			DOM.elButtonEdit.classList.add('active');
 			DOM.elButtonPlay.classList.remove('active');
-			DOM.elCanvases[1].classList.remove('hide');
+			DOM.elCanvases[2].classList.remove('hide');
 		}
 	}
 
@@ -576,14 +594,14 @@ export class Game {
 			Game.modeEdit = false;
 
 			// DOM
-			// DOM.elButtonEdit.classList.remove('active');
-			// DOM.elButtonPlay.classList.add('active');
-			// DOM.elCanvases[1].classList.add('hide');
+			DOM.elButtonEdit.classList.remove('active');
+			DOM.elButtonPlay.classList.add('active');
+			DOM.elCanvases[2].classList.add('hide');
 
 			// TMP FOR CALC WORK ON POSITION AND ROTATION
-			DOM.elButtonEdit.classList.add('active');
-			DOM.elButtonPlay.classList.remove('active');
-			DOM.elCanvases[1].classList.remove('hide');
+			// DOM.elButtonEdit.classList.add('active');
+			// DOM.elButtonPlay.classList.remove('active');
+			// DOM.elCanvases[1].classList.remove('hide');
 		}
 	}
 }

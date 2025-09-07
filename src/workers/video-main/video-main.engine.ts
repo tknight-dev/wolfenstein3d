@@ -1,3 +1,4 @@
+import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
 import {
@@ -10,8 +11,14 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
-import { GamingCanvasGridCamera, GamingCanvasGridRaycast3DProjectionTestImageCreate, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
-import { RaycastQuality } from '../../models/settings.model.js';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridRaycast3DProjectionTestImageCreate,
+	GamingCanvasGridRaycastCellSide,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
+	GamingCanvasGridUint16Array,
+} from '@tknight-dev/gaming-canvas/grid';
+import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 
 /**
  * @author tknight-dev
@@ -40,6 +47,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
+	private static assets: Map<AssetId, OffscreenCanvas> = new Map();
+	private static assetsInvertHorizontal: Map<AssetId, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
@@ -52,11 +61,44 @@ class VideoMainEngine {
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
 
-	public static initialize(data: VideoMainBusInputDataInit): void {
-		// Config
-		VideoMainEngine.gameMap = data.gameMap;
-		VideoMainEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
-		VideoMainEngine.player1 = data.player1;
+	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
+		// Assets
+		let assetCanvas: OffscreenCanvas,
+			assetContext: OffscreenCanvasRenderingContext2D,
+			assetData: ImageBitmap,
+			assetId: AssetId,
+			assetProperties: AssetPropertiesImage,
+			assetsLoaded: Map<AssetId, ImageBitmap> = await assetLoaderImage();
+
+		for ([assetId, assetData] of assetsLoaded) {
+			// Get properties
+			assetProperties = <AssetPropertiesImage>assets.get(assetId);
+
+			// Canvas: Regular
+			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+			assetContext = assetCanvas.getContext('2d', {
+				alpha: assetProperties.alpha,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D;
+			assetContext.drawImage(assetData, 0, 0);
+			VideoMainEngine.assets.set(assetId, assetCanvas);
+
+			// Canvas: Invert Horizontal
+			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+			assetContext = assetCanvas.getContext('2d', {
+				alpha: assetProperties.alpha,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D;
+			assetContext.scale(-1, 1);
+			assetContext.drawImage(assetData, 0, 0, assetData.width * -1, assetData.height);
+			VideoMainEngine.assetsInvertHorizontal.set(assetId, assetCanvas);
+		}
 
 		// Config: Canvas
 		VideoMainEngine.offscreenCanvas = data.offscreenCanvas;
@@ -68,10 +110,17 @@ class VideoMainEngine {
 			powerPreference: 'high-performance',
 		}) as OffscreenCanvasRenderingContext2D;
 
+		// Config
+		VideoMainEngine.gameMap = data.gameMap;
+		VideoMainEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
+		VideoMainEngine.player1 = data.player1;
+
 		// Config: Report
 		VideoMainEngine.inputCalculations({
 			camera: data.camera,
 			rays: new Float32Array(),
+			raysMap: new Map(),
+			raysMapKeysSorted: new Uint32Array(),
 		});
 
 		// Config: Report
@@ -141,32 +190,73 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
+		let asset: OffscreenCanvas,
+			assets: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assets,
+			assetsInvertHorizontal: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
+			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsRays: Float32Array = VideoMainEngine.calculations.rays,
+			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
+			calculationsRaysMapKeysSorted: Uint32Array = VideoMainEngine.calculations.raysMapKeysSorted,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeight,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidth,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
-			testImage: OffscreenCanvas = GamingCanvasGridRaycast3DProjectionTestImageCreate(64),
 			frameCount: number = 0,
 			gameMap: GameMap = VideoMainEngine.gameMap,
+			gameMapGridCell: number,
+			gameMapGridIndex: number,
+			gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data,
+			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
+			renderBrightness: number,
+			renderDistance: number,
+			renderDistanceIndex: number,
+			renderImageInvertHorizontal: boolean,
+			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycast3DProjectionTestImageCreate(64),
 			renderEnable: boolean,
+			renderFilterNone: string = 'none',
+			renderGamma: number,
+			renderGammaFilter: string,
+			renderGradientCanvas: OffscreenCanvas = new OffscreenCanvas(1, 1),
+			renderGradientCanvasContext: OffscreenCanvasRenderingContext2D,
+			renderGradientCanvasGradient: CanvasGradient,
+			renderGrayscale: boolean,
+			renderGrayscaleFilter: string = 'grayscale(1)',
+			renderHeightBackgroundFactor: number,
+			renderHeightBackgroundOffset: number,
 			renderHeightFactor: number,
 			renderHeightOffset: number,
 			renderHeightOffsetInverse: number,
+			renderLightingQuality: LightingQuality,
 			renderPixel: number,
+			renderRays: number[],
+			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
+			renderRayIndex: number,
+			renderRayMapIndex: number,
 			renderWallHeight: number,
+			renderWallHeightFactor: number,
+			renderWidthBackgroundFactor: number,
 			renderWidthFactor: number,
+			renderWidthFactorOffset: number,
 			renderWidthOffset: number,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
 			timestampDelta: number,
 			timestampFPS: number = 0,
-			timestampThen: number = 0;
+			timestampThen: number = 0,
+			x: number,
+			y: number;
+
+		renderGradientCanvasContext = renderGradientCanvas.getContext('2d', {
+			alpha: false,
+			antialias: false,
+			depth: true,
+			desynchronized: true,
+			powerPreference: 'high-performance',
+		}) as OffscreenCanvasRenderingContext2D;
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
@@ -179,16 +269,20 @@ class VideoMainEngine {
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
 				frameCount++;
 
+				/*
+				 * Modifiers
+				 */
+
 				if (VideoMainEngine.calculationsNew === true) {
 					VideoMainEngine.calculationsNew = false;
 
 					calculationsCamera.decode(VideoMainEngine.calculations.camera);
 					calculationsRays = VideoMainEngine.calculations.rays;
+					calculationsRaysMap = VideoMainEngine.calculations.raysMap;
+					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
 				}
 
 				if (VideoMainEngine.reportNew === true) {
-					VideoMainEngine.reportNew = false;
-
 					// This isn't necessary when you are using a fixed resolution
 					offscreenCanvasHeightPx = VideoMainEngine.report.canvasHeight;
 					offscreenCanvasHeightPxHalf = offscreenCanvasHeightPx / 2;
@@ -199,93 +293,245 @@ class VideoMainEngine {
 				}
 
 				if (VideoMainEngine.settingsNew === true) {
-					VideoMainEngine.settingsNew = false;
-
 					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
+					renderGamma = VideoMainEngine.settings.gamma;
+					renderGrayscale = VideoMainEngine.settings.grayscale;
+					renderLightingQuality = VideoMainEngine.settings.lightingQuality;
 					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
-					renderEnable = player1 || settingsPlayer2Enable === true;
+					renderEnable = player1 === true || settingsPlayer2Enable === true;
+					renderGammaFilter = `brightness(${renderGamma})`;
+				}
+
+				// Background cache
+				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew) {
+					VideoMainEngine.reportNew = false;
+					VideoMainEngine.settingsNew = false;
+
+					renderGradientCanvas.height = offscreenCanvasHeightPx;
+					renderGradientCanvas.width = offscreenCanvasWidthPx;
+
+					if (renderLightingQuality >= LightingQuality.FULL) {
+						// Ceiling
+						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx / 2); // Ceiling
+						renderGradientCanvasGradient.addColorStop(0, '#383838');
+						renderGradientCanvasGradient.addColorStop(1, '#080808');
+						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
+						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+
+						// Floor
+						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, offscreenCanvasHeightPx / 2, 0, offscreenCanvasHeightPx); // Floor
+						renderGradientCanvasGradient.addColorStop(0, '#080808');
+						renderGradientCanvasGradient.addColorStop(1, '#717171');
+						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
+						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPx / 2, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+					}
 				}
 
 				// Don't render a second screen if it's not even enabled
-				if (renderEnable !== true) {
+				if (renderEnable !== true || calculationsRays === undefined) {
 					return;
 				}
 
-				// 3D project rays
-				if (calculationsRays !== undefined) {
-					offscreenCanvasContext.clearRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
+				/*
+				 * Render
+				 */
 
-					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
-						if (settingsPlayer2Enable === true) {
-							renderHeightFactor = 2;
-							renderHeightOffset = offscreenCanvasHeightPx / 4;
+				// Render: Aspect ratios and positional offsets
+				if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+					renderHeightBackgroundFactor = 1;
+					renderHeightBackgroundOffset = 0;
+					renderWallHeightFactor = 1.5;
 
-							if (player1 === false) {
-								renderWidthFactor = 2;
-								renderWidthOffset = offscreenCanvasWidthPx / 2;
-							} else {
-								renderWidthFactor = 1;
-								renderWidthOffset = 0;
-							}
-						} else {
-							renderHeightFactor = 1;
-							renderHeightOffset = 0;
-							renderWidthFactor = 1;
+					if (settingsPlayer2Enable === true) {
+						renderHeightFactor = 2;
+						renderHeightOffset = offscreenCanvasHeightPx / 4;
+						renderWidthBackgroundFactor = 2;
+						renderWidthFactor = 2;
+
+						if (player1 === true) {
 							renderWidthOffset = 0;
-						}
-
-						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel += settingsRaycastQuality) {
-							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[i + 2]) * 1.5;
-
-							offscreenCanvasContext.drawImage(
-								testImage, // (image) Draw from our test image
-								calculationsRays[i + 3] * (testImage.width - 1), // (x-source) Specific how far from the left to draw from the test image
-								0, // (y-source) Start at the bottom of the image (y pixel)
-								1, // (width-source) Slice 1 pixel wide
-								testImage.height, // (height-source) height of our test image
-								renderPixel + renderWidthOffset, // (x-destination) Draw sliced image at pixel
-								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide
-								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
-							);
+						} else {
+							renderWidthOffset = offscreenCanvasWidthPx / 2;
 						}
 					} else {
-						renderHeightFactor = 2.5;
+						renderHeightFactor = 1;
+						renderHeightOffset = 0;
+						renderWidthBackgroundFactor = 1;
+						renderWidthFactor = 1;
+						renderWidthOffset = 0;
+					}
+				} else {
+					renderHeightFactor = 2;
+					renderWallHeightFactor = 1;
+					renderWidthBackgroundFactor = 1;
+					renderWidthOffset = 0;
 
-						if (settingsPlayer2Enable === true) {
-							if (player1 === false) {
-								renderHeightOffset = offscreenCanvasHeightPx / 2;
-								renderHeightOffsetInverse = 0;
-							} else {
-								renderHeightOffset = 0;
-								renderHeightOffsetInverse = offscreenCanvasHeightPxHalf;
-							}
+					if (settingsPlayer2Enable === true) {
+						renderHeightBackgroundFactor = 2;
+						renderWidthFactor = 2;
+
+						if (player1 === true) {
+							renderHeightBackgroundOffset = 0;
+							renderHeightOffset = 0;
+							renderHeightOffsetInverse = offscreenCanvasHeightPxHalf;
 						} else {
-							renderHeightOffset = offscreenCanvasHeightPx / 3;
+							renderHeightBackgroundOffset = offscreenCanvasHeightPxHalf;
+							renderHeightOffset = offscreenCanvasHeightPxHalf;
+							renderHeightOffsetInverse = 0;
 						}
+					} else {
+						renderHeightBackgroundFactor = 1;
+						renderHeightBackgroundOffset = 0;
+						renderHeightOffset = offscreenCanvasHeightPx / 4;
+						renderWidthFactor = 1;
+					}
+				}
 
-						for (i = 0, renderPixel = 0; i < calculationsRays.length; i += 4, renderPixel += settingsRaycastQuality) {
-							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[i + 2]) * 1.5;
+				// Render: Backgrounds
+				offscreenCanvasContext.filter = 'none';
+				if (renderLightingQuality >= LightingQuality.FULL) {
+					offscreenCanvasContext.drawImage(
+						renderGradientCanvas,
+						renderWidthOffset,
+						renderHeightBackgroundOffset,
+						offscreenCanvasWidthPx / renderWidthBackgroundFactor,
+						offscreenCanvasHeightPx / renderHeightBackgroundFactor,
+					);
+				} else {
+					// Ceiling
+					offscreenCanvasContext.fillStyle = '#383838';
+					offscreenCanvasContext.fillRect(
+						renderWidthOffset,
+						renderHeightBackgroundOffset,
+						offscreenCanvasWidthPx / renderWidthBackgroundFactor,
+						offscreenCanvasHeightPxHalf / renderHeightBackgroundFactor,
+					);
 
+					// Floor
+					offscreenCanvasContext.fillStyle = '#717171';
+					offscreenCanvasContext.fillRect(
+						renderWidthOffset,
+						offscreenCanvasHeightPxHalf / renderHeightBackgroundFactor + renderHeightBackgroundOffset,
+						offscreenCanvasWidthPx / renderWidthBackgroundFactor,
+						offscreenCanvasHeightPx,
+					);
+				}
+
+				// Render: No Lighting
+				if (renderLightingQuality === LightingQuality.NONE) {
+					if (renderGamma !== 1 && renderGrayscale === true) {
+						offscreenCanvasContext.filter = `${renderGammaFilter} ${renderGrayscaleFilter}`;
+					} else if (renderGamma === 1 && renderGrayscale === false) {
+						offscreenCanvasContext.filter = renderFilterNone;
+					} else if (renderGrayscale === true) {
+						offscreenCanvasContext.filter = renderGrayscaleFilter;
+					} else {
+						offscreenCanvasContext.filter = renderGammaFilter;
+					}
+				}
+
+				// Iterate: By Distance
+
+				for (renderDistanceIndex of calculationsRaysMapKeysSorted) {
+					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(renderDistanceIndex);
+
+					// Draw: Rays
+					if (renderRayDistanceMapInstance.rays !== undefined) {
+						renderRays = renderRayDistanceMapInstance.rays;
+						for (renderRayIndex of renderRays) {
+							// Cell
+							gameMapGridCell = gameMapGridData[calculationsRays[renderRayIndex + 3]];
+
+							// Asset: images are designed to be inverted on corners
+							if (
+								calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
+								calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
+							) {
+								asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+							} else {
+								asset = assetsInvertHorizontal.get(gameMapGridCell >> 12) || renderImageTest;
+							}
+
+							// Calc
+							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 2]) * renderWallHeightFactor;
+
+							// Render: Lighting
+							if (renderLightingQuality !== LightingQuality.NONE) {
+								renderBrightness = renderGamma;
+
+								// Filter: Start
+								if (renderLightingQuality >= LightingQuality.BASIC) {
+									// Sun from the north east
+									if (
+										calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST ||
+										calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH
+									) {
+										renderBrightness -= 0.35;
+									}
+								}
+
+								if (renderLightingQuality >= LightingQuality.FULL) {
+									renderBrightness -= 0.4;
+									renderBrightness += Math.min(1, renderWallHeight / offscreenCanvasHeightPx) * 0.4; // no min is lantern light
+								}
+
+								// Filter: End
+								offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderBrightness))})`;
+							}
+
+							// Render: 3D Projection
 							offscreenCanvasContext.drawImage(
-								testImage, // (image) Draw from our test image
-								calculationsRays[i + 3] * (testImage.width - 1), // (x-source) Specific how far from the left to draw from the test image
+								asset, // (image) Draw from our test image
+								calculationsRays[renderRayIndex + 4] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
 								0, // (y-source) Start at the bottom of the image (y pixel)
 								1, // (width-source) Slice 1 pixel wide
-								testImage.height, // (height-source) height of our test image
-								renderPixel, // (x-destination) Draw sliced image at pixel
+								asset.height, // (height-source) height of our test image
+								(renderRayIndex + 5) / 6 + renderWidthOffset, // (x-destination) Draw sliced image at pixel
 								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide
+								settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide
 								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 							);
 						}
+					}
 
-						if (settingsPlayer2Enable === true) {
-							offscreenCanvasContext.clearRect(0, renderHeightOffsetInverse, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+					// Draw: Sprites
+					if (renderRayDistanceMapInstance.cells !== undefined) {
+						for (gameMapGridIndex of renderRayDistanceMapInstance.cells) {
+							// Cell
+							gameMapGridCell = gameMapGridData[gameMapGridIndex];
+
+							if ((gameMapGridCell & GameGridCellMaskAndValues.SPRITE_MASK) === GameGridCellMaskAndValues.SPRITE_VALUE) {
+								// Asset
+								asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+
+								// Calc distance
+								y = gameMapGridIndex % gameMapGridSideLength;
+								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 cell center
+								y -= calculationsCamera.y - 0.5; // 0.5 cell center
+								renderDistance = (x * x + y * y) ** 0.5;
+								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+								// Render: 3D Projection
+								offscreenCanvasContext.drawImage(
+									asset, // (image) Draw from our test image
+									0, // (x-source) Specific how far from the left to draw from the test image
+									0, // (y-source) Start at the bottom of the image (y pixel)
+									asset.width, // (width-source) Slice 1 pixel wide
+									asset.height, // (height-source) height of our test image
+									offscreenCanvasWidthPx / 2, // (x-destination) Draw sliced image at pixel
+									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+									renderWallHeight / renderHeightFactor, // (width-destination) Draw the sliced image as 1 pixel wide
+									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+								);
+							}
 						}
 					}
+				}
+
+				if (VideoMainEngine.report.orientation === GamingCanvasOrientation.PORTRAIT && settingsPlayer2Enable === true) {
+					offscreenCanvasContext.clearRect(0, renderHeightOffsetInverse, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
 				}
 			}
 

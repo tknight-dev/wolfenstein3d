@@ -1,6 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
-import { FPS, RaycastQuality } from '../../models/settings.model.js';
+import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
+import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -19,6 +20,8 @@ export enum VideoMainBusInputCmd {
 export interface VideoMainBusInputDataCalculations {
 	camera: Float32Array;
 	rays: Float32Array;
+	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
+	raysMapKeysSorted: Uint32Array;
 }
 
 export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
@@ -32,6 +35,9 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 export interface VideoMainBusInputDataSettings {
 	fov: number;
 	fps: FPS;
+	gamma: number; // 0 - 1 - 2
+	grayscale: boolean;
+	lightingQuality: LightingQuality;
 	player2Enable: boolean;
 	raycastQuality: RaycastQuality;
 }

@@ -1,9 +1,10 @@
+import { AssetId, assetLoaderAudio } from './asset-manager.js';
 import { CalcBus } from './workers/calc/calc.bus.js';
 import { CalcBusOutputDataStats } from './workers/calc/calc.model.js';
 import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { FPS, RaycastQuality, Resolution } from './models/settings.model.js';
+import { FPS, LightingQuality, RaycastQuality, Resolution } from './models/settings.model.js';
 import { GamingCanvas, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
@@ -19,8 +20,20 @@ import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/g
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
 class Blockenstein {
+	private static async initializeAssets(): Promise<void> {
+		const assets: Map<AssetId, string> = await assetLoaderAudio();
+
+		// Audio
+		GamingCanvas.audioLoad(assets);
+
+		// setTimeout(() => {
+		// 	GamingCanvas.audioControlPlay(AssetId.AUDIO_MUSIC_MENU);
+		// }, 500);
+	}
+
 	private static initializeGamingCanvas(): void {
 		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
+			audioEnable: true,
 			canvasCount: 3,
 			dpiSupportEnable: Game.settingDPISupport,
 			// elementInteractive: DOM.elVideoInteractive,
@@ -32,11 +45,6 @@ class Blockenstein {
 			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});
-
-		// TODO: AUDIO
-		// TODO: AUDIO
-		// TODO: AUDIO
-		// TODO: AUDIO
 	}
 
 	private static initializeSettings(): void {
@@ -69,6 +77,9 @@ class Blockenstein {
 		Game.settingsVideoMain = {
 			fov: Game.settingsCalc.fov,
 			fps: Game.settingsCalc.fps,
+			gamma: 1, // 0 - 1 (def) - 2
+			grayscale: false,
+			lightingQuality: LightingQuality.NONE,
 			player2Enable: Game.settingsCalc.player2Enable,
 			raycastQuality: Game.settingsCalc.raycastQuality,
 		};
@@ -174,6 +185,11 @@ class Blockenstein {
 		 */
 		DOM.initializeDom();
 		Game.initializeDomInteractive();
+
+		/**
+		 * Assets: Initialize
+		 */
+		await Blockenstein.initializeAssets();
 
 		/**
 		 * Settings: Intialize
