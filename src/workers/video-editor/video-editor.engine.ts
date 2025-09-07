@@ -1,4 +1,4 @@
-import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasConstPIDouble, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
@@ -235,7 +235,6 @@ class VideoEditorEngine {
 			offscreenCanvasWidthPx: number = 0,
 			offscreenCanvasWidthPxEff: number = 0,
 			frameCount: number = 0,
-			pi2: number = Math.PI * 2,
 			report: GamingCanvasReport = VideoEditorEngine.report,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
@@ -468,7 +467,7 @@ class VideoEditorEngine {
 					characterPlayer1YEff * calculationsViewportCellSizePx,
 					calculationsViewportCellSizePx / 4,
 					0,
-					pi2,
+					GamingCanvasConstPIDouble,
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.fill();
@@ -494,7 +493,7 @@ class VideoEditorEngine {
 						characterPlayer2YEff * calculationsViewportCellSizePx,
 						calculationsViewportCellSizePx / 4,
 						0,
-						pi2,
+						GamingCanvasConstPIDouble,
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();
@@ -525,7 +524,7 @@ class VideoEditorEngine {
 						(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 						calculationsViewportCellSizePx / 4,
 						0,
-						pi2,
+						GamingCanvasConstPIDouble,
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();

@@ -5,7 +5,7 @@ import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality, Resolution } from './models/settings.model.js';
-import { GamingCanvas, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasConstPI, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
@@ -62,7 +62,7 @@ class Blockenstein {
 		 * Worker specific
 		 */
 		Game.settingsCalc = {
-			fov: (60 * Math.PI) / 180, // 60 deg
+			fov: (60 * GamingCanvasConstPI) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,
 			raycastQuality: RaycastQuality.FULL,

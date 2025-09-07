@@ -1,5 +1,5 @@
 import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
-import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
@@ -235,12 +235,14 @@ class VideoMainEngine {
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
 			renderRayMapIndex: number,
+			renderSpriteXFactor: number,
 			renderWallHeight: number,
 			renderWallHeightFactor: number,
 			renderWidthBackgroundFactor: number,
 			renderWidthFactor: number,
 			renderWidthFactorOffset: number,
 			renderWidthOffset: number,
+			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
@@ -293,7 +295,7 @@ class VideoMainEngine {
 				}
 
 				if (VideoMainEngine.settingsNew === true) {
-					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
+					((settingsFOV = VideoMainEngine.settings.fov), (settingsFPMS = 1000 / VideoMainEngine.settings.fps));
 					renderGamma = VideoMainEngine.settings.gamma;
 					renderGrayscale = VideoMainEngine.settings.grayscale;
 					renderLightingQuality = VideoMainEngine.settings.lightingQuality;
@@ -433,7 +435,6 @@ class VideoMainEngine {
 				}
 
 				// Iterate: By Distance
-
 				for (renderDistanceIndex of calculationsRaysMapKeysSorted) {
 					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(renderDistanceIndex);
 
@@ -506,12 +507,26 @@ class VideoMainEngine {
 								// Asset
 								asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
 
-								// Calc distance
+								// Calc: Distance
 								y = gameMapGridIndex % gameMapGridSideLength;
+								// console.log((gameMapGridIndex - y) / gameMapGridSideLength, y, calculationsCamera.x, calculationsCamera.y);
 								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 cell center
 								y -= calculationsCamera.y - 0.5; // 0.5 cell center
 								renderDistance = (x * x + y * y) ** 0.5;
+
+								// Calc: Height
 								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+								// Calc: X offset
+								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+
+								if (renderSpriteXFactor < 0) {
+									renderSpriteXFactor += GamingCanvasConstPIDouble;
+								} else if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+
+								renderSpriteXFactor /= settingsFOV;
 
 								// Render: 3D Projection
 								offscreenCanvasContext.drawImage(
@@ -520,7 +535,7 @@ class VideoMainEngine {
 									0, // (y-source) Start at the bottom of the image (y pixel)
 									asset.width, // (width-source) Slice 1 pixel wide
 									asset.height, // (height-source) height of our test image
-									offscreenCanvasWidthPx / 2, // (x-destination) Draw sliced image at pixel
+									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeight / renderHeightFactor / 2, // (x-destination) Draw sliced image at pixel
 									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
 									renderWallHeight / renderHeightFactor, // (width-destination) Draw the sliced image as 1 pixel wide
 									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height

@@ -9,6 +9,7 @@ import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.
 import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import {
 	GamingCanvas,
+	GamingCanvasConstPI,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
 	GamingCanvasInputGamepad,
@@ -65,7 +66,7 @@ export class Game {
 		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
-			rInitial: number = (180 * Math.PI) / 180,
+			rInitial: number = (180 * GamingCanvasConstPI) / 180,
 			zoomInitial: number = 2;
 
 		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
@@ -95,10 +96,15 @@ export class Game {
 			}
 		}
 
-		// grid.set(gridSideCenter - 1, gridSideCenter + 3, valueSprite); // Bottom-Left
-		// grid.set(gridSideCenter + 1, gridSideCenter + 3, valueSprite); // Bottom-Right
-		// grid.set(gridSideCenter - 1, gridSideCenter - 3, valueSprite); // Top-Left
+		grid.set(gridSideCenter - 1, gridSideCenter + 3, valueSprite); // Bottom-Left
+		grid.set(gridSideCenter + 1, gridSideCenter + 3, valueSprite); // Bottom-Right
+		grid.set(gridSideCenter - 1, gridSideCenter - 3, valueSprite); // Top-Left
 		grid.set(gridSideCenter + 1, gridSideCenter - 3, valueSprite); // Top-Right
+
+		grid.set(gridSideCenter - 1, gridSideCenter + 1, valueSprite); // Bottom-Left
+		grid.set(gridSideCenter + 1, gridSideCenter + 1, valueSprite); // Bottom-Right
+		grid.set(gridSideCenter - 1, gridSideCenter - 1, valueSprite); // Top-Left
+		grid.set(gridSideCenter + 1, gridSideCenter - 1, valueSprite); // Top-Right
 
 		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWall); // Top-Left
 		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Top-Right
@@ -472,7 +478,7 @@ export class Game {
 							cameraMoveY = 1 - position1.yRelative;
 							updated = true;
 						} else if (downModeWheel === true) {
-							camera.r = position1.xRelative * 2 * Math.PI;
+							camera.r = position1.xRelative * 2 * GamingCanvasConstPI;
 							updatedR = true;
 						}
 					}
