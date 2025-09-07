@@ -12,16 +12,6 @@ export enum AssetExtImg {
 	WEBP,
 }
 
-export enum AssetId {
-	AUDIO_MUSIC_MENU,
-	AUDIO_MUSIC_MENU_INTRO,
-	IMG_SPRITE_LIGHT_CEILING,
-	IMG_WALL_BRICK_BLUE,
-	IMG_WALL_BRICK_BLUE2,
-	IMG_WALL_CELL_BLUE,
-	IMG_WALL_CELL_BLUE_SKELETON,
-}
-
 export enum AssetImgCategory {
 	OBJECT,
 	WALL,
@@ -182,7 +172,20 @@ export const assetLoaderImage = async (): Promise<Map<AssetId, ImageBitmap>> => 
 	return data;
 };
 
-// Last
+/**
+ * Assets: List
+ */
+
+export enum AssetId {
+	AUDIO_MUSIC_MENU,
+	AUDIO_MUSIC_MENU_INTRO,
+	IMG_SPRITE_LIGHT_CEILING_OFF,
+	IMG_SPRITE_LIGHT_CEILING_ON,
+	IMG_WALL_BRICK_BLUE,
+	IMG_WALL_BRICK_BLUE2,
+	IMG_WALL_CELL_BLUE,
+	IMG_WALL_CELL_BLUE_SKELETON,
+}
 export const assets: Map<AssetId, AssetPropertiesAudio | AssetPropertiesImage> = new Map();
 
 /**
@@ -214,13 +217,23 @@ assets.set(AssetId.AUDIO_MUSIC_MENU_INTRO, {
  * Assets: Images - Sprites
  */
 
-assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING, {
+assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_OFF, {
 	alpha: true,
 	author: 'Id Software',
 	category: AssetImgCategory.OBJECT,
 	ext: AssetExtImg.WEBP,
-	file: 'img/sprite/light_ceiling.webp',
-	title: 'Object Light Ceiling',
+	file: 'img/sprite/light_ceiling_off.webp',
+	title: 'Object Light Ceiling Off',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_ON, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.OBJECT,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/light_ceiling_on.webp',
+	title: 'Object Light Ceiling On',
 	type: AssetType.IMAGE,
 });
 

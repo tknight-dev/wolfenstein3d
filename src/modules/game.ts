@@ -71,7 +71,7 @@ export class Game {
 
 		const valueFloor: number = GameGridCellMaskAndValues.FLOOR_VALUE,
 			valueSprite: number =
-				valueFloor | GameGridCellMaskAndValues.LIGHT_VALUE | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING << 12),
+				valueFloor | GameGridCellMaskAndValues.LIGHT_VALUE | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING_ON << 12),
 			valueWall: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_BRICK_BLUE << 12),
 			valueWallCell: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE << 12),
 			valueWallCellSkeleton: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << 12);
