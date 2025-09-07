@@ -18,14 +18,14 @@ export enum VideoMainBusInputCmd {
 }
 
 export interface VideoMainBusInputDataCalculations {
-	camera: Float32Array;
-	rays: Float32Array;
+	camera: Float64Array;
+	rays: Float64Array;
 	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
-	raysMapKeysSorted: Uint32Array;
+	raysMapKeysSorted: Float64Array;
 }
 
 export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
-	camera: Float32Array;
+	camera: Float64Array;
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
 	player1: boolean;
@@ -44,7 +44,7 @@ export interface VideoMainBusInputDataSettings {
 
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
-	data: Float32Array | GamingCanvasReport | VideoMainBusInputDataCalculations | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
+	data: Float64Array | GamingCanvasReport | VideoMainBusInputDataCalculations | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
 }
 
 /*

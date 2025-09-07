@@ -82,7 +82,7 @@ export class CalcBus {
 	 * Output
 	 */
 
-	public static outputCamera(camera: Float32Array): void {
+	public static outputCamera(camera: Float64Array): void {
 		CalcBus.worker.postMessage(
 			{
 				cmd: CalcBusInputCmd.CAMERA,

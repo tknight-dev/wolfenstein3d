@@ -42,8 +42,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 enum CacheId {
-	FLOOR = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
-	WALL = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE,
+	FLOOR = GameGridCellMaskAndValues.FLOOR_VALUE,
+	WALL = GameGridCellMaskAndValues.WALL_VALUE,
 }
 
 class VideoEditorEngine {
@@ -181,7 +181,7 @@ class VideoEditorEngine {
 			calculationsGameMode: boolean,
 			calculationsRayOriginXPx: number,
 			calculationsRayOriginYPx: number,
-			calculationsRays: Float32Array,
+			calculationsRays: Float64Array,
 			calculationsViewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calculations.viewport),
 			calculationsViewportCellSizePx: number,
 			calculationsViewportHeightStart: number,
@@ -395,7 +395,7 @@ class VideoEditorEngine {
 							// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
 							// }
 
-							if ((value & GameGridCellMaskAndValues.NULL_MASK) === GameGridCellMaskAndValues.NULL_VALUE_NOT) {
+							if ((value & GameGridCellMaskAndValues.NULL_MASK) !== 0) {
 								cacheId = (value & GameGridCellMaskAndValues.WALL_MASK) === GameGridCellMaskAndValues.WALL_VALUE ? CacheId.WALL : CacheId.FLOOR;
 
 								offscreenCanvasContext.drawImage(

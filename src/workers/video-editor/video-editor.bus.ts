@@ -40,9 +40,9 @@ export class VideoEditorBus {
 			VideoEditorBus.input();
 
 			// Init the webworker
-			const cameraEncoded: Float32Array = camera.encode();
+			const cameraEncoded: Float64Array = camera.encode();
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
-			const viewportEncoded: Float32Array = viewport.encode();
+			const viewportEncoded: Float64Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
 				{
 					cmd: VideoEditorBusInputCmd.INIT,
@@ -51,7 +51,7 @@ export class VideoEditorBus {
 							camera: cameraEncoded,
 							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
-							rays: new Float32Array(),
+							rays: new Float64Array(),
 							report: GamingCanvas.getReport(),
 							viewport: viewportEncoded,
 						},

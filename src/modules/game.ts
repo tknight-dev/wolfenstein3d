@@ -69,12 +69,12 @@ export class Game {
 			rInitial: number = (180 * GamingCanvasConstPI) / 180,
 			zoomInitial: number = 2;
 
-		const valueFloor: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.FLOOR_VALUE,
-			valueSprite: number = valueFloor | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING << 12),
-			valueWall: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_BRICK_BLUE << 12),
-			valueWallCell: number = GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE << 12),
-			valueWallCellSkeleton: number =
-				GameGridCellMaskAndValues.NULL_VALUE_NOT | GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << 12);
+		const valueFloor: number = GameGridCellMaskAndValues.FLOOR_VALUE,
+			valueSprite: number =
+				valueFloor | GameGridCellMaskAndValues.LIGHT_VALUE | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING << 12),
+			valueWall: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_BRICK_BLUE << 12),
+			valueWallCell: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE << 12),
+			valueWallCellSkeleton: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << 12);
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera(rInitial, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);
@@ -235,10 +235,10 @@ export class Game {
 
 			// Second: VideoMain
 			VideoMainBus.outputCalculations(true, {
-				camera: Float32Array.from(data.camera),
-				rays: Float32Array.from(data.rays),
+				camera: Float64Array.from(data.camera),
+				rays: Float64Array.from(data.rays),
 				raysMap: data.raysMap,
-				raysMapKeysSorted: Uint32Array.from(data.raysMapKeysSorted),
+				raysMapKeysSorted: Float64Array.from(data.raysMapKeysSorted),
 			});
 			VideoMainBus.outputCalculations(false, {
 				camera: data.camera,
@@ -263,16 +263,16 @@ export class Game {
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
 					camera: camera.encode(),
-					rays: <Float32Array>data.characterPlayer1Rays,
+					rays: <Float64Array>data.characterPlayer1Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
-					raysMapKeysSorted: <Uint32Array>data.characterPlayer1RaysMapKeysSorted,
+					raysMapKeysSorted: <Float64Array>data.characterPlayer1RaysMapKeysSorted,
 				});
 
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
 					player1Camera: data.characterPlayer1Camera,
-					player2Camera: data.characterPlayer2Camera ? Float32Array.from(data.characterPlayer2Camera) : undefined, // Clone
+					player2Camera: data.characterPlayer2Camera ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
 				});
@@ -280,7 +280,7 @@ export class Game {
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
-					player2Camera: data.characterPlayer2Camera ? Float32Array.from(data.characterPlayer2Camera) : undefined, // Clone
+					player2Camera: data.characterPlayer2Camera ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
 				});
@@ -289,9 +289,9 @@ export class Game {
 			if (data.characterPlayer2Camera) {
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
-					rays: <Float32Array>data.characterPlayer2Rays,
+					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
-					raysMapKeysSorted: <Uint32Array>data.characterPlayer2RaysMapKeysSorted,
+					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
 				});
 			}
 		});

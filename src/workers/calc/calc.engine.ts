@@ -39,7 +39,7 @@ self.onmessage = (event: MessageEvent) => {
 
 	switch (payload.cmd) {
 		case CalcBusInputCmd.CAMERA:
-			CalcEngine.inputCamera(<Float32Array>payload.data);
+			CalcEngine.inputCamera(<Float64Array>payload.data);
 			break;
 		case CalcBusInputCmd.CHARACTER_INPUT:
 			CalcEngine.inputCharacterInput(<CalcBusInputDataPlayerInput>payload.data);
@@ -57,7 +57,7 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class CalcEngine {
-	private static camera: Float32Array;
+	private static camera: Float64Array;
 	private static cameraNew: boolean;
 	private static characterPlayerInput: CalcBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
@@ -122,7 +122,7 @@ class CalcEngine {
 	 * Input
 	 */
 
-	public static inputCamera(data: Float32Array): void {
+	public static inputCamera(data: Float64Array): void {
 		CalcEngine.camera = data;
 		CalcEngine.cameraNew = true;
 	}
@@ -165,7 +165,7 @@ class CalcEngine {
 				CalcEngine.characterPlayer1.camera.y,
 				CalcEngine.characterPlayer1.camera.z,
 			),
-			cameraEncoded: Float32Array,
+			cameraEncoded: Float64Array,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
 			buffers: ArrayBufferLike[] = [],
@@ -181,24 +181,24 @@ class CalcEngine {
 				y: 0,
 			},
 			characterPlayer1: Character = CalcEngine.characterPlayer1,
-			characterPlayer1CameraEncoded: Float32Array | undefined,
+			characterPlayer1CameraEncoded: Float64Array | undefined,
 			characterPlayer1Changed: boolean,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
-			characterPlayer1RaycastDistanceMapKeysSorted: Uint32Array,
-			characterPlayer1RaycastRays: Float32Array | undefined,
+			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array,
+			characterPlayer1RaycastRays: Float64Array | undefined,
 			characterPlayer2Input: GamingCanvasGridCharacterInput = {
 				r: 0,
 				x: 0,
 				y: 0,
 			},
 			characterPlayer2: Character = CalcEngine.characterPlayer2,
-			characterPlayer2CameraEncoded: Float32Array | undefined,
+			characterPlayer2CameraEncoded: Float64Array | undefined,
 			characterPlayer2Changed: boolean,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
-			characterPlayer2RaycastDistanceMapKeysSorted: Uint32Array,
+			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
-			characterPlayer2RaycastRays: Float32Array | undefined,
+			characterPlayer2RaycastRays: Float64Array | undefined,
 			cycleMinMs: number = 10,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
@@ -312,7 +312,7 @@ class CalcEngine {
 							raycastOptions,
 						);
 						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
-						characterPlayer1RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer1Raycast.distanceMapKeysSorted;
+						characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
 						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					} else {
 						characterPlayer1Raycast = undefined;
@@ -343,7 +343,7 @@ class CalcEngine {
 							characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
 								characterPlayer2Raycast.distanceMap
 							);
-							characterPlayer2RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer2Raycast.distanceMapKeysSorted;
+							characterPlayer2RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer2Raycast.distanceMapKeysSorted;
 							characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
 						} else {
 							characterPlayer2Raycast = undefined;
@@ -361,7 +361,7 @@ class CalcEngine {
 						raycastOptions,
 					);
 					characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
-					characterPlayer1RaycastDistanceMapKeysSorted = <Uint32Array>characterPlayer1Raycast.distanceMapKeysSorted;
+					characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
 					characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					characterPlayer2Raycast = undefined;
 				} else {

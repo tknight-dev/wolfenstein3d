@@ -19,14 +19,14 @@ export enum VideoEditorBusInputCmd {
 }
 
 export interface VideoEditorBusInputDataCalculations {
-	camera: Float32Array;
-	player1Camera?: Float32Array;
-	player2Camera?: Float32Array;
+	camera: Float64Array;
+	player1Camera?: Float64Array;
+	player2Camera?: Float64Array;
 	gameMode: boolean;
-	rays?: Float32Array;
+	rays?: Float64Array;
 	raysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
-	raysMapKeysSorted?: Uint32Array;
-	viewport: Float32Array;
+	raysMapKeysSorted?: Float64Array;
+	viewport: Float64Array;
 }
 
 export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalculations, VideoEditorBusInputDataSettings {
@@ -45,7 +45,7 @@ export interface VideoEditorBusInputPayload {
 	cmd: VideoEditorBusInputCmd;
 	data:
 		| GamingCanvasReport
-		| Float32Array
+		| Float64Array
 		| Map<number, number>
 		| VideoEditorBusInputDataCalculations
 		| VideoEditorBusInputDataInit

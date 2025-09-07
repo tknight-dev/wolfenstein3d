@@ -37,7 +37,7 @@ export interface CalcBusInputDataSettings {
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float32Array | GamingCanvasGridCharacterInput | GamingCanvasReport;
+	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float64Array | GamingCanvasGridCharacterInput | GamingCanvasReport;
 }
 
 /*
@@ -51,23 +51,23 @@ export enum CalcBusOutputCmd {
 }
 
 export interface CalcBusOutputDataCamera {
-	camera: Float32Array;
-	player1Camera: Float32Array;
-	player2Camera: Float32Array;
-	rays: Float32Array;
+	camera: Float64Array;
+	player1Camera: Float64Array;
+	player2Camera: Float64Array;
+	rays: Float64Array;
 	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
-	raysMapKeysSorted: Uint32Array;
+	raysMapKeysSorted: Float64Array;
 }
 
 export interface CalcBusOutputDataCalculations {
-	characterPlayer1Camera?: Float32Array;
-	characterPlayer1Rays?: Float32Array;
+	characterPlayer1Camera?: Float64Array;
+	characterPlayer1Rays?: Float64Array;
 	characterPlayer1RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
-	characterPlayer1RaysMapKeysSorted?: Uint32Array;
-	characterPlayer2Camera?: Float32Array;
-	characterPlayer2Rays?: Float32Array;
+	characterPlayer1RaysMapKeysSorted?: Float64Array;
+	characterPlayer2Camera?: Float64Array;
+	characterPlayer2Rays?: Float64Array;
 	characterPlayer2RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
-	characterPlayer2RaysMapKeysSorted?: Uint32Array;
+	characterPlayer2RaysMapKeysSorted?: Float64Array;
 }
 
 export interface CalcBusOutputDataStats {}

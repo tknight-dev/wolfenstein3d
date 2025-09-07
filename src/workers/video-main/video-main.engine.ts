@@ -118,9 +118,9 @@ class VideoMainEngine {
 		// Config: Report
 		VideoMainEngine.inputCalculations({
 			camera: data.camera,
-			rays: new Float32Array(),
+			rays: new Float64Array(),
 			raysMap: new Map(),
-			raysMapKeysSorted: new Uint32Array(),
+			raysMapKeysSorted: new Float64Array(),
 		});
 
 		// Config: Report
@@ -194,9 +194,9 @@ class VideoMainEngine {
 			assets: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assets,
 			assetsInvertHorizontal: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
-			calculationsRays: Float32Array = VideoMainEngine.calculations.rays,
+			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
 			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
-			calculationsRaysMapKeysSorted: Uint32Array = VideoMainEngine.calculations.raysMapKeysSorted,
+			calculationsRaysMapKeysSorted: Float64Array = VideoMainEngine.calculations.raysMapKeysSorted,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeight,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
@@ -236,6 +236,8 @@ class VideoMainEngine {
 			renderRayIndex: number,
 			renderRayMapIndex: number,
 			renderSpriteXFactor: number,
+			renderSpriteWidthFactor: number,
+			renderSpriteWidthOffset: number,
 			renderWallHeight: number,
 			renderWallHeightFactor: number,
 			renderWidthBackgroundFactor: number,
@@ -318,13 +320,13 @@ class VideoMainEngine {
 						// Ceiling
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx / 2); // Ceiling
 						renderGradientCanvasGradient.addColorStop(0, '#383838');
-						renderGradientCanvasGradient.addColorStop(1, '#080808');
+						renderGradientCanvasGradient.addColorStop(1, '#181818');
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
 						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
 
 						// Floor
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, offscreenCanvasHeightPx / 2, 0, offscreenCanvasHeightPx); // Floor
-						renderGradientCanvasGradient.addColorStop(0, '#080808');
+						renderGradientCanvasGradient.addColorStop(0, '#313131');
 						renderGradientCanvasGradient.addColorStop(1, '#717171');
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
 						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPx / 2, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
@@ -435,112 +437,119 @@ class VideoMainEngine {
 				}
 
 				// Iterate: By Distance
-				for (renderDistanceIndex of calculationsRaysMapKeysSorted) {
-					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(renderDistanceIndex);
+				for (i of calculationsRaysMapKeysSorted) {
+					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(i);
 
 					// Draw: Rays
-					if (renderRayDistanceMapInstance.rays !== undefined) {
-						renderRays = renderRayDistanceMapInstance.rays;
-						for (renderRayIndex of renderRays) {
-							// Cell
-							gameMapGridCell = gameMapGridData[calculationsRays[renderRayIndex + 3]];
+					if (renderRayDistanceMapInstance.ray !== undefined) {
+						renderRayIndex = renderRayDistanceMapInstance.ray;
 
-							// Asset: images are designed to be inverted on corners
-							if (
-								calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
-								calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
-							) {
-								asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
-							} else {
-								asset = assetsInvertHorizontal.get(gameMapGridCell >> 12) || renderImageTest;
+						// Cell
+						gameMapGridCell = gameMapGridData[calculationsRays[renderRayIndex + 3]];
+
+						// Asset: images are designed to be inverted on corners
+						if (
+							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
+							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
+						) {
+							asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+						} else {
+							asset = assetsInvertHorizontal.get(gameMapGridCell >> 12) || renderImageTest;
+						}
+
+						// Calc
+						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 2]) * renderWallHeightFactor;
+
+						// Render: Lighting
+						if (renderLightingQuality !== LightingQuality.NONE) {
+							renderBrightness = renderGamma;
+
+							// Filter: Start
+							if (renderLightingQuality >= LightingQuality.BASIC) {
+								// Sun from the north east
+								if (
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST ||
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH
+								) {
+									renderBrightness -= 0.35;
+								}
 							}
 
-							// Calc
-							renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 2]) * renderWallHeightFactor;
+							if (renderLightingQuality >= LightingQuality.FULL) {
+								renderBrightness -= Math.min(1, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+							}
+
+							// Filter: End
+							renderBrightness = Math.max(0, Math.min(2, renderBrightness));
+							offscreenCanvasContext.filter = `brightness(${renderBrightness}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+						}
+
+						// Render: 3D Projection
+						offscreenCanvasContext.drawImage(
+							asset, // (image) Draw from our test image
+							calculationsRays[renderRayIndex + 4] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
+							0, // (y-source) Start at the bottom of the image (y pixel)
+							1, // (width-source) Slice 1 pixel wide
+							asset.height, // (height-source) height of our test image
+							(renderRayIndex + 5) / 6 + renderWidthOffset - 1, // (x-destination) Draw sliced image at pixel
+							(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide
+							renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+						);
+					}
+
+					// Draw: Sprites
+					if (renderRayDistanceMapInstance.cell !== undefined) {
+						gameMapGridIndex = renderRayDistanceMapInstance.cell;
+
+						// Cell
+						gameMapGridCell = gameMapGridData[gameMapGridIndex];
+
+						if ((gameMapGridCell & GameGridCellMaskAndValues.SPRITE_MASK) === GameGridCellMaskAndValues.SPRITE_VALUE) {
+							// Asset
+							asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+
+							// Calc: Position
+							y = gameMapGridIndex % gameMapGridSideLength;
+							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
+							y -= calculationsCamera.y - 0.5; // 0.5 is center
+
+							// Calc: Distance
+							renderDistance = (x * x + y * y) ** 0.5;
+
+							// Calc: Height
+							renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+
+							// Corrections for rotations between 0 and 2pi
+							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+							if (renderSpriteXFactor > GamingCanvasConstPI) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+
+							renderSpriteXFactor /= settingsFOV;
 
 							// Render: Lighting
-							if (renderLightingQuality !== LightingQuality.NONE) {
-								renderBrightness = renderGamma;
-
-								// Filter: Start
-								if (renderLightingQuality >= LightingQuality.BASIC) {
-									// Sun from the north east
-									if (
-										calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST ||
-										calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH
-									) {
-										renderBrightness -= 0.35;
-									}
-								}
-
-								if (renderLightingQuality >= LightingQuality.FULL) {
-									renderBrightness -= 0.4;
-									renderBrightness += Math.min(1, renderWallHeight / offscreenCanvasHeightPx) * 0.4; // no min is lantern light
-								}
-
-								// Filter: End
-								offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderBrightness))})`;
+							if ((gameMapGridCell & GameGridCellMaskAndValues.LIGHT_MASK) === GameGridCellMaskAndValues.LIGHT_VALUE) {
+								offscreenCanvasContext.filter = renderFilterNone;
 							}
 
 							// Render: 3D Projection
 							offscreenCanvasContext.drawImage(
 								asset, // (image) Draw from our test image
-								calculationsRays[renderRayIndex + 4] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
+								0, // (x-source) Specific how far from the left to draw from the test image
 								0, // (y-source) Start at the bottom of the image (y pixel)
-								1, // (width-source) Slice 1 pixel wide
+								asset.width, // (width-source) Slice 1 pixel wide
 								asset.height, // (height-source) height of our test image
-								(renderRayIndex + 5) / 6 + renderWidthOffset, // (x-destination) Draw sliced image at pixel
+								renderSpriteXFactor * (offscreenCanvasWidthPx / renderWidthBackgroundFactor) - renderWallHeight / 2 / renderHeightFactor, // (x-destination) Draw sliced image at pixel
 								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide
+								renderWallHeight / renderHeightFactor, // (width-destination) Draw the sliced image as 1 pixel wide
 								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 							);
-						}
-					}
-
-					// Draw: Sprites
-					if (renderRayDistanceMapInstance.cells !== undefined) {
-						for (gameMapGridIndex of renderRayDistanceMapInstance.cells) {
-							// Cell
-							gameMapGridCell = gameMapGridData[gameMapGridIndex];
-
-							if ((gameMapGridCell & GameGridCellMaskAndValues.SPRITE_MASK) === GameGridCellMaskAndValues.SPRITE_VALUE) {
-								// Asset
-								asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
-
-								// Calc: Distance
-								y = gameMapGridIndex % gameMapGridSideLength;
-								// console.log((gameMapGridIndex - y) / gameMapGridSideLength, y, calculationsCamera.x, calculationsCamera.y);
-								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 cell center
-								y -= calculationsCamera.y - 0.5; // 0.5 cell center
-								renderDistance = (x * x + y * y) ** 0.5;
-
-								// Calc: Height
-								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
-
-								// Calc: X offset
-								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
-
-								if (renderSpriteXFactor < 0) {
-									renderSpriteXFactor += GamingCanvasConstPIDouble;
-								} else if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
-									renderSpriteXFactor -= GamingCanvasConstPIDouble;
-								}
-
-								renderSpriteXFactor /= settingsFOV;
-
-								// Render: 3D Projection
-								offscreenCanvasContext.drawImage(
-									asset, // (image) Draw from our test image
-									0, // (x-source) Specific how far from the left to draw from the test image
-									0, // (y-source) Start at the bottom of the image (y pixel)
-									asset.width, // (width-source) Slice 1 pixel wide
-									asset.height, // (height-source) height of our test image
-									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeight / renderHeightFactor / 2, // (x-destination) Draw sliced image at pixel
-									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-									renderWallHeight / renderHeightFactor, // (width-destination) Draw the sliced image as 1 pixel wide
-									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
-								);
-							}
 						}
 					}
 				}
