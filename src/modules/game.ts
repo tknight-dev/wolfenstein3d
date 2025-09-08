@@ -1,7 +1,7 @@
 import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
-import { GameGridCellMaskAndValues, GameMap } from '../models/game.model.js';
+import { GameGridCellMasksAndValues, GameMap } from '../models/game.model.js';
 import { Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -69,12 +69,15 @@ export class Game {
 			rInitial: number = (180 * GamingCanvasConstPI) / 180,
 			zoomInitial: number = 2;
 
-		const valueFloor: number = GameGridCellMaskAndValues.FLOOR_VALUE,
+		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
 			valueSprite: number =
-				valueFloor | GameGridCellMaskAndValues.LIGHT_VALUE | GameGridCellMaskAndValues.SPRITE_VALUE | (AssetId.IMG_SPRITE_LIGHT_CEILING_ON << 12),
-			valueWall: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_BRICK_BLUE << 12),
-			valueWallCell: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE << 12),
-			valueWallCellSkeleton: number = GameGridCellMaskAndValues.WALL_VALUE | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << 12);
+				valueFloor |
+				GameGridCellMasksAndValues.LIGHT |
+				GameGridCellMasksAndValues.SPRITE_ROTATING |
+				(AssetId.IMG_SPRITE_LIGHT_CEILING_ON << GameGridCellMasksAndValues.ID_SHIFT),
+			valueWall: number = GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_BRICK_BLUE << GameGridCellMasksAndValues.ID_SHIFT),
+			valueWallCell: number = GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_CELL_BLUE << GameGridCellMasksAndValues.ID_SHIFT),
+			valueWallCellSkeleton: number = GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_CELL_BLUE_SKELETON << GameGridCellMasksAndValues.ID_SHIFT);
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera(rInitial, gridSideCenter + 0.5, gridSideCenter + 0.5, zoomInitial);

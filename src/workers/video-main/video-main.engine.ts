@@ -1,6 +1,6 @@
 import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -13,7 +13,7 @@ import {
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCamera,
-	GamingCanvasGridRaycast3DProjectionTestImageCreate,
+	GamingCanvasGridRaycastTestImageCreate,
 	GamingCanvasGridRaycastCellSide,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridUint16Array,
@@ -201,6 +201,7 @@ class VideoMainEngine {
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeight,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidth,
+			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			frameCount: number = 0,
 			gameMap: GameMap = VideoMainEngine.gameMap,
@@ -214,7 +215,7 @@ class VideoMainEngine {
 			renderDistance: number,
 			renderDistanceIndex: number,
 			renderImageInvertHorizontal: boolean,
-			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycast3DProjectionTestImageCreate(64),
+			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			renderEnable: boolean,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
@@ -244,6 +245,7 @@ class VideoMainEngine {
 			renderWidthFactor: number,
 			renderWidthFactorOffset: number,
 			renderWidthOffset: number,
+			renderWidthOffsetInverse: number,
 			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
@@ -289,8 +291,9 @@ class VideoMainEngine {
 				if (VideoMainEngine.reportNew === true) {
 					// This isn't necessary when you are using a fixed resolution
 					offscreenCanvasHeightPx = VideoMainEngine.report.canvasHeight;
-					offscreenCanvasHeightPxHalf = offscreenCanvasHeightPx / 2;
+					offscreenCanvasHeightPxHalf = (offscreenCanvasHeightPx / 2) | 0;
 					offscreenCanvasWidthPx = VideoMainEngine.report.canvasWidth;
+					offscreenCanvasWidthPxHalf = (offscreenCanvasWidthPx / 2) | 0;
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
@@ -356,8 +359,10 @@ class VideoMainEngine {
 
 						if (player1 === true) {
 							renderWidthOffset = 0;
+							renderWidthOffsetInverse = offscreenCanvasWidthPxHalf;
 						} else {
-							renderWidthOffset = offscreenCanvasWidthPx / 2;
+							renderWidthOffset = offscreenCanvasWidthPxHalf;
+							renderWidthOffsetInverse = 0;
 						}
 					} else {
 						renderHeightFactor = 1;
@@ -365,12 +370,14 @@ class VideoMainEngine {
 						renderWidthBackgroundFactor = 1;
 						renderWidthFactor = 1;
 						renderWidthOffset = 0;
+						renderWidthOffsetInverse = offscreenCanvasWidthPxHalf;
 					}
 				} else {
 					renderHeightFactor = 2;
 					renderWallHeightFactor = 1;
 					renderWidthBackgroundFactor = 1;
 					renderWidthOffset = 0;
+					renderWidthOffsetInverse = offscreenCanvasWidthPxHalf;
 
 					if (settingsPlayer2Enable === true) {
 						renderHeightBackgroundFactor = 2;
@@ -452,9 +459,9 @@ class VideoMainEngine {
 							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
 							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
 						) {
-							asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+							asset = assets.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
 						} else {
-							asset = assetsInvertHorizontal.get(gameMapGridCell >> 12) || renderImageTest;
+							asset = assetsInvertHorizontal.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
 						}
 
 						// Calc
@@ -505,9 +512,9 @@ class VideoMainEngine {
 						// Cell
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 
-						if ((gameMapGridCell & GameGridCellMaskAndValues.SPRITE_MASK) === GameGridCellMaskAndValues.SPRITE_VALUE) {
+						if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_ROTATING) !== 0) {
 							// Asset
-							asset = assets.get(gameMapGridCell >> 12) || renderImageTest;
+							asset = assets.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
 
 							// Calc: Position
 							y = gameMapGridIndex % gameMapGridSideLength;
@@ -534,7 +541,7 @@ class VideoMainEngine {
 							renderSpriteXFactor /= settingsFOV;
 
 							// Render: Lighting
-							if ((gameMapGridCell & GameGridCellMaskAndValues.LIGHT_MASK) === GameGridCellMaskAndValues.LIGHT_VALUE) {
+							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
 								offscreenCanvasContext.filter = renderFilterNone;
 							}
 
@@ -554,8 +561,13 @@ class VideoMainEngine {
 					}
 				}
 
-				if (VideoMainEngine.report.orientation === GamingCanvasOrientation.PORTRAIT && settingsPlayer2Enable === true) {
-					offscreenCanvasContext.clearRect(0, renderHeightOffsetInverse, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+				// Screen Clears
+				if (settingsPlayer2Enable === true) {
+					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+						offscreenCanvasContext.clearRect(renderWidthOffsetInverse, 0, offscreenCanvasWidthPxHalf, offscreenCanvasHeightPx);
+					} else {
+						offscreenCanvasContext.clearRect(0, renderHeightOffsetInverse, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+					}
 				}
 			}
 

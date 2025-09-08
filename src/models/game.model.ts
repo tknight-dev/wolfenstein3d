@@ -7,17 +7,19 @@ import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 /**
  * Values are shifted to mask position
  */
-export enum GameGridCellMaskAndValues {
-	ASSET_ID_MASK = 0xfff0, // 4095 possible wall images
-	FLOOR_MASK = 0x01,
-	FLOOR_VALUE = 1,
-	NULL_MASK = 0x09,
-	SPRITE_MASK = 0x02,
-	SPRITE_VALUE = 2,
-	LIGHT_MASK = 0x04,
-	LIGHT_VALUE = 4,
-	WALL_MASK = 0x08,
-	WALL_VALUE = 8,
+export enum GameGridCellMasksAndValues {
+	BLOCKING_MASK = 0x0040, // WALL
+	EXTENDED = 0x0001, // true is id reference to object else asset id
+	FLOOR = 0x0002,
+	ID_MASK = 0xff00, // 255 possible
+	ID_SHIFT = 9, // ID_MASK << 9
+	LIGHT = 0x0004,
+	NULL = 0x0000,
+	SPRITE_FIXED_H = 0x0008,
+	SPRITE_FIXED_V = 0x0010,
+	SPRITE_ROTATING = 0x0020,
+	WALL = 0x0040,
+	WALL_INVISIBLE = 0x0080,
 }
 
 /**

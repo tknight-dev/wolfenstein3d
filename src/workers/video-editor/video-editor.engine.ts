@@ -1,5 +1,5 @@
 import { GamingCanvasConstPIDouble, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMaskAndValues, GameMap } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -42,8 +42,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 enum CacheId {
-	FLOOR = GameGridCellMaskAndValues.FLOOR_VALUE,
-	WALL = GameGridCellMaskAndValues.WALL_VALUE,
+	FLOOR = GameGridCellMasksAndValues.FLOOR,
+	WALL = GameGridCellMasksAndValues.WALL,
 }
 
 class VideoEditorEngine {
@@ -395,8 +395,8 @@ class VideoEditorEngine {
 							// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
 							// }
 
-							if ((value & GameGridCellMaskAndValues.NULL_MASK) !== 0) {
-								cacheId = (value & GameGridCellMaskAndValues.WALL_MASK) === GameGridCellMaskAndValues.WALL_VALUE ? CacheId.WALL : CacheId.FLOOR;
+							if (value !== GameGridCellMasksAndValues.NULL) {
+								cacheId = (value & GameGridCellMasksAndValues.FLOOR) !== 0 ? CacheId.FLOOR : CacheId.WALL;
 
 								offscreenCanvasContext.drawImage(
 									<OffscreenCanvas>cacheCanvas.get(cacheId),
