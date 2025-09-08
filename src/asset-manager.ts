@@ -13,7 +13,8 @@ export enum AssetExtImg {
 }
 
 export enum AssetImgCategory {
-	OBJECT,
+	SPRITE,
+	SPRITE_PICKUP,
 	WALL,
 }
 
@@ -21,7 +22,7 @@ interface AssetProperties {
 	author?: string;
 	file: string;
 	license?: string;
-	title?: string;
+	title: string;
 	type: AssetType;
 	URL?: string;
 }
@@ -35,6 +36,7 @@ export interface AssetPropertiesImage extends AssetProperties {
 	alpha: boolean;
 	category: AssetImgCategory;
 	ext: AssetExtImg;
+	hide?: boolean;
 }
 
 export enum AssetType {
@@ -113,10 +115,10 @@ export const assetLoaderAudio = async (): Promise<Map<AssetId, string>> => {
 /**
  * @return is dataURL
  */
-export const assetLoaderImage = async (): Promise<Map<AssetId, ImageBitmap>> => {
+export const assetLoaderImage = async (toDataURL?: boolean): Promise<Map<AssetId, ImageBitmap | string>> => {
 	let assetId: AssetId,
 		blob: Blob,
-		data: Map<AssetId, ImageBitmap> = new Map(),
+		data: Map<AssetId, ImageBitmap | string> = new Map(),
 		dataType: string | undefined,
 		filename: string,
 		properties: AssetPropertiesAudio | AssetPropertiesImage | undefined,
@@ -162,11 +164,24 @@ export const assetLoaderImage = async (): Promise<Map<AssetId, ImageBitmap>> => 
 				continue;
 		}
 
-		// Convert to blob
-		blob = new Blob([await (<JSZip.JSZipObject>zip.file(filename)).async('arraybuffer')], { type: dataType });
+		if (toDataURL === true) {
+			data.set(
+				assetId,
+				`data:${dataType};base64,` +
+					btoa(
+						new Uint8Array(await (<JSZip.JSZipObject>zip.file(filename)).async('arraybuffer')).reduce(
+							(acc, i) => (acc += String.fromCharCode.apply(null, [i])),
+							'',
+						),
+					),
+			);
+		} else {
+			// Convert to blob
+			blob = new Blob([await (<JSZip.JSZipObject>zip.file(filename)).async('arraybuffer')], { type: dataType });
 
-		// Convert to bitmap
-		data.set(assetId, await createImageBitmap(blob));
+			// Convert to bitmap
+			data.set(assetId, await createImageBitmap(blob));
+		}
 	}
 
 	return data;
@@ -179,12 +194,29 @@ export const assetLoaderImage = async (): Promise<Map<AssetId, ImageBitmap>> => 
 export enum AssetId {
 	AUDIO_MUSIC_MENU,
 	AUDIO_MUSIC_MENU_INTRO,
+	IMG_SPRITE_AMMO,
+	IMG_SPRITE_BARREL,
+	IMG_SPRITE_FOOD,
 	IMG_SPRITE_LIGHT_CEILING_OFF,
 	IMG_SPRITE_LIGHT_CEILING_ON,
+	IMG_SPRITE_MEDKIT,
+	IMG_SPRITE_RIFLE,
+	IMG_SPRITE_TABLE,
+	IMG_SPRITE_TREASURE_CHEST,
+	IMG_SPRITE_TREASURE_CROSS,
+	IMG_SPRITE_TREASURE_CROWN,
+	IMG_SPRITE_TREASURE_CUP,
 	IMG_WALL_BRICK_BLUE,
 	IMG_WALL_BRICK_BLUE2,
 	IMG_WALL_CELL_BLUE,
 	IMG_WALL_CELL_BLUE_SKELETON,
+	IMG_WALL_ELEVATOR_DOOR,
+	IMG_WALL_ELEVATOR_SIDE,
+	IMG_WALL_ELEVATOR_SWITCH,
+	IMG_WALL_ELEVATOR_SWITCH2,
+	IMG_SPRITE_METAL_DOOR,
+	IMG_SPRITE_METAL_DOOR_INSIDE,
+	IMG_SPRITE_METAL_DOOR_INSIDE2,
 }
 export const assets: Map<AssetId, AssetPropertiesAudio | AssetPropertiesImage> = new Map();
 
@@ -217,23 +249,155 @@ assets.set(AssetId.AUDIO_MUSIC_MENU_INTRO, {
  * Assets: Images - Sprites
  */
 
+assets.set(AssetId.IMG_SPRITE_AMMO, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/ammo.webp',
+	title: 'Ammo',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_BARREL, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/barrel.webp',
+	title: 'Barrel',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_FOOD, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/food.webp',
+	title: 'Food',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_MEDKIT, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/medkit.webp',
+	title: 'Medkit',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_RIFLE, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/rifle.webp',
+	title: 'Rifle',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_TABLE, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/table.webp',
+	title: 'Table',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_TREASURE_CHEST, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/treasure_chest.webp',
+	title: 'Treasure Chest',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_TREASURE_CROSS, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/treasure_cross.webp',
+	title: 'Treasure Cross',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_TREASURE_CUP, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/treasure_cup.webp',
+	title: 'Treasure Cup',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_TREASURE_CROWN, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/treasure_crown.webp',
+	title: 'Treasure Crown',
+	type: AssetType.IMAGE,
+});
+
 assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_OFF, {
 	alpha: true,
 	author: 'Id Software',
-	category: AssetImgCategory.OBJECT,
+	category: AssetImgCategory.SPRITE,
 	ext: AssetExtImg.WEBP,
 	file: 'img/sprite/light_ceiling_off.webp',
-	title: 'Object Light Ceiling Off',
+	title: 'Light Ceiling Off',
 	type: AssetType.IMAGE,
 });
 
 assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_ON, {
 	alpha: true,
 	author: 'Id Software',
-	category: AssetImgCategory.OBJECT,
+	category: AssetImgCategory.SPRITE,
 	ext: AssetExtImg.WEBP,
 	file: 'img/sprite/light_ceiling_on.webp',
-	title: 'Object Light Ceiling On',
+	title: 'Light Ceiling On',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door.webp',
+	title: 'Metal Door',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_inside.webp',
+	hide: true,
+	title: 'Metal Door Inside',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE2, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_inside2.webp',
+	hide: true,
+	title: 'Metal Door Inside2',
 	type: AssetType.IMAGE,
 });
 
@@ -247,7 +411,7 @@ assets.set(AssetId.IMG_WALL_BRICK_BLUE, {
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
 	file: 'img/wall/brick_blue.webp',
-	title: 'Wall Brick Blue',
+	title: 'Brick Blue',
 	type: AssetType.IMAGE,
 });
 
@@ -257,6 +421,7 @@ assets.set(AssetId.IMG_WALL_BRICK_BLUE2, {
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
 	file: 'img/wall/brick_blue2.webp',
+	title: 'Brick Blue2',
 	type: AssetType.IMAGE,
 });
 
@@ -266,6 +431,7 @@ assets.set(AssetId.IMG_WALL_CELL_BLUE, {
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
 	file: 'img/wall/cell_blue.webp',
+	title: 'Cell Blue',
 	type: AssetType.IMAGE,
 });
 
@@ -275,5 +441,46 @@ assets.set(AssetId.IMG_WALL_CELL_BLUE_SKELETON, {
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
 	file: 'img/wall/cell_blue_skeleton.webp',
+	title: 'Cell Blue Skeleton',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_ELEVATOR_DOOR, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/elevator_door.webp',
+	title: 'Elevator Door',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_ELEVATOR_SIDE, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/elevator_side.webp',
+	title: 'Elevator Side',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_ELEVATOR_SWITCH, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/elevator_switch.webp',
+	title: 'Elevator Switch',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_ELEVATOR_SWITCH2, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/elevator_switch2.webp',
+	title: 'Elevator Switch2',
 	type: AssetType.IMAGE,
 });

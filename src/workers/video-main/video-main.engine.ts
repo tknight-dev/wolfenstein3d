@@ -68,7 +68,7 @@ class VideoMainEngine {
 			assetData: ImageBitmap,
 			assetId: AssetId,
 			assetProperties: AssetPropertiesImage,
-			assetsLoaded: Map<AssetId, ImageBitmap> = await assetLoaderImage();
+			assetsLoaded: Map<AssetId, ImageBitmap> = <Map<AssetId, ImageBitmap>>await assetLoaderImage();
 
 		for ([assetId, assetData] of assetsLoaded) {
 			// Get properties

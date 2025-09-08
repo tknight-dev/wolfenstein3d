@@ -1,6 +1,6 @@
-import { AssetId, assetLoaderAudio } from './asset-manager.js';
 import { CalcBus } from './workers/calc/calc.bus.js';
 import { CalcBusOutputDataStats } from './workers/calc/calc.model.js';
+import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
@@ -20,17 +20,6 @@ import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/g
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
 class Blockenstein {
-	private static async initializeAssets(): Promise<void> {
-		const assets: Map<AssetId, string> = await assetLoaderAudio();
-
-		// Audio
-		GamingCanvas.audioLoad(assets);
-
-		// setTimeout(() => {
-		// 	GamingCanvas.audioControlPlay(AssetId.AUDIO_MUSIC_MENU);
-		// }, 500);
-	}
-
 	private static initializeGamingCanvas(): void {
 		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
 			audioEnable: true,
@@ -38,7 +27,7 @@ class Blockenstein {
 			canvasSplit: [1],
 			canvasSplitLandscapeVertical: true,
 			dpiSupportEnable: Game.settingDPISupport,
-			// elementInteractive: DOM.elVideoInteractive,
+			elementInteractive: DOM.elVideoInteractive,
 			elementInjectAsOverlay: [DOM.elEdit],
 			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
@@ -47,6 +36,8 @@ class Blockenstein {
 			resolutionWidthPx: Game.settingResolution,
 			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});
+
+		GamingCanvas.audioLoad(Assets.dataAudio);
 	}
 
 	private static initializeSettings(): void {
@@ -191,7 +182,12 @@ class Blockenstein {
 		/**
 		 * Assets: Initialize
 		 */
-		await Blockenstein.initializeAssets();
+		await Assets.initializeAssets();
+
+		/**
+		 * DOM: part 2
+		 */
+		DOM.initializeDomEditMenu();
 
 		/**
 		 * Settings: Intialize
@@ -216,8 +212,8 @@ class Blockenstein {
 
 		// Done
 		Game.initializeGame();
-		// Game.viewEditor();
-		Game.viewGame();
+		Game.viewEditor();
+		// Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 	}
 

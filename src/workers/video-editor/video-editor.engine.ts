@@ -331,11 +331,11 @@ class VideoEditorEngine {
 
 					// Cache
 					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
-						cacheCanvasInstance.height = calculationsViewportCellSizePx;
-						cacheCanvasInstance.width = calculationsViewportCellSizePx;
+						cacheCanvasInstance.height = calculationsViewportCellSizePx + 1;
+						cacheCanvasInstance.width = calculationsViewportCellSizePx + 1;
 					}
 					for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
-						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(255,255,255)' : 'rgb(128,128,128)';
+						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(0,0,0)' : 'rgb(192,192,192)';
 						cacheCanvasContextInstance.fillRect(0, 0, calculationsViewportCellSizePx, calculationsViewportCellSizePx);
 					}
 
@@ -400,19 +400,45 @@ class VideoEditorEngine {
 
 								offscreenCanvasContext.drawImage(
 									<OffscreenCanvas>cacheCanvas.get(cacheId),
-									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									(x - calculationsViewportWidthStart - 1) * calculationsViewportCellSizePx,
+									(y - calculationsViewportHeightStart - 1) * calculationsViewportCellSizePx,
 								);
 							}
 						}
 					}
 				}
 
-				// Draw: Grid
+				// Draw: Map - Grid
 				offscreenCanvasContext.drawImage(
 					cacheCanvasGrid,
 					-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
 					-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+				);
+
+				// Draw: Map - Remove Grid Outide of Border
+				offscreenCanvasContext.clearRect(
+					0,
+					(gameMapGridSideLength - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+					offscreenCanvas.width,
+					offscreenCanvas.height,
+				); // Bottom
+				offscreenCanvasContext.clearRect(0, 0, -calculationsViewportWidthStart * calculationsViewportCellSizePx, offscreenCanvas.height); // Left
+				offscreenCanvasContext.clearRect(
+					(gameMapGridSideLength - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+					0,
+					offscreenCanvas.width,
+					offscreenCanvas.height,
+				); // Right
+				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, -calculationsViewportHeightStart * calculationsViewportCellSizePx); // Top
+
+				// Draw: Map - Border
+				offscreenCanvasContext.lineWidth = 5;
+				offscreenCanvasContext.strokeStyle = 'black';
+				offscreenCanvasContext.strokeRect(
+					-calculationsViewportWidthStart * calculationsViewportCellSizePx,
+					-calculationsViewportHeightStart * calculationsViewportCellSizePx,
+					gameMapGridSideLength * calculationsViewportCellSizePx,
+					gameMapGridSideLength * calculationsViewportCellSizePx,
 				);
 
 				// Draw: Cells

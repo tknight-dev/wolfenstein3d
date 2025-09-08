@@ -51,6 +51,7 @@ $main-logo-width: 152px;
 	.game {
 		z-index: 1;
 
+		.editor,
 		.icons,
 		.video,
 		.video-interactive {
@@ -133,6 +134,160 @@ $main-logo-width: 152px;
 			}
 		}
 
+		.editor {
+			background: black;
+			border: 2px solid white;
+			bottom: 0;
+			opacity: 1;
+			position: absolute;
+			right: 0;
+			top: 60px;
+			transition: opacity 0.125s linear;
+			width: 250px;
+			z-index: 3;
+
+			.commands,
+			.container,
+			.handle {
+				left: 0;
+				position: absolute;
+				right: 0;
+			}
+
+			.commands {
+				background: black;
+				border-top: 2px solid white;
+				bottom: 0;
+				height: 70px;
+				padding: 5px;
+
+				.command {
+					font-family: 'monospace';
+					font-weight: bold;
+				}
+			}
+
+			.container {
+				background: rgb(32, 32, 32);
+				bottom: 70px;
+				overflow-x: hidden;
+				overflow-y: auto;
+				top: 20px;
+
+				.group {
+					.content {
+						.item {
+							align-items: center;
+							display: flex;
+							height: 50px;
+							justify-content: center;
+
+							.image {
+								background-color: rgb(98, 00, 88);
+								border: 1px solid black;
+								box-shadow: 2px 2px 1px 1px rgba(0, 0, 0, 0.25);
+								height: 40px;
+								margin-left: 5px;
+								width: 40px;
+							}
+
+							.title {
+								flex-grow: 1;
+								padding-left: 5px;
+							}
+
+							&:nth-child(odd) {
+								background-color: rgba(0, 0, 0, 0.25);
+							}
+
+							&:hover {
+								box-shadow: inset 0 0 3px 3px rgba(255, 255, 255, 0.25);
+								cursor: pointer;
+
+								.image {
+									box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.25);
+								}
+							}
+						}
+					}
+
+					.name {
+						background-color: white;
+						color: black;
+						font-weight: bold;
+						text-align: center;
+					}
+				}
+			}
+
+			.handle {
+				align-items: center;
+				display: flex;
+				height: 20px;
+				justify-content: space-between;
+				top: 0;
+
+				.arrow,
+				.hide {
+					align-items: center;
+					background-color: white;
+					color: black;
+					display: flex;
+					font-size: 20px;
+					font-weight: bold;
+					height: 20px;
+					justify-content: center;
+					width: 20px;
+
+					&:hover {
+						cursor: pointer;
+					}
+				}
+			}
+
+			&.hide {
+				pointer-events: none;
+				opacity: 0;
+				touch-action: none;
+			}
+
+			&.left {
+				left: 0;
+				right: auto;
+
+				.handle {
+					flex-direction: row-reverse;
+				}
+
+				.container {
+					.group {
+						.content {
+							.item {
+								flex-direction: row-reverse;
+
+								.title {
+									flex-grow: 1;
+									padding-right: 5px;
+									text-align: right;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			&.shrink {
+				bottom: auto;
+				height: 24px;
+				width: 60px;
+
+				.commands,
+				.container {
+					display: none;
+				}
+			}
+		}
+
 		.icons {
 			align-items: center;
 			background-color: rgba(0, 0, 0, 0.75);
@@ -177,8 +332,8 @@ $main-logo-width: 152px;
 				box-shadow: 0 0 2px 2px white;
 				cursor: pointer;
 				display: none;
-				left: 0;
 				position: absolute;
+				left: 0;
 				top: 0;
 			}
 		}

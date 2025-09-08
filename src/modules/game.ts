@@ -63,11 +63,11 @@ export class Game {
 	public static viewport: GamingCanvasGridViewport;
 
 	static {
-		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
+		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(192),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
 			rInitial: number = (180.0001 * GamingCanvasConstPI) / 180, // .0001 fixes initial render glitch idk
-			zoomInitial: number = 2;
+			zoomInitial: number = 2.5;
 
 		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
 			valueSprite: number =
@@ -595,6 +595,7 @@ export class Game {
 			DOM.elButtonEdit.classList.add('active');
 			DOM.elButtonPlay.classList.remove('active');
 			DOM.elCanvases[2].classList.remove('hide');
+			DOM.elEditor.classList.remove('hide');
 		}
 	}
 
@@ -606,6 +607,7 @@ export class Game {
 			DOM.elButtonEdit.classList.remove('active');
 			DOM.elButtonPlay.classList.add('active');
 			DOM.elCanvases[2].classList.add('hide');
+			DOM.elEditor.classList.add('hide');
 
 			// TMP FOR CALC WORK ON POSITION AND ROTATION
 			// DOM.elButtonEdit.classList.add('active');
