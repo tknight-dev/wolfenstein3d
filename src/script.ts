@@ -34,7 +34,9 @@ class Blockenstein {
 	private static initializeGamingCanvas(): void {
 		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
 			audioEnable: true,
-			canvasCount: 3,
+			canvasCount: 2,
+			canvasSplit: [1],
+			canvasSplitLandscapeVertical: true,
 			dpiSupportEnable: Game.settingDPISupport,
 			// elementInteractive: DOM.elVideoInteractive,
 			elementInjectAsOverlay: [DOM.elEdit],
@@ -165,7 +167,7 @@ class Blockenstein {
 
 					// Load video-main
 					then = performance.now();
-					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[1], GamingCanvas.getCanvases()[0], gameMap, Game.settingsVideoMain, () => {
+					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
 						// Done
 						console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
 

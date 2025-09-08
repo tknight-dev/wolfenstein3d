@@ -66,7 +66,7 @@ export class Game {
 		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(64),
 			gridSideCenter: number = grid.sideLength / 2,
 			gridSideLength: number = grid.sideLength,
-			rInitial: number = (180 * GamingCanvasConstPI) / 180,
+			rInitial: number = (180.0001 * GamingCanvasConstPI) / 180, // .0001 fixes initial render glitch idk
 			zoomInitial: number = 2;
 
 		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
