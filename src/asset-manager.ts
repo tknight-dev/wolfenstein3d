@@ -190,16 +190,21 @@ export const assetLoaderImage = async (toDataURL?: boolean): Promise<Map<AssetId
 /**
  * Assets: List
  */
-
 export enum AssetId {
 	AUDIO_MUSIC_MENU,
 	AUDIO_MUSIC_MENU_INTRO,
 	IMG_SPRITE_AMMO,
 	IMG_SPRITE_BARREL,
+	IMG_SPRITE_EXTRA_LIFE,
 	IMG_SPRITE_FOOD,
+	IMG_SPRITE_FOOD_DOG,
 	IMG_SPRITE_LIGHT_CEILING_OFF,
 	IMG_SPRITE_LIGHT_CEILING_ON,
 	IMG_SPRITE_MEDKIT,
+	IMG_SPRITE_METAL_DOOR,
+	IMG_SPRITE_METAL_DOOR_INSIDE,
+	IMG_SPRITE_METAL_DOOR_INSIDE2,
+	IMG_SPRITE_METAL_DOOR_LOCKED,
 	IMG_SPRITE_RIFLE,
 	IMG_SPRITE_TABLE,
 	IMG_SPRITE_TREASURE_CHEST,
@@ -214,9 +219,18 @@ export enum AssetId {
 	IMG_WALL_ELEVATOR_SIDE,
 	IMG_WALL_ELEVATOR_SWITCH,
 	IMG_WALL_ELEVATOR_SWITCH2,
-	IMG_SPRITE_METAL_DOOR,
-	IMG_SPRITE_METAL_DOOR_INSIDE,
-	IMG_SPRITE_METAL_DOOR_INSIDE2,
+	IMG_WALL_OUTSIDE_DAY,
+	IMG_WALL_OUTSIDE_NIGHT,
+	IMG_WALL_STONE_GREY,
+	IMG_WALL_STONE_GREY2,
+	IMG_WALL_STONE_GREY3,
+	IMG_WALL_STONE_GREY_EAGLE,
+	IMG_WALL_STONE_GREY_FLAG,
+	IMG_WALL_STONE_GREY_HITLER,
+	IMG_WALL_STONE_GREY_SIGN_VERBOTEM,
+	IMG_WALL_WOOD,
+	IMG_WALL_WOOD_EAGLE,
+	IMG_WALL_WOOD_HITLER,
 }
 export const assets: Map<AssetId, AssetPropertiesAudio | AssetPropertiesImage> = new Map();
 
@@ -269,6 +283,16 @@ assets.set(AssetId.IMG_SPRITE_BARREL, {
 	type: AssetType.IMAGE,
 });
 
+assets.set(AssetId.IMG_SPRITE_EXTRA_LIFE, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/extra_life.webp',
+	title: 'Extra Life',
+	type: AssetType.IMAGE,
+});
+
 assets.set(AssetId.IMG_SPRITE_FOOD, {
 	alpha: true,
 	author: 'Id Software',
@@ -276,6 +300,16 @@ assets.set(AssetId.IMG_SPRITE_FOOD, {
 	ext: AssetExtImg.WEBP,
 	file: 'img/sprite/food.webp',
 	title: 'Food',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_FOOD_DOG, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE_PICKUP,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/food_dog.webp',
+	title: 'Food (Dog)',
 	type: AssetType.IMAGE,
 });
 
@@ -401,6 +435,16 @@ assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE2, {
 	type: AssetType.IMAGE,
 });
 
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_LOCKED, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_locked.webp',
+	title: 'Metal Door Locked',
+	type: AssetType.IMAGE,
+});
+
 /**
  * Assets: Images - Walls
  */
@@ -482,5 +526,125 @@ assets.set(AssetId.IMG_WALL_ELEVATOR_SWITCH2, {
 	ext: AssetExtImg.WEBP,
 	file: 'img/wall/elevator_switch2.webp',
 	title: 'Elevator Switch2',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_OUTSIDE_DAY, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/outside_day.webp',
+	title: 'Outside Day',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_OUTSIDE_NIGHT, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/outside_night.webp',
+	title: 'Outside Night',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey.webp',
+	title: 'Stone Grey',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY2, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey2.webp',
+	title: 'Stone Grey2',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY3, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey3.webp',
+	title: 'Stone Grey3',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY_EAGLE, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey_eagle.webp',
+	title: 'Stone Grey Eagle',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY_FLAG, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey_flag.webp',
+	title: 'Stone Grey Flag',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY_HITLER, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey_hitler.webp',
+	title: 'Stone Grey Hitler',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_STONE_GREY_SIGN_VERBOTEM, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/stone_grey_sign_verbotem.webp',
+	title: 'Stone Grey Sign Verbotem',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_WOOD, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/wood.webp',
+	title: 'Wood',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_WOOD_EAGLE, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/wood_eagle.webp',
+	title: 'Wood',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_WALL_WOOD_HITLER, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.WALL,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/wood_hitler.webp',
+	title: 'Wood',
 	type: AssetType.IMAGE,
 });

@@ -1,3 +1,5 @@
+import { Assets } from './assets.js';
+import { AssetId } from '../asset-manager.js';
 import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
@@ -35,7 +37,6 @@ import {
 	GamingCanvasGridViewport,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 } from '@tknight-dev/gaming-canvas/grid';
-import { AssetId } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -47,6 +48,7 @@ new EventSource('/esbuild').addEventListener('change', () => location.reload());
 export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static dataMaps: Map<number, GameMap> = new Map();
+	public static editorAssetId: number;
 	public static inputRequest: number;
 	public static modeEdit: boolean;
 	public static report: GamingCanvasReport;
@@ -137,6 +139,18 @@ export class Game {
 		DOM.elButtonPlay.onclick = () => {
 			Game.viewGame();
 		};
+
+		// Editor items
+		DOM.elEditorItems.forEach((element: HTMLElement) => {
+			element.onclick = () => {
+				if (DOM.elEditorItemActive !== undefined) {
+					DOM.elEditorItemActive.classList.remove('active');
+				}
+				DOM.elEditorItemActive = element;
+				element.classList.add('active');
+				Game.editorAssetId = Number(element.id);
+			};
+		});
 	}
 
 	public static initializeGame(): void {
@@ -209,7 +223,6 @@ export class Game {
 			position1: GamingCanvasInputPosition,
 			position2: GamingCanvasInputPosition,
 			positions: GamingCanvasInputPosition[] | undefined,
-			cellSizePx: number = Game.viewport.cellSizePx,
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
 			queueInput: GamingCanvasInput | undefined,
 			queueInputOverlay: GamingCanvasInputPosition,
@@ -309,8 +322,6 @@ export class Game {
 					if (camera.z !== cameraZoom) {
 						camera.z = cameraZoom;
 						viewport.applyZ(camera, report);
-
-						cellSizePx = viewport.cellSizePx;
 					} else if (updated === true || updatedR !== true) {
 						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
 						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
@@ -473,7 +484,9 @@ export class Game {
 					downModeWheel = down;
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
-					// processorMouseCellHighlight(inputOverlayPosition);
+					processorMouseCellHighlight(inputOverlayPosition);
+
+					// console.log(position1.x, position1.y, report.scaler, inputOverlayPosition.x, inputOverlayPosition.y);
 
 					if (modeEdit === true) {
 						if (downMode === true) {
@@ -487,7 +500,7 @@ export class Game {
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
-					// processorMouseCellHighlight(inputOverlayPosition);
+					processorMouseCellHighlight(inputOverlayPosition);
 
 					if (modeEdit === true) {
 						cameraZoomPrevious = cameraZoom;
@@ -503,13 +516,13 @@ export class Game {
 		const processorMouseCellHighlight = (position: GamingCanvasInputPosition) => {
 			// Timeout allows for the viewport to be updated before the input before fitting the cell highlight
 			setTimeout(() => {
-				const leftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, viewport);
+				const cellSizePxLeftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport);
 
 				elEditStyle.display = 'block';
-				elEditStyle.height = cellSizePx + 'px';
-				elEditStyle.left = leftTop[0] + 'px';
-				elEditStyle.top = leftTop[1] + 'px';
-				elEditStyle.width = cellSizePx + 'px';
+				elEditStyle.height = cellSizePxLeftTop[0] + 'px';
+				elEditStyle.left = cellSizePxLeftTop[1] + 'px';
+				elEditStyle.top = cellSizePxLeftTop[2] + 'px';
+				elEditStyle.width = cellSizePxLeftTop[0] + 'px';
 			}, inputLimitPerMs + 10);
 		};
 

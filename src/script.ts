@@ -49,7 +49,7 @@ class Blockenstein {
 		Game.settingFPSDisplay = true; // def: true
 		Game.settingPlayer1Keyboard = true; // def: true, false is gamepad (player 2 is the inverse)
 		// Game.settingResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
-		Game.settingResolution = 640;
+		Game.settingResolution = 320;
 
 		/**
 		 * Worker specific
@@ -177,7 +177,6 @@ class Blockenstein {
 		 * DOM
 		 */
 		DOM.initializeDom();
-		Game.initializeDomInteractive();
 
 		/**
 		 * Assets: Initialize
@@ -188,6 +187,7 @@ class Blockenstein {
 		 * DOM: part 2
 		 */
 		DOM.initializeDomEditMenu();
+		Game.initializeDomInteractive();
 
 		/**
 		 * Settings: Intialize
