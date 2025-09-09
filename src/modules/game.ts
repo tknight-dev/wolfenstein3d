@@ -49,6 +49,7 @@ export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static dataMaps: Map<number, GameMap> = new Map();
 	public static editorAssetId: number;
+	public static editorCellHighlightEnable: boolean;
 	public static inputRequest: number;
 	public static modeEdit: boolean;
 	public static report: GamingCanvasReport;
@@ -146,9 +147,25 @@ export class Game {
 				if (DOM.elEditorItemActive !== undefined) {
 					DOM.elEditorItemActive.classList.remove('active');
 				}
-				DOM.elEditorItemActive = element;
-				element.classList.add('active');
-				Game.editorAssetId = Number(element.id);
+				if (DOM.elEditorItemActive !== element) {
+					DOM.elEditorItemActive = element;
+
+					element.classList.add('active');
+					Game.editorAssetId = Number(element.id);
+					Game.editorCellHighlightEnable = true;
+
+					DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetId)})`;
+					DOM.elEdit.style.backgroundColor = '#980066';
+
+					DOM.elVideoInteractive.classList.add('cursor-pointer');
+					DOM.elVideoInteractive.classList.remove('cursor-grab');
+				} else {
+					DOM.elEditorItemActive = undefined;
+					Game.editorCellHighlightEnable = false;
+
+					DOM.elVideoInteractive.classList.add('cursor-grab');
+					DOM.elVideoInteractive.classList.remove('cursor-pointer');
+				}
 			};
 		});
 	}
@@ -515,15 +532,19 @@ export class Game {
 
 		const processorMouseCellHighlight = (position: GamingCanvasInputPosition) => {
 			// Timeout allows for the viewport to be updated before the input before fitting the cell highlight
-			setTimeout(() => {
-				const cellSizePxLeftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport);
+			if (Game.editorCellHighlightEnable === true) {
+				setTimeout(() => {
+					const cellSizePxLeftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport);
 
-				elEditStyle.display = 'block';
-				elEditStyle.height = cellSizePxLeftTop[0] + 'px';
-				elEditStyle.left = cellSizePxLeftTop[1] + 'px';
-				elEditStyle.top = cellSizePxLeftTop[2] + 'px';
-				elEditStyle.width = cellSizePxLeftTop[0] + 'px';
-			}, inputLimitPerMs + 10);
+					elEditStyle.display = 'block';
+					elEditStyle.height = cellSizePxLeftTop[0] + 'px';
+					elEditStyle.left = cellSizePxLeftTop[1] + 'px';
+					elEditStyle.top = cellSizePxLeftTop[2] + 'px';
+					elEditStyle.width = cellSizePxLeftTop[0] + 'px';
+				}, inputLimitPerMs + 10);
+			} else {
+				elEditStyle.display = 'none';
+			}
 		};
 
 		// const processorTouch = (input: GamingCanvasInputTouch) => {
@@ -609,6 +630,9 @@ export class Game {
 			DOM.elButtonPlay.classList.remove('active');
 			DOM.elCanvases[2].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
+
+			DOM.elVideoInteractive.classList.add('cursor-grab');
+			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 		}
 	}
 
@@ -621,6 +645,17 @@ export class Game {
 			DOM.elButtonPlay.classList.add('active');
 			DOM.elCanvases[2].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
+
+			// DOM: Editor
+			if (DOM.elEditorItemActive !== undefined) {
+				DOM.elEditorItemActive.classList.remove('active');
+				DOM.elEditorItemActive = undefined;
+
+				Game.editorCellHighlightEnable = false;
+			}
+			DOM.elEdit.style.display = 'none';
+			DOM.elVideoInteractive.classList.remove('cursor-grab');
+			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 
 			// TMP FOR CALC WORK ON POSITION AND ROTATION
 			// DOM.elButtonEdit.classList.add('active');

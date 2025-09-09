@@ -22,7 +22,7 @@ export class DOM {
 	public static elEditorHandle: HTMLElement;
 	public static elEditorHandleArrow: HTMLElement;
 	public static elEditorHandleHide: HTMLElement;
-	public static elEditorItemActive: HTMLElement;
+	public static elEditorItemActive: HTMLElement | undefined;
 	public static elEditorItems: HTMLElement[] = [];
 	public static elVideo: HTMLElement;
 	public static elVideoInteractive: HTMLElement;
