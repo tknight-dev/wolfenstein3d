@@ -31,13 +31,21 @@
 			</div>
 			<div class="game" id="game">
 				<div class="wrapper">
-					<div class="icons" id="icons">
+					<div class="icons" id="icons-bottom">
 						<span class="button" id="button-play"><span class="main-icon play"></span></span>
 						<span class="button" id="button-edit"><span class="main-icon edit"></span></span>
 					</div>
+					<div class="icons bottom" id="icons-top">
+						<span class="button" id="button-eye"><span class="main-icon eye"></span></span>
+						<span class="button" id="button-move"><span class="main-icon move"></span></span>
+						<span class="button" id="button-apply"><span class="main-icon pencil"></span></span>
+						<span class="button" id="button-inspect"><span class="main-icon inspect"></span></span>
+						<span class="button" id="button-download"><span class="main-icon download"></span></span>
+						<span class="button" id="button-upload"><span class="main-icon upload"></span></span>
+					</div>
 					<div class="editor" id="editor">
 						<div class="wrapper">
-							<div class="handle" id="editor-handle">
+							<div class="handle">
 								<div class="arrow" id="editor-handle-arrow">🡠</div>
 								<div class="hide" id="editor-handle-hide">_</div>
 							</div>
@@ -59,6 +67,57 @@
 								<div class="command">F = Toggle Floor</div>
 								<div class="command">P = Toggle Pickups</div>
 								<div class="command">S = Toggle Sprites</div>
+							</div>
+						</div>
+					</div>
+					<div class="editor left properties" id="editor-properties">
+						<div class="wrapper">
+							<div class="handle">
+								<div class="arrow" id="editor-properties-handle-arrow">🡢</div>
+								<div class="hide" id="editor-properties-handle-hide">_</div>
+							</div>
+							<div class="container">
+								<div class="group">
+									<div class="content">
+										<label class="item" for="editor-extended">
+											<input autocomplete="off" class="input" id="editor-extended" name="editor-extended" type="checkbox" />
+											<div class="title">Extended</div>
+										</label>
+										<label class="item" for="editor-floor">
+											<input autocomplete="off" class="input" id="editor-floor" name="editor-floor" type="checkbox" />
+											<div class="title">Floor</div>
+										</label>
+										<label class="item" for="editor-light">
+											<input autocomplete="off" class="input" id="editor-light" name="editor-light" type="checkbox" />
+											<div class="title">Light</div>
+										</label>
+										<label class="item" for="editor-sprite-fixed-h">
+											<input autocomplete="off" class="input" id="editor-sprite-fixed-h" name="editor-sprite-fixed-h" type="checkbox" />
+											<div class="title">Sprite Fixed Horizontal</div>
+										</label>
+										<label class="item" for="editor-sprite-fixed-v">
+											<input autocomplete="off" class="input" id="editor-sprite-fixed-v" name="editor-sprite-fixed-v" type="checkbox" />
+											<div class="title">Sprite Fixed Vertical</div>
+										</label>
+										<label class="item" for="editor-sprite-rotating">
+											<input autocomplete="off" class="input" id="editor-sprite-rotating" name="editor-sprite-rotating" type="checkbox" />
+											<div class="title">Sprite Rotating</div>
+										</label>
+										<label class="item" for="editor-sprite-wall">
+											<input autocomplete="off" class="input" id="editor-sprite-wall" name="editor-sprite-wall" type="checkbox" />
+											<div class="title">Wall</div>
+										</label>
+										<label class="item" for="editor-sprite-wall-invisible">
+											<input autocomplete="off" class="input" id="editor-sprite-wall-invisible" name="editor-sprite-wall-invisible" type="checkbox" />
+											<div class="title">Wall Invisible</div>
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="commands">
+								<div class="command">&nbsp;&nbsp;&nbsp;AssetId: 0x<span id="editor-properties-output-assetid">?</span></div>
+								<div class="command">Properties: 0x<span id="editor-properties-output-properties">?</span></div>
+								<div class="command">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Value: 0x<span id="editor-properties-output-value">?</span></div>
 							</div>
 						</div>
 					</div>

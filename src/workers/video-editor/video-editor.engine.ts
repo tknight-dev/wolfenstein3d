@@ -11,6 +11,7 @@ import {
 } from './video-editor.model.js';
 import { Character } from '../../models/character.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint16Array, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -41,12 +42,8 @@ self.onmessage = (event: MessageEvent) => {
 	}
 };
 
-enum CacheId {
-	FLOOR = GameGridCellMasksAndValues.FLOOR,
-	WALL = GameGridCellMasksAndValues.WALL,
-}
-
 class VideoEditorEngine {
+	private static assets: Map<AssetId, OffscreenCanvas> = new Map();
 	private static calculations: VideoEditorBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static characterPlayer1: Character;
@@ -60,7 +57,32 @@ class VideoEditorEngine {
 	private static settings: VideoEditorBusInputDataSettings;
 	private static settingsNew: boolean;
 
-	public static initialize(data: VideoEditorBusInputDataInit): void {
+	public static async initialize(data: VideoEditorBusInputDataInit): Promise<void> {
+		// Assets
+		let assetCanvas: OffscreenCanvas,
+			assetContext: OffscreenCanvasRenderingContext2D,
+			assetData: ImageBitmap,
+			assetId: AssetId,
+			assetProperties: AssetPropertiesImage,
+			assetsLoaded: Map<AssetId, ImageBitmap> = <Map<AssetId, ImageBitmap>>await assetLoaderImage();
+
+		for ([assetId, assetData] of assetsLoaded) {
+			// Get properties
+			assetProperties = <AssetPropertiesImage>assets.get(assetId);
+
+			// Canvas: Regular
+			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+			assetContext = assetCanvas.getContext('2d', {
+				alpha: assetProperties.alpha,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D;
+			assetContext.drawImage(assetData, 0, 0);
+			VideoEditorEngine.assets.set(assetId, assetCanvas);
+		}
+
 		// Config
 		VideoEditorEngine.gameMap = data.gameMap;
 		VideoEditorEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
@@ -80,7 +102,7 @@ class VideoEditorEngine {
 
 		// Config: Character
 		VideoEditorEngine.characterPlayer1 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
+			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: 100,
 			id: 0,
@@ -91,7 +113,7 @@ class VideoEditorEngine {
 			timestampPrevious: 0,
 		};
 		VideoEditorEngine.characterPlayer2 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
+			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: VideoEditorEngine.characterPlayer1.health,
 			id: 1,
@@ -177,13 +199,17 @@ class VideoEditorEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
+		let assetId: AssetId,
+			assetInstance: OffscreenCanvas,
+			assets: Map<AssetId, OffscreenCanvas> = VideoEditorEngine.assets,
+			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
 			calculationsGameMode: boolean,
 			calculationsRayOriginXPx: number,
 			calculationsRayOriginYPx: number,
 			calculationsRays: Float64Array,
 			calculationsViewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calculations.viewport),
 			calculationsViewportCellSizePx: number,
+			calculationsViewportCellSizePxEff: number,
 			calculationsViewportHeightStart: number,
 			calculationsViewportHeightStartEff: number,
 			calculationsViewportHeightStartPx: number,
@@ -217,7 +243,7 @@ class VideoEditorEngine {
 			),
 			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
-			cacheId: CacheId,
+			cacheCellSizePx: number = -1,
 			characterPlayer1: Character = VideoEditorEngine.characterPlayer1,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
@@ -246,20 +272,18 @@ class VideoEditorEngine {
 			y: number;
 
 		// Warm cache
-		for (const v of Object.values(CacheId)) {
-			if (typeof v === 'number') {
-				cacheCanvas.set(v, new OffscreenCanvas(1, 1));
-				cacheCanvasContext.set(
-					v,
-					(<OffscreenCanvas>cacheCanvas.get(v)).getContext('2d', {
-						alpha: true,
-						antialias: false,
-						depth: true,
-						desynchronized: true,
-						powerPreference: 'high-performance',
-					}) as OffscreenCanvasRenderingContext2D,
-				);
-			}
+		for (assetId of assets.keys()) {
+			cacheCanvas.set(assetId, new OffscreenCanvas(1, 1));
+			cacheCanvasContext.set(
+				assetId,
+				(<OffscreenCanvas>cacheCanvas.get(assetId)).getContext('2d', {
+					alpha: false,
+					antialias: false,
+					depth: true,
+					desynchronized: true,
+					powerPreference: 'high-performance',
+				}) as OffscreenCanvasRenderingContext2D,
+			);
 		}
 
 		const go = (timestampNow: number) => {
@@ -330,39 +354,54 @@ class VideoEditorEngine {
 					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
 
 					// Cache
-					for ([cacheId, cacheCanvasInstance] of cacheCanvas) {
-						cacheCanvasInstance.height = calculationsViewportCellSizePx + 1;
-						cacheCanvasInstance.width = calculationsViewportCellSizePx + 1;
-					}
-					for ([cacheId, cacheCanvasContextInstance] of cacheCanvasContext) {
-						cacheCanvasContextInstance.fillStyle = cacheId === CacheId.FLOOR ? 'rgb(0,0,0)' : 'rgb(192,192,192)';
-						cacheCanvasContextInstance.fillRect(0, 0, calculationsViewportCellSizePx, calculationsViewportCellSizePx);
-					}
+					if (cacheCellSizePx !== calculationsViewportCellSizePx) {
+						cacheCellSizePx = calculationsViewportCellSizePx;
 
-					// Grid: Cache
-					offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
-					offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
+						// Assets
+						calculationsViewportCellSizePxEff = calculationsViewportCellSizePx + 1;
+						for ([assetId, cacheCanvasContextInstance] of cacheCanvasContext) {
+							cacheCanvasContextInstance.canvas.height = calculationsViewportCellSizePxEff;
+							cacheCanvasContextInstance.canvas.width = calculationsViewportCellSizePxEff;
 
-					cacheCanvasGridH.height = 1;
-					cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
-					cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
-					cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
+							assetInstance = <OffscreenCanvas>assets.get(assetId);
+							cacheCanvasContextInstance.drawImage(
+								assetInstance,
+								0,
+								0,
+								assetInstance.width,
+								assetInstance.height,
+								0,
+								0,
+								calculationsViewportCellSizePxEff,
+								calculationsViewportCellSizePxEff,
+							);
+						}
 
-					cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
-					cacheCanvasGridV.width = 1;
-					cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
-					cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
+						// Grid: Cache
+						offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
+						offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
 
-					cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
-					cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
+						cacheCanvasGridH.height = 1;
+						cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
+						cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
+						cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
 
-					// Grid: Horizontal
-					for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
-						cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
-					}
-					// Grid: Vertical
-					for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
-						cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+						cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
+						cacheCanvasGridV.width = 1;
+						cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
+						cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
+
+						cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
+						cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
+
+						// Grid: Horizontal
+						for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
+							cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
+						}
+						// Grid: Vertical
+						for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
+							cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+						}
 					}
 				}
 
@@ -396,13 +435,23 @@ class VideoEditorEngine {
 							// }
 
 							if (value !== GameGridCellMasksAndValues.NULL) {
-								cacheId = (value & GameGridCellMasksAndValues.FLOOR) !== 0 ? CacheId.FLOOR : CacheId.WALL;
+								if (value === GameGridCellMasksAndValues.FLOOR) {
+									offscreenCanvasContext.fillStyle = 'black';
+									offscreenCanvasContext.fillRect(
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										calculationsViewportCellSizePxEff,
+										calculationsViewportCellSizePxEff,
+									);
+								} else {
+									assetId = value >>> GameGridCellMasksAndValues.ID_SHIFT;
 
-								offscreenCanvasContext.drawImage(
-									<OffscreenCanvas>cacheCanvas.get(cacheId),
-									(x - calculationsViewportWidthStart - 1) * calculationsViewportCellSizePx,
-									(y - calculationsViewportHeightStart - 1) * calculationsViewportCellSizePx,
-								);
+									offscreenCanvasContext.drawImage(
+										<OffscreenCanvas>cacheCanvas.get(assetId),
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									);
+								}
 							}
 						}
 					}

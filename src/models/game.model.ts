@@ -1,4 +1,4 @@
-import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridUint16Array, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -9,10 +9,10 @@ import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
  */
 export enum GameGridCellMasksAndValues {
 	BLOCKING_MASK = 0x0040, // WALL
-	EXTENDED = 0x0001, // true is id reference to object else asset id
+	EXTENDED = 0x0001, // asset id is now also a reference to an object
 	FLOOR = 0x0002,
-	ID_MASK = 0xff00, // 255 possible
-	ID_SHIFT = 9, // ID_MASK << 9
+	ID_MASK = 0xfe00, // 128 possible
+	ID_SHIFT = 9, // ID_MASK << 10
 	LIGHT = 0x0004,
 	NULL = 0x0000,
 	SPRITE_FIXED_H = 0x0008,
@@ -22,14 +22,13 @@ export enum GameGridCellMasksAndValues {
 	WALL_INVISIBLE = 0x0080,
 }
 
+export interface GameGridExtended {}
+
 /**
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
-	cameraRIntial: number;
-	cameraZoomIntial: number;
 	grid: GamingCanvasGridUint16Array;
-	gridEnds: number[]; // Level ending cells array by data index
-	gridStartX: number;
-	gridStartY: number;
+	gridExtended: Map<number, GameGridExtended>;
+	position: GamingCanvasGridICamera;
 }

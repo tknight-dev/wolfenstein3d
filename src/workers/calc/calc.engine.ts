@@ -73,7 +73,7 @@ class CalcEngine {
 	public static initialize(data: CalcBusInputDataInit): void {
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
+			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: 100,
 			id: 0,
@@ -84,7 +84,7 @@ class CalcEngine {
 			timestampPrevious: 0,
 		};
 		CalcEngine.characterPlayer2 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.cameraRIntial, data.gameMap.gridStartX + 0.5, data.gameMap.gridStartY + 0.5, 1),
+			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: CalcEngine.characterPlayer1.health,
 			id: 1,

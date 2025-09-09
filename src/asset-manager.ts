@@ -4,45 +4,9 @@ import * as JSZip from 'jszip';
  * @author tknight-dev
  */
 
-export enum AssetExtAudio {
-	MP3,
-}
-
-export enum AssetExtImg {
-	WEBP,
-}
-
-export enum AssetImgCategory {
-	SPRITE,
-	SPRITE_PICKUP,
-	WALL,
-}
-
-interface AssetProperties {
-	author?: string;
-	file: string;
-	license?: string;
-	title: string;
-	type: AssetType;
-	URL?: string;
-}
-
-export interface AssetPropertiesAudio extends AssetProperties {
-	ext: AssetExtAudio;
-	volume: number; // 0-1 range for default volume
-}
-
-export interface AssetPropertiesImage extends AssetProperties {
-	alpha: boolean;
-	category: AssetImgCategory;
-	ext: AssetExtImg;
-	hide?: boolean;
-}
-
-export enum AssetType {
-	AUDIO,
-	IMAGE,
-}
+/*
+ * LOADERS
+ */
 
 /**
  * @return is dataURL
@@ -187,24 +151,37 @@ export const assetLoaderImage = async (toDataURL?: boolean): Promise<Map<AssetId
 	return data;
 };
 
-/**
- * Assets: List
+/*
+ * ASSETS
  */
+
+export enum AssetExtAudio {
+	MP3,
+}
+
+export enum AssetExtImg {
+	WEBP,
+}
+
 export enum AssetId {
 	AUDIO_MUSIC_MENU,
 	AUDIO_MUSIC_MENU_INTRO,
 	IMG_SPRITE_AMMO,
 	IMG_SPRITE_BARREL,
 	IMG_SPRITE_EXTRA_LIFE,
+	IMG_SPRITE_FLAG,
 	IMG_SPRITE_FOOD,
 	IMG_SPRITE_FOOD_DOG,
 	IMG_SPRITE_LIGHT_CEILING_OFF,
 	IMG_SPRITE_LIGHT_CEILING_ON,
+	IMG_SPRITE_LIGHT_FLOOR_ON,
 	IMG_SPRITE_MEDKIT,
 	IMG_SPRITE_METAL_DOOR,
 	IMG_SPRITE_METAL_DOOR_INSIDE,
 	IMG_SPRITE_METAL_DOOR_INSIDE2,
 	IMG_SPRITE_METAL_DOOR_LOCKED,
+	IMG_SPRITE_POTTED_PLANT,
+	IMG_SPRITE_POTTED_TREE,
 	IMG_SPRITE_RIFLE,
 	IMG_SPRITE_TABLE,
 	IMG_SPRITE_TREASURE_CHEST,
@@ -213,8 +190,8 @@ export enum AssetId {
 	IMG_SPRITE_TREASURE_CUP,
 	IMG_WALL_BRICK_BLUE,
 	IMG_WALL_BRICK_BLUE2,
-	IMG_WALL_CELL_BLUE,
-	IMG_WALL_CELL_BLUE_SKELETON,
+	IMG_WALL_BRICK_BLUE_CELL,
+	IMG_WALL_BRICK_BLUE_CELL_SKELETON,
 	IMG_WALL_ELEVATOR_DOOR,
 	IMG_WALL_ELEVATOR_SIDE,
 	IMG_WALL_ELEVATOR_SWITCH,
@@ -231,8 +208,45 @@ export enum AssetId {
 	IMG_WALL_WOOD,
 	IMG_WALL_WOOD_EAGLE,
 	IMG_WALL_WOOD_HITLER,
+	NULL = 0,
 }
+
+export enum AssetImgCategory {
+	DOOR,
+	DOOR_SIDE,
+	LIGHT,
+	SPRITE,
+	SPRITE_PICKUP,
+	WALL,
+}
+
+interface AssetProperties {
+	author?: string;
+	file: string;
+	license?: string;
+	title: string;
+	type: AssetType;
+	URL?: string;
+}
+
+export interface AssetPropertiesAudio extends AssetProperties {
+	ext: AssetExtAudio;
+	volume: number; // 0-1 range for default volume
+}
+
+export interface AssetPropertiesImage extends AssetProperties {
+	alpha: boolean;
+	category: AssetImgCategory;
+	ext: AssetExtImg;
+	hide?: boolean;
+}
+
 export const assets: Map<AssetId, AssetPropertiesAudio | AssetPropertiesImage> = new Map();
+
+export enum AssetType {
+	AUDIO,
+	IMAGE,
+}
 
 /**
  * Assets: Audio - Effects
@@ -293,6 +307,16 @@ assets.set(AssetId.IMG_SPRITE_EXTRA_LIFE, {
 	type: AssetType.IMAGE,
 });
 
+assets.set(AssetId.IMG_SPRITE_FLAG, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/flag.webp',
+	title: 'Flag',
+	type: AssetType.IMAGE,
+});
+
 assets.set(AssetId.IMG_SPRITE_FOOD, {
 	alpha: true,
 	author: 'Id Software',
@@ -313,6 +337,36 @@ assets.set(AssetId.IMG_SPRITE_FOOD_DOG, {
 	type: AssetType.IMAGE,
 });
 
+assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_OFF, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.LIGHT,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/light_ceiling_off.webp',
+	title: 'Light Ceiling Off',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_ON, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.LIGHT,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/light_ceiling_on.webp',
+	title: 'Light Ceiling On',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_LIGHT_FLOOR_ON, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.LIGHT,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/light_floor_on.webp',
+	title: 'Light Floor On',
+	type: AssetType.IMAGE,
+});
+
 assets.set(AssetId.IMG_SPRITE_MEDKIT, {
 	alpha: true,
 	author: 'Id Software',
@@ -320,6 +374,68 @@ assets.set(AssetId.IMG_SPRITE_MEDKIT, {
 	ext: AssetExtImg.WEBP,
 	file: 'img/sprite/medkit.webp',
 	title: 'Medkit',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.DOOR,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door.webp',
+	title: 'Metal Door',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.DOOR_SIDE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_inside.webp',
+	hide: true,
+	title: 'Metal Door Inside',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE2, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.DOOR_SIDE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_inside2.webp',
+	hide: true,
+	title: 'Metal Door Inside2',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_METAL_DOOR_LOCKED, {
+	alpha: false,
+	author: 'Id Software',
+	category: AssetImgCategory.DOOR,
+	ext: AssetExtImg.WEBP,
+	file: 'img/wall/metal_door_locked.webp',
+	title: 'Metal Door Locked',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_POTTED_PLANT, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/potted_plant.webp',
+	title: 'Potted Plant',
+	type: AssetType.IMAGE,
+});
+
+assets.set(AssetId.IMG_SPRITE_POTTED_TREE, {
+	alpha: true,
+	author: 'Id Software',
+	category: AssetImgCategory.SPRITE,
+	ext: AssetExtImg.WEBP,
+	file: 'img/sprite/potted_tree.webp',
+	title: 'Potted Tree',
 	type: AssetType.IMAGE,
 });
 
@@ -383,68 +499,6 @@ assets.set(AssetId.IMG_SPRITE_TREASURE_CROWN, {
 	type: AssetType.IMAGE,
 });
 
-assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_OFF, {
-	alpha: true,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/sprite/light_ceiling_off.webp',
-	title: 'Light Ceiling Off',
-	type: AssetType.IMAGE,
-});
-
-assets.set(AssetId.IMG_SPRITE_LIGHT_CEILING_ON, {
-	alpha: true,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/sprite/light_ceiling_on.webp',
-	title: 'Light Ceiling On',
-	type: AssetType.IMAGE,
-});
-
-assets.set(AssetId.IMG_SPRITE_METAL_DOOR, {
-	alpha: false,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/wall/metal_door.webp',
-	title: 'Metal Door',
-	type: AssetType.IMAGE,
-});
-
-assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE, {
-	alpha: false,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/wall/metal_door_inside.webp',
-	hide: true,
-	title: 'Metal Door Inside',
-	type: AssetType.IMAGE,
-});
-
-assets.set(AssetId.IMG_SPRITE_METAL_DOOR_INSIDE2, {
-	alpha: false,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/wall/metal_door_inside2.webp',
-	hide: true,
-	title: 'Metal Door Inside2',
-	type: AssetType.IMAGE,
-});
-
-assets.set(AssetId.IMG_SPRITE_METAL_DOOR_LOCKED, {
-	alpha: false,
-	author: 'Id Software',
-	category: AssetImgCategory.SPRITE,
-	ext: AssetExtImg.WEBP,
-	file: 'img/wall/metal_door_locked.webp',
-	title: 'Metal Door Locked',
-	type: AssetType.IMAGE,
-});
-
 /**
  * Assets: Images - Walls
  */
@@ -469,23 +523,23 @@ assets.set(AssetId.IMG_WALL_BRICK_BLUE2, {
 	type: AssetType.IMAGE,
 });
 
-assets.set(AssetId.IMG_WALL_CELL_BLUE, {
+assets.set(AssetId.IMG_WALL_BRICK_BLUE_CELL, {
 	alpha: false,
 	author: 'Id Software',
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
-	file: 'img/wall/cell_blue.webp',
-	title: 'Cell Blue',
+	file: 'img/wall/brick_blue_cell.webp',
+	title: 'Brick Blue Cell',
 	type: AssetType.IMAGE,
 });
 
-assets.set(AssetId.IMG_WALL_CELL_BLUE_SKELETON, {
+assets.set(AssetId.IMG_WALL_BRICK_BLUE_CELL_SKELETON, {
 	alpha: false,
 	author: 'Id Software',
 	category: AssetImgCategory.WALL,
 	ext: AssetExtImg.WEBP,
-	file: 'img/wall/cell_blue_skeleton.webp',
-	title: 'Cell Blue Skeleton',
+	file: 'img/wall/brick_blue_cell_skeleton.webp',
+	title: 'Brick Blue Cell Skeleton',
 	type: AssetType.IMAGE,
 });
 
