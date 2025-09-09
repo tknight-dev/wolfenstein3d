@@ -405,9 +405,9 @@ class VideoMainEngine {
 							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
 							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
 						) {
-							asset = assets.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
+							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 						} else {
-							asset = assetsInvertHorizontal.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
+							asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 						}
 
 						// Calc
@@ -460,7 +460,7 @@ class VideoMainEngine {
 
 						if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_ROTATING) !== 0) {
 							// Asset
-							asset = assets.get(gameMapGridCell >> GameGridCellMasksAndValues.ID_SHIFT) || renderImageTest;
+							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 
 							// Calc: Position
 							y = gameMapGridIndex % gameMapGridSideLength;

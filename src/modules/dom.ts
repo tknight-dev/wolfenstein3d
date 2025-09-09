@@ -46,6 +46,13 @@ export class DOM {
 	public static elEditorPropertiesOutputAssetId: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
+	public static elInfoMenu: HTMLElement;
+	public static elInfoSettings: HTMLElement;
+	public static elLogo: HTMLElement;
+	public static elMenuContent: HTMLElement;
+	public static elSettings: HTMLElement;
+	public static elSettingsApply: HTMLElement;
+	public static elSettingsCancel: HTMLElement;
 	public static elVideo: HTMLElement;
 	public static elVideoInteractive: HTMLElement;
 	public static elVersion: HTMLAnchorElement;
@@ -130,8 +137,8 @@ export class DOM {
 		DOM.elEditorPropertiesInputExtended = <HTMLInputElement>document.getElementById('editor-extended');
 		DOM.elEditorPropertiesInputFloor = <HTMLInputElement>document.getElementById('editor-floor');
 		DOM.elEditorPropertiesInputLight = <HTMLInputElement>document.getElementById('editor-light');
-		DOM.elEditorPropertiesInputSpriteFixedH = <HTMLInputElement>document.getElementById('editor-sprite-fixed-h');
-		DOM.elEditorPropertiesInputSpriteFixedV = <HTMLInputElement>document.getElementById('editor-sprite-fixed-v');
+		DOM.elEditorPropertiesInputSpriteFixedH = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ns');
+		DOM.elEditorPropertiesInputSpriteFixedV = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ew');
 		DOM.elEditorPropertiesInputSpriteRotating = <HTMLInputElement>document.getElementById('editor-sprite-rotating');
 		DOM.elEditorPropertiesInputSpriteWall = <HTMLInputElement>document.getElementById('editor-sprite-wall');
 		DOM.elEditorPropertiesInputSpriteWallInvisible = <HTMLInputElement>document.getElementById('editor-sprite-wall-invisible');
@@ -149,6 +156,14 @@ export class DOM {
 		DOM.elEditorPropertiesOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
 		DOM.elEditorPropertiesOutputProperties = <HTMLElement>document.getElementById('editor-properties-output-properties');
 		DOM.elEditorPropertiesOutputValue = <HTMLElement>document.getElementById('editor-properties-output-value');
+
+		DOM.elInfoMenu = <HTMLElement>document.getElementById('info-menu');
+		DOM.elInfoSettings = <HTMLElement>document.getElementById('info-settings');
+		DOM.elLogo = <HTMLElement>document.getElementById('logo');
+		DOM.elMenuContent = <HTMLElement>document.getElementById('menu-content');
+		DOM.elSettings = <HTMLElement>document.getElementById('settings');
+		DOM.elSettingsApply = <HTMLElement>document.getElementById('settings-apply');
+		DOM.elSettingsCancel = <HTMLElement>document.getElementById('settings-cancel');
 
 		DOM.elVideo = <HTMLElement>document.getElementById('video');
 		DOM.elVideoInteractive = <HTMLElement>document.getElementById('video-interactive');

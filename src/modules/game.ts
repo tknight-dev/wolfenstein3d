@@ -56,10 +56,10 @@ export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static dataMap: GameMap;
 	public static dataMaps: Map<number, GameMap> = new Map();
-	public static editorAssetId: number;
+	public static editorAssetId: number = 0;
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorCellHighlightEnable: boolean;
-	public static editorCellValue: number;
+	public static editorCellValue: number = 0;
 	public static inputRequest: number;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
@@ -89,14 +89,10 @@ export class Game {
 
 		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
 			valueSprite: number =
-				valueFloor |
-				GameGridCellMasksAndValues.LIGHT |
-				GameGridCellMasksAndValues.SPRITE_ROTATING |
-				(AssetId.IMG_SPRITE_LIGHT_CEILING_ON << GameGridCellMasksAndValues.ID_SHIFT),
-			valueWall: number = GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_BRICK_BLUE << GameGridCellMasksAndValues.ID_SHIFT),
-			valueWallCell: number = GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_BRICK_BLUE_CELL << GameGridCellMasksAndValues.ID_SHIFT),
-			valueWallCellSkeleton: number =
-				GameGridCellMasksAndValues.WALL | (AssetId.IMG_WALL_BRICK_BLUE_CELL_SKELETON << GameGridCellMasksAndValues.ID_SHIFT);
+				valueFloor | GameGridCellMasksAndValues.LIGHT | GameGridCellMasksAndValues.SPRITE_ROTATING | AssetId.IMG_SPRITE_LIGHT_CEILING_ON,
+			valueWall: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE,
+			valueWallCell: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE_CELL,
+			valueWallCellSkeleton: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE_CELL_SKELETON;
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera(position.r, gridSideCenter + 0.5, gridSideCenter + 0.5, position.z);
@@ -147,16 +143,16 @@ export class Game {
 	}
 
 	private static cellApply(): void {
-		Game.editorCellValue = Game.editorAssetId << GameGridCellMasksAndValues.ID_SHIFT;
+		Game.editorCellValue = Game.editorAssetId;
 
 		DOM.elEditorPropertiesInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);
-		DOM.elEditorPropertiesInputFloor && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
-		DOM.elEditorPropertiesInputLight && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
-		DOM.elEditorPropertiesInputSpriteFixedH && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_H);
-		DOM.elEditorPropertiesInputSpriteFixedV && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_V);
-		DOM.elEditorPropertiesInputSpriteRotating && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_ROTATING);
-		DOM.elEditorPropertiesInputSpriteWall && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
-		DOM.elEditorPropertiesInputSpriteWallInvisible && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
+		DOM.elEditorPropertiesInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
+		DOM.elEditorPropertiesInputLight.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
+		DOM.elEditorPropertiesInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
+		DOM.elEditorPropertiesInputSpriteFixedV.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_EW);
+		DOM.elEditorPropertiesInputSpriteRotating.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_ROTATING);
+		DOM.elEditorPropertiesInputSpriteWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
+		DOM.elEditorPropertiesInputSpriteWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
 
 		DOM.elEditorPropertiesOutputAssetId.innerText = Game.editorAssetId.toString(16).toUpperCase().padStart(2, '0');
 		DOM.elEditorPropertiesOutputProperties.innerText = (Game.editorCellValue & ~GameGridCellMasksAndValues.ID_MASK)
@@ -265,6 +261,13 @@ export class Game {
 		};
 
 		// Editor items
+		DOM.elEditorPropertiesInputs.forEach((element: HTMLInputElement) => {
+			element.onchange = () => {
+				Game.cellApply();
+			};
+		});
+
+		// Editor items
 		DOM.elEditorItems.forEach((element: HTMLElement) => {
 			element.onclick = () => {
 				if (DOM.elEditorItemActive !== element) {
@@ -310,6 +313,28 @@ export class Game {
 					DOM.elEdit.style.backgroundColor = '#980066';
 				}
 			};
+		});
+
+		// Menu
+		DOM.elInfoMenu.onclick = () => {
+			DOM.elLogo.classList.toggle('open');
+			DOM.elMenuContent.classList.toggle('open');
+		};
+		DOM.elInfoSettings.onclick = () => {
+			DOM.elLogo.classList.remove('open');
+			DOM.elMenuContent.classList.remove('open');
+
+			DOM.elSettings.style.display = 'block';
+		};
+		DOM.elSettingsCancel.onclick = () => {
+			DOM.elSettings.style.display = 'none';
+		};
+
+		document.addEventListener('click', (event: any) => {
+			if (event.target.id !== DOM.elInfoMenu.id) {
+				DOM.elLogo.classList.remove('open');
+				DOM.elMenuContent.classList.remove('open');
+			}
 		});
 	}
 
@@ -487,7 +512,7 @@ export class Game {
 			if (cell === undefined) {
 				return;
 			}
-			const assetId: number = (cell & GameGridCellMasksAndValues.ID_MASK) >> GameGridCellMasksAndValues.ID_SHIFT;
+			const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
 			const assetIdStr: String = String(assetId);
 			let clicked: boolean = false,
 				element: HTMLElement;
@@ -514,8 +539,8 @@ export class Game {
 			DOM.elEditorPropertiesInputExtended.checked = (cell & GameGridCellMasksAndValues.EXTENDED) !== 0;
 			DOM.elEditorPropertiesInputFloor.checked = (cell & GameGridCellMasksAndValues.FLOOR) !== 0;
 			DOM.elEditorPropertiesInputLight.checked = (cell & GameGridCellMasksAndValues.LIGHT) !== 0;
-			DOM.elEditorPropertiesInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_H) !== 0;
-			DOM.elEditorPropertiesInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_V) !== 0;
+			DOM.elEditorPropertiesInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
+			DOM.elEditorPropertiesInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
 			DOM.elEditorPropertiesInputSpriteRotating.checked = (cell & GameGridCellMasksAndValues.SPRITE_ROTATING) !== 0;
 			DOM.elEditorPropertiesInputSpriteWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
 			DOM.elEditorPropertiesInputSpriteWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
@@ -819,6 +844,7 @@ export class Game {
 			DOM.elButtonPlay.classList.remove('active');
 			DOM.elCanvases[2].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
+			DOM.elEditorProperties.classList.remove('hide');
 
 			DOM.elVideoInteractive.classList.add('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
@@ -835,6 +861,7 @@ export class Game {
 			DOM.elButtonPlay.classList.add('active');
 			DOM.elCanvases[2].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
+			DOM.elEditorProperties.classList.add('hide');
 
 			// DOM: Editor
 			if (DOM.elEditorItemActive !== undefined) {

@@ -23,9 +23,8 @@
 	        			<a class="image" href="https://tknight.dev" rel="noreferrer" target="_blank"></a>
 					</div>
 					<div class="content" id="menu-content">
-						<!-- <span class="hyperlink menu" id="info-menu"></span>
-						<span class="hyperlink menu-item" id="info-rules">Rules</span>
-						<span class="hyperlink menu-item" id="info-settings">Settings</span> -->
+						<span class="hyperlink menu" id="info-menu"></span>
+						<span class="hyperlink menu-item" id="info-settings">Settings</span>
 					</div>
 				</div>
 			</div>
@@ -91,13 +90,13 @@
 											<input autocomplete="off" class="input" id="editor-light" name="editor-light" type="checkbox" />
 											<div class="title">Light</div>
 										</label>
-										<label class="item" for="editor-sprite-fixed-h">
-											<input autocomplete="off" class="input" id="editor-sprite-fixed-h" name="editor-sprite-fixed-h" type="checkbox" />
-											<div class="title">Sprite Fixed Horizontal</div>
+										<label class="item" for="editor-sprite-fixed-ns">
+											<input autocomplete="off" class="input" id="editor-sprite-fixed-ns" name="editor-sprite-fixed-ns" type="checkbox" />
+											<div class="title">Sprite Fixed North/South</div>
 										</label>
-										<label class="item" for="editor-sprite-fixed-v">
-											<input autocomplete="off" class="input" id="editor-sprite-fixed-v" name="editor-sprite-fixed-v" type="checkbox" />
-											<div class="title">Sprite Fixed Vertical</div>
+										<label class="item" for="editor-sprite-fixed-ew">
+											<input autocomplete="off" class="input" id="editor-sprite-fixed-ew" name="editor-sprite-fixed-ew" type="checkbox" />
+											<div class="title">Sprite Fixed East/West</div>
 										</label>
 										<label class="item" for="editor-sprite-rotating">
 											<input autocomplete="off" class="input" id="editor-sprite-rotating" name="editor-sprite-rotating" type="checkbox" />
@@ -118,6 +117,112 @@
 								<div class="command">&nbsp;&nbsp;&nbsp;AssetId: 0x<span id="editor-properties-output-assetid">?</span></div>
 								<div class="command">Properties: 0x<span id="editor-properties-output-properties">?</span></div>
 								<div class="command">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Value: 0x<span id="editor-properties-output-value">?</span></div>
+							</div>
+						</div>
+					</div>
+					<div class="settings" id="settings">
+						<div class="wrapper">
+							<div class="header">Settings</div>
+							<div class="body">
+								<table>
+									<tbody>
+										<tr>
+											<td>CPU: Spin Out protection</td>
+											<td><input autocomplete="off" id="settings-value-cpu-spin-out-protection" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Draw: Dead Cells</td>
+											<td><input autocomplete="off" id="settings-value-draw-dead-cells" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Draw: Grid</td>
+											<td><input autocomplete="off" id="settings-value-draw-grid" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Homeostatic: Pause on Stasis</td>
+											<td><input autocomplete="off" id="settings-value-homeostatic-pause" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>FPS</td>
+											<td>
+												<select autocomplete="off" id="settings-value-fps">
+													<option autocomplete="off" value="30">30</option>
+													<option autocomplete="off" value="40">40</option>
+													<option autocomplete="off" value="60">60</option>
+													<option autocomplete="off" value="120">120</option>
+													<option autocomplete="off" value="144">144</option>
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<td>FPS: Show</td>
+											<td><input autocomplete="off" id="settings-value-fps-show" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td><i>i/s</i></td>
+											<td><input autocomplete="off" id="settings-value-ips" max="1024" min="1" type="number" value="1" /></td>
+										</tr>
+										<tr>
+											<td>Orientation: Auto Rotate</td>
+											<td><input autocomplete="off" id="settings-value-orientation-auto-rotate" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Resolution</td>
+											<td>
+												<select autocomplete="off" id="settings-value-resolution">
+													<option autocomplete="off" value="null">Native</option>
+													<option autocomplete="off" value="160">160 by 90 (90p)</option>
+													<option autocomplete="off" value="320">320 by 180 (180p)</option>
+													<option autocomplete="off" value="640">640 by 360 (360p)</option>
+													<option autocomplete="off" value="1280">1280 by 720 (720p)</option>
+													<option autocomplete="off" value="1920">1920 by 1,080 (1080p)</option>
+													<option autocomplete="off" value="2560">2560 by 1,440 (1440p)</option>
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<td>Resolution: Scale Type</td>
+											<td>
+												<select autocomplete="off" id="settings-value-resolution-scale-type">
+											<!-- 		<option autocomplete="off" value="ANTIALIAS">Antialiased</option>
+													<option autocomplete="off" value="CRISP">Crisp</option>
+													<option autocomplete="off" value="PIXELATED">Pixelated (Chunky 8Bit)</option> -->
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<td>Seed: Random</td>
+											<td><input autocomplete="off" id="settings-value-seed-random" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Stats: Show Alive & Dead</td>
+											<td><input autocomplete="off" id="settings-value-stats-show-alive-dead" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Stats: Show Performance</td>
+											<td><input autocomplete="off" id="settings-value-stats-show-performance" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Table Size</td>
+											<td>
+												<select autocomplete="off" id="settings-value-table-size">
+													<option autocomplete="off" value="2560">2,560 by 1,440 (&le; ~15 MB)</option>
+													<option autocomplete="off" value="1920">1,920 by 1,080 (&le; ~8 MB)</option>
+													<option autocomplete="off" value="1280">1,280 by 720 (&le; ~4 MB)</option>
+													<option autocomplete="off" value="640">640 by 360 (&le; ~819 KB)</option>
+													<option autocomplete="off" value="320">320 by 180 (&le; ~230 KB)</option>
+													<option autocomplete="off" value="160">160 by 90 (&le; ~58 KB)</option>
+													<option autocomplete="off" value="80">80 by 45 (&le; ~14 KB)</option>
+													<option autocomplete="off" value="32">32 by 18 (&le; ~2 KB)</option>
+												</select>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="buttons">
+								<button class="cancel" id="settings-cancel">Cancel</button>
+								<button id="settings-apply">Apply</button>
 							</div>
 						</div>
 					</div>

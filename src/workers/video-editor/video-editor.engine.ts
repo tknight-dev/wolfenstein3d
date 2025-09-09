@@ -444,7 +444,7 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff,
 									);
 								} else {
-									assetId = value >>> GameGridCellMasksAndValues.ID_SHIFT;
+									assetId = value & GameGridCellMasksAndValues.ID_MASK;
 
 									offscreenCanvasContext.drawImage(
 										<OffscreenCanvas>cacheCanvas.get(assetId),
