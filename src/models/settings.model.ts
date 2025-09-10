@@ -11,15 +11,20 @@ export enum FPS {
 }
 
 export enum LightingQuality {
-	NONE = 0,
 	BASIC = 1,
-	FULL = 2,
+	NONE = 2,
+	FULL = 0,
+}
+
+export enum InputDevice {
+	GAMEPAD = 0,
+	KEYBOARD = 1,
 }
 
 export enum RaycastQuality {
-	FULL = 1, // ray = 1px
-	HALF = 2, // ray = 2px
-	THIRD = 3, // ray = 3px
+	FULL = 0, // ray = 1px
+	HALF = 1, // ray = 2px
+	THIRD = 2, // ray = 3px
 }
 
 export type Resolution = null | 160 | 320 | 640 | 1280 | 1920 | 2560;

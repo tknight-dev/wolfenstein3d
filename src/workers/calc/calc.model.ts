@@ -29,6 +29,7 @@ export interface CalcBusInputDataPlayerInput {
 }
 
 export interface CalcBusInputDataSettings {
+	audioWallCollisions: boolean;
 	fov: number;
 	fps: FPS;
 	player2Enable: boolean;

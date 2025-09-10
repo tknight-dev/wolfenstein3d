@@ -4,13 +4,14 @@ import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameMap } from '../models/game.model.js';
-import { Resolution } from '../models/settings.model.js';
+import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
 import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.model.js';
 import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import {
 	GamingCanvas,
+	GamingCanvasAudioType,
 	GamingCanvasConstPI,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
@@ -24,8 +25,10 @@ import {
 	GamingCanvasInputTouch,
 	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
+	GamingCanvasOptions,
 	GamingCanvasOrientation,
 	GamingCanvasReport,
+	GamingCanvasResolutionScaleType,
 	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
 import {
@@ -65,13 +68,17 @@ export class Game {
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
 	public static report: GamingCanvasReport;
 	public static reportNew: boolean;
+	public static settingAudioVolume: number;
+	public static settingAudioVolumeEffect: number;
+	public static settingAudioVolumeMusic: number;
 	public static settingDebug: boolean;
-	public static settingDPISupport: boolean;
-	public static settingFOV: number;
-	public static settingFPSDisplay: boolean;
-	public static settingPlayer1Keyboard: boolean;
-	public static settingResolution: Resolution;
+	public static settingGraphicsDPISupport: boolean;
+	public static settingGraphicsFOV: number;
+	public static settingGraphicsFPSDisplay: boolean;
+	public static settingGamePlayer2InputDevice: InputDevice;
+	public static settingGraphicsResolution: Resolution;
 	public static settingsCalc: CalcBusInputDataSettings;
+	public static settingsGamingCanvas: GamingCanvasOptions;
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
 	public static settingsVideoMain: VideoMainBusInputDataSettings;
 	public static viewport: GamingCanvasGridViewport;
@@ -315,6 +322,28 @@ export class Game {
 			};
 		});
 
+		// Fullscreen
+		DOM.elButtonFullscreen.onclick = async () => {
+			if (DOM.elButtonFullscreen.classList.contains('active') === true) {
+				await GamingCanvas.setFullscreen(false);
+			} else {
+				await GamingCanvas.setFullscreen(true, DOM.elGame);
+			}
+		};
+		GamingCanvas.setCallbackFullscreen((state: boolean) => {
+			if (state === true) {
+				DOM.elButtonFullscreen.classList.add('active');
+				DOM.elButtonFullscreen.children[0].classList.remove('fullscreen');
+
+				DOM.elButtonFullscreen.children[0].classList.add('fullscreen-exit');
+			} else {
+				DOM.elButtonFullscreen.classList.remove('active');
+				DOM.elButtonFullscreen.children[0].classList.add('fullscreen');
+
+				DOM.elButtonFullscreen.children[0].classList.remove('fullscreen-exit');
+			}
+		});
+
 		// Menu
 		DOM.elInfoMenu.onclick = () => {
 			DOM.elLogo.classList.toggle('open');
@@ -324,10 +353,8 @@ export class Game {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');
 
+			DOM.elSettingsSubGame.click();
 			DOM.elSettings.style.display = 'block';
-		};
-		DOM.elSettingsCancel.onclick = () => {
-			DOM.elSettings.style.display = 'none';
 		};
 
 		document.addEventListener('click', (event: any) => {
@@ -336,6 +363,93 @@ export class Game {
 				DOM.elMenuContent.classList.remove('open');
 			}
 		});
+
+		// Mute
+		DOM.elButtonMute.onclick = () => {
+			if (DOM.elButtonMute.classList.contains('active') === true) {
+				GamingCanvas.audioMute(true);
+				DOM.elButtonMute.classList.remove('active');
+				DOM.elButtonMute.children[0].classList.remove('volume');
+
+				DOM.elButtonMute.children[0].classList.add('volume-mute');
+			} else {
+				GamingCanvas.audioMute(false);
+				DOM.elButtonMute.classList.add('active');
+				DOM.elButtonMute.children[0].classList.add('volume');
+
+				DOM.elButtonMute.children[0].classList.remove('volume-mute');
+			}
+		};
+
+		// Settings
+		DOM.elSettingsSubAudio.onclick = () => {
+			DOM.elSettingsBodyAudio.style.display = 'block';
+			DOM.elSettingsBodyEditor.style.display = 'none';
+			DOM.elSettingsBodyGame.style.display = 'none';
+			DOM.elSettingsBodyGraphics.style.display = 'none';
+
+			DOM.elSettingsSubAudio.classList.add('active');
+			DOM.elSettingsSubEditor.classList.remove('active');
+			DOM.elSettingsSubGame.classList.remove('active');
+			DOM.elSettingsSubGraphics.classList.remove('active');
+		};
+		DOM.elSettingsValueAudioVolume.oninput = () => {
+			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolume.value), GamingCanvasAudioType.ALL);
+		};
+		DOM.elSettingsValueAudioVolumeEffect.oninput = () => {
+			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeEffect.value), GamingCanvasAudioType.EFFECT);
+		};
+		DOM.elSettingsValueAudioVolumeMusic.oninput = () => {
+			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeMusic.value), GamingCanvasAudioType.MUSIC);
+		};
+
+		DOM.elSettingsSubEditor.onclick = () => {
+			DOM.elSettingsBodyAudio.style.display = 'none';
+			DOM.elSettingsBodyEditor.style.display = 'block';
+			DOM.elSettingsBodyGame.style.display = 'none';
+			DOM.elSettingsBodyGraphics.style.display = 'none';
+
+			DOM.elSettingsSubAudio.classList.remove('active');
+			DOM.elSettingsSubEditor.classList.add('active');
+			DOM.elSettingsSubGame.classList.remove('active');
+			DOM.elSettingsSubGraphics.classList.remove('active');
+		};
+
+		DOM.elSettingsSubGame.onclick = () => {
+			DOM.elSettingsBodyAudio.style.display = 'none';
+			DOM.elSettingsBodyEditor.style.display = 'none';
+			DOM.elSettingsBodyGame.style.display = 'block';
+			DOM.elSettingsBodyGraphics.style.display = 'none';
+
+			DOM.elSettingsSubAudio.classList.remove('active');
+			DOM.elSettingsSubEditor.classList.remove('active');
+			DOM.elSettingsSubGame.classList.add('active');
+			DOM.elSettingsSubGraphics.classList.remove('active');
+		};
+
+		DOM.elSettingsSubGraphics.onclick = () => {
+			DOM.elSettingsBodyAudio.style.display = 'none';
+			DOM.elSettingsBodyEditor.style.display = 'none';
+			DOM.elSettingsBodyGame.style.display = 'none';
+			DOM.elSettingsBodyGraphics.style.display = 'block';
+
+			DOM.elSettingsSubAudio.classList.remove('active');
+			DOM.elSettingsSubEditor.classList.remove('active');
+			DOM.elSettingsSubGame.classList.remove('active');
+			DOM.elSettingsSubGraphics.classList.add('active');
+		};
+
+		DOM.elSettingsApply.onclick = () => {
+			Game.settings(true);
+
+			DOM.elSettings.style.display = 'none';
+		};
+
+		DOM.elSettingsCancel.onclick = () => {
+			Game.settings(false);
+
+			DOM.elSettings.style.display = 'none';
+		};
 	}
 
 	public static initializeGame(): void {
@@ -355,6 +469,107 @@ export class Game {
 		// Start inputs
 		Game.processorBinder();
 		Game.inputRequest = requestAnimationFrame(Game.processor);
+	}
+
+	public static initializeSettings(): void {
+		/**
+		 * Non-worker specific
+		 */
+		Game.settingAudioVolume = 1; // def: 1
+		Game.settingAudioVolumeEffect = 0.8; // def: 0.8
+		Game.settingAudioVolumeMusic = 1; // def: 1
+		Game.settingDebug = false; // def: false
+		Game.settingGraphicsDPISupport = false; // def: false
+		Game.settingGraphicsFPSDisplay = true; // def: true
+		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: true, false is gamepad (player 2 is the inverse)
+		// Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
+		Game.settingGraphicsResolution = 320;
+
+		/**
+		 * Worker specific
+		 */
+		Game.settingsCalc = {
+			audioWallCollisions: false,
+			fov: (60 * GamingCanvasConstPI) / 180, // 60 deg
+			fps: FPS._60,
+			player2Enable: false,
+			raycastQuality: RaycastQuality.FULL,
+		};
+
+		Game.settingsVideoEditor = {
+			gridDraw: true,
+			fov: Game.settingsCalc.fov,
+			fps: Game.settingsCalc.fps,
+			player2Enable: Game.settingsCalc.player2Enable,
+		};
+
+		Game.settingsVideoMain = {
+			fov: Game.settingsCalc.fov,
+			fps: Game.settingsCalc.fps,
+			gamma: 1, // 0 - 1 (def) - 2
+			grayscale: false,
+			lightingQuality: LightingQuality.NONE,
+			player2Enable: Game.settingsCalc.player2Enable,
+			raycastQuality: Game.settingsCalc.raycastQuality,
+		};
+
+		/**
+		 * URL Param
+		 */
+		const params: URLSearchParams = new URLSearchParams(document.location.search);
+		for (let [name, value] of params.entries()) {
+			switch (name.toLowerCase()) {
+				case 'debug':
+					Game.settingDebug = String(value).toLowerCase() === 'true';
+					break;
+				case 'dpi':
+					Game.settingGraphicsDPISupport = String(value).toLowerCase() === 'true';
+					break;
+				case 'fps':
+					Game.settingGraphicsFPSDisplay = String(value).toLowerCase() === 'true';
+					break;
+				case 'res':
+					if (String(value).toLowerCase() === 'null') {
+						Game.settingGraphicsResolution = null;
+					} else {
+						switch (Number(value)) {
+							case 160:
+							case 320:
+							case 640:
+							case 1280:
+							case 1920:
+							case 2560:
+								Game.settingGraphicsResolution = <Resolution>Number(value);
+								break;
+						}
+					}
+					break;
+			}
+		}
+
+		/**
+		 * GamingCanvas
+		 */
+		Game.settingsGamingCanvas = {
+			audioEnable: true,
+			canvasCount: 2,
+			canvasSplit: [1],
+			canvasSplitLandscapeVertical: true,
+			dpiSupportEnable: Game.settingGraphicsDPISupport,
+			elementInteractive: DOM.elVideoInteractive,
+			elementInjectAsOverlay: [DOM.elEdit],
+			inputGamepadEnable: true,
+			inputKeyboardEnable: true,
+			inputMouseEnable: true,
+			orientationCanvasRotateEnable: false,
+			resolutionWidthPx: Game.settingGraphicsResolution,
+			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
+		};
+
+		/**
+		 * HTML
+		 */
+		Game.settings(false);
 	}
 
 	private static processor(_: number): void {}
@@ -584,8 +799,12 @@ export class Game {
 
 		const processorGamepad = (input: GamingCanvasInputGamepad) => {
 			if (modeEdit !== true) {
-				if (Game.settingPlayer1Keyboard === true) {
-					characterPlayerInputPlayer = characterPlayerInput.player2;
+				if (Game.settingsCalc.player2Enable === true) {
+					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
+						characterPlayerInputPlayer = characterPlayerInput.player2;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player1;
+					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
 				}
@@ -606,10 +825,14 @@ export class Game {
 			down = input.propriatary.down;
 
 			if (modeEdit !== true) {
-				if (Game.settingPlayer1Keyboard === true) {
-					characterPlayerInputPlayer = characterPlayerInput.player1;
+				if (Game.settingsCalc.player2Enable === true) {
+					if (Game.settingGamePlayer2InputDevice === InputDevice.KEYBOARD) {
+						characterPlayerInputPlayer = characterPlayerInput.player2;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player1;
+					}
 				} else {
-					characterPlayerInputPlayer = characterPlayerInput.player2;
+					characterPlayerInputPlayer = characterPlayerInput.player1;
 				}
 
 				switch (input.propriatary.action.code) {
@@ -831,6 +1054,76 @@ export class Game {
 		// };
 	}
 
+	private static settings(apply: boolean): void {
+		if (apply === true) {
+			Game.settingAudioVolume = Number(DOM.elSettingsValueAudioVolume.value);
+			Game.settingAudioVolumeEffect = Number(DOM.elSettingsValueAudioVolumeEffect.value);
+			Game.settingAudioVolumeMusic = Number(DOM.elSettingsValueAudioVolumeMusic.value);
+			Game.settingGamePlayer2InputDevice = Number(DOM.elSettingsValueGamePlayer2InputDevice.value);
+			Game.settingGraphicsDPISupport = DOM.elSettingsValueGraphicsDPI.checked;
+			Game.settingGraphicsFPSDisplay = DOM.elSettingsValueGraphicsFPSShow.checked;
+
+			if (DOM.elSettingsValueGraphicsResolution.value === 'null') {
+				Game.settingGraphicsResolution = null;
+			} else {
+				Game.settingGraphicsResolution = <Resolution>Number(DOM.elSettingsValueGraphicsResolution.value);
+			}
+
+			Game.settingsCalc.audioWallCollisions = DOM.elSettingsValueAudioWallCollisions.checked;
+			Game.settingsCalc.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * Math.PI) / 180;
+			Game.settingsCalc.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
+			Game.settingsCalc.player2Enable = DOM.elSettingsValueGameMultiplayer.checked;
+			Game.settingsCalc.raycastQuality = Number(DOM.elSettingsValueGraphicsRaycastQuality.value);
+
+			Game.settingsVideoEditor.gridDraw = DOM.elSettingsValueEditorDrawGrid.checked;
+			Game.settingsVideoEditor.fov = Game.settingsCalc.fov;
+			Game.settingsVideoEditor.fps = Game.settingsCalc.fps;
+			Game.settingsVideoEditor.player2Enable = Game.settingsCalc.player2Enable;
+
+			Game.settingsVideoMain.fov = Game.settingsCalc.fov;
+			Game.settingsVideoMain.fps = Game.settingsCalc.fps;
+			Game.settingsVideoMain.gamma = Number(DOM.elSettingsValueGraphicsGamma.value);
+			Game.settingsVideoMain.grayscale = DOM.elSettingsValueGraphicsGrayscale.checked;
+			Game.settingsVideoMain.lightingQuality = Number(DOM.elSettingsValueGraphicsLightingQuality.value);
+			Game.settingsVideoMain.player2Enable = Game.settingsCalc.player2Enable;
+			Game.settingsVideoMain.raycastQuality = Game.settingsCalc.raycastQuality;
+
+			// GamingCanvas
+			Game.settingsGamingCanvas.dpiSupportEnable = Game.settingGraphicsDPISupport;
+			Game.settingsGamingCanvas.resolutionWidthPx = Game.settingGraphicsResolution;
+
+			// Send to Workers
+			CalcBus.outputSettings(Game.settingsCalc);
+			VideoEditorBus.outputSettings(Game.settingsVideoEditor);
+			VideoMainBus.outputSettings(Game.settingsVideoMain);
+		} else {
+			DOM.elSettingsValueAudioVolume.value = String(Game.settingAudioVolume);
+			DOM.elSettingsValueAudioVolumeEffect.value = String(Game.settingAudioVolumeEffect);
+			DOM.elSettingsValueAudioVolumeMusic.value = String(Game.settingAudioVolumeMusic);
+			DOM.elSettingsValueAudioWallCollisions.checked = Game.settingsCalc.audioWallCollisions;
+			DOM.elSettingsValueEditorDrawGrid.checked = Game.settingsVideoEditor.gridDraw;
+			DOM.elSettingsValueGameMultiplayer.checked = Game.settingsCalc.player2Enable;
+			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);
+			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
+			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalc.fov * 180) / Math.PI);
+			DOM.elSettingsValueGraphicsFPS.value = String(Game.settingsCalc.fps);
+			DOM.elSettingsValueGraphicsFPSShow.checked = Game.settingGraphicsFPSDisplay;
+			DOM.elSettingsValueGraphicsGamma.value = String(Game.settingsVideoMain.gamma);
+			DOM.elSettingsValueGraphicsGrayscale.checked = Game.settingsVideoMain.grayscale;
+			DOM.elSettingsValueGraphicsLightingQuality.value = String(Game.settingsVideoMain.lightingQuality);
+			DOM.elSettingsValueGraphicsRaycastQuality.value = String(Game.settingsVideoMain.raycastQuality);
+			DOM.elSettingsValueGraphicsResolution.value = String(Game.settingGraphicsResolution);
+		}
+
+		if (GamingCanvas.isInitialized() === true) {
+			GamingCanvas.audioVolumeGlobal(Game.settingAudioVolume, GamingCanvasAudioType.ALL);
+			GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeEffect, GamingCanvasAudioType.EFFECT);
+			GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
+
+			GamingCanvas.setOptions(Game.settingsGamingCanvas);
+		}
+	}
+
 	public static viewEditor(): void {
 		if (Game.modeEdit !== true) {
 			Game.modeEdit = true;
@@ -845,6 +1138,7 @@ export class Game {
 			DOM.elCanvases[2].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
 			DOM.elEditorProperties.classList.remove('hide');
+			DOM.elIconsBottom.classList.remove('hide');
 
 			DOM.elVideoInteractive.classList.add('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
@@ -862,6 +1156,7 @@ export class Game {
 			DOM.elCanvases[2].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
 			DOM.elEditorProperties.classList.add('hide');
+			DOM.elIconsBottom.classList.add('hide');
 
 			// DOM: Editor
 			if (DOM.elEditorItemActive !== undefined) {
