@@ -103,6 +103,7 @@ $main-logo-width: 152px;
 		z-index: 1;
 
 		.editor,
+		.fps,
 		.icons,
 		.settings,
 		.video,
@@ -372,6 +373,14 @@ $main-logo-width: 152px;
 					display: none;
 				}
 			}
+		}
+
+		.fps {
+			font-size: 30px;
+			font-weight: bold;
+			left: 10px;
+			top: 60px;
+			z-index: 2;
 		}
 
 		.icons {

@@ -301,6 +301,8 @@ class VideoMainEngine {
 					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
+					VideoMainEngine.offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
+
 					renderEnable = player1 === true || settingsPlayer2Enable === true;
 					renderGammaFilter = `brightness(${renderGamma})`;
 				}
@@ -402,8 +404,8 @@ class VideoMainEngine {
 
 						// Asset: images are designed to be inverted on corners
 						if (
-							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
-							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.NORTH
+							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH ||
+							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
 						) {
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 						} else {
@@ -415,26 +417,31 @@ class VideoMainEngine {
 
 						// Render: Lighting
 						if (renderLightingQuality !== LightingQuality.NONE) {
-							renderBrightness = renderGamma;
+							renderBrightness = 0;
 
 							// Filter: Start
-							if (renderLightingQuality >= LightingQuality.BASIC) {
-								// Sun from the north east
+							if (renderLightingQuality == LightingQuality.BASIC) {
 								if (
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST ||
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
 								) {
-									renderBrightness -= 0.35;
+									renderBrightness -= 0.4;
 								}
 							}
 
-							if (renderLightingQuality >= LightingQuality.FULL) {
-								renderBrightness -= Math.min(1, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+							if (renderLightingQuality == LightingQuality.FULL) {
+								renderBrightness -= Math.min(1, calculationsRays[renderRayIndex + 2] / 8); // no min is lantern light
+
+								if (
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
+									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
+								) {
+									renderBrightness -= 0.4;
+								}
 							}
 
 							// Filter: End
-							renderBrightness = Math.max(0, Math.min(2, renderBrightness));
-							offscreenCanvasContext.filter = `brightness(${renderBrightness}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+							offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
 						}
 
 						// Render: 3D Projection
@@ -446,7 +453,7 @@ class VideoMainEngine {
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 5) * settingsRaycastQuality) / 6, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-							settingsRaycastQuality + 2, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
+							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 					}

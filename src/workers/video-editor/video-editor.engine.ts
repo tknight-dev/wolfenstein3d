@@ -262,6 +262,7 @@ class VideoEditorEngine {
 			offscreenCanvasWidthPxEff: number = 0,
 			frameCount: number = 0,
 			report: GamingCanvasReport = VideoEditorEngine.report,
+			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
 			timestampDelta: number,
@@ -274,16 +275,15 @@ class VideoEditorEngine {
 		// Warm cache
 		for (assetId of assets.keys()) {
 			cacheCanvas.set(assetId, new OffscreenCanvas(1, 1));
-			cacheCanvasContext.set(
-				assetId,
-				(<OffscreenCanvas>cacheCanvas.get(assetId)).getContext('2d', {
-					alpha: false,
-					antialias: false,
-					depth: true,
-					desynchronized: true,
-					powerPreference: 'high-performance',
-				}) as OffscreenCanvasRenderingContext2D,
-			);
+			cacheCanvasContextInstance = (<OffscreenCanvas>cacheCanvas.get(assetId)).getContext('2d', {
+				alpha: false,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D;
+
+			cacheCanvasContext.set(assetId, cacheCanvasContextInstance);
 		}
 
 		const go = (timestampNow: number) => {
@@ -350,8 +350,11 @@ class VideoEditorEngine {
 					}
 
 					// Settings
+					settingsGridDraw = VideoEditorEngine.settings.gridDraw;
 					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
 					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
+
+					VideoEditorEngine.offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
 
 					// Cache
 					if (cacheCellSizePx !== calculationsViewportCellSizePx) {
@@ -378,29 +381,31 @@ class VideoEditorEngine {
 						}
 
 						// Grid: Cache
-						offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
-						offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
+						if (settingsGridDraw === true) {
+							offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
+							offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
 
-						cacheCanvasGridH.height = 1;
-						cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
-						cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
-						cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
+							cacheCanvasGridH.height = 1;
+							cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
+							cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
+							cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
 
-						cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
-						cacheCanvasGridV.width = 1;
-						cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
-						cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
+							cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
+							cacheCanvasGridV.width = 1;
+							cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
+							cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
 
-						cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
-						cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
+							cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
+							cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
 
-						// Grid: Horizontal
-						for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
-							cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
-						}
-						// Grid: Vertical
-						for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
-							cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+							// Grid: Horizontal
+							for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
+								cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
+							}
+							// Grid: Vertical
+							for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
+								cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+							}
 						}
 					}
 				}
@@ -458,11 +463,13 @@ class VideoEditorEngine {
 				}
 
 				// Draw: Map - Grid
-				offscreenCanvasContext.drawImage(
-					cacheCanvasGrid,
-					-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
-					-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
-				);
+				if (settingsGridDraw === true) {
+					offscreenCanvasContext.drawImage(
+						cacheCanvasGrid,
+						-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+						-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+					);
+				}
 
 				// Draw: Map - Remove Grid Outide of Border
 				offscreenCanvasContext.clearRect(

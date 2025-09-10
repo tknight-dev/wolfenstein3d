@@ -33,6 +33,7 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 }
 
 export interface VideoMainBusInputDataSettings {
+	antialias: boolean;
 	fov: number;
 	fps: FPS;
 	gamma: number; // 0 - 1 - 2

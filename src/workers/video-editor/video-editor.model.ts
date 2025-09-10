@@ -36,6 +36,7 @@ export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalc
 }
 
 export interface VideoEditorBusInputDataSettings {
+	antialias: boolean;
 	gridDraw: boolean;
 	fov: number;
 	fps: FPS;

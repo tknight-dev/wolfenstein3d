@@ -73,6 +73,7 @@ export class DOM {
 	public static elSettingsValueEditorDrawGrid: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
 	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
+	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
 	public static elSettingsValueGraphicsFOV: HTMLInputElement;
 	public static elSettingsValueGraphicsFPS: HTMLInputElement;
@@ -82,11 +83,12 @@ export class DOM {
 	public static elSettingsValueGraphicsLightingQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsRaycastQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsResolution: HTMLInputElement;
+	public static elStatFPS: HTMLElement;
 	public static elVideo: HTMLElement;
 	public static elVideoInteractive: HTMLElement;
 	public static elVersion: HTMLAnchorElement;
 
-	public static initializeDom(): void {
+	public static initialize(): void {
 		DOM.elButtonApply = <HTMLElement>document.getElementById('button-apply');
 		DOM.elButtonDownload = <HTMLElement>document.getElementById('button-download');
 		DOM.elButtonEdit = <HTMLElement>document.getElementById('button-edit');
@@ -214,6 +216,7 @@ export class DOM {
 		DOM.elSettingsValueEditorDrawGrid = <HTMLInputElement>document.getElementById('settings-value-editor-draw-grid');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
 		DOM.elSettingsValueGamePlayer2InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player2-input');
+		DOM.elSettingsValueGraphicsAntialias = <HTMLInputElement>document.getElementById('settings-value-graphics-antialias');
 		DOM.elSettingsValueGraphicsDPI = <HTMLInputElement>document.getElementById('settings-value-graphics-dpi');
 		DOM.elSettingsValueGraphicsFOV = <HTMLInputElement>document.getElementById('settings-value-graphics-fov');
 		DOM.elSettingsValueGraphicsFPS = <HTMLInputElement>document.getElementById('settings-value-graphics-fps');
@@ -223,6 +226,8 @@ export class DOM {
 		DOM.elSettingsValueGraphicsLightingQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-lighting');
 		DOM.elSettingsValueGraphicsRaycastQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-raycast-quality');
 		DOM.elSettingsValueGraphicsResolution = <HTMLInputElement>document.getElementById('settings-value-graphics-resolution');
+
+		DOM.elStatFPS = <HTMLElement>document.getElementById('stat-fps');
 
 		DOM.elVideo = <HTMLElement>document.getElementById('video');
 		DOM.elVideoInteractive = <HTMLElement>document.getElementById('video-interactive');
