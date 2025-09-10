@@ -1058,6 +1058,9 @@ export class Game {
 			Game.modeEditType = EditType.PAN_ZOOM;
 
 			// Video
+			setTimeout(() => {
+				Game.reportNew = true;
+			});
 			Settings.singleVideoFeedOverride(false);
 		}
 	}

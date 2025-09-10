@@ -351,7 +351,10 @@ class VideoEditorEngine {
 					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
 					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
 
-					VideoEditorEngine.offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
+					offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
+					setTimeout(() => {
+						offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
+					}, 100);
 
 					// Cache
 					if (cacheCellSizePx !== calculationsViewportCellSizePx) {

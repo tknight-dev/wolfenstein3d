@@ -300,6 +300,9 @@ class VideoMainEngine {
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
 					offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
+					setTimeout(() => {
+						offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
+					}, 100);
 
 					renderEnable = player1 === true || settingsPlayer2Enable === true;
 					renderGammaFilter = `brightness(${renderGamma})`;
