@@ -53,6 +53,7 @@ new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
 enum EditType {
 	APPLY,
+	ERASE,
 	INSPECT,
 	PAN_ZOOM,
 }
@@ -136,6 +137,7 @@ export class Game {
 
 			if (DOM.elButtonApply.classList.contains('active') !== true) {
 				DOM.elButtonApply.classList.add('active');
+				DOM.elButtonEraser.classList.remove('active');
 				DOM.elButtonInspect.classList.remove('active');
 				DOM.elButtonMove.classList.remove('active');
 
@@ -173,6 +175,27 @@ export class Game {
 			}, 250);
 		};
 
+		DOM.elButtonEraser.onclick = () => {
+			if (DOM.elButtonEye.classList.contains('active') !== true) {
+				DOM.elButtonEye.click();
+			}
+
+			if (DOM.elButtonEraser.classList.contains('active') !== true) {
+				DOM.elButtonApply.classList.remove('active');
+				DOM.elButtonEraser.classList.add('active');
+				DOM.elButtonInspect.classList.remove('active');
+				DOM.elButtonMove.classList.remove('active');
+
+				DOM.elEdit.style.background = 'transparent';
+				DOM.elEdit.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+
+				DOM.elVideoInteractive.classList.remove('cursor-grab');
+				DOM.elVideoInteractive.classList.add('cursor-pointer');
+				Game.editorCellHighlightEnable = true;
+				Game.modeEditType = EditType.ERASE;
+			}
+		};
+
 		DOM.elButtonEye.onclick = () => {
 			if (DOM.elButtonEye.classList.contains('active') === true) {
 				DOM.elButtonEye.classList.remove('active');
@@ -192,6 +215,7 @@ export class Game {
 
 			if (DOM.elButtonInspect.classList.contains('active') !== true) {
 				DOM.elButtonApply.classList.remove('active');
+				DOM.elButtonEraser.classList.remove('active');
 				DOM.elButtonInspect.classList.add('active');
 				DOM.elButtonMove.classList.remove('active');
 
@@ -651,8 +675,8 @@ export class Game {
 			}
 		}, 100);
 
-		const constDataApply = (position: GamingCanvasInputPosition) => {
-			map.grid.setBasic(GamingCanvasGridInputToCoordinate(position, viewport), Game.editorCellValue);
+		const constDataApply = (position: GamingCanvasInputPosition, erase?: boolean) => {
+			map.grid.setBasic(GamingCanvasGridInputToCoordinate(position, viewport), erase === true ? 0 : Game.editorCellValue);
 			dataUpdated = true;
 		};
 
@@ -869,10 +893,16 @@ export class Game {
 							downMode = down;
 						} else {
 							if (down === true) {
-								if (modeEditType === EditType.APPLY) {
-									constDataApply(position1);
-								} else {
-									inspect(position1);
+								switch (modeEditType) {
+									case EditType.APPLY:
+										constDataApply(position1);
+										break;
+									case EditType.ERASE:
+										constDataApply(position1, true);
+										break;
+									case EditType.INSPECT:
+										inspect(position1);
+										break;
 								}
 							}
 						}

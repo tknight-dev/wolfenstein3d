@@ -10,6 +10,7 @@ export class DOM {
 	public static elButtonApply: HTMLElement;
 	public static elButtonDownload: HTMLElement;
 	public static elButtonEdit: HTMLElement;
+	public static elButtonEraser: HTMLElement;
 	public static elButtonEye: HTMLElement;
 	public static elButtonFullscreen: HTMLElement;
 	public static elButtonInspect: HTMLElement;
@@ -97,6 +98,7 @@ export class DOM {
 		DOM.elButtonApply = <HTMLElement>document.getElementById('button-apply');
 		DOM.elButtonDownload = <HTMLElement>document.getElementById('button-download');
 		DOM.elButtonEdit = <HTMLElement>document.getElementById('button-edit');
+		DOM.elButtonEraser = <HTMLElement>document.getElementById('button-eraser');
 		DOM.elButtonEye = <HTMLElement>document.getElementById('button-eye');
 		DOM.elButtonFullscreen = <HTMLElement>document.getElementById('button-fullscreen');
 		DOM.elButtonInspect = <HTMLElement>document.getElementById('button-inspect');
