@@ -272,9 +272,21 @@ class VideoMainEngine {
 					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
 				}
 
-				if (VideoMainEngine.reportNew === true) {
-					// This isn't necessary when you are using a fixed resolution
+				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {
+					// Settings
+					((settingsFOV = VideoMainEngine.settings.fov), (settingsFPMS = 1000 / VideoMainEngine.settings.fps));
+					renderGamma = VideoMainEngine.settings.gamma;
+					renderGrayscale = VideoMainEngine.settings.grayscale;
+					renderLightingQuality = VideoMainEngine.settings.lightingQuality;
+					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
+					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
+					offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
+
+					renderEnable = player1 === true || settingsPlayer2Enable === true;
+					renderGammaFilter = `brightness(${renderGamma})`;
+
+					// Report
 					if (VideoMainEngine.settings.player2Enable === true) {
 						offscreenCanvasHeightPx = VideoMainEngine.report.canvasHeightSplit;
 						offscreenCanvasWidthPx = VideoMainEngine.report.canvasWidthSplit;
@@ -291,20 +303,6 @@ class VideoMainEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
-				}
-
-				if (VideoMainEngine.settingsNew === true) {
-					((settingsFOV = VideoMainEngine.settings.fov), (settingsFPMS = 1000 / VideoMainEngine.settings.fps));
-					renderGamma = VideoMainEngine.settings.gamma;
-					renderGrayscale = VideoMainEngine.settings.grayscale;
-					renderLightingQuality = VideoMainEngine.settings.lightingQuality;
-					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
-					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
-
-					VideoMainEngine.offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
-
-					renderEnable = player1 === true || settingsPlayer2Enable === true;
-					renderGammaFilter = `brightness(${renderGamma})`;
 				}
 
 				// Background cache

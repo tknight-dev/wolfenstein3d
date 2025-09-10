@@ -247,9 +247,17 @@ class CalcEngine {
 					cameraUpdated = true;
 				}
 
-				if (CalcEngine.reportNew) {
+				if (CalcEngine.reportNew === true || CalcEngine.settingsNew === true) {
 					CalcEngine.reportNew = false;
+					CalcEngine.settingsNew = false;
 
+					// Settings
+					cameraUpdated = true; // This or position works
+					raycastOptions.rayFOV = CalcEngine.settings.fov;
+					settingsFPMS = 1000 / CalcEngine.settings.fps;
+					settingsPlayer2Enable = CalcEngine.settings.player2Enable;
+
+					// Report
 					report = CalcEngine.report;
 					raycastOptions.rayCount = report.canvasWidth;
 
@@ -276,14 +284,6 @@ class CalcEngine {
 					cameraMode = false; // Snap back to player
 					characterPlayer1Input = CalcEngine.characterPlayerInput.player1;
 					characterPlayer2Input = CalcEngine.characterPlayerInput.player2;
-				}
-
-				if (CalcEngine.settingsNew) {
-					CalcEngine.settingsNew = false;
-
-					cameraUpdated = true; // This or position works
-					raycastOptions.rayFOV = CalcEngine.settings.fov;
-					settingsFPMS = 1000 / CalcEngine.settings.fps;
 				}
 
 				/**

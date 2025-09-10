@@ -99,7 +99,7 @@ $main-logo-width: 152px;
 	z-index: 1;
 
 	.game {
-		overflow: hidden;
+		overflow: clip;
 		z-index: 1;
 
 		.editor,

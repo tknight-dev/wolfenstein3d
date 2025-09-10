@@ -21,7 +21,7 @@ export class Settings {
 		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true
-		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: true, false is gamepad (player 2 is the inverse)
+		Game.settingGamePlayer2InputDevice = InputDevice.KEYBOARD; // def: Gamepad
 		// Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		Game.settingGraphicsResolution = 320;
 
@@ -113,6 +113,23 @@ export class Settings {
 		 * HTML
 		 */
 		Settings.set(false);
+	}
+
+	/**
+	 * Use 1 screen for editing even in multiplayer
+	 */
+	public static singleVideoFeedOverride(state: boolean): void {
+		if (state === true) {
+			Game.settingsCalc.player2Enable = false;
+			Game.settingsVideoMain.player2Enable = false;
+		} else {
+			Game.settingsCalc.player2Enable = Game.settingsVideoEditor.player2Enable;
+			Game.settingsVideoMain.player2Enable = Game.settingsVideoEditor.player2Enable;
+		}
+
+		// Send to Workers
+		CalcBus.outputSettings(Game.settingsCalc);
+		VideoMainBus.outputSettings(Game.settingsVideoMain);
 	}
 
 	public static set(apply: boolean): void {

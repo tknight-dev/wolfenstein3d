@@ -648,6 +648,10 @@ export class Game {
 
 			if (clicked === false) {
 				// Special
+				DOM.elButtonApply.click();
+				Game.editorCellHighlightEnable = true;
+				DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetIdImg)})`;
+				DOM.elEdit.style.backgroundColor = '#980066';
 			}
 
 			// Apply
@@ -849,14 +853,10 @@ export class Game {
 					if (modeEdit === true) {
 						processorMouseCellHighlight(inputOverlayPosition);
 
-						if (modeEditType === EditType.PAN_ZOOM) {
-							cameraZoomPrevious = cameraZoom;
-							cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
-							if (cameraZoom !== cameraZoomPrevious) {
-								updated = true;
-							}
-						} else {
-							processorMouseCellHighlight(inputOverlayPosition);
+						cameraZoomPrevious = cameraZoom;
+						cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
+						if (cameraZoom !== cameraZoomPrevious) {
+							updated = true;
 						}
 					}
 					break;
@@ -973,6 +973,9 @@ export class Game {
 			DOM.elVideoInteractive.classList.add('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 			Game.modeEditType = EditType.PAN_ZOOM;
+
+			// Video
+			Settings.singleVideoFeedOverride(true);
 		}
 	}
 
@@ -1000,10 +1003,8 @@ export class Game {
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 			Game.modeEditType = EditType.PAN_ZOOM;
 
-			// TMP FOR CALC WORK ON POSITION AND ROTATION
-			// DOM.elButtonEdit.classList.add('active');
-			// DOM.elButtonPlay.classList.remove('active');
-			// DOM.elCanvases[1].classList.remove('hide');
+			// Video
+			Settings.singleVideoFeedOverride(false);
 		}
 	}
 }
