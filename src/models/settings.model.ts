@@ -22,9 +22,10 @@ export enum InputDevice {
 }
 
 export enum RaycastQuality {
-	FULL = 0, // ray = 1px
-	HALF = 1, // ray = 2px
-	THIRD = 2, // ray = 3px
+	FULL = 1, // ray = 1px
+	HALF = 2, // ray = 2px
+	THIRD = 3, // ray = 3px
+	QUARTER = 4, // ray = 3px
 }
 
 export type Resolution = null | 160 | 320 | 640 | 1280 | 1920 | 2560;

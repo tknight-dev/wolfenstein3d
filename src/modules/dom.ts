@@ -1,5 +1,5 @@
 import { Assets } from './assets.js';
-import { AssetId, AssetImgCategory, AssetPropertiesAudio, AssetPropertiesImage, assets, AssetType } from '../asset-manager.js';
+import { AssetIdImg, AssetImgCategory, AssetPropertiesAudio, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
 /**
@@ -233,8 +233,8 @@ export class DOM {
 	}
 
 	public static initializeDomEditMenu(): void {
-		let assetImageData: Map<AssetId, string> = Assets.dataImage,
-			assetId: AssetId,
+		let assetImageData: Map<AssetIdImg, string> = Assets.dataImage,
+			assetId: AssetIdImg,
 			element: HTMLElement,
 			elementContainer: HTMLElement,
 			elementContent: HTMLElement,
@@ -246,8 +246,8 @@ export class DOM {
 		 * Populate Content
 		 */
 
-		for ([assetId, properties] of assets) {
-			if (properties.type !== AssetType.IMAGE || (<AssetPropertiesImage>properties).hide === true) {
+		for ([assetId, properties] of assetsImages) {
+			if ((<AssetPropertiesImage>properties).hide === true) {
 				continue;
 			}
 

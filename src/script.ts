@@ -4,13 +4,13 @@ import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from './models/settings.model.js';
-import { GamingCanvas, GamingCanvasConstPI, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
 import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { AssetIdAudio } from './asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -38,6 +38,9 @@ class Blockenstein {
 		});
 
 		GamingCanvas.audioLoad(Assets.dataAudio);
+		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolume, GamingCanvasAudioType.ALL);
+		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeEffect, GamingCanvasAudioType.EFFECT);
+		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
 	}
 
 	private static initializeWorkerCallbacks(): void {
@@ -140,9 +143,18 @@ class Blockenstein {
 
 		// Done
 		Game.initializeGame();
-		Game.viewEditor();
-		// Game.viewGame();
+		// Game.viewEditor();
+		Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
+
+		// Start the music!!
+		// let bufferId: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
+		// if (bufferId !== null) {
+		// 	GamingCanvas.audioControlPan(bufferId, 1, 5000, (bufferId: number) => {
+		// 		GamingCanvas.audioControlPan(bufferId, 0, 5000);
+		// 	});
+		// 	GamingCanvas.audioControlVolume(bufferId, 1, 5000);
+		// }
 	}
 
 	private static settingsApply(): void {

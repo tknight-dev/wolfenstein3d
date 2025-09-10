@@ -1,4 +1,4 @@
-import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
+import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
@@ -47,8 +47,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
-	private static assets: Map<AssetId, OffscreenCanvas> = new Map();
-	private static assetsInvertHorizontal: Map<AssetId, OffscreenCanvas> = new Map();
+	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
+	private static assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
@@ -66,13 +66,13 @@ class VideoMainEngine {
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,
-			assetId: AssetId,
+			assetId: AssetIdImg,
 			assetProperties: AssetPropertiesImage,
-			assetsLoaded: Map<AssetId, ImageBitmap> = <Map<AssetId, ImageBitmap>>await assetLoaderImage();
+			assetsLoaded: Map<AssetIdImg, ImageBitmap> = <Map<AssetIdImg, ImageBitmap>>await assetLoaderImage();
 
 		for ([assetId, assetData] of assetsLoaded) {
 			// Get properties
-			assetProperties = <AssetPropertiesImage>assets.get(assetId);
+			assetProperties = <AssetPropertiesImage>assetsImages.get(assetId);
 
 			// Canvas: Regular
 			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
@@ -191,8 +191,8 @@ class VideoMainEngine {
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
 		let asset: OffscreenCanvas,
-			assets: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assets,
-			assetsInvertHorizontal: Map<AssetId, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
+			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
+			assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
 			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
@@ -444,9 +444,9 @@ class VideoMainEngine {
 							0, // (y-source) Start at the bottom of the image (y pixel)
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
-							(renderRayIndex + 5) / 6 - 1, // (x-destination) Draw sliced image at pixel
+							((renderRayIndex + 5) * settingsRaycastQuality) / 6, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide
+							settingsRaycastQuality + 2, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 					}
@@ -488,7 +488,7 @@ class VideoMainEngine {
 
 							// Render: Lighting
 							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
-								offscreenCanvasContext.filter = renderFilterNone;
+								offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
 							}
 
 							// Render: 3D Projection

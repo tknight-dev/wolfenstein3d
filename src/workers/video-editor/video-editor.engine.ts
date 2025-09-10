@@ -11,7 +11,7 @@ import {
 } from './video-editor.model.js';
 import { Character } from '../../models/character.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint16Array, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
-import { assets, AssetId, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
+import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -43,7 +43,7 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoEditorEngine {
-	private static assets: Map<AssetId, OffscreenCanvas> = new Map();
+	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoEditorBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static characterPlayer1: Character;
@@ -62,13 +62,13 @@ class VideoEditorEngine {
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,
-			assetId: AssetId,
+			assetId: AssetIdImg,
 			assetProperties: AssetPropertiesImage,
-			assetsLoaded: Map<AssetId, ImageBitmap> = <Map<AssetId, ImageBitmap>>await assetLoaderImage();
+			assetsLoaded: Map<AssetIdImg, ImageBitmap> = <Map<AssetIdImg, ImageBitmap>>await assetLoaderImage();
 
 		for ([assetId, assetData] of assetsLoaded) {
 			// Get properties
-			assetProperties = <AssetPropertiesImage>assets.get(assetId);
+			assetProperties = <AssetPropertiesImage>assetsImages.get(assetId);
 
 			// Canvas: Regular
 			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
@@ -199,9 +199,9 @@ class VideoEditorEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let assetId: AssetId,
+		let assetId: AssetIdImg,
 			assetInstance: OffscreenCanvas,
-			assets: Map<AssetId, OffscreenCanvas> = VideoEditorEngine.assets,
+			assets: Map<AssetIdImg, OffscreenCanvas> = VideoEditorEngine.assets,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
 			calculationsGameMode: boolean,
 			calculationsRayOriginXPx: number,

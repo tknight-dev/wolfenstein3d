@@ -1,5 +1,5 @@
 import { Assets } from './assets.js';
-import { AssetId, AssetImgCategory, AssetPropertiesImage, assets } from '../asset-manager.js';
+import { AssetIdImg, AssetImgCategory, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
 import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
@@ -59,7 +59,7 @@ export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static dataMap: GameMap;
 	public static dataMaps: Map<number, GameMap> = new Map();
-	public static editorAssetId: number = 0;
+	public static editorAssetIdImg: number = 0;
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
@@ -96,10 +96,10 @@ export class Game {
 
 		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
 			valueSprite: number =
-				valueFloor | GameGridCellMasksAndValues.LIGHT | GameGridCellMasksAndValues.SPRITE_ROTATING | AssetId.IMG_SPRITE_LIGHT_CEILING_ON,
-			valueWall: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE,
-			valueWallCell: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE_CELL,
-			valueWallCellSkeleton: number = GameGridCellMasksAndValues.WALL | AssetId.IMG_WALL_BRICK_BLUE_CELL_SKELETON;
+				valueFloor | GameGridCellMasksAndValues.LIGHT | GameGridCellMasksAndValues.SPRITE_ROTATING | AssetIdImg.SPRITE_LIGHT_CEILING_ON,
+			valueWall: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE,
+			valueWallCell: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE_CELL,
+			valueWallCellSkeleton: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON;
 
 		// Camera and Viewport
 		Game.camera = new GamingCanvasGridCamera(position.r, gridSideCenter + 0.5, gridSideCenter + 0.5, position.z);
@@ -150,7 +150,7 @@ export class Game {
 	}
 
 	private static cellApply(): void {
-		Game.editorCellValue = Game.editorAssetId;
+		Game.editorCellValue = Game.editorAssetIdImg;
 
 		DOM.elEditorPropertiesInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);
 		DOM.elEditorPropertiesInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
@@ -161,7 +161,7 @@ export class Game {
 		DOM.elEditorPropertiesInputSpriteWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
 		DOM.elEditorPropertiesInputSpriteWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
 
-		DOM.elEditorPropertiesOutputAssetId.innerText = Game.editorAssetId.toString(16).toUpperCase().padStart(2, '0');
+		DOM.elEditorPropertiesOutputAssetId.innerText = Game.editorAssetIdImg.toString(16).toUpperCase().padStart(2, '0');
 		DOM.elEditorPropertiesOutputProperties.innerText = (Game.editorCellValue & ~GameGridCellMasksAndValues.ID_MASK)
 			.toString(16)
 			.toUpperCase()
@@ -170,7 +170,7 @@ export class Game {
 	}
 
 	private static cellClear(): void {
-		Game.editorAssetId = 0;
+		Game.editorAssetIdImg = 0;
 		Game.editorCellValue = 0;
 
 		let element: HTMLInputElement;
@@ -287,8 +287,8 @@ export class Game {
 
 					// Asset configuraiton
 					Game.cellClear();
-					Game.editorAssetId = Number(element.id);
-					Game.editorAssetProperties = <AssetPropertiesImage>assets.get(Game.editorAssetId);
+					Game.editorAssetIdImg = Number(element.id);
+					Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
 
 					switch (Game.editorAssetProperties.category) {
 						case AssetImgCategory.DOOR:
@@ -316,7 +316,7 @@ export class Game {
 
 					// Highlighter based on asset
 					Game.editorCellHighlightEnable = true;
-					DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetId)})`;
+					DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetIdImg)})`;
 					DOM.elEdit.style.backgroundColor = '#980066';
 				}
 			};
@@ -475,9 +475,9 @@ export class Game {
 		/**
 		 * Non-worker specific
 		 */
-		Game.settingAudioVolume = 1; // def: 1
-		Game.settingAudioVolumeEffect = 0.8; // def: 0.8
-		Game.settingAudioVolumeMusic = 1; // def: 1
+		Game.settingAudioVolume = 0.6; // def: 0.6
+		Game.settingAudioVolumeEffect = 0.6; // def: 0.6
+		Game.settingAudioVolumeMusic = 0.8; // def: 0.8
 		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true
@@ -508,7 +508,7 @@ export class Game {
 			fps: Game.settingsCalc.fps,
 			gamma: 1, // 0 - 1 (def) - 2
 			grayscale: false,
-			lightingQuality: LightingQuality.NONE,
+			lightingQuality: LightingQuality.BASIC,
 			player2Enable: Game.settingsCalc.player2Enable,
 			raycastQuality: Game.settingsCalc.raycastQuality,
 		};
@@ -733,8 +733,8 @@ export class Game {
 				element: HTMLElement;
 
 			// Values
-			Game.editorAssetId = assetId;
-			Game.editorAssetProperties = <AssetPropertiesImage>assets.get(Game.editorAssetId);
+			Game.editorAssetIdImg = assetId;
+			Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
 
 			// Click associated asset
 			for (element of DOM.elEditorItems) {
