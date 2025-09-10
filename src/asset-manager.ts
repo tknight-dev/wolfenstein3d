@@ -1,4 +1,6 @@
 import * as JSZip from 'jszip';
+import { GameMap } from './models/game.model.js';
+import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -151,6 +153,65 @@ export const assetLoaderImage = async (toDataURL?: boolean): Promise<Map<AssetId
 	return data;
 };
 
+export const assetLoaderMap = async (): Promise<Map<AssetIdMap, GameMap>> => {
+	let assetId: AssetIdMap,
+		data: Map<AssetIdMap, GameMap> = new Map(),
+		filename: string,
+		gameMap: GameMap,
+		properties: AssetPropertiesMap | undefined,
+		response: Response,
+		zip: JSZip;
+
+	// Load file
+	response = await fetch('./assets');
+
+	if (response.status !== 200) {
+		console.error(`assetLoaderMap: failed to find '${response.url}' with status code ${response.status}: ${response.statusText}`);
+		return data;
+	}
+
+	// Create a new reference map from file to assetId
+	const assetsByFile: { [key: string]: AssetIdMap } = {};
+	for ([assetId, properties] of assetsMaps) {
+		assetsByFile[properties.file] = assetId;
+	}
+
+	zip = <JSZip>await JSZip.loadAsync(await response.blob());
+	for (filename of Object.keys(zip.files)) {
+		assetId = assetsByFile[filename];
+
+		// File found but not defined as an asset
+		if (assetId === undefined) {
+			continue;
+		}
+
+		properties = assetsMaps.get(assetId);
+
+		// Filter
+		if (properties === undefined) {
+			continue;
+		}
+
+		try {
+			gameMap = JSON.parse(
+				atob(
+					new Uint8Array(await (<JSZip.JSZipObject>zip.file(filename)).async('arraybuffer')).reduce(
+						(acc, i) => (acc += String.fromCharCode.apply(null, [i])),
+						'',
+					),
+				),
+			);
+			gameMap.grid = GamingCanvasGridUint16Array.from(<Uint16Array>gameMap.grid.data);
+
+			data.set(assetId, gameMap);
+		} catch (error) {
+			console.error('AssetManager > map: failed to parse map', AssetIdMap[assetId]);
+		}
+	}
+
+	return data;
+};
+
 /*
  * ASSETS
  */
@@ -242,6 +303,10 @@ export enum AssetIdImg {
 	WALL_WOOD_HITLER,
 }
 
+export enum AssetIdMap {
+	EPISODE_01_LEVEL01,
+}
+
 export enum AssetImgCategory {
 	DOOR,
 	DOOR_SIDE,
@@ -272,8 +337,25 @@ export interface AssetPropertiesImage extends AssetProperties {
 	hide?: boolean;
 }
 
+export interface AssetPropertiesMap extends AssetProperties {
+	episode: number;
+	level: number;
+}
+
 export const assetsAudio: Map<AssetIdAudio, AssetPropertiesAudio> = new Map();
 export const assetsImages: Map<AssetIdImg, AssetPropertiesImage> = new Map();
+export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
+
+/**
+ * Assets: Maps
+ */
+
+assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
+	episode: 1,
+	file: 'map/episode_01_level_01.map',
+	level: 1,
+	title: 'Ammo',
+});
 
 /**
  * Assets: Audio - Effects

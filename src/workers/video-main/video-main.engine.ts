@@ -37,6 +37,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.INIT:
 			VideoMainEngine.initialize(<VideoMainBusInputDataInit>payload.data);
 			break;
+		case VideoMainBusInputCmd.MAP:
+			VideoMainEngine.inputMap(<GameMap>payload.data);
+			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -52,6 +55,7 @@ class VideoMainEngine {
 	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
+	private static gameMapNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
@@ -163,6 +167,13 @@ class VideoMainEngine {
 		VideoMainEngine.calculationsNew = true;
 	}
 
+	public static inputMap(data: GameMap): void {
+		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
+
+		VideoMainEngine.gameMap = data;
+		VideoMainEngine.gameMapNew = true;
+	}
+
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
 
@@ -270,6 +281,13 @@ class VideoMainEngine {
 					calculationsRays = VideoMainEngine.calculations.rays;
 					calculationsRaysMap = VideoMainEngine.calculations.raysMap;
 					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
+				}
+
+				if (VideoMainEngine.gameMapNew === true) {
+					VideoMainEngine.gameMapNew = false;
+
+					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
+					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
 				}
 
 				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {

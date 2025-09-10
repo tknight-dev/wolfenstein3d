@@ -16,13 +16,16 @@ import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
  */
 
 export class VideoMainBus {
-	private static callbackInitComplete: (player1: boolean, status: boolean) => void;
+	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackStats: (player1: boolean, data: VideoMainBusOutputDataStats) => void;
 	private static workerPlayer1: Worker;
+	private static workerPlayer1Good: boolean;
+	private static workerPlayer1Ready: boolean;
 	private static workerPlayer2: Worker;
+	private static workerPlayer2Good: boolean;
+	private static workerPlayer2Ready: boolean;
 
 	public static initialize(
-		camera: GamingCanvasGridCamera,
 		canvasPlayer1: HTMLCanvasElement,
 		canvasPlayer2: HTMLCanvasElement,
 		gameMap: GameMap,
@@ -60,7 +63,7 @@ export class VideoMainBus {
 			);
 
 			// Init: Player 1
-			payload.camera = camera.encode();
+			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer1;
 			payload.player1 = true;
 			VideoMainBus.workerPlayer1.postMessage(
@@ -72,7 +75,7 @@ export class VideoMainBus {
 			);
 
 			// Init: Player 2
-			payload.camera = camera.encode();
+			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer2;
 			payload.player1 = false;
 			VideoMainBus.workerPlayer2.postMessage(
@@ -84,8 +87,7 @@ export class VideoMainBus {
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');
-			VideoMainBus.callbackInitComplete(true, false);
-			VideoMainBus.callbackInitComplete(false, false);
+			VideoMainBus.callbackInitComplete(false);
 		}
 	}
 
@@ -98,7 +100,19 @@ export class VideoMainBus {
 			for (payload of payloads) {
 				switch (payload.cmd) {
 					case VideoMainBusOutputCmd.INIT_COMPLETE:
-						VideoMainBus.callbackInitComplete(player1, <boolean>payload.data);
+						if (player1 === true) {
+							VideoMainBus.workerPlayer1Good = <boolean>payload.data;
+							VideoMainBus.workerPlayer1Ready = true;
+						} else {
+							VideoMainBus.workerPlayer2Good = <boolean>payload.data;
+							VideoMainBus.workerPlayer2Ready = true;
+						}
+
+						if (VideoMainBus.workerPlayer1Ready === true && VideoMainBus.workerPlayer2Ready === true) {
+							VideoMainBus.workerPlayer1Ready = false;
+							VideoMainBus.workerPlayer2Ready = false;
+							VideoMainBus.callbackInitComplete(VideoMainBus.workerPlayer1Good && VideoMainBus.workerPlayer2Good);
+						}
 						break;
 					case VideoMainBusOutputCmd.STATS:
 						VideoMainBus.callbackStats(player1, <VideoMainBusOutputDataStats>payload.data);
@@ -120,6 +134,18 @@ export class VideoMainBus {
 			},
 			[data.camera.buffer, data.rays.buffer, data.raysMapKeysSorted.buffer],
 		);
+	}
+
+	public static outputMap(data: GameMap): void {
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.MAP,
+			data: data,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.MAP,
+			data: data,
+		});
 	}
 
 	// Non-fixed resolution canvas has changed in size

@@ -15,6 +15,7 @@
 	</head>
 
 	<body id="body">
+		<input accept=".map" class="hidden" id="file" type="file" />
 		<div class="info" id="info"></div>
 		<div class="main wrapper">
 			<div class="header-menu">
@@ -125,6 +126,8 @@
 							</div>
 						</div>
 					</div>
+					<div class="error" id="error"><span>Error</span><br /><br /></div>
+					<div class="fps" id="stat-fps"></div>
 					<div class="settings" id="settings">
 						<div class="wrapper">
 							<div class="header">Settings</div>
@@ -273,7 +276,12 @@
 							</div>
 						</div>
 					</div>
-					<div class="fps" id="stat-fps"></div>
+					<div class="spinner" id="spinner">
+						<div class="spinnet">
+							<div class="border"></div>
+							<div class="shadow"></div>
+						</div>
+					</div>
 					<div class="video" id="video"></div>
 					<div class="video-interactive" id="video-interactive"></div>
 				</div>

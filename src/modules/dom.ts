@@ -48,6 +48,8 @@ export class DOM {
 	public static elEditorPropertiesOutputAssetId: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
+	public static elError: HTMLElement;
+	public static elFile: HTMLElement;
 	public static elGame: HTMLElement;
 	public static elIconsBottom: HTMLElement;
 	public static elIconsTop: HTMLElement;
@@ -83,10 +85,13 @@ export class DOM {
 	public static elSettingsValueGraphicsLightingQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsRaycastQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsResolution: HTMLInputElement;
+	public static elSpinner: HTMLElement;
 	public static elStatFPS: HTMLElement;
 	public static elVideo: HTMLElement;
 	public static elVideoInteractive: HTMLElement;
 	public static elVersion: HTMLAnchorElement;
+	private static timeoutError: ReturnType<typeof setTimeout>;
+	private static timeoutSpinner: ReturnType<typeof setTimeout>;
 
 	public static initialize(): void {
 		DOM.elButtonApply = <HTMLElement>document.getElementById('button-apply');
@@ -190,6 +195,8 @@ export class DOM {
 		DOM.elEditorPropertiesOutputProperties = <HTMLElement>document.getElementById('editor-properties-output-properties');
 		DOM.elEditorPropertiesOutputValue = <HTMLElement>document.getElementById('editor-properties-output-value');
 
+		DOM.elError = <HTMLElement>document.getElementById('error');
+		DOM.elFile = <HTMLElement>document.getElementById('file');
 		DOM.elGame = <HTMLElement>document.getElementById('game');
 		DOM.elIconsBottom = <HTMLElement>document.getElementById('icons-bottom');
 		DOM.elIconsTop = <HTMLElement>document.getElementById('icons-top');
@@ -227,6 +234,7 @@ export class DOM {
 		DOM.elSettingsValueGraphicsRaycastQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-raycast-quality');
 		DOM.elSettingsValueGraphicsResolution = <HTMLInputElement>document.getElementById('settings-value-graphics-resolution');
 
+		DOM.elSpinner = <HTMLElement>document.getElementById('spinner');
 		DOM.elStatFPS = <HTMLElement>document.getElementById('stat-fps');
 
 		DOM.elVideo = <HTMLElement>document.getElementById('video');
@@ -286,6 +294,51 @@ export class DOM {
 			elementContentTitle.className = 'title';
 			elementContentTitle.innerText = properties.title;
 			elementContent.appendChild(elementContentTitle);
+		}
+	}
+
+	public static error() {
+		DOM.elError.style.display = 'flex';
+		setTimeout(() => {
+			DOM.elError.classList.add('show');
+
+			clearTimeout(DOM.timeoutError);
+			DOM.timeoutError = setTimeout(() => {
+				DOM.elError.classList.remove('show');
+
+				DOM.timeoutError = setTimeout(() => {
+					DOM.elError.style.display = 'none';
+				}, 1000);
+			}, 3000);
+
+			DOM.spinner(false);
+		}, 10);
+	}
+
+	public static spinner(enable: boolean) {
+		if (enable) {
+			clearTimeout(DOM.timeoutSpinner);
+
+			DOM.timeoutSpinner = setTimeout(() => {
+				if (DOM.elSpinner.style.display !== 'flex') {
+					DOM.elSpinner.classList.remove('show');
+					DOM.elSpinner.style.display = 'flex';
+
+					setTimeout(() => {
+						DOM.elSpinner.classList.add('show');
+					}, 10);
+				} else {
+					DOM.elSpinner.classList.add('show');
+				}
+			}, 100);
+		} else {
+			clearTimeout(DOM.timeoutSpinner);
+
+			DOM.elSpinner.classList.remove('show');
+
+			DOM.timeoutSpinner = setTimeout(() => {
+				DOM.elSpinner.style.display = 'none';
+			}, 1000);
 		}
 	}
 }

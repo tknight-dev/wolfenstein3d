@@ -50,9 +50,6 @@ class Blockenstein {
 		/**
 		 * Calc
 		 */
-		CalcBus.setCallbackCamera(() => {});
-		CalcBus.setCallbackCalculations(() => {});
-		CalcBus.setCallbackStats((stats: CalcBusOutputDataStats) => {});
 
 		/**
 		 * GamingCanvas
@@ -93,14 +90,9 @@ class Blockenstein {
 	}
 
 	private static initializeWorkers(): Promise<void> {
-		let camera: GamingCanvasGridCamera = Game.camera,
-			gameMap: GameMap = <GameMap>Game.dataMaps.get(0),
+		let gameMap: GameMap = Game.map,
 			then: number = performance.now(),
 			viewport: GamingCanvasGridViewport = Game.viewport;
-
-		// Camera to viewport
-		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-		Game.viewport.apply(Game.camera, false);
 
 		return new Promise<void>((resolve: any) => {
 			CalcBus.initialize(Game.settingsCalc, gameMap, () => {
@@ -109,13 +101,13 @@ class Blockenstein {
 
 				// Load video-editor
 				then = performance.now();
-				VideoEditorBus.initialize(camera, GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
+				VideoEditorBus.initialize(GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
 					// Done
 					console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoMainBus.initialize(camera, GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
+					VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
 						// Done
 						console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
 
@@ -157,6 +149,11 @@ class Blockenstein {
 		Blockenstein.initializeGamingCanvas();
 
 		/**
+		 * Game
+		 */
+		Game.initialize();
+
+		/**
 		 * WebWorkers
 		 */
 		Blockenstein.initializeWorkerCallbacks();
@@ -168,9 +165,8 @@ class Blockenstein {
 		Blockenstein.settingsApply();
 
 		// Done
-		Game.initialize();
-		// Game.viewEditor();
-		Game.viewGame();
+		Game.viewEditor();
+		// Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 
 		// Start the music!!

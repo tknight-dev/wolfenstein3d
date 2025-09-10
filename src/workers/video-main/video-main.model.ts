@@ -13,6 +13,7 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
 export enum VideoMainBusInputCmd {
 	CALCULATIONS,
 	INIT,
+	MAP,
 	REPORT,
 	SETTINGS,
 }
@@ -45,7 +46,7 @@ export interface VideoMainBusInputDataSettings {
 
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
-	data: Float64Array | GamingCanvasReport | VideoMainBusInputDataCalculations | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
+	data: Float64Array | GameMap | GamingCanvasReport | VideoMainBusInputDataCalculations | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
 }
 
 /*

@@ -1,5 +1,5 @@
 import { Assets } from './assets.js';
-import { AssetIdImg, AssetImgCategory, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
+import { AssetIdImg, AssetIdMap, AssetImgCategory, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
 import { Settings } from './settings.js';
 import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
@@ -21,6 +21,7 @@ import {
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
 	GamingCanvasInputPosition,
+	GamingCanvasInputPositionBasic,
 	GamingCanvasInputPositionClone,
 	GamingCanvasInputPositionDistance,
 	GamingCanvasInputTouch,
@@ -58,13 +59,13 @@ enum EditType {
 
 export class Game {
 	public static camera: GamingCanvasGridCamera;
-	public static dataMap: GameMap;
-	public static dataMaps: Map<number, GameMap> = new Map();
 	public static editorAssetIdImg: number = 0;
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static inputRequest: number;
+	public static map: GameMap;
+	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
 	public static report: GamingCanvasReport;
@@ -83,72 +84,6 @@ export class Game {
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
 	public static settingsVideoMain: VideoMainBusInputDataSettings;
 	public static viewport: GamingCanvasGridViewport;
-
-	static {
-		const grid: GamingCanvasGridUint16Array = new GamingCanvasGridUint16Array(192),
-			gridSideCenter: number = grid.sideLength / 2,
-			gridSideLength: number = grid.sideLength,
-			position: GamingCanvasGridICamera = {
-				r: (180.0001 * GamingCanvasConstPI) / 180, // .0001 fixes initial render glitch idk
-				x: gridSideCenter,
-				y: gridSideCenter,
-				z: 2.5,
-			};
-
-		const valueFloor: number = GameGridCellMasksAndValues.FLOOR,
-			valueSprite: number =
-				valueFloor | GameGridCellMasksAndValues.LIGHT | GameGridCellMasksAndValues.SPRITE_ROTATING | AssetIdImg.SPRITE_LIGHT_CEILING_ON,
-			valueWall: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE,
-			valueWallCell: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE_CELL,
-			valueWallCellSkeleton: number = GameGridCellMasksAndValues.WALL | AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON;
-
-		// Camera and Viewport
-		Game.camera = new GamingCanvasGridCamera(position.r, gridSideCenter + 0.5, gridSideCenter + 0.5, position.z);
-		Game.viewport = new GamingCanvasGridViewport(gridSideLength);
-
-		// Walls
-		let boxSize: number = 4;
-		for (let x = -boxSize; x <= boxSize; x++) {
-			for (let y = -boxSize; y <= boxSize; y++) {
-				grid.set(x + gridSideCenter, y + gridSideCenter, valueWall);
-			}
-		}
-
-		// Floors
-		boxSize = 3;
-		for (let x = -boxSize; x <= boxSize; x++) {
-			for (let y = -boxSize; y <= boxSize; y++) {
-				grid.set(x + gridSideCenter, y + gridSideCenter, valueFloor);
-			}
-		}
-
-		grid.set(gridSideCenter - 1, gridSideCenter + 3, valueSprite); // Bottom-Left
-		grid.set(gridSideCenter + 1, gridSideCenter + 3, valueSprite); // Bottom-Right
-		grid.set(gridSideCenter - 1, gridSideCenter - 3, valueSprite); // Top-Left
-		grid.set(gridSideCenter + 1, gridSideCenter - 3, valueSprite); // Top-Right
-
-		grid.set(gridSideCenter - 1, gridSideCenter + 1, valueSprite); // Bottom-Left
-		grid.set(gridSideCenter + 1, gridSideCenter + 1, valueSprite); // Bottom-Right
-		grid.set(gridSideCenter - 1, gridSideCenter - 1, valueSprite); // Top-Left
-		grid.set(gridSideCenter + 1, gridSideCenter - 1, valueSprite); // Top-Right
-
-		grid.set(gridSideCenter - 1, gridSideCenter - 2, valueWall); // Top-Left
-		grid.set(gridSideCenter + 1, gridSideCenter - 2, valueWall); // Top-Right
-		grid.set(gridSideCenter - 1, gridSideCenter + 2, valueWall); // Bottom-Left
-		grid.set(gridSideCenter + 1, gridSideCenter + 2, valueWall); // Bottom-Right
-
-		grid.set(gridSideCenter, gridSideCenter + 4, valueFloor); // Bottom-Center
-		grid.set(gridSideCenter, gridSideCenter + 5, valueWallCellSkeleton); // Bottom-Center
-		grid.set(gridSideCenter, gridSideCenter - 4, valueFloor); // Top-Center
-		grid.set(gridSideCenter, gridSideCenter - 5, valueWallCell); // Top-Center
-
-		Game.dataMap = {
-			grid: grid,
-			gridExtended: new Map(),
-			position: position,
-		};
-		Game.dataMaps.set(0, Game.dataMap);
-	}
 
 	private static cellApply(): void {
 		Game.editorCellValue = Game.editorAssetIdImg;
@@ -214,6 +149,30 @@ export class Game {
 			}
 		};
 
+		DOM.elButtonDownload.onclick = () => {
+			DOM.elButtonDownload.classList.add('active');
+			DOM.spinner(true);
+
+			setTimeout(() => {
+				const a: HTMLAnchorElement = document.createElement('a'),
+					downloadData = 'data:text/json;charset=utf-8,' + btoa(JSON.stringify(Game.map));
+
+				a.classList.add('hidden');
+				a.download = 'blockenstein.map';
+				a.href = downloadData;
+
+				// Download
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+
+				setTimeout(() => {
+					DOM.elButtonDownload.classList.remove('active');
+					DOM.spinner(false);
+				}, 250);
+			}, 250);
+		};
+
 		DOM.elButtonEye.onclick = () => {
 			if (DOM.elButtonEye.classList.contains('active') === true) {
 				DOM.elButtonEye.classList.remove('active');
@@ -266,6 +225,56 @@ export class Game {
 				Game.editorCellHighlightEnable = false;
 				Game.modeEditType = EditType.PAN_ZOOM;
 			}
+		};
+
+		DOM.elButtonUpload.onclick = () => {
+			DOM.elFile.oncancel = () => {
+				DOM.elButtonUpload.classList.remove('active');
+			};
+			DOM.elFile.onchange = (data: any) => {
+				if (data.target.files.length === 0) {
+					DOM.elButtonUpload.classList.remove('active');
+					return;
+				}
+				DOM.spinner(true);
+
+				setTimeout(() => {
+					const fileReader: FileReader = new FileReader();
+
+					fileReader.onloadend = () => {
+						try {
+							const parsed: GameMap = JSON.parse(atob(<string>fileReader.result));
+							parsed.grid = GamingCanvasGridUint16Array.from(<Uint16Array>parsed.grid.data);
+
+							// Adjust
+							Game.camera.r = parsed.position.r;
+							Game.camera.x = parsed.position.x + 0.5;
+							Game.camera.y = parsed.position.y + 0.5;
+							Game.camera.z = parsed.position.z;
+							Game.map = parsed;
+
+							// Done
+							Game.mapNew = true;
+
+							CalcBus.outputMap(parsed);
+							VideoEditorBus.outputMap(parsed);
+							VideoMainBus.outputMap(parsed);
+						} catch (error) {
+							console.error('upload failed with', error);
+
+							DOM.error();
+						}
+
+						setTimeout(() => {
+							DOM.elButtonUpload.classList.remove('active');
+							DOM.spinner(false);
+						}, 250);
+					};
+					fileReader.readAsBinaryString(data.target.files[0]);
+				}, 250);
+			};
+			DOM.elButtonUpload.classList.add('active');
+			DOM.elFile.click();
 		};
 
 		// Editor items
@@ -457,8 +466,17 @@ export class Game {
 		// Integrations
 		Game.report = GamingCanvas.getReport();
 
+		// GameMap
+		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+
+		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+
+		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+		Game.viewport.apply(Game.camera, false);
+
+		// Report
 		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
-			Game.camera.z = -1;
 			Game.report = report;
 			Game.reportNew = true;
 
@@ -482,7 +500,7 @@ export class Game {
 			cameraMoveYOriginal: number = 0,
 			cameraXOriginal: number = 0,
 			cameraYOriginal: number = 0,
-			cameraZoom: number = camera.z,
+			cameraZoom: number = Game.camera.z,
 			cameraZoomMax: number = 15,
 			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
@@ -500,11 +518,12 @@ export class Game {
 				},
 			},
 			characterPlayerInputPlayer: GamingCanvasGridCharacterInput,
+			dataUpdated: boolean,
 			down: boolean,
 			downMode: boolean,
 			downModeWheel: boolean,
 			elEditStyle: CSSStyleDeclaration = DOM.elEdit.style,
-			gameMap: GameMap = <GameMap>Game.dataMaps.get(0),
+			map: GameMap = Game.map,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
@@ -515,7 +534,7 @@ export class Game {
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
 			updated: boolean,
-			updatedR: boolean,
+			updatedR: boolean = true,
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Camera Mode
@@ -548,7 +567,7 @@ export class Game {
 		CalcBus.setCallbackCalculations((data: CalcBusOutputDataCalculations) => {
 			if (data.characterPlayer1Camera) {
 				camera.decode(data.characterPlayer1Camera);
-				camera.z = gameMap.position.z;
+				camera.z = map.position.z;
 
 				if (cameraZoom !== camera.z) {
 					cameraZoom = camera.z;
@@ -592,9 +611,9 @@ export class Game {
 			}
 		});
 
-		// Limit how often a camera update can be sent via the bus
+		// Camera
 		setInterval(() => {
-			if (updated || updatedR || Game.reportNew) {
+			if (updated === true || updatedR === true || Game.reportNew === true) {
 				report = Game.report;
 
 				if (modeEdit === true) {
@@ -621,8 +640,24 @@ export class Game {
 			}
 		}, inputLimitPerMs);
 
+		// Data
+		setInterval(() => {
+			if (dataUpdated === true) {
+				dataUpdated = false;
+
+				CalcBus.outputMap(map);
+				VideoEditorBus.outputMap(map);
+				VideoMainBus.outputMap(map);
+			}
+		}, 100);
+
+		const constDataApply = (position: GamingCanvasInputPosition) => {
+			map.grid.setBasic(GamingCanvasGridInputToCoordinate(position, viewport), Game.editorCellValue);
+			dataUpdated = true;
+		};
+
 		const inspect = (position: GamingCanvasInputPosition) => {
-			const cell: number | undefined = Game.dataMap.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
+			const cell: number | undefined = map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
 
 			if (cell === undefined) {
 				return;
@@ -675,6 +710,25 @@ export class Game {
 				// Update temporary values
 				modeEdit = Game.modeEdit;
 				modeEditType = Game.modeEditType;
+
+				if (Game.mapNew === true) {
+					Game.mapNew = false;
+
+					camera = Game.camera;
+					cameraZoom = camera.z;
+					characterPlayerInput.player1.r = 0;
+					characterPlayerInput.player1.x = 0;
+					characterPlayerInput.player1.y = 0;
+					characterPlayerInput.player2.r = 0;
+					characterPlayerInput.player2.x = 0;
+					characterPlayerInput.player2.y = 0;
+					dataUpdated = false;
+					map = Game.map;
+					updated = false;
+					updatedR = true;
+
+					Game.reportNew = true;
+				}
 
 				while (queue.length !== 0) {
 					queueInput = <GamingCanvasInput>queue.pop();
@@ -816,7 +870,7 @@ export class Game {
 						} else {
 							if (down === true) {
 								if (modeEditType === EditType.APPLY) {
-									console.log('CLICK');
+									constDataApply(position1);
 								} else {
 									inspect(position1);
 								}

@@ -21,8 +21,8 @@ export class Settings {
 		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true
-		Game.settingGamePlayer2InputDevice = InputDevice.KEYBOARD; // def: Gamepad
-		// Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
+		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
+		Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		Game.settingGraphicsResolution = 320;
 
 		/**

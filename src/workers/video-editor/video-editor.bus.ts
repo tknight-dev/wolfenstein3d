@@ -20,7 +20,6 @@ export class VideoEditorBus {
 	private static worker: Worker;
 
 	public static initialize(
-		camera: GamingCanvasGridCamera,
 		canvas: HTMLCanvasElement,
 		gameMap: GameMap,
 		settings: VideoEditorBusInputDataSettings,
@@ -40,7 +39,7 @@ export class VideoEditorBus {
 			VideoEditorBus.input();
 
 			// Init the webworker
-			const cameraEncoded: Float64Array = camera.encode();
+			const cameraEncoded: Float64Array = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			const viewportEncoded: Float64Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
@@ -114,9 +113,9 @@ export class VideoEditorBus {
 		}
 	}
 
-	public static outputDataSegment(data: Map<number, number>): void {
+	public static outputMap(data: GameMap): void {
 		VideoEditorBus.worker.postMessage({
-			cmd: VideoEditorBusInputCmd.DATA_SEGMENT,
+			cmd: VideoEditorBusInputCmd.MAP,
 			data: data,
 		});
 	}

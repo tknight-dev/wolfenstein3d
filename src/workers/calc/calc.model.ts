@@ -14,6 +14,7 @@ export enum CalcBusInputCmd {
 	CAMERA,
 	CHARACTER_INPUT,
 	INIT,
+	MAP,
 	REPORT,
 	SETTINGS,
 }
@@ -38,7 +39,14 @@ export interface CalcBusInputDataSettings {
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float64Array | GamingCanvasGridCharacterInput | GamingCanvasReport;
+	data:
+		| CalcBusInputDataInit
+		| CalcBusInputDataPlayerInput
+		| CalcBusInputDataSettings
+		| Float64Array
+		| GameMap
+		| GamingCanvasGridCharacterInput
+		| GamingCanvasReport;
 }
 
 /*

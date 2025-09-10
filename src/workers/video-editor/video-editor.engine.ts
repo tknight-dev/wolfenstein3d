@@ -27,11 +27,11 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoEditorBusInputCmd.CALCULATIONS:
 			VideoEditorEngine.inputCalculations(<VideoEditorBusInputDataCalculations>payload.data);
 			break;
-		case VideoEditorBusInputCmd.DATA_SEGMENT:
-			VideoEditorEngine.inputDataSegment(<Map<number, number>>payload.data);
-			break;
 		case VideoEditorBusInputCmd.INIT:
 			VideoEditorEngine.initialize(<VideoEditorBusInputDataInit>payload.data);
+			break;
+		case VideoEditorBusInputCmd.MAP:
+			VideoEditorEngine.inputMap(<GameMap>payload.data);
 			break;
 		case VideoEditorBusInputCmd.REPORT:
 			VideoEditorEngine.inputReport(<GamingCanvasReport>payload.data);
@@ -49,6 +49,7 @@ class VideoEditorEngine {
 	private static characterPlayer1: Character;
 	private static characterPlayer2: Character;
 	private static gameMap: GameMap;
+	private static gameMapNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static report: GamingCanvasReport;
@@ -164,12 +165,11 @@ class VideoEditorEngine {
 		VideoEditorEngine.calculationsNew = true;
 	}
 
-	public static inputDataSegment(data: Map<number, number>): void {
-		let index: number, value: number;
+	public static inputMap(data: GameMap): void {
+		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
 
-		for ([index, value] of data) {
-			VideoEditorEngine.gameMap.grid.data[index] = value;
-		}
+		VideoEditorEngine.gameMap = data;
+		VideoEditorEngine.gameMapNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -204,9 +204,6 @@ class VideoEditorEngine {
 			assets: Map<AssetIdImg, OffscreenCanvas> = VideoEditorEngine.assets,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
 			calculationsGameMode: boolean,
-			calculationsRayOriginXPx: number,
-			calculationsRayOriginYPx: number,
-			calculationsRays: Float64Array,
 			calculationsViewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calculations.viewport),
 			calculationsViewportCellSizePx: number,
 			calculationsViewportCellSizePxEff: number,
@@ -227,7 +224,6 @@ class VideoEditorEngine {
 				powerPreference: 'high-performance',
 				preserveDrawingBuffer: true,
 			},
-			cacheCanvasInstance: OffscreenCanvas,
 			cacheCanvasGrid: OffscreenCanvas = new OffscreenCanvas(1, 1),
 			cacheCanvasGridContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>cacheCanvasGrid.getContext('2d', {
 				...cacheCanvasContextOptionsNoAlpha,
@@ -250,7 +246,6 @@ class VideoEditorEngine {
 			characterPlayer2: Character = VideoEditorEngine.characterPlayer2,
 			characterPlayer2XEff: number,
 			characterPlayer2YEff: number,
-			gameMapGrid: GamingCanvasGridUint16Array = VideoEditorEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
 			i: number,
@@ -297,6 +292,13 @@ class VideoEditorEngine {
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
 				frameCount++;
 
+				if (VideoEditorEngine.gameMapNew === true) {
+					VideoEditorEngine.gameMapNew = false;
+
+					gameMapGridData = VideoEditorEngine.gameMap.grid.data;
+					gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
+				}
+
 				if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
 					VideoEditorEngine.reportNew = false;
 					VideoEditorEngine.settingsNew = false;
@@ -315,9 +317,6 @@ class VideoEditorEngine {
 						if (VideoEditorEngine.calculations.player2Camera !== undefined) {
 							(<GamingCanvasGridCamera>characterPlayer2.camera).decode(VideoEditorEngine.calculations.player2Camera);
 						}
-						if (VideoEditorEngine.calculations.rays !== undefined) {
-							calculationsRays = VideoEditorEngine.calculations.rays;
-						}
 
 						// if (calculationsGameMode === true) {
 						// 	characterPlayer1.camera.r = calculationsCamera.r;
@@ -335,8 +334,6 @@ class VideoEditorEngine {
 						characterPlayer1YEff = characterPlayer1.camera.y - calculationsViewportHeightStart;
 						characterPlayer2XEff = characterPlayer2.camera.x - calculationsViewportWidthStart;
 						characterPlayer2YEff = characterPlayer2.camera.y - calculationsViewportHeightStart;
-						calculationsRayOriginXPx = (calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx;
-						calculationsRayOriginYPx = (calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx;
 					}
 
 					// Report
@@ -496,38 +493,6 @@ class VideoEditorEngine {
 					gameMapGridSideLength * calculationsViewportCellSizePx,
 					gameMapGridSideLength * calculationsViewportCellSizePx,
 				);
-
-				// Draw: Cells
-				// if (cells !== undefined) {
-				// 	for (i = 0; i < cells.length; i++) {
-				// 		x = (cells[i] / gameMapGridSideLength) | 0;
-				// 		y = cells[i] % gameMapGridSideLength;
-
-				// 		offscreenCanvasContext.fillStyle = 'rgb(192, 192, 192)';
-				// 		offscreenCanvasContext.fillRect(
-				// 			cellSizePx * (x - viewport.widthStart),
-				// 			cellSizePx * (y - viewport.heightStart),
-				// 			cellSizePx,
-				// 			cellSizePx,
-				// 		);
-				// 	}
-				// }
-
-				// Draw: Rays
-				// if (calculationsRays !== undefined) {
-				// 	offscreenCanvasContext.lineWidth = 2;
-				// 	for (i = 0; i < calculationsRays.length; i += 4) {
-				// 		offscreenCanvasContext.strokeStyle = 'yellow';
-				// 		offscreenCanvasContext.beginPath();
-				// 		offscreenCanvasContext.moveTo(calculationsRayOriginXPx, calculationsRayOriginYPx); // Origin
-				// 		offscreenCanvasContext.lineTo(
-				// 			calculationsViewportCellSizePx * (calculationsRays[i] - calculationsViewportWidthStart),
-				// 			calculationsViewportCellSizePx * (calculationsRays[i + 1] - calculationsViewportHeightStart),
-				// 		);
-				// 		offscreenCanvasContext.closePath();
-				// 		offscreenCanvasContext.stroke();
-				// 	}
-				// }
 
 				// Draw: Player1 Direction
 				offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;

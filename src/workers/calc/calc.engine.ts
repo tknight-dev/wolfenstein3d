@@ -44,6 +44,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcBusInputCmd.CHARACTER_INPUT:
 			CalcEngine.inputCharacterInput(<CalcBusInputDataPlayerInput>payload.data);
 			break;
+		case CalcBusInputCmd.MAP:
+			CalcEngine.inputMap(<GameMap>payload.data);
+			break;
 		case CalcBusInputCmd.INIT:
 			CalcEngine.initialize(<CalcBusInputDataInit>payload.data);
 			break;
@@ -64,6 +67,7 @@ class CalcEngine {
 	private static characterPlayer1: Character;
 	private static characterPlayer2: Character;
 	private static gameMap: GameMap;
+	private static gameMapNew: boolean;
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
@@ -130,6 +134,13 @@ class CalcEngine {
 	public static inputCharacterInput(data: CalcBusInputDataPlayerInput): void {
 		CalcEngine.characterPlayerInput = data;
 		CalcEngine.characterPlayerInputNew = true;
+	}
+
+	public static inputMap(data: GameMap): void {
+		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
+
+		CalcEngine.gameMap = data;
+		CalcEngine.gameMapNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -244,6 +255,14 @@ class CalcEngine {
 
 					camera = GamingCanvasGridCamera.from(CalcEngine.camera);
 					cameraMode = true; // Snap back to camera
+					cameraUpdated = true;
+				}
+
+				if (CalcEngine.gameMapNew === true) {
+					CalcEngine.gameMapNew = false;
+
+					gameMapGrid = CalcEngine.gameMap.grid;
+
 					cameraUpdated = true;
 				}
 
@@ -372,6 +391,10 @@ class CalcEngine {
 			if (timestampFPSDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
 				timestampFPSThen = timestampNow - (timestampFPSDelta % settingsFPMS);
+
+				// if (characterPlayer1RaycastRays !== undefined) {
+				// 	console.log('rays', characterPlayer1RaycastRays.length / 6, (characterPlayer1RaycastDistanceMapKeysSorted || []).length);
+				// }
 
 				if (cameraMode === true) {
 					if (characterPlayer1RaycastRays !== undefined) {

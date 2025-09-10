@@ -99,6 +99,13 @@ export class CalcBus {
 		});
 	}
 
+	public static outputMap(data: GameMap): void {
+		CalcBus.worker.postMessage({
+			cmd: CalcBusInputCmd.MAP,
+			data: data,
+		});
+	}
+
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {
 		CalcBus.worker.postMessage({
