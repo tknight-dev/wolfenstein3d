@@ -50,7 +50,7 @@ export class Settings {
 			fps: Game.settingsCalc.fps,
 			gamma: 1, // 0 - 1 (def) - 2
 			grayscale: false,
-			lightingQuality: LightingQuality.FULL,
+			lightingQuality: LightingQuality.BASIC,
 			player2Enable: Game.settingsCalc.player2Enable,
 			raycastQuality: Game.settingsCalc.raycastQuality,
 		};
