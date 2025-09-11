@@ -21,6 +21,10 @@ export class DOM {
 	public static elCanvases: HTMLCanvasElement[];
 	public static elEdit: HTMLElement;
 	public static elEditor: HTMLElement;
+	public static elEditorCommandToggleFloor: HTMLElement;
+	public static elEditorCommandToggleMeta: HTMLElement;
+	public static elEditorCommandTogglePickups: HTMLElement;
+	public static elEditorCommandToggleSprites: HTMLElement;
 	public static elEditorContainer: HTMLElement;
 	public static elEditorContainerPickups: HTMLElement;
 	public static elEditorContainerPickupsContent: HTMLElement;
@@ -47,6 +51,7 @@ export class DOM {
 	public static elEditorPropertiesInputSpriteWall: HTMLInputElement;
 	public static elEditorPropertiesInputSpriteWallInvisible: HTMLInputElement;
 	public static elEditorPropertiesOutputAssetId: HTMLElement;
+	public static elEditorPropertiesOutputPosition: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
 	public static elError: HTMLElement;
@@ -58,6 +63,13 @@ export class DOM {
 	public static elInfoSettings: HTMLElement;
 	public static elLogo: HTMLElement;
 	public static elMenuContent: HTMLElement;
+	public static elMetaMap: HTMLElement;
+	public static elMetaMapApply: HTMLElement;
+	public static elMetaMapCancel: HTMLElement;
+	public static elMetaMapLocation: HTMLElement;
+	public static elMetaMapValueStartingPositionR: HTMLInputElement;
+	public static elMetaMapValueStartingPositionX: HTMLInputElement;
+	public static elMetaMapValueStartingPositionY: HTMLInputElement;
 	public static elSettings: HTMLElement;
 	public static elSettingsApply: HTMLElement;
 	public static elSettingsBodyAudio: HTMLElement;
@@ -112,6 +124,10 @@ export class DOM {
 		DOM.elEdit.id = 'edit';
 
 		DOM.elEditor = <HTMLElement>document.getElementById('editor');
+		DOM.elEditorCommandToggleFloor = <HTMLElement>document.getElementById('editor-command-toggle-floor');
+		DOM.elEditorCommandToggleMeta = <HTMLElement>document.getElementById('editor-command-toggle-meta');
+		DOM.elEditorCommandTogglePickups = <HTMLElement>document.getElementById('editor-command-toggle-pickups');
+		DOM.elEditorCommandToggleSprites = <HTMLElement>document.getElementById('editor-command-toggle-sprites');
 		DOM.elEditorContainer = <HTMLElement>document.getElementById('editor-container');
 		DOM.elEditorContainerPickups = <HTMLElement>document.getElementById('editor-container-pickups');
 		DOM.elEditorContainerPickupsContent = <HTMLElement>document.getElementById('editor-container-pickups-content');
@@ -194,6 +210,7 @@ export class DOM {
 		];
 
 		DOM.elEditorPropertiesOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
+		DOM.elEditorPropertiesOutputPosition = <HTMLElement>document.getElementById('editor-properties-output-position');
 		DOM.elEditorPropertiesOutputProperties = <HTMLElement>document.getElementById('editor-properties-output-properties');
 		DOM.elEditorPropertiesOutputValue = <HTMLElement>document.getElementById('editor-properties-output-value');
 
@@ -206,6 +223,15 @@ export class DOM {
 		DOM.elInfoSettings = <HTMLElement>document.getElementById('info-settings');
 		DOM.elLogo = <HTMLElement>document.getElementById('logo');
 		DOM.elMenuContent = <HTMLElement>document.getElementById('menu-content');
+
+		DOM.elMetaMap = <HTMLElement>document.getElementById('meta-map');
+		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
+		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
+		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
+		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
+		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
+		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
+
 		DOM.elSettings = <HTMLElement>document.getElementById('settings');
 		DOM.elSettingsApply = <HTMLElement>document.getElementById('settings-apply');
 		DOM.elSettingsBodyAudio = <HTMLElement>document.getElementById('settings-body-audio');

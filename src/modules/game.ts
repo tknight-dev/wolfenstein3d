@@ -24,6 +24,7 @@ import {
 	GamingCanvasInputPositionBasic,
 	GamingCanvasInputPositionClone,
 	GamingCanvasInputPositionDistance,
+	GamingCanvasInputPositionOverlay,
 	GamingCanvasInputTouch,
 	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
@@ -69,6 +70,8 @@ export class Game {
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
+	public static position: GamingCanvasInputPositionBasic;
+	public static positionCellHighlight: GamingCanvasInputPositionOverlay;
 	public static report: GamingCanvasReport;
 	public static reportNew: boolean;
 	public static settingAudioVolume: number;
@@ -301,6 +304,18 @@ export class Game {
 			DOM.elFile.click();
 		};
 
+		// Editor commands
+		DOM.elEditorCommandToggleFloor.onclick = () => {};
+
+		DOM.elEditorCommandToggleMeta.onclick = () => {
+			Settings.setMetaMap(false);
+			DOM.elMetaMap.style.display = 'block';
+		};
+
+		DOM.elEditorCommandTogglePickups.onclick = () => {};
+
+		DOM.elEditorCommandToggleSprites.onclick = () => {};
+
 		// Editor items
 		DOM.elEditorPropertiesInputs.forEach((element: HTMLInputElement) => {
 			element.onchange = () => {
@@ -397,6 +412,23 @@ export class Game {
 				DOM.elMenuContent.classList.remove('open');
 			}
 		});
+
+		// Meta: Map
+		DOM.elMetaMapApply.onclick = () => {
+			Settings.setMetaMap(true);
+			DOM.elMetaMap.style.display = 'none';
+		};
+
+		DOM.elMetaMapCancel.onclick = () => {
+			Settings.setMetaMap(false);
+			DOM.elMetaMap.style.display = 'none';
+		};
+
+		DOM.elMetaMapLocation.onclick = () => {
+			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI) | 0);
+			DOM.elMetaMapValueStartingPositionX.value = String(Game.camera.x | 0);
+			DOM.elMetaMapValueStartingPositionY.value = String(Game.camera.y | 0);
+		};
 
 		// Mute
 		DOM.elButtonMute.onclick = () => {
@@ -699,6 +731,7 @@ export class Game {
 			for (element of DOM.elEditorItems) {
 				if (element.id === assetIdStr) {
 					clicked = true;
+					DOM.elEditorItemActive = undefined;
 					element.click();
 					element.scrollIntoView({ behavior: 'smooth' });
 					break;
@@ -723,6 +756,11 @@ export class Game {
 			DOM.elEditorPropertiesInputSpriteWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
 			DOM.elEditorPropertiesInputSpriteWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
 			Game.cellApply();
+		};
+
+		const position = (position: GamingCanvasInputPosition) => {
+			Game.position = GamingCanvasGridInputToCoordinate(position, viewport, Game.position);
+			DOM.elEditorPropertiesOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI) | 0}°`;
 		};
 
 		const processor = (timestampNow: number) => {
@@ -882,6 +920,7 @@ export class Game {
 
 			switch (input.propriatary.action) {
 				case GamingCanvasInputMouseAction.LEFT:
+					position(position1);
 					if (modeEdit === true) {
 						if (modeEditType === EditType.PAN_ZOOM) {
 							if (down === true) {
@@ -890,7 +929,6 @@ export class Game {
 								cameraXOriginal = camera.x;
 								cameraYOriginal = camera.y;
 							}
-							downMode = down;
 						} else {
 							if (down === true) {
 								switch (modeEditType) {
@@ -906,30 +944,57 @@ export class Game {
 								}
 							}
 						}
+						downMode = down;
 					}
 					break;
 				case GamingCanvasInputMouseAction.WHEEL:
+					position(position1);
 					if (modeEdit === true) {
-						if (modeEditType === EditType.PAN_ZOOM) {
-							downModeWheel = down;
+						if (modeEditType !== EditType.PAN_ZOOM) {
+							if (down === true) {
+								cameraMoveXOriginal = 1 - position1.xRelative;
+								cameraMoveYOriginal = 1 - position1.yRelative;
+								cameraXOriginal = camera.x;
+								cameraYOriginal = camera.y;
+							}
 						}
+						downModeWheel = down;
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
+					position(position1);
 					if (modeEdit === true) {
 						if (modeEditType === EditType.PAN_ZOOM) {
-							if (modeEdit === true) {
-								if (downMode === true) {
-									cameraMoveX = 1 - position1.xRelative;
-									cameraMoveY = 1 - position1.yRelative;
-									updated = true;
-								} else if (downModeWheel === true) {
-									camera.r = position1.xRelative * 2 * GamingCanvasConstPI;
-									updatedR = true;
-								}
+							if (downMode === true) {
+								cameraMoveX = 1 - position1.xRelative;
+								cameraMoveY = 1 - position1.yRelative;
+								updated = true;
+							} else if (downModeWheel === true) {
+								camera.r = position1.xRelative * 2 * GamingCanvasConstPI;
+								updatedR = true;
 							}
 						} else {
 							processorMouseCellHighlight(inputOverlayPosition);
+
+							if (downModeWheel === true) {
+								cameraMoveX = 1 - position1.xRelative;
+								cameraMoveY = 1 - position1.yRelative;
+								updated = true;
+							}
+
+							if (downMode === true) {
+								switch (modeEditType) {
+									case EditType.APPLY:
+										constDataApply(position1);
+										break;
+									case EditType.ERASE:
+										constDataApply(position1, true);
+										break;
+									case EditType.INSPECT:
+										inspect(position1);
+										break;
+								}
+							}
 						}
 					}
 					break;
@@ -951,13 +1016,13 @@ export class Game {
 			// Timeout allows for the viewport to be updated before the input before fitting the cell highlight
 			if (Game.editorCellHighlightEnable === true) {
 				setTimeout(() => {
-					const cellSizePxLeftTop: number[] = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport);
+					Game.positionCellHighlight = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport, Game.positionCellHighlight);
 
 					elEditStyle.display = 'block';
-					elEditStyle.height = cellSizePxLeftTop[0] + 'px';
-					elEditStyle.left = cellSizePxLeftTop[1] + 'px';
-					elEditStyle.top = cellSizePxLeftTop[2] + 'px';
-					elEditStyle.width = cellSizePxLeftTop[0] + 'px';
+					elEditStyle.height = Game.positionCellHighlight.cellSizePx + 'px';
+					elEditStyle.left = Game.positionCellHighlight.left + 'px';
+					elEditStyle.top = Game.positionCellHighlight.top + 'px';
+					elEditStyle.width = Game.positionCellHighlight.cellSizePx + 'px';
 				}, inputLimitPerMs + 10);
 			} else {
 				elEditStyle.display = 'none';

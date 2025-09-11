@@ -70,9 +70,10 @@
 								</div>
 							</div>
 							<div class="commands">
-								<div class="command">F = Toggle Floor</div>
-								<div class="command">P = Toggle Pickups</div>
-								<div class="command">S = Toggle Sprites</div>
+								<div class="command clickable" id="editor-command-toggle-floor">F = Toggle Floor</div>
+								<div class="command clickable" id="editor-command-toggle-meta">M = Toggle Meta Menu</div>
+								<div class="command clickable" id="editor-command-toggle-pickups">P = Toggle Pickups</div>
+								<div class="command clickable" id="editor-command-toggle-sprites">S = Toggle Sprites</div>
 							</div>
 						</div>
 					</div>
@@ -124,11 +125,45 @@
 								<div class="command">&nbsp;&nbsp;&nbsp;AssetId: 0x<span id="editor-properties-output-assetid">?</span></div>
 								<div class="command">Properties: 0x<span id="editor-properties-output-properties">?</span></div>
 								<div class="command">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Value: 0x<span id="editor-properties-output-value">?</span></div>
+								<div class="command">&nbsp;&nbsp;Position: <span id="editor-properties-output-position">?</span></div>
 							</div>
 						</div>
 					</div>
 					<div class="error" id="error"><span>Error</span><br /><br /></div>
 					<div class="fps" id="stat-fps"></div>
+					<div class="meta map" id="meta-map">
+						<div class="wrapper">
+							<div class="header">Meta</div>
+							<div class="body">
+								<table>
+									<tbody>
+										<tr style="height: 55px">
+											<td>Starting Position (degrees)</td>
+											<td>
+												<span class="button" id="meta-map-location"><span class="main-icon location"></span></span>
+											</td>
+										</tr>
+										<tr>
+											<td>Starting Position Rotation</td>
+											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
+										</tr>
+										<tr>
+											<td>Starting Position X</td>
+											<td><input autocomplete="off" id="meta-map-value-starting-position-x" min="0" step="1" type="number" /></td>
+										</tr>
+										<tr>
+											<td>Starting Position Y</td>
+											<td><input autocomplete="off" id="meta-map-value-starting-position-y" min="0" step="1" type="number" /></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="buttons">
+								<button class="cancel" id="meta-map-cancel">Cancel</button>
+								<button id="meta-map-apply">Apply</button>
+							</div>
+						</div>
+					</div>
 					<div class="settings" id="settings">
 						<div class="wrapper">
 							<div class="header">Settings</div>

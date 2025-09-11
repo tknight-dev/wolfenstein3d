@@ -182,7 +182,7 @@ class CalcEngine {
 			buffers: ArrayBufferLike[] = [],
 			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
 				clip: true,
-				factorPosition: 0.00425,
+				factorPosition: 0.0055,
 				factorRotation: 0.00225,
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},

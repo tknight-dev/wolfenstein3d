@@ -50,7 +50,7 @@ export class Settings {
 			fps: Game.settingsCalc.fps,
 			gamma: 1, // 0 - 1 (def) - 2
 			grayscale: false,
-			lightingQuality: LightingQuality.BASIC,
+			lightingQuality: LightingQuality.FULL,
 			player2Enable: Game.settingsCalc.player2Enable,
 			raycastQuality: Game.settingsCalc.raycastQuality,
 		};
@@ -148,7 +148,7 @@ export class Settings {
 			}
 
 			Game.settingsCalc.audioWallCollisions = DOM.elSettingsValueAudioWallCollisions.checked;
-			Game.settingsCalc.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * Math.PI) / 180;
+			Game.settingsCalc.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI) / 180;
 			Game.settingsCalc.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
 			Game.settingsCalc.player2Enable = DOM.elSettingsValueGameMultiplayer.checked;
 			Game.settingsCalc.raycastQuality = Number(DOM.elSettingsValueGraphicsRaycastQuality.value);
@@ -186,7 +186,7 @@ export class Settings {
 			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settingsVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
-			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalc.fov * 180) / Math.PI);
+			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalc.fov * 180) / GamingCanvasConstPI);
 			DOM.elSettingsValueGraphicsFPS.value = String(Game.settingsCalc.fps);
 			DOM.elSettingsValueGraphicsFPSShow.checked = Game.settingGraphicsFPSDisplay;
 			DOM.elSettingsValueGraphicsGamma.value = String(Game.settingsVideoMain.gamma);
@@ -202,6 +202,20 @@ export class Settings {
 			GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
 
 			GamingCanvas.setOptions(Game.settingsGamingCanvas);
+		}
+	}
+
+	public static setMetaMap(apply: boolean): void {
+		if (apply === true) {
+			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI) / 180;
+			Game.map.position.x = Number(DOM.elMetaMapValueStartingPositionX.value) | 0;
+			Game.map.position.y = Number(DOM.elMetaMapValueStartingPositionY.value) | 0;
+		} else {
+			DOM.elMetaMapValueStartingPositionR.value = String(((Game.map.position.r * 180) / GamingCanvasConstPI) | 0);
+			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
+			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x);
+			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
+			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y);
 		}
 	}
 }

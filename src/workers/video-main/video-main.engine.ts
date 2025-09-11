@@ -222,6 +222,7 @@ class VideoMainEngine {
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
 			renderBrightness: number,
+			renderCellSide: GamingCanvasGridRaycastCellSide,
 			renderDistance: number,
 			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			renderEnable: boolean,
@@ -420,12 +421,10 @@ class VideoMainEngine {
 
 						// Cell
 						gameMapGridCell = gameMapGridData[calculationsRays[renderRayIndex + 3]];
+						renderCellSide = calculationsRays[renderRayIndex + 5];
 
 						// Asset: images are designed to be inverted on corners
-						if (
-							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.SOUTH ||
-							calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
-						) {
+						if (renderCellSide === GamingCanvasGridRaycastCellSide.SOUTH || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 						} else {
 							asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
@@ -440,22 +439,16 @@ class VideoMainEngine {
 
 							// Filter: Start
 							if (renderLightingQuality == LightingQuality.BASIC) {
-								if (
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
-								) {
-									renderBrightness -= 0.4;
+								if (renderCellSide === GamingCanvasGridRaycastCellSide.EAST || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
+									renderBrightness -= 0.3;
 								}
 							}
 
 							if (renderLightingQuality == LightingQuality.FULL) {
-								renderBrightness -= Math.min(1, calculationsRays[renderRayIndex + 2] / 8); // no min is lantern light
+								renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
 
-								if (
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.EAST ||
-									calculationsRays[renderRayIndex + 5] === GamingCanvasGridRaycastCellSide.WEST
-								) {
-									renderBrightness -= 0.4;
+								if (renderCellSide === GamingCanvasGridRaycastCellSide.EAST || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
+									renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
 								}
 							}
 
@@ -472,7 +465,7 @@ class VideoMainEngine {
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 5) * settingsRaycastQuality) / 6, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
+							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 					}
@@ -515,6 +508,19 @@ class VideoMainEngine {
 							// Render: Lighting
 							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
 								offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
+							} else if (renderLightingQuality !== LightingQuality.NONE) {
+								renderBrightness = 0;
+
+								// Filter: Start
+								if (renderLightingQuality == LightingQuality.BASIC) {
+								}
+
+								if (renderLightingQuality == LightingQuality.FULL) {
+									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+								}
+
+								// Filter: End
+								offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
 							}
 
 							// Render: 3D Projection
