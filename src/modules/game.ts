@@ -65,6 +65,7 @@ export class Game {
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
+	public static editorHide: boolean;
 	public static inputRequest: number;
 	public static map: GameMap;
 	public static mapNew: boolean;
@@ -96,7 +97,12 @@ export class Game {
 		DOM.elEditorPropertiesInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
 		DOM.elEditorPropertiesInputLight.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
 		DOM.elEditorPropertiesInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
-		DOM.elEditorPropertiesInputSpriteFixedV.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_EW);
+
+		if (DOM.elEditorPropertiesInputSpriteFixedH.checked !== true && DOM.elEditorPropertiesInputSpriteFixedV.checked === true) {
+			DOM.elEditorPropertiesInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
+			Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_EW;
+		}
+
 		DOM.elEditorPropertiesInputSpriteRotating.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_ROTATING);
 		DOM.elEditorPropertiesInputSpriteWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
 		DOM.elEditorPropertiesInputSpriteWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
@@ -205,9 +211,12 @@ export class Game {
 				DOM.elCanvases[2].classList.add('hide');
 
 				DOM.elButtonMove.click();
+				Game.editorHide = false;
 			} else {
 				DOM.elButtonEye.classList.add('active');
 				DOM.elCanvases[2].classList.remove('hide');
+
+				Game.editorHide = true;
 			}
 		};
 
@@ -324,7 +333,7 @@ export class Game {
 		});
 
 		// Editor items
-		DOM.elEditorItems.forEach((element: HTMLElement) => {
+		DOM.elEditorItemsObjects.forEach((element: HTMLElement) => {
 			element.onclick = () => {
 				if (DOM.elEditorItemActive !== element) {
 					DOM.elEditorItemActive && DOM.elEditorItemActive.classList.remove('active');
@@ -338,6 +347,10 @@ export class Game {
 					Game.cellClear();
 					Game.editorAssetIdImg = Number(element.id);
 					Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
+
+					if (Game.editorAssetProperties.blocking === true) {
+						DOM.elEditorPropertiesInputSpriteWallInvisible.checked = true;
+					}
 
 					switch (Game.editorAssetProperties.category) {
 						case AssetImgCategory.DOOR:
@@ -370,6 +383,41 @@ export class Game {
 				}
 			};
 		});
+
+		// Editor sections
+		DOM.elEditorSectionCharacters.onclick = () => {
+			if (DOM.elEditorSectionCharacters.classList.contains('active') !== true) {
+				DOM.elEditorSectionCharacters.classList.add('active');
+				DOM.elEditorSectionObjects.classList.remove('active');
+				DOM.elEditorSectionSpecial.classList.remove('active');
+
+				DOM.elEditorContainerCharacters.style.display = 'block';
+				DOM.elEditorContainerObjects.style.display = 'none';
+				DOM.elEditorContainerSpecial.style.display = 'none';
+			}
+		};
+		DOM.elEditorSectionObjects.onclick = () => {
+			if (DOM.elEditorSectionObjects.classList.contains('active') !== true) {
+				DOM.elEditorSectionCharacters.classList.remove('active');
+				DOM.elEditorSectionObjects.classList.add('active');
+				DOM.elEditorSectionSpecial.classList.remove('active');
+
+				DOM.elEditorContainerCharacters.style.display = 'none';
+				DOM.elEditorContainerObjects.style.display = 'block';
+				DOM.elEditorContainerSpecial.style.display = 'none';
+			}
+		};
+		DOM.elEditorSectionSpecial.onclick = () => {
+			if (DOM.elEditorSectionSpecial.classList.contains('active') !== true) {
+				DOM.elEditorSectionCharacters.classList.remove('active');
+				DOM.elEditorSectionObjects.classList.remove('active');
+				DOM.elEditorSectionSpecial.classList.add('active');
+
+				DOM.elEditorContainerCharacters.style.display = 'none';
+				DOM.elEditorContainerObjects.style.display = 'none';
+				DOM.elEditorContainerSpecial.style.display = 'block';
+			}
+		};
 
 		// Fullscreen
 		DOM.elButtonFullscreen.onclick = async () => {
@@ -728,7 +776,7 @@ export class Game {
 			Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
 
 			// Click associated asset
-			for (element of DOM.elEditorItems) {
+			for (element of DOM.elEditorItemsObjects) {
 				if (element.id === assetIdStr) {
 					clicked = true;
 					DOM.elEditorItemActive = undefined;
@@ -751,7 +799,12 @@ export class Game {
 			DOM.elEditorPropertiesInputFloor.checked = (cell & GameGridCellMasksAndValues.FLOOR) !== 0;
 			DOM.elEditorPropertiesInputLight.checked = (cell & GameGridCellMasksAndValues.LIGHT) !== 0;
 			DOM.elEditorPropertiesInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
-			DOM.elEditorPropertiesInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
+
+			if (DOM.elEditorPropertiesInputSpriteFixedH.checked === true) {
+				DOM.elEditorPropertiesInputSpriteFixedV.checked = false;
+			} else {
+				DOM.elEditorPropertiesInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
+			}
 			DOM.elEditorPropertiesInputSpriteRotating.checked = (cell & GameGridCellMasksAndValues.SPRITE_ROTATING) !== 0;
 			DOM.elEditorPropertiesInputSpriteWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
 			DOM.elEditorPropertiesInputSpriteWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
@@ -966,6 +1019,8 @@ export class Game {
 					if (modeEdit === true) {
 						if (modeEditType === EditType.PAN_ZOOM) {
 							if (downMode === true) {
+								// USE Game.editorHide to move relative to the camera angle when not viewing the editor
+
 								cameraMoveX = 1 - position1.xRelative;
 								cameraMoveY = 1 - position1.yRelative;
 								updated = true;

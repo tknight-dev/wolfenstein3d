@@ -1,4 +1,4 @@
-import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
+import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
@@ -67,6 +67,7 @@ class VideoMainEngine {
 
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
 		// Assets
+		await initializeAssetManager();
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,

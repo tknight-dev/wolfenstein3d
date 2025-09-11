@@ -49,13 +49,19 @@
 						<span class="button" id="button-download"><span class="main-icon download"></span></span>
 						<span class="button" id="button-upload"><span class="main-icon upload"></span></span>
 					</div>
-					<div class="editor" id="editor">
+					<div class="editor offset" id="editor">
 						<div class="wrapper">
 							<div class="handle">
 								<div class="arrow" id="editor-handle-arrow">🡠</div>
 								<div class="hide" id="editor-handle-hide">_</div>
 							</div>
-							<div class="container" id="editor-container">
+							<div class="container" id="editor-container-characters" style="display:none">
+								<div class="group" id="editor-container-characters-group">
+									<div class="name">Characters</div>
+									<div class="content" id="editor-container-characters-content"></div>
+								</div>
+							</div>
+							<div class="container" id="editor-container-objects">
 								<div class="group" id="editor-container-pickups">
 									<div class="name">Pickups</div>
 									<div class="content" id="editor-container-pickups-content"></div>
@@ -68,6 +74,17 @@
 									<div class="name">Walls</div>
 									<div class="content" id="editor-container-walls-content"></div>
 								</div>
+							</div>
+							<div class="container" id="editor-container-special" style="display:none">
+								<div class="group" id="editor-container-special-group">
+									<div class="name">Special</div>
+									<div class="content" id="editor-container-special-content"></div>
+								</div>
+							</div>
+							<div class="sections">
+								<div class="command clickable" id="editor-section-characters">Characters</div>
+								<div class="command clickable active" id="editor-section-objects">Obj</div>
+								<div class="command clickable" id="editor-section-special">Special</div>
 							</div>
 							<div class="commands">
 								<div class="command clickable" id="editor-command-toggle-floor">F = Toggle Floor</div>
@@ -138,13 +155,13 @@
 								<table>
 									<tbody>
 										<tr style="height: 55px">
-											<td>Starting Position (degrees)</td>
+											<td>Use Current Location</td>
 											<td>
 												<span class="button" id="meta-map-location"><span class="main-icon location"></span></span>
 											</td>
 										</tr>
 										<tr>
-											<td>Starting Position Rotation</td>
+											<td>Starting Rotation (degrees)</td>
 											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>

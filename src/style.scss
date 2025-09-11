@@ -217,10 +217,39 @@ $main-logo-width: 152px;
 
 			.commands,
 			.container,
-			.handle {
+			.handle,
+			.sections {
 				left: 0;
 				position: absolute;
 				right: 0;
+			}
+
+			.commands,
+			.sections {
+				.command {
+					font-family: 'monospace';
+					font-weight: bold;
+					padding: 0 5px;
+					position: relative;
+
+					&.clickable {
+						&:active {
+							top: 1px;
+						}
+
+						&:hover {
+							box-shadow: inset 0 0 3px 3px rgba(255, 255, 255, 0.25);
+							cursor: pointer;
+						}
+					}
+
+					&.active {
+						background-color: rgba(0, 108, 0, 0.75);
+						box-shadow: 0 0 2px 2px rgba(255, 255, 255, 0.25) inset !important;
+						cursor: default !important;
+						top: 0 !important;
+					}
+				}
 			}
 
 			.commands {
@@ -229,19 +258,6 @@ $main-logo-width: 152px;
 				bottom: 0;
 				height: 90px;
 				padding-top: 5px;
-
-				.command {
-					font-family: 'monospace';
-					font-weight: bold;
-					padding: 0 5px;
-
-					&.clickable {
-						&:hover {
-							box-shadow: inset 0 0 3px 3px rgba(255, 255, 255, 0.25);
-							cursor: pointer;
-						}
-					}
-				}
 			}
 
 			.container {
@@ -333,6 +349,28 @@ $main-logo-width: 152px;
 				}
 			}
 
+			.sections {
+				align-items: center;
+				border-top: 2px solid white;
+				bottom: 90px;
+				display: flex;
+				height: 40px;
+				justify-content: space-evenly;
+
+				.command {
+					align-items: center;
+					display: flex;
+					flex-grow: 1;
+					height: 100%;
+					justify-content: center;
+
+					&:nth-child(2) {
+						border-left: 2px solid white;
+						border-right: 2px solid white;
+					}
+				}
+			}
+
 			&.hide {
 				pointer-events: none;
 				opacity: 0;
@@ -367,6 +405,12 @@ $main-logo-width: 152px;
 							}
 						}
 					}
+				}
+			}
+
+			&.offset {
+				.container {
+					bottom: 130px;
 				}
 			}
 

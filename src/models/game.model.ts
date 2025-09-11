@@ -8,8 +8,8 @@ import { GamingCanvasGridUint16Array, GamingCanvasGridICamera } from '@tknight-d
  * Values are shifted to mask position
  */
 export enum GameGridCellMasksAndValues {
-	BLOCKING_ALL_MASK = 0x4000 | 0x8000, // WALL * WALL_INVISIBLE
-	BLOCKING_VISIBLE_MASK = 0x4000, // WALL
+	BLOCKING_MASK_ALL = 0x4000 | 0x8000, // WALL * WALL_INVISIBLE
+	BLOCKING_MASK_VISIBLE = 0x4000, // WALL
 	EXTENDED = 0x0100, // asset id is now also a reference to an object
 	FLOOR = 0x0200,
 	ID_MASK = 0x00ff, // 255 possible
@@ -20,6 +20,14 @@ export enum GameGridCellMasksAndValues {
 	SPRITE_ROTATING = 0x2000,
 	WALL = 0x4000,
 	WALL_INVISIBLE = 0x8000,
+}
+
+export enum GameGridCellMasksAndValuesExtended {
+	DOOR = 0x01,
+	DOOR_LOCKED_1 = 0x02,
+	DOOR_LOCKED_2 = 0x04,
+	SWITCH = 0x08,
+	WALL_MOVEABLE = 0x10,
 }
 
 export interface GameGridExtended {}

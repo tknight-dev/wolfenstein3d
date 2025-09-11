@@ -11,7 +11,7 @@ import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-edit
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
 import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
-import { AssetIdAudio } from './asset-manager.js';
+import { AssetIdAudio, initializeAssetManager } from './asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -130,6 +130,7 @@ class Blockenstein {
 		/**
 		 * Assets: Initialize
 		 */
+		await initializeAssetManager();
 		await Assets.initializeAssets();
 
 		/**
@@ -165,8 +166,8 @@ class Blockenstein {
 		Blockenstein.settingsApply();
 
 		// Done
-		// Game.viewEditor();
-		Game.viewGame();
+		Game.viewEditor();
+		// Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 
 		// Start the music!!

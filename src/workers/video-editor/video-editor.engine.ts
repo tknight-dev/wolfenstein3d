@@ -11,7 +11,7 @@ import {
 } from './video-editor.model.js';
 import { Character } from '../../models/character.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint16Array, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
-import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage } from '../../asset-manager.js';
+import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -60,6 +60,7 @@ class VideoEditorEngine {
 
 	public static async initialize(data: VideoEditorBusInputDataInit): Promise<void> {
 		// Assets
+		await initializeAssetManager();
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,

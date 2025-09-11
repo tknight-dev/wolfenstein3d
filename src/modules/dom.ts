@@ -1,5 +1,16 @@
 import { Assets } from './assets.js';
-import { AssetIdImg, AssetImgCategory, AssetPropertiesAudio, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
+import {
+	AssetIdImg,
+	AssetIdImgCharacter,
+	assetIdImgCharacterMenu,
+	AssetIdImgCharacterType,
+	AssetImgCategory,
+	AssetPropertiesAudio,
+	AssetPropertiesCharacter,
+	AssetPropertiesImage,
+	assetsImages,
+	assetsImageCharacters,
+} from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
 /**
@@ -25,19 +36,25 @@ export class DOM {
 	public static elEditorCommandToggleMeta: HTMLElement;
 	public static elEditorCommandTogglePickups: HTMLElement;
 	public static elEditorCommandToggleSprites: HTMLElement;
-	public static elEditorContainer: HTMLElement;
-	public static elEditorContainerPickups: HTMLElement;
-	public static elEditorContainerPickupsContent: HTMLElement;
+	public static elEditorContainerCharacters: HTMLElement;
+	public static elEditorContainerCharactersContent: HTMLElement;
+	public static elEditorContainerObjects: HTMLElement;
+	public static elEditorContainerObjectsPickups: HTMLElement;
+	public static elEditorContainerObjectsPickupsContent: HTMLElement;
+	public static elEditorContainerObjectsSpecial: HTMLElement;
+	public static elEditorContainerObjectsSpecialContent: HTMLElement;
+	public static elEditorContainerObjectsSprites: HTMLElement;
+	public static elEditorContainerObjectsSpritesContent: HTMLElement;
+	public static elEditorContainerObjectsWalls: HTMLElement;
+	public static elEditorContainerObjectsWallsContent: HTMLElement;
 	public static elEditorContainerSpecial: HTMLElement;
 	public static elEditorContainerSpecialContent: HTMLElement;
-	public static elEditorContainerSprites: HTMLElement;
-	public static elEditorContainerSpritesContent: HTMLElement;
-	public static elEditorContainerWalls: HTMLElement;
-	public static elEditorContainerWallsContent: HTMLElement;
 	public static elEditorHandleArrow: HTMLElement;
 	public static elEditorHandleHide: HTMLElement;
 	public static elEditorItemActive: HTMLElement | undefined;
-	public static elEditorItems: HTMLElement[] = [];
+	public static elEditorItemsCharacters: HTMLElement[] = [];
+	public static elEditorItemsObjects: HTMLElement[] = [];
+	public static elEditorItemsSpecial: HTMLElement[] = [];
 	public static elEditorProperties: HTMLElement;
 	public static elEditorPropertiesHandleArrow: HTMLElement;
 	public static elEditorPropertiesHandleHide: HTMLElement;
@@ -54,6 +71,9 @@ export class DOM {
 	public static elEditorPropertiesOutputPosition: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
+	public static elEditorSectionCharacters: HTMLElement;
+	public static elEditorSectionObjects: HTMLElement;
+	public static elEditorSectionSpecial: HTMLElement;
 	public static elError: HTMLElement;
 	public static elFile: HTMLElement;
 	public static elGame: HTMLElement;
@@ -128,15 +148,19 @@ export class DOM {
 		DOM.elEditorCommandToggleMeta = <HTMLElement>document.getElementById('editor-command-toggle-meta');
 		DOM.elEditorCommandTogglePickups = <HTMLElement>document.getElementById('editor-command-toggle-pickups');
 		DOM.elEditorCommandToggleSprites = <HTMLElement>document.getElementById('editor-command-toggle-sprites');
-		DOM.elEditorContainer = <HTMLElement>document.getElementById('editor-container');
-		DOM.elEditorContainerPickups = <HTMLElement>document.getElementById('editor-container-pickups');
-		DOM.elEditorContainerPickupsContent = <HTMLElement>document.getElementById('editor-container-pickups-content');
+		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-container-characters');
+		DOM.elEditorContainerCharactersContent = <HTMLElement>document.getElementById('editor-container-characters-content');
+		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-container-objects');
+		DOM.elEditorContainerObjectsPickups = <HTMLElement>document.getElementById('editor-container-pickups');
+		DOM.elEditorContainerObjectsPickupsContent = <HTMLElement>document.getElementById('editor-container-pickups-content');
+		DOM.elEditorContainerObjectsSpecial = <HTMLElement>document.getElementById('editor-container-special');
+		DOM.elEditorContainerObjectsSpecialContent = <HTMLElement>document.getElementById('editor-container-special-content');
+		DOM.elEditorContainerObjectsSprites = <HTMLElement>document.getElementById('editor-container-sprites');
+		DOM.elEditorContainerObjectsSpritesContent = <HTMLElement>document.getElementById('editor-container-sprites-content');
+		DOM.elEditorContainerObjectsWalls = <HTMLElement>document.getElementById('editor-container-walls');
+		DOM.elEditorContainerObjectsWallsContent = <HTMLElement>document.getElementById('editor-container-walls-content');
 		DOM.elEditorContainerSpecial = <HTMLElement>document.getElementById('editor-container-special');
 		DOM.elEditorContainerSpecialContent = <HTMLElement>document.getElementById('editor-container-special-content');
-		DOM.elEditorContainerSprites = <HTMLElement>document.getElementById('editor-container-sprites');
-		DOM.elEditorContainerSpritesContent = <HTMLElement>document.getElementById('editor-container-sprites-content');
-		DOM.elEditorContainerWalls = <HTMLElement>document.getElementById('editor-container-walls');
-		DOM.elEditorContainerWallsContent = <HTMLElement>document.getElementById('editor-container-walls-content');
 
 		DOM.elEditorHandleArrow = <HTMLElement>document.getElementById('editor-handle-arrow');
 		DOM.elEditorHandleArrow.onclick = () => {
@@ -214,6 +238,10 @@ export class DOM {
 		DOM.elEditorPropertiesOutputProperties = <HTMLElement>document.getElementById('editor-properties-output-properties');
 		DOM.elEditorPropertiesOutputValue = <HTMLElement>document.getElementById('editor-properties-output-value');
 
+		DOM.elEditorSectionCharacters = <HTMLElement>document.getElementById('editor-section-characters');
+		DOM.elEditorSectionObjects = <HTMLElement>document.getElementById('editor-section-objects');
+		DOM.elEditorSectionSpecial = <HTMLElement>document.getElementById('editor-section-special');
+
 		DOM.elError = <HTMLElement>document.getElementById('error');
 		DOM.elFile = <HTMLElement>document.getElementById('file');
 		DOM.elGame = <HTMLElement>document.getElementById('game');
@@ -275,7 +303,13 @@ export class DOM {
 
 	public static initializeDomEditMenu(): void {
 		let assetImageData: Map<AssetIdImg, string> = Assets.dataImage,
+			assetImageDataCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, string>> = Assets.dataImageCharacters,
+			assetImageDataCharactersInstance: Map<AssetIdImgCharacter, string>,
 			assetId: AssetIdImg,
+			character: AssetIdImgCharacter,
+			characterMenu: AssetIdImgCharacter[] = assetIdImgCharacterMenu,
+			characterType: AssetIdImgCharacterType,
+			data: string | ImageBitmap,
 			element: HTMLElement,
 			elementContainer: HTMLElement,
 			elementContent: HTMLElement,
@@ -287,23 +321,52 @@ export class DOM {
 		 * Populate Content
 		 */
 
+		// Characters
+		elementContainer = DOM.elEditorContainerCharactersContent;
+		for ([characterType, assetImageDataCharactersInstance] of assetImageDataCharacters) {
+			for (character of characterMenu) {
+				properties = (<any>assetsImageCharacters.get(characterType)).get(character);
+
+				// console.log(character, properties.file, properties.title);
+
+				elementContent = document.createElement('div');
+				elementContent.className = 'item';
+				elementContent.id = `${characterType}__${character}`;
+				elementContainer.appendChild(elementContent);
+				DOM.elEditorItemsCharacters.push(elementContent);
+
+				elementContentImage = document.createElement('img');
+				elementContentImage.className = 'image';
+				elementContentImage.src = <string>assetImageDataCharactersInstance.get(character);
+				elementContent.appendChild(elementContentImage);
+
+				elementContentTitle = document.createElement('div');
+				elementContentTitle.className = 'title';
+				elementContentTitle.innerText = properties.title;
+				elementContent.appendChild(elementContentTitle);
+			}
+		}
+
+		// Objects
 		for ([assetId, properties] of assetsImages) {
 			if ((<AssetPropertiesImage>properties).hide === true) {
 				continue;
 			}
 
 			switch ((<AssetPropertiesImage>properties).category) {
+				case AssetImgCategory.CHARACTER:
+					continue;
 				case AssetImgCategory.DOOR:
 				case AssetImgCategory.DOOR_SIDE:
 				case AssetImgCategory.LIGHT:
 				case AssetImgCategory.SPRITE:
-					elementContainer = DOM.elEditorContainerSpritesContent;
+					elementContainer = DOM.elEditorContainerObjectsSpritesContent;
 					break;
 				case AssetImgCategory.SPRITE_PICKUP:
-					elementContainer = DOM.elEditorContainerPickupsContent;
+					elementContainer = DOM.elEditorContainerObjectsPickupsContent;
 					break;
 				case AssetImgCategory.WALL:
-					elementContainer = DOM.elEditorContainerWallsContent;
+					elementContainer = DOM.elEditorContainerObjectsWallsContent;
 					break;
 			}
 
@@ -311,7 +374,7 @@ export class DOM {
 			elementContent.className = 'item';
 			elementContent.id = String(assetId);
 			elementContainer.appendChild(elementContent);
-			DOM.elEditorItems.push(elementContent);
+			DOM.elEditorItemsObjects.push(elementContent);
 
 			elementContentImage = document.createElement('img');
 			elementContentImage.className = 'image';

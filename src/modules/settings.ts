@@ -31,7 +31,7 @@ export class Settings {
 		Game.settingsCalc = {
 			audioWallCollisions: false,
 			fov: (60 * GamingCanvasConstPI) / 180, // 60 deg
-			fps: FPS._60,
+			fps: FPS._30,
 			player2Enable: false,
 			raycastQuality: RaycastQuality.FULL,
 		};
@@ -50,7 +50,7 @@ export class Settings {
 			fps: Game.settingsCalc.fps,
 			gamma: 1, // 0 - 1 (def) - 2
 			grayscale: false,
-			lightingQuality: LightingQuality.BASIC,
+			lightingQuality: LightingQuality.FULL,
 			player2Enable: Game.settingsCalc.player2Enable,
 			raycastQuality: Game.settingsCalc.raycastQuality,
 		};

@@ -316,7 +316,7 @@ class CalcEngine {
 							characterPlayer1,
 							characterPlayer1Input,
 							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_ALL_MASK,
+							GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
 							characterControlOptions,
 						);
 
@@ -325,7 +325,7 @@ class CalcEngine {
 						characterPlayer1Raycast = GamingCanvasGridRaycast(
 							characterPlayer1.camera,
 							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_VISIBLE_MASK,
+							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
 							raycastOptions,
 						);
 						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
@@ -343,7 +343,7 @@ class CalcEngine {
 								characterPlayer2,
 								characterPlayer2Input,
 								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_ALL_MASK,
+								GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
 								characterControlOptions,
 							);
 
@@ -352,7 +352,7 @@ class CalcEngine {
 							characterPlayer2Raycast = GamingCanvasGridRaycast(
 								characterPlayer2.camera,
 								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_VISIBLE_MASK,
+								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
 								raycastOptions,
 							);
 							characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
@@ -368,7 +368,7 @@ class CalcEngine {
 					}
 				} else if (cameraUpdated) {
 					// Camera mode means we only need one raycast no matter how many players
-					characterPlayer1Raycast = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMasksAndValues.BLOCKING_VISIBLE_MASK, raycastOptions);
+					characterPlayer1Raycast = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE, raycastOptions);
 					characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
 					characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
 					characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
