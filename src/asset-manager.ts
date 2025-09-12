@@ -335,16 +335,24 @@ export enum AssetIdAudio {
 
 export enum AssetIdImg {
 	NULL = 0,
-	SPRITE_AMMO = 1,
-	SPRITE_ARMOR = 2,
-	SPRITE_BARREL_GREEN = 3,
-	SPRITE_BARREL_WOOD = 4,
-	SPRITE_BASKET = 5,
-	SPRITE_BONE_PILE = 6,
-	SPRITE_EXTRA_LIFE = 7,
+	SPRITE_ELEVATOR_DOOR = 1, // Extended AssetId
+	SPRITE_METAL_DOOR = 2, // Extended AssetId
+	SPRITE_METAL_DOOR_LOCKED = 3, // Extended AssetId
+	WALL_ELEVATOR_SWITCH_UP = 4, // Extended AssetId
+	WALL_ELEVATOR_SWITCH_DOWN = 5, // Extended AssetId
+	EXTENDED_RESERVED6 = 6, // Extended AssetId
+	EXTENDED_RESERVED7 = 7, // Extended AssetId
+	SPRITE_AMMO = 57,
+	SPRITE_ARMOR = 58,
+	SPRITE_BARREL_GREEN = 59,
+	SPRITE_BARREL_WOOD = 60,
+	SPRITE_BASKET = 61,
+	SPRITE_BONE_PILE = 62,
+	SPRITE_EXTRA_LIFE = 63,
 	SPRITE_FLAG = 8,
 	SPRITE_FOOD = 9,
 	SPRITE_FOOD_DOG = 10,
+	SPRITE_GUARD_CORPSE = 56,
 	SPRITE_LIGHT_CEILING_OFF = 11,
 	SPRITE_LIGHT_CEILING_ON = 12,
 	SPRITE_LIGHT_CHANDELIER_OFF = 13,
@@ -352,10 +360,10 @@ export enum AssetIdImg {
 	SPRITE_LIGHT_FLOOR_OFF = 15,
 	SPRITE_LIGHT_FLOOR_ON = 16,
 	SPRITE_MEDKIT = 17,
-	SPRITE_METAL_DOOR = 18,
+	// SPRITE_METAL_DOOR = 18,
 	SPRITE_METAL_DOOR_INSIDE = 19,
 	// SPRITE_METAL_DOOR_INSIDE2 = 20,
-	SPRITE_METAL_DOOR_LOCKED = 21,
+	// SPRITE_METAL_DOOR_LOCKED = 21,
 	SPRITE_POTTED_PLANT = 22,
 	SPRITE_POTTED_TREE = 23,
 	SPRITE_RIFLE = 24,
@@ -374,10 +382,10 @@ export enum AssetIdImg {
 	WALL_BRICK_BLUE2 = 37,
 	WALL_BRICK_BLUE_CELL = 38,
 	WALL_BRICK_BLUE_CELL_SKELETON = 39,
-	WALL_ELEVATOR_DOOR = 40,
+	// SPRITE_ELEVATOR_DOOR = 40,
 	WALL_ELEVATOR_SIDE = 41,
-	WALL_ELEVATOR_SWITCH = 42,
-	WALL_ELEVATOR_SWITCH2 = 43,
+	// WALL_ELEVATOR_SWITCH_UP = 42,
+	// WALL_ELEVATOR_SWITCH_DOWN = 43,
 	WALL_OUTSIDE_DAY = 44,
 	WALL_OUTSIDE_NIGHT = 45,
 	WALL_STONE_GREY = 46,
@@ -390,7 +398,6 @@ export enum AssetIdImg {
 	WALL_WOOD = 53,
 	WALL_WOOD_EAGLE = 54,
 	WALL_WOOD_HITLER = 55,
-	SPRITE_GUARD_CORPSE = 56,
 }
 
 export enum AssetIdImgCharacter {
@@ -550,8 +557,7 @@ export enum AssetIdMap {
 
 export enum AssetImgCategory {
 	CHARACTER,
-	DOOR,
-	DOOR_SIDE,
+	EXTENDED,
 	LIGHT,
 	SPRITE,
 	SPRITE_PICKUP,
@@ -596,6 +602,7 @@ export const initializeAssetManager = async () => {
 	let cAssetIdImgCharacter: AssetIdImgCharacter,
 		cDir: string,
 		cFilePrefix: string,
+		cHide: boolean,
 		cI: number,
 		cInstance: Map<AssetIdImgCharacter, AssetPropertiesCharacter>,
 		cMovement: AssetIdImgCharacter[],
@@ -608,6 +615,7 @@ export const initializeAssetManager = async () => {
 		switch (characterType) {
 			case AssetIdImgCharacterType.GUARD:
 				cDir = 'guard';
+				cHide = false;
 				cName = 'Guard';
 				break;
 		}
@@ -625,6 +633,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/aim.png`,
+			hide: cHide,
 			title: `${cName} Aim`,
 		});
 
@@ -634,6 +643,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/corpse.png`,
+			hide: cHide,
 			title: `${cName} Corpse`,
 		});
 
@@ -643,6 +653,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/die1.png`,
+			hide: cHide,
 			title: `${cName} Die1`,
 		});
 
@@ -652,6 +663,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/die2.png`,
+			hide: cHide,
 			title: `${cName} Die2`,
 		});
 
@@ -661,6 +673,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/die3.png`,
+			hide: cHide,
 			title: `${cName} Die3`,
 		});
 
@@ -670,6 +683,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/die4.png`,
+			hide: cHide,
 			title: `${cName} Die4`,
 		});
 
@@ -679,6 +693,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/fire.png`,
+			hide: cHide,
 			title: `${cName} Fire`,
 		});
 
@@ -688,6 +703,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/hit.png`,
+			hide: cHide,
 			title: `${cName} Hit`,
 		});
 
@@ -697,6 +713,7 @@ export const initializeAssetManager = async () => {
 			category: AssetImgCategory.CHARACTER,
 			ext: AssetExtImg.PNG,
 			file: `img/character/${cDir}/surprise.png`,
+			hide: cHide,
 			title: `${cName} Surprise`,
 		});
 
@@ -713,6 +730,7 @@ export const initializeAssetManager = async () => {
 					category: AssetImgCategory.CHARACTER,
 					ext: AssetExtImg.PNG,
 					file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
+					hide: cHide,
 					title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
 				});
 			}
@@ -988,6 +1006,15 @@ export const initializeAssetManager = async () => {
 		title: 'Barrel Wood',
 	});
 
+	assetsImages.set(AssetIdImg.SPRITE_ELEVATOR_DOOR, {
+		alpha: false,
+		author: 'Id Software',
+		category: AssetImgCategory.EXTENDED,
+		ext: AssetExtImg.PNG,
+		file: 'img/sprite/elevator_door.png',
+		title: 'Elevator Door',
+	});
+
 	assetsImages.set(AssetIdImg.SPRITE_EXTRA_LIFE, {
 		alpha: true,
 		author: 'Id Software',
@@ -1102,18 +1129,18 @@ export const initializeAssetManager = async () => {
 	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR, {
 		alpha: false,
 		author: 'Id Software',
-		category: AssetImgCategory.DOOR,
+		category: AssetImgCategory.EXTENDED,
 		ext: AssetExtImg.PNG,
-		file: 'img/wall/metal_door.png',
+		file: 'img/sprite/metal_door.png',
 		title: 'Metal Door',
 	});
 
 	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_INSIDE, {
 		alpha: false,
 		author: 'Id Software',
-		category: AssetImgCategory.DOOR_SIDE,
+		category: AssetImgCategory.EXTENDED,
 		ext: AssetExtImg.PNG,
-		file: 'img/wall/metal_door_inside.png',
+		file: 'img/sprite/metal_door_inside.png',
 		hide: true,
 		title: 'Metal Door Inside',
 	});
@@ -1121,9 +1148,9 @@ export const initializeAssetManager = async () => {
 	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_LOCKED, {
 		alpha: false,
 		author: 'Id Software',
-		category: AssetImgCategory.DOOR,
+		category: AssetImgCategory.EXTENDED,
 		ext: AssetExtImg.PNG,
-		file: 'img/wall/metal_door_locked.png',
+		file: 'img/sprite/metal_door_locked.png',
 		title: 'Metal Door Locked',
 	});
 
@@ -1300,15 +1327,6 @@ export const initializeAssetManager = async () => {
 		title: 'Brick Blue Cell Skeleton',
 	});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_DOOR, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_door.png',
-		title: 'Elevator Door',
-	});
-
 	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
 		alpha: false,
 		author: 'Id Software',
@@ -1318,22 +1336,22 @@ export const initializeAssetManager = async () => {
 		title: 'Elevator Side',
 	});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH, {
+	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN, {
 		alpha: false,
 		author: 'Id Software',
-		category: AssetImgCategory.WALL,
+		category: AssetImgCategory.EXTENDED,
 		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_switch.png',
-		title: 'Elevator Switch',
+		file: 'img/wall/elevator_switch_down.png',
+		title: 'Switch Down',
 	});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH2, {
+	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_UP, {
 		alpha: false,
 		author: 'Id Software',
-		category: AssetImgCategory.WALL,
+		category: AssetImgCategory.EXTENDED,
 		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_switch2.png',
-		title: 'Elevator Switch2',
+		file: 'img/wall/elevator_switch_up.png',
+		title: 'Switch Up',
 	});
 
 	assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {

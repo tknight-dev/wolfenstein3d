@@ -31,7 +31,7 @@ export class Settings {
 		Game.settingsCalc = {
 			audioWallCollisions: false,
 			fov: (60 * GamingCanvasConstPI) / 180, // 60 deg
-			fps: FPS._30,
+			fps: FPS._60,
 			player2Enable: false,
 			raycastQuality: RaycastQuality.FULL,
 		};

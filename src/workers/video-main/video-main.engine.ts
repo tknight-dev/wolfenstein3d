@@ -1,6 +1,6 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -478,7 +478,15 @@ class VideoMainEngine {
 						// Cell
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 
-						if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_ROTATING) !== 0) {
+						if (gameMapGridCell === GameGridCellMasksAndValues.NULL || gameMapGridCell === GameGridCellMasksAndValues.FLOOR) {
+							continue;
+						}
+
+						if (
+							(gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0 ||
+							(gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0
+						) {
+						} else {
 							// Asset
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 

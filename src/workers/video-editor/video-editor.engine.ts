@@ -1,5 +1,5 @@
 import { GamingCanvasConstPIDouble, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -10,7 +10,13 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
 import { Character } from '../../models/character.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridICamera, GamingCanvasGridUint16Array, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridICamera,
+	GamingCanvasGridRaycastTestImageCreate,
+	GamingCanvasGridUint16Array,
+	GamingCanvasGridViewport,
+} from '@tknight-dev/gaming-canvas/grid';
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 
 /**
@@ -261,6 +267,7 @@ class VideoEditorEngine {
 			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
+			testImage: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
@@ -453,7 +460,7 @@ class VideoEditorEngine {
 									assetId = value & GameGridCellMasksAndValues.ID_MASK;
 
 									offscreenCanvasContext.drawImage(
-										<OffscreenCanvas>cacheCanvas.get(assetId),
+										<OffscreenCanvas>cacheCanvas.get(assetId) || testImage,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 									);

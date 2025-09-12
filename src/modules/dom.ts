@@ -32,23 +32,26 @@ export class DOM {
 	public static elCanvases: HTMLCanvasElement[];
 	public static elEdit: HTMLElement;
 	public static elEditor: HTMLElement;
-	public static elEditorCommandToggleFloor: HTMLElement;
-	public static elEditorCommandToggleMeta: HTMLElement;
-	public static elEditorCommandTogglePickups: HTMLElement;
-	public static elEditorCommandToggleSprites: HTMLElement;
+	public static elEditorCommandFindAndReplace: HTMLElement;
+	public static elEditorCommandMetaMenu: HTMLElement;
 	public static elEditorContainerCharacters: HTMLElement;
 	public static elEditorContainerCharactersContent: HTMLElement;
 	public static elEditorContainerObjects: HTMLElement;
 	public static elEditorContainerObjectsPickups: HTMLElement;
 	public static elEditorContainerObjectsPickupsContent: HTMLElement;
-	public static elEditorContainerObjectsSpecial: HTMLElement;
-	public static elEditorContainerObjectsSpecialContent: HTMLElement;
+	public static elEditorContainerObjectsExtended: HTMLElement;
+	public static elEditorContainerObjectsExtendedContent: HTMLElement;
 	public static elEditorContainerObjectsSprites: HTMLElement;
 	public static elEditorContainerObjectsSpritesContent: HTMLElement;
 	public static elEditorContainerObjectsWalls: HTMLElement;
 	public static elEditorContainerObjectsWallsContent: HTMLElement;
-	public static elEditorContainerSpecial: HTMLElement;
-	public static elEditorContainerSpecialContent: HTMLElement;
+	public static elEditorContainerExtended: HTMLElement;
+	public static elEditorContainerExtendedContent: HTMLElement;
+	public static elEditorFindAndReplace: HTMLElement;
+	public static elEditorFindAndReplaceApply: HTMLElement;
+	public static elEditorFindAndReplaceCancel: HTMLElement;
+	public static elEditorFindAndReplaceValueFind: HTMLInputElement;
+	public static elEditorFindAndReplaceValueReplace: HTMLInputElement;
 	public static elEditorHandleArrow: HTMLElement;
 	public static elEditorHandleHide: HTMLElement;
 	public static elEditorItemActive: HTMLElement | undefined;
@@ -64,13 +67,20 @@ export class DOM {
 	public static elEditorPropertiesInputLight: HTMLInputElement;
 	public static elEditorPropertiesInputSpriteFixedH: HTMLInputElement;
 	public static elEditorPropertiesInputSpriteFixedV: HTMLInputElement;
-	public static elEditorPropertiesInputSpriteRotating: HTMLInputElement;
-	public static elEditorPropertiesInputSpriteWall: HTMLInputElement;
-	public static elEditorPropertiesInputSpriteWallInvisible: HTMLInputElement;
+	public static elEditorPropertiesInputWallMovable: HTMLInputElement;
+	public static elEditorPropertiesInputWall: HTMLInputElement;
+	public static elEditorPropertiesInputWallInvisible: HTMLInputElement;
 	public static elEditorPropertiesOutputAssetId: HTMLElement;
 	public static elEditorPropertiesOutputPosition: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
+	public static elEditorPropertiesExtended: HTMLElement;
+	public static elEditorPropertiesExtendedInputTeleport: HTMLInputElement;
+	public static elEditorPropertiesExtendedInputDoor: HTMLInputElement;
+	public static elEditorPropertiesExtendedInputDoorLocked1: HTMLInputElement;
+	public static elEditorPropertiesExtendedInputDoorLocked2: HTMLInputElement;
+	public static elEditorPropertiesExtendedInputs: HTMLInputElement[];
+	public static elEditorPropertiesExtendedInputSwitch: HTMLInputElement;
 	public static elEditorSectionCharacters: HTMLElement;
 	public static elEditorSectionObjects: HTMLElement;
 	public static elEditorSectionSpecial: HTMLElement;
@@ -144,23 +154,21 @@ export class DOM {
 		DOM.elEdit.id = 'edit';
 
 		DOM.elEditor = <HTMLElement>document.getElementById('editor');
-		DOM.elEditorCommandToggleFloor = <HTMLElement>document.getElementById('editor-command-toggle-floor');
-		DOM.elEditorCommandToggleMeta = <HTMLElement>document.getElementById('editor-command-toggle-meta');
-		DOM.elEditorCommandTogglePickups = <HTMLElement>document.getElementById('editor-command-toggle-pickups');
-		DOM.elEditorCommandToggleSprites = <HTMLElement>document.getElementById('editor-command-toggle-sprites');
+		DOM.elEditorCommandFindAndReplace = <HTMLElement>document.getElementById('editor-command-toggle-find-and-replace');
+		DOM.elEditorCommandMetaMenu = <HTMLElement>document.getElementById('editor-command-toggle-meta');
 		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-container-characters');
 		DOM.elEditorContainerCharactersContent = <HTMLElement>document.getElementById('editor-container-characters-content');
 		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-container-objects');
 		DOM.elEditorContainerObjectsPickups = <HTMLElement>document.getElementById('editor-container-pickups');
 		DOM.elEditorContainerObjectsPickupsContent = <HTMLElement>document.getElementById('editor-container-pickups-content');
-		DOM.elEditorContainerObjectsSpecial = <HTMLElement>document.getElementById('editor-container-special');
-		DOM.elEditorContainerObjectsSpecialContent = <HTMLElement>document.getElementById('editor-container-special-content');
+		DOM.elEditorContainerObjectsExtended = <HTMLElement>document.getElementById('editor-container-extended');
+		DOM.elEditorContainerObjectsExtendedContent = <HTMLElement>document.getElementById('editor-container-extended-content');
 		DOM.elEditorContainerObjectsSprites = <HTMLElement>document.getElementById('editor-container-sprites');
 		DOM.elEditorContainerObjectsSpritesContent = <HTMLElement>document.getElementById('editor-container-sprites-content');
 		DOM.elEditorContainerObjectsWalls = <HTMLElement>document.getElementById('editor-container-walls');
 		DOM.elEditorContainerObjectsWallsContent = <HTMLElement>document.getElementById('editor-container-walls-content');
-		DOM.elEditorContainerSpecial = <HTMLElement>document.getElementById('editor-container-special');
-		DOM.elEditorContainerSpecialContent = <HTMLElement>document.getElementById('editor-container-special-content');
+		DOM.elEditorContainerExtended = <HTMLElement>document.getElementById('editor-container-extended');
+		DOM.elEditorContainerExtendedContent = <HTMLElement>document.getElementById('editor-container-extended-content');
 
 		DOM.elEditorHandleArrow = <HTMLElement>document.getElementById('editor-handle-arrow');
 		DOM.elEditorHandleArrow.onclick = () => {
@@ -196,6 +204,17 @@ export class DOM {
 			}
 		};
 
+		DOM.elEditorFindAndReplace = <HTMLElement>document.getElementById('editor-find-and-replace');
+		DOM.elEditorFindAndReplaceApply = <HTMLElement>document.getElementById('editor-find-and-replace-apply');
+
+		DOM.elEditorFindAndReplaceCancel = <HTMLElement>document.getElementById('editor-find-and-replace-cancel');
+		DOM.elEditorFindAndReplaceCancel.onclick = () => {
+			DOM.elEditorFindAndReplace.style.display = 'none';
+		};
+
+		DOM.elEditorFindAndReplaceValueFind = <HTMLInputElement>document.getElementById('editor-find-and-replace-value-find');
+		DOM.elEditorFindAndReplaceValueReplace = <HTMLInputElement>document.getElementById('editor-find-and-replace-value-replace');
+
 		DOM.elEditorProperties = <HTMLElement>document.getElementById('editor-properties');
 
 		DOM.elEditorPropertiesHandleArrow = <HTMLElement>document.getElementById('editor-properties-handle-arrow');
@@ -215,22 +234,44 @@ export class DOM {
 		};
 
 		DOM.elEditorPropertiesInputExtended = <HTMLInputElement>document.getElementById('editor-extended');
+		DOM.elEditorPropertiesInputExtended.oninput = () => {
+			if (DOM.elEditorPropertiesInputExtended.checked === true) {
+				DOM.elEditorPropertiesExtended.classList.add('show');
+			} else {
+				DOM.elEditorPropertiesExtended.classList.remove('show');
+			}
+		};
+
 		DOM.elEditorPropertiesInputFloor = <HTMLInputElement>document.getElementById('editor-floor');
 		DOM.elEditorPropertiesInputLight = <HTMLInputElement>document.getElementById('editor-light');
 		DOM.elEditorPropertiesInputSpriteFixedH = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ns');
 		DOM.elEditorPropertiesInputSpriteFixedV = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ew');
-		DOM.elEditorPropertiesInputSpriteRotating = <HTMLInputElement>document.getElementById('editor-sprite-rotating');
-		DOM.elEditorPropertiesInputSpriteWall = <HTMLInputElement>document.getElementById('editor-sprite-wall');
-		DOM.elEditorPropertiesInputSpriteWallInvisible = <HTMLInputElement>document.getElementById('editor-sprite-wall-invisible');
+		DOM.elEditorPropertiesInputWall = <HTMLInputElement>document.getElementById('editor-wall');
+		DOM.elEditorPropertiesInputWallInvisible = <HTMLInputElement>document.getElementById('editor-wall-invisible');
+		DOM.elEditorPropertiesInputWallMovable = <HTMLInputElement>document.getElementById('editor-wall-movable');
 		DOM.elEditorPropertiesInputs = [
 			DOM.elEditorPropertiesInputExtended,
 			DOM.elEditorPropertiesInputFloor,
 			DOM.elEditorPropertiesInputLight,
 			DOM.elEditorPropertiesInputSpriteFixedH,
 			DOM.elEditorPropertiesInputSpriteFixedV,
-			DOM.elEditorPropertiesInputSpriteRotating,
-			DOM.elEditorPropertiesInputSpriteWall,
-			DOM.elEditorPropertiesInputSpriteWallInvisible,
+			DOM.elEditorPropertiesInputWallMovable,
+			DOM.elEditorPropertiesInputWall,
+			DOM.elEditorPropertiesInputWallInvisible,
+		];
+
+		DOM.elEditorPropertiesExtended = <HTMLElement>document.getElementById('editor-properties-extended');
+		DOM.elEditorPropertiesExtendedInputDoor = <HTMLInputElement>document.getElementById('editor-extended-door');
+		DOM.elEditorPropertiesExtendedInputDoorLocked1 = <HTMLInputElement>document.getElementById('editor-extended-door-locked1');
+		DOM.elEditorPropertiesExtendedInputDoorLocked2 = <HTMLInputElement>document.getElementById('editor-extended-door-locked2');
+		DOM.elEditorPropertiesExtendedInputSwitch = <HTMLInputElement>document.getElementById('editor-extended-switch');
+		DOM.elEditorPropertiesExtendedInputTeleport = <HTMLInputElement>document.getElementById('editor-extended-teleport');
+		DOM.elEditorPropertiesExtendedInputs = [
+			DOM.elEditorPropertiesExtendedInputDoor,
+			DOM.elEditorPropertiesExtendedInputDoorLocked1,
+			DOM.elEditorPropertiesExtendedInputDoorLocked2,
+			DOM.elEditorPropertiesExtendedInputSwitch,
+			// DOM.elEditorPropertiesExtendedInputTeleport,
 		];
 
 		DOM.elEditorPropertiesOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
@@ -240,7 +281,7 @@ export class DOM {
 
 		DOM.elEditorSectionCharacters = <HTMLElement>document.getElementById('editor-section-characters');
 		DOM.elEditorSectionObjects = <HTMLElement>document.getElementById('editor-section-objects');
-		DOM.elEditorSectionSpecial = <HTMLElement>document.getElementById('editor-section-special');
+		DOM.elEditorSectionSpecial = <HTMLElement>document.getElementById('editor-section-extended');
 
 		DOM.elError = <HTMLElement>document.getElementById('error');
 		DOM.elFile = <HTMLElement>document.getElementById('file');
@@ -356,8 +397,9 @@ export class DOM {
 			switch ((<AssetPropertiesImage>properties).category) {
 				case AssetImgCategory.CHARACTER:
 					continue;
-				case AssetImgCategory.DOOR:
-				case AssetImgCategory.DOOR_SIDE:
+				case AssetImgCategory.EXTENDED:
+					elementContainer = DOM.elEditorContainerExtendedContent;
+					break;
 				case AssetImgCategory.LIGHT:
 				case AssetImgCategory.SPRITE:
 					elementContainer = DOM.elEditorContainerObjectsSpritesContent;

@@ -116,6 +116,7 @@ $main-logo-width: 152px;
 
 		.editor,
 		.error,
+		.editor-find-and-replace,
 		.fps,
 		.icons,
 		.meta,
@@ -204,7 +205,6 @@ $main-logo-width: 152px;
 			border: 2px solid white;
 			height: calc(100% - 160px);
 			opacity: 1;
-			overflow: hidden;
 			position: absolute;
 			right: 0;
 			top: 60px;
@@ -266,6 +266,7 @@ $main-logo-width: 152px;
 				overflow-x: hidden;
 				overflow-y: auto;
 				top: 20px;
+				z-index: 2;
 
 				.group {
 					.content {
@@ -321,6 +322,25 @@ $main-logo-width: 152px;
 						font-weight: bold;
 						text-align: center;
 					}
+				}
+			}
+
+			.extended {
+				border: 2px solid white;
+				height: 205px;
+				left: auto;
+				overflow: hidden;
+				position: absolute;
+				right: 244px;
+				top: 18px; // -2px for borders
+				transition: width 0.125s linear;
+				white-space: nowrap;
+				width: 0;
+				z-index: 1;
+
+				&.show {
+					right: 246px;
+					width: 160px;
 				}
 			}
 
@@ -406,6 +426,16 @@ $main-logo-width: 152px;
 						}
 					}
 				}
+
+				.extended {
+					left: 244px;
+					right: auto;
+
+					&.show {
+						left: 246px;
+						width: 160px;
+					}
+				}
 			}
 
 			&.offset {
@@ -418,7 +448,7 @@ $main-logo-width: 152px;
 				max-height: 515px;
 
 				.container {
-					bottom: 0;
+					bottom: 90px;
 
 					.item {
 						height: 40px;
@@ -434,11 +464,41 @@ $main-logo-width: 152px;
 			&.shrink {
 				bottom: auto;
 				height: 24px;
+				overflow: hidden;
 				width: 60px;
 
 				.commands,
-				.container {
+				.container,
+				.extended {
 					display: none;
+				}
+			}
+		}
+
+		.editor-find-and-replace {
+			align-items: center;
+			background-color: rgba(0, 0, 0, 0.35);
+			bottom: 0;
+			display: none;
+			justify-content: center;
+			left: 0;
+			right: 0;
+			top: 0;
+			z-index: 3;
+
+			.foreground {
+				background-color: black;
+				border: 2px solid white;
+				height: 200px;
+				padding: 20px;
+				width: 300px;
+
+				table {
+					tr {
+						td {
+							text-align: right;
+						}
+					}
 				}
 			}
 		}
@@ -456,7 +516,7 @@ $main-logo-width: 152px;
 			pointer-events: none;
 			top: 0;
 			transition: opacity 1s linear;
-			z-index: 2;
+			z-index: 4;
 
 			&.show {
 				opacity: 1;

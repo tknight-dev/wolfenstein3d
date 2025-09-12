@@ -61,6 +61,12 @@
 									<div class="content" id="editor-container-characters-content"></div>
 								</div>
 							</div>
+							<div class="container" id="editor-container-extended" style="display:none">
+								<div class="group" id="editor-container-extended-group">
+									<div class="name">Extended</div>
+									<div class="content" id="editor-container-extended-content"></div>
+								</div>
+							</div>
 							<div class="container" id="editor-container-objects">
 								<div class="group" id="editor-container-pickups">
 									<div class="name">Pickups</div>
@@ -75,27 +81,45 @@
 									<div class="content" id="editor-container-walls-content"></div>
 								</div>
 							</div>
-							<div class="container" id="editor-container-special" style="display:none">
-								<div class="group" id="editor-container-special-group">
-									<div class="name">Special</div>
-									<div class="content" id="editor-container-special-content"></div>
-								</div>
-							</div>
 							<div class="sections">
 								<div class="command clickable" id="editor-section-characters">Characters</div>
+								<div class="command clickable" id="editor-section-extended">Extended</div>
 								<div class="command clickable active" id="editor-section-objects">Obj</div>
-								<div class="command clickable" id="editor-section-special">Special</div>
 							</div>
 							<div class="commands">
-								<div class="command clickable" id="editor-command-toggle-floor">F = Toggle Floor</div>
-								<div class="command clickable" id="editor-command-toggle-meta">M = Toggle Meta Menu</div>
-								<div class="command clickable" id="editor-command-toggle-pickups">P = Toggle Pickups</div>
-								<div class="command clickable" id="editor-command-toggle-sprites">S = Toggle Sprites</div>
+								<div class="command clickable" id="editor-command-toggle-find-and-replace">F = Find & Replace</div>
+								<div class="command clickable" id="editor-command-toggle-meta">M = Meta Menu</div>
 							</div>
 						</div>
 					</div>
 					<div class="editor left properties" id="editor-properties">
 						<div class="wrapper">
+							<div class="container extended" id="editor-properties-extended">
+								<div class="group">
+									<div class="content">
+										<label class="item" for="editor-extended-door">
+											<input autocomplete="off" class="input" id="editor-extended-door" name="editor-extended-door" type="checkbox" />
+											<div class="title">Door</div>
+										</label>
+										<label class="item" for="editor-extended-door-locked1">
+											<input autocomplete="off" class="input" id="editor-extended-door-locked1" name="editor-extended-door-locked1" type="checkbox" />
+											<div class="title">Door Locked 1</div>
+										</label>
+										<label class="item" for="editor-extended-door-locked2">
+											<input autocomplete="off" class="input" id="editor-extended-door-locked2" name="editor-extended-door-locked2" type="checkbox" />
+											<div class="title">Door Locked 1</div>
+										</label>
+										<label class="item" for="editor-extended-switch">
+											<input autocomplete="off" class="input" id="editor-extended-switch" name="editor-extended-switch" type="checkbox" />
+											<div class="title">Switch</div>
+										</label>
+								<!-- 		<label class="item" for="editor-extended-teleport">
+											<input autocomplete="off" class="input" id="editor-extended-teleport" name="editor-extended-teleport" type="checkbox" />
+											<div class="title">Teleport</div>
+										</label> -->
+									</div>
+								</div>
+							</div>
 							<div class="handle">
 								<div class="arrow" id="editor-properties-handle-arrow">🡢</div>
 								<div class="hide" id="editor-properties-handle-hide">_</div>
@@ -123,17 +147,17 @@
 											<input autocomplete="off" class="input" id="editor-sprite-fixed-ew" name="editor-sprite-fixed-ew" type="checkbox" />
 											<div class="title">Sprite Fixed East/West</div>
 										</label>
-										<label class="item" for="editor-sprite-rotating">
-											<input autocomplete="off" class="input" id="editor-sprite-rotating" name="editor-sprite-rotating" type="checkbox" />
-											<div class="title">Sprite Rotating</div>
-										</label>
-										<label class="item" for="editor-sprite-wall">
-											<input autocomplete="off" class="input" id="editor-sprite-wall" name="editor-sprite-wall" type="checkbox" />
+										<label class="item" for="editor-wall">
+											<input autocomplete="off" class="input" id="editor-wall" name="editor-wall" type="checkbox" />
 											<div class="title">Wall</div>
 										</label>
-										<label class="item" for="editor-sprite-wall-invisible">
-											<input autocomplete="off" class="input" id="editor-sprite-wall-invisible" name="editor-sprite-wall-invisible" type="checkbox" />
+										<label class="item" for="editor-wall-invisible">
+											<input autocomplete="off" class="input" id="editor-wall-invisible" name="editor-wall-invisible" type="checkbox" />
 											<div class="title">Wall Invisible</div>
+										</label>
+										<label class="item" for="editor-wall-movable">
+											<input autocomplete="off" class="input" id="editor-wall-movable" name="editor-wall-movable" type="checkbox" />
+											<div class="title">Wall Movable</div>
 										</label>
 									</div>
 								</div>
@@ -144,6 +168,24 @@
 								<div class="command">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Value: 0x<span id="editor-properties-output-value">?</span></div>
 								<div class="command">&nbsp;&nbsp;Position: <span id="editor-properties-output-position">?</span></div>
 							</div>
+						</div>
+					</div>
+					<div class="editor-find-and-replace" id="editor-find-and-replace">
+						<div class="foreground">
+							<table>
+								<tr>
+									<td>Find: 0x</td>
+									<td><input id="editor-find-and-replace-value-find"/></td>
+								</tr>
+								<tr>
+									<td>Replace: 0x</td>
+									<td><input id="editor-find-and-replace-value-replace" /></td>
+								</tr>
+								<tr>
+									<td><button id="editor-find-and-replace-cancel">Cancel</button></td>
+									<td><button id="editor-find-and-replace-apply">Apply</button></td>
+								</tr>
+							</table>
 						</div>
 					</div>
 					<div class="error" id="error"><span>Error</span><br /><br /></div>
