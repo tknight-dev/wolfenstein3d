@@ -457,7 +457,11 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff,
 									);
 								} else {
-									assetId = value & GameGridCellMasksAndValues.ID_MASK;
+									if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+										assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
+									} else {
+										assetId = value & GameGridCellMasksAndValues.ID_MASK;
+									}
 
 									offscreenCanvasContext.drawImage(
 										<OffscreenCanvas>cacheCanvas.get(assetId) || testImage,

@@ -1285,6 +1285,14 @@ export class Game {
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 			Game.modeEditType = EditType.PAN_ZOOM;
 
+			let element: HTMLInputElement;
+			for (element of DOM.elEditorPropertiesExtendedInputs) {
+				element.checked = false;
+			}
+			for (element of DOM.elEditorPropertiesInputs) {
+				element.checked = false;
+			}
+
 			// Video
 			setTimeout(() => {
 				Game.reportNew = true;

@@ -166,8 +166,8 @@ class Blockenstein {
 		Blockenstein.settingsApply();
 
 		// Done
-		Game.viewEditor();
-		// Game.viewGame();
+		// Game.viewEditor();
+		Game.viewGame();
 		console.log('System Loaded in', performance.now() - then, 'ms');
 
 		// Start the music!!
