@@ -8,7 +8,7 @@ import {
 	CalcBusOutputCmd,
 	CalcBusOutputPayload,
 } from './calc.model.js';
-import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { gameGridCellMaskExtendedDoor, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import { GamingCanvasOrientation, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCharacterControl,
@@ -193,8 +193,10 @@ class CalcEngine {
 				y: 0,
 			},
 			characterPlayer1: Character = CalcEngine.characterPlayer1,
+			characterPlayer1Action: boolean = false,
 			characterPlayer1CameraEncoded: Float64Array | undefined,
 			characterPlayer1Changed: boolean,
+			characterPlayer1GridIndex: number,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array,
@@ -207,14 +209,19 @@ class CalcEngine {
 				y: 0,
 			},
 			characterPlayer2: Character = CalcEngine.characterPlayer2,
+			characterPlayer2Action: boolean = false,
 			characterPlayer2CameraEncoded: Float64Array | undefined,
 			characterPlayer2Changed: boolean,
+			characterPlayer2GridIndex: number,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer2RaycastRays: Float64Array | undefined,
 			cycleMinMs: number = 10,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
+			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
+			gameMapIndexEff: number,
+			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
 				distanceMapEnable: true,
@@ -265,6 +272,7 @@ class CalcEngine {
 					CalcEngine.gameMapNew = false;
 
 					gameMapGrid = CalcEngine.gameMap.grid;
+					((gameMapGridData = CalcEngine.gameMap.grid.data), (gameMapSideLength = CalcEngine.gameMap.grid.sideLength));
 
 					cameraUpdated = true;
 				}
@@ -312,6 +320,10 @@ class CalcEngine {
 				 * Calc: Position
 				 */
 				if (cameraMode === false) {
+					/**
+					 * Position
+					 */
+
 					// Player 1: Position
 					characterPlayer1Changed =
 						characterPlayer1Changed ||
@@ -368,6 +380,55 @@ class CalcEngine {
 						}
 					} else {
 						characterPlayer2Raycast = undefined;
+					}
+
+					/**
+					 * Action
+					 */
+					if (characterPlayer1Action === false && characterPlayer1Input.action === true) {
+						characterPlayer1Action = true;
+						characterPlayer1GridIndex = (characterPlayer1.camera.x | 0) * gameMapSideLength + (characterPlayer1.camera.y | 0);
+
+						// 45deg = 0.7854rad (NE)
+						// 135deg = 2.3562rad (NW)
+						// 225deg = 3.9270rad (SW)
+						// 315deg = 5.4978rad (SE)
+						if (characterPlayer1.camera.r > 0.7854 && characterPlayer1.camera.r < 2.3562) {
+							// East
+							gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
+						} else if (characterPlayer1.camera.r > 3.927 && characterPlayer1.camera.r < 5.4978) {
+							// West
+							gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
+						} else if (characterPlayer1.camera.r > 2.3562 && characterPlayer1.camera.r < 3.927) {
+							// North
+							gameMapIndexEff = characterPlayer1GridIndex + 1;
+						} else {
+							// South
+							gameMapIndexEff = characterPlayer1GridIndex - 1;
+						}
+
+						if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+							if ((gameMapGridData[gameMapIndexEff] & gameGridCellMaskExtendedDoor) !== 0) {
+								console.log('ACTION: DOOR');
+							}
+						} else if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+							console.log('ACTION: MOVE WALL');
+						}
+
+						// Check for actionable things in front of player
+					} else if (characterPlayer1Action === true && characterPlayer1Input.action === false) {
+						characterPlayer1Action = false;
+					}
+
+					if (settingsPlayer2Enable === true) {
+						if (characterPlayer2Action === false && characterPlayer2Input.action === true) {
+							characterPlayer2Action = true;
+							characterPlayer2GridIndex = (characterPlayer2.camera.x | 0) * gameMapSideLength + (characterPlayer2.camera.y | 0);
+
+							// Check for actionable things in front of player
+						} else if (characterPlayer2Action === true && characterPlayer2Input.action === false) {
+							characterPlayer2Action = false;
+						}
 					}
 				} else if (cameraUpdated) {
 					// Camera mode means we only need one raycast no matter how many players

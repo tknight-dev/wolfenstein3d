@@ -880,6 +880,7 @@ export class Game {
 
 		const position = (position: GamingCanvasInputPosition) => {
 			Game.position = GamingCanvasGridInputToCoordinate(position, viewport, Game.position);
+			DOM.elEditorPropertiesOutputIndex.innerText = String((Game.position.x | 0) * Game.map.grid.sideLength + (Game.position.y | 0)).padStart(4, '0');
 			DOM.elEditorPropertiesOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI) | 0}°`;
 		};
 

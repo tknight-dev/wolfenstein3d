@@ -536,7 +536,12 @@ class VideoMainEngine {
 						 */
 						if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
 							// Asset
-							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+							asset =
+								assets.get(
+									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
+										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
+										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
+								) || renderImageTest;
 							offscreenCanvasContext.filter = 'none';
 							renderSpriteFixedNS = (gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
 
@@ -649,7 +654,12 @@ class VideoMainEngine {
 							/**
 							 * Draw: Sprites - Rotating
 							 */
-							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+							asset =
+								assets.get(
+									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
+										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
+										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
+								) || renderImageTest;
 
 							// Calc: Position
 							y = gameMapGridIndex % gameMapGridSideLength;

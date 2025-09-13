@@ -23,12 +23,12 @@ export enum GameGridCellMasksAndValues {
 }
 
 export enum GameGridCellMasksAndValuesExtended {
-	DOOR = 0x80,
-	DOOR_LOCKED_1 = 0x40,
-	DOOR_LOCKED_2 = 0x20,
-	ID_MASK = 0x07, // 7 possible
-	SWITCH = 0x10,
-	TELEPORT = 0x08,
+	DOOR = 0x0080,
+	DOOR_LOCKED_1 = 0x0040,
+	DOOR_LOCKED_2 = 0x0020,
+	ID_MASK = 0x0007, // 7 possible
+	SWITCH = 0x0010,
+	TELEPORT = 0x0008,
 }
 
 export const gameGridCellMaskExtendedDoor: number =

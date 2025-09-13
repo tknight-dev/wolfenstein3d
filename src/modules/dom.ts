@@ -71,6 +71,7 @@ export class DOM {
 	public static elEditorPropertiesInputWall: HTMLInputElement;
 	public static elEditorPropertiesInputWallInvisible: HTMLInputElement;
 	public static elEditorPropertiesOutputAssetId: HTMLElement;
+	public static elEditorPropertiesOutputIndex: HTMLElement;
 	public static elEditorPropertiesOutputPosition: HTMLElement;
 	public static elEditorPropertiesOutputProperties: HTMLElement;
 	public static elEditorPropertiesOutputValue: HTMLElement;
@@ -215,24 +216,6 @@ export class DOM {
 		DOM.elEditorFindAndReplaceValueFind = <HTMLInputElement>document.getElementById('editor-find-and-replace-value-find');
 		DOM.elEditorFindAndReplaceValueReplace = <HTMLInputElement>document.getElementById('editor-find-and-replace-value-replace');
 
-		DOM.elEditorProperties = <HTMLElement>document.getElementById('editor-properties');
-
-		DOM.elEditorPropertiesHandleArrow = <HTMLElement>document.getElementById('editor-properties-handle-arrow');
-		DOM.elEditorPropertiesHandleArrow.onclick = DOM.elEditorHandleArrow.onclick;
-
-		DOM.elEditorPropertiesHandleHide = <HTMLElement>document.getElementById('editor-properties-handle-hide');
-		DOM.elEditorPropertiesHandleHide.onclick = () => {
-			if (DOM.elEditorPropertiesHandleHide.classList.contains('invert') === true) {
-				DOM.elEditorProperties.classList.remove('shrink');
-				DOM.elEditorPropertiesHandleHide.classList.remove('invert');
-				DOM.elEditorPropertiesHandleHide.innerText = '_';
-			} else {
-				DOM.elEditorProperties.classList.add('shrink');
-				DOM.elEditorPropertiesHandleHide.classList.add('invert');
-				DOM.elEditorPropertiesHandleHide.innerText = '□';
-			}
-		};
-
 		DOM.elEditorPropertiesInputExtended = <HTMLInputElement>document.getElementById('editor-extended');
 		DOM.elEditorPropertiesInputExtended.oninput = () => {
 			if (DOM.elEditorPropertiesInputExtended.checked === true) {
@@ -273,6 +256,24 @@ export class DOM {
 			DOM.elEditorPropertiesInputWallInvisible,
 		];
 
+		DOM.elEditorProperties = <HTMLElement>document.getElementById('editor-properties');
+
+		DOM.elEditorPropertiesHandleArrow = <HTMLElement>document.getElementById('editor-properties-handle-arrow');
+		DOM.elEditorPropertiesHandleArrow.onclick = DOM.elEditorHandleArrow.onclick;
+
+		DOM.elEditorPropertiesHandleHide = <HTMLElement>document.getElementById('editor-properties-handle-hide');
+		DOM.elEditorPropertiesHandleHide.onclick = () => {
+			if (DOM.elEditorPropertiesHandleHide.classList.contains('invert') === true) {
+				DOM.elEditorProperties.classList.remove('shrink');
+				DOM.elEditorPropertiesHandleHide.classList.remove('invert');
+				DOM.elEditorPropertiesHandleHide.innerText = '_';
+			} else {
+				DOM.elEditorProperties.classList.add('shrink');
+				DOM.elEditorPropertiesHandleHide.classList.add('invert');
+				DOM.elEditorPropertiesHandleHide.innerText = '□';
+			}
+		};
+
 		DOM.elEditorPropertiesExtended = <HTMLElement>document.getElementById('editor-properties-extended');
 		DOM.elEditorPropertiesExtendedInputDoor = <HTMLInputElement>document.getElementById('editor-extended-door');
 		DOM.elEditorPropertiesExtendedInputDoorLocked1 = <HTMLInputElement>document.getElementById('editor-extended-door-locked1');
@@ -288,6 +289,7 @@ export class DOM {
 		];
 
 		DOM.elEditorPropertiesOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
+		DOM.elEditorPropertiesOutputIndex = <HTMLElement>document.getElementById('editor-properties-output-index');
 		DOM.elEditorPropertiesOutputPosition = <HTMLElement>document.getElementById('editor-properties-output-position');
 		DOM.elEditorPropertiesOutputProperties = <HTMLElement>document.getElementById('editor-properties-output-properties');
 		DOM.elEditorPropertiesOutputValue = <HTMLElement>document.getElementById('editor-properties-output-value');
