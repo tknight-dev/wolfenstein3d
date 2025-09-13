@@ -244,8 +244,21 @@ export class DOM {
 
 		DOM.elEditorPropertiesInputFloor = <HTMLInputElement>document.getElementById('editor-floor');
 		DOM.elEditorPropertiesInputLight = <HTMLInputElement>document.getElementById('editor-light');
-		DOM.elEditorPropertiesInputSpriteFixedH = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ns');
+
 		DOM.elEditorPropertiesInputSpriteFixedV = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ew');
+		DOM.elEditorPropertiesInputSpriteFixedV.oninput = () => {
+			if (DOM.elEditorPropertiesInputSpriteFixedV.checked === true) {
+				DOM.elEditorPropertiesInputSpriteFixedH.checked = false;
+			}
+		};
+
+		DOM.elEditorPropertiesInputSpriteFixedH = <HTMLInputElement>document.getElementById('editor-sprite-fixed-ns');
+		DOM.elEditorPropertiesInputSpriteFixedH.oninput = () => {
+			if (DOM.elEditorPropertiesInputSpriteFixedH.checked === true) {
+				DOM.elEditorPropertiesInputSpriteFixedV.checked = false;
+			}
+		};
+
 		DOM.elEditorPropertiesInputWall = <HTMLInputElement>document.getElementById('editor-wall');
 		DOM.elEditorPropertiesInputWallInvisible = <HTMLInputElement>document.getElementById('editor-wall-invisible');
 		DOM.elEditorPropertiesInputWallMovable = <HTMLInputElement>document.getElementById('editor-wall-movable');
