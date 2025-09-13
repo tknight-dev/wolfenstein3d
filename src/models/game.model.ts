@@ -15,8 +15,8 @@ export enum GameGridCellMasksAndValues {
 	ID_MASK = 0x00ff, // 255 possible
 	LIGHT = 0x0400,
 	NULL = 0x0000,
-	SPRITE_FIXED_NS = 0x0800,
-	SPRITE_FIXED_EW = 0x1000,
+	SPRITE_FIXED_EW = 0x0800,
+	SPRITE_FIXED_NS = 0x1000,
 	WALL = 0x2000,
 	WALL_INVISIBLE = 0x4000,
 	WALL_MOVABLE = 0x8000,
@@ -30,6 +30,11 @@ export enum GameGridCellMasksAndValuesExtended {
 	SWITCH = 0x10,
 	TELEPORT = 0x08,
 }
+
+export const gameGridCellMaskExtendedDoor: number =
+	GameGridCellMasksAndValuesExtended.DOOR | GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1 | GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2;
+
+export const gameGridCellMaskSpriteFixed: number = GameGridCellMasksAndValues.SPRITE_FIXED_EW | GameGridCellMasksAndValues.SPRITE_FIXED_NS;
 
 export interface GameGridExtended {}
 

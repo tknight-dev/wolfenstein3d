@@ -1,6 +1,13 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import {
+	gameGridCellMaskExtendedDoor,
+	gameGridCellMaskFloorOrNull,
+	GameGridCellMasksAndValues,
+	GameGridCellMasksAndValuesExtended,
+	gameGridCellMaskSpriteFixed,
+	GameMap,
+} from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -204,6 +211,7 @@ class VideoMainEngine {
 	public static go__funcForward(): void {
 		let asset: OffscreenCanvas,
 			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
+			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
@@ -217,11 +225,13 @@ class VideoMainEngine {
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			frameCount: number = 0,
 			gameMapGridCell: number,
+			gameMapGridCell2: number,
 			gameMapGridIndex: number,
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
+			renderAssetId: number,
 			renderBrightness: number,
 			renderCellSide: GamingCanvasGridRaycastCellSide,
 			renderDistance: number,
@@ -229,9 +239,11 @@ class VideoMainEngine {
 			renderDistance2: number,
 			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			renderEnable: boolean,
+			renderExtended: boolean,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
 			renderGammaFilter: string,
+			renderGlobalShadow: boolean,
 			renderGradientCanvas: OffscreenCanvas = new OffscreenCanvas(1, 1),
 			renderGradientCanvasContext: OffscreenCanvasRenderingContext2D,
 			renderGradientCanvasGradient: CanvasGradient,
@@ -246,6 +258,8 @@ class VideoMainEngine {
 			renderSpriteXFactor2: number,
 			renderWallHeight: number,
 			renderWallHeight2: number,
+			renderWallHeightFactored: number,
+			renderWallHeightHalf: number,
 			renderWallHeightFactor: number,
 			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
@@ -423,45 +437,64 @@ class VideoMainEngine {
 					// Draw: Rays
 					if (renderRayDistanceMapInstance.ray !== undefined) {
 						renderRayIndex = renderRayDistanceMapInstance.ray;
+						gameMapGridIndex = calculationsRays[renderRayIndex + 3];
 
-						// Cell
-						gameMapGridCell = gameMapGridData[calculationsRays[renderRayIndex + 3]];
-						renderCellSide = calculationsRays[renderRayIndex + 5];
+						// Render: Modification based on cell sidedness
+						switch (calculationsRays[renderRayIndex + 5]) {
+							case GamingCanvasGridRaycastCellSide.EAST:
+								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + gameMapGridSideLength];
+								renderAssets = assetsInvertHorizontal;
+								renderGlobalShadow = true;
+								break;
+							case GamingCanvasGridRaycastCellSide.NORTH:
+								gameMapGridCell2 = gameMapGridData[gameMapGridIndex - 1];
+								renderAssets = assetsInvertHorizontal;
+								renderGlobalShadow = false;
+								break;
+							case GamingCanvasGridRaycastCellSide.SOUTH:
+								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + 1];
+								renderAssets = assets;
+								renderGlobalShadow = false;
+								break;
+							case GamingCanvasGridRaycastCellSide.WEST:
+								gameMapGridCell2 = gameMapGridData[gameMapGridIndex - gameMapGridSideLength];
+								renderAssets = assets;
+								renderGlobalShadow = true;
+								break;
+						}
 
-						// Asset: images are designed to be inverted on corners
-						if (renderCellSide === GamingCanvasGridRaycastCellSide.SOUTH || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
-							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
-							} else {
-								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-							}
+						// Render: Asset Selection
+						if ((gameMapGridCell2 & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell2 & gameGridCellMaskExtendedDoor) !== 0) {
+							asset = renderAssets.get(AssetIdImg.SPRITE_METAL_DOOR_INSIDE) || renderImageTest;
 						} else {
-							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-								asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
-							} else {
-								asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-							}
+							gameMapGridCell = gameMapGridData[gameMapGridIndex];
+							renderAssetId =
+								(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
+									? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
+									: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
+
+							asset = renderAssets.get(renderAssetId) || renderImageTest;
 						}
 
 						// Calc
 						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 2]) * renderWallHeightFactor;
+						renderWallHeightFactored = renderWallHeight / renderHeightFactor;
+						renderWallHeightHalf = renderWallHeight / 2;
 
 						// Render: Lighting
 						if (renderLightingQuality !== LightingQuality.NONE) {
 							renderBrightness = 0;
 
 							// Filter: Start
-							if (renderLightingQuality == LightingQuality.BASIC) {
-								if (renderCellSide === GamingCanvasGridRaycastCellSide.EAST || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
-									renderBrightness -= 0.3;
-								}
-							}
-
-							if (renderLightingQuality == LightingQuality.FULL) {
+							if (renderLightingQuality === LightingQuality.FULL) {
 								renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
 
-								if (renderCellSide === GamingCanvasGridRaycastCellSide.EAST || renderCellSide === GamingCanvasGridRaycastCellSide.WEST) {
+								if (renderGlobalShadow === true) {
 									renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
+								}
+							} else if (renderLightingQuality === LightingQuality.BASIC) {
+								if (renderGlobalShadow === true) {
+									renderBrightness -= 0.3;
 								}
 							}
 
@@ -477,27 +510,23 @@ class VideoMainEngine {
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 5) * settingsRaycastQuality) / 6, // (x-destination) Draw sliced image at pixel (6 elements per ray)
-							(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+							(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
 							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
-							renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 					}
 
 					// Draw: Sprites
 					if (renderRayDistanceMapInstance.cell !== undefined) {
 						gameMapGridIndex = renderRayDistanceMapInstance.cell;
-
-						// Cell
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 
+						// Not sprites
 						if (gameMapGridCell === GameGridCellMasksAndValues.NULL || gameMapGridCell === GameGridCellMasksAndValues.FLOOR) {
 							continue;
 						}
 
-						if (
-							(gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0 ||
-							(gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0
-						) {
+						if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
 							// Asset
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 
@@ -507,7 +536,6 @@ class VideoMainEngine {
 
 							// Calc: Distance
 							// EW: Door
-							// DOOR 2x NS Door Inside at edge
 
 							// NS: Door
 							if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0) {
@@ -523,6 +551,8 @@ class VideoMainEngine {
 
 								// Calc: Height
 								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+								renderWallHeightFactored = renderWallHeight / renderHeightFactor;
+								renderWallHeightHalf = renderWallHeight / 2;
 
 								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
 								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
@@ -551,37 +581,6 @@ class VideoMainEngine {
 								);
 								offscreenCanvasContext.closePath();
 								offscreenCanvasContext.stroke();
-
-								// Distance to right coodinate
-								// y += 1;
-								// renderDistance2 = (x * x + y * y) ** 0.5;
-								// renderSpriteXFactor2 = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
-								// renderWallHeight2 = (offscreenCanvasHeightPx / renderDistance2) * renderWallHeightFactor;
-
-								// // Corrections for rotations between 0 and 2pi
-								// if (renderSpriteXFactor2 > GamingCanvasConstPIDouble) {
-								// 	renderSpriteXFactor2 -= GamingCanvasConstPIDouble;
-								// }
-								// if (renderSpriteXFactor2 > GamingCanvasConstPI) {
-								// 	renderSpriteXFactor2 -= GamingCanvasConstPIDouble;
-								// }
-
-								// renderSpriteXFactor2 /= settingsFOV;
-
-								// // Draw
-								// offscreenCanvasContext.strokeStyle = 'blue';
-								// offscreenCanvasContext.lineWidth = 2;
-								// offscreenCanvasContext.beginPath();
-								// offscreenCanvasContext.moveTo(
-								// 	renderSpriteXFactor2 * offscreenCanvasWidthPx - renderWallHeight2 / 2 / renderHeightFactor,
-								// 	(renderWallHeight2 - renderWallHeight2 / 2) / renderHeightFactor,
-								// );
-								// offscreenCanvasContext.lineTo(
-								// 	renderSpriteXFactor2 * offscreenCanvasWidthPx - renderWallHeight2 / 2 / renderHeightFactor,
-								// 	(renderWallHeight2 + renderWallHeight2) / renderHeightFactor,
-								// );
-								// offscreenCanvasContext.closePath();
-								// offscreenCanvasContext.stroke();
 							}
 						} else {
 							// Asset
@@ -597,6 +596,8 @@ class VideoMainEngine {
 
 							// Calc: Height
 							renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+							renderWallHeightFactored = renderWallHeight / renderHeightFactor;
+							renderWallHeightHalf = renderWallHeight / 2;
 
 							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
 							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
@@ -618,10 +619,7 @@ class VideoMainEngine {
 								renderBrightness = 0;
 
 								// Filter: Start
-								if (renderLightingQuality == LightingQuality.BASIC) {
-								}
-
-								if (renderLightingQuality == LightingQuality.FULL) {
+								if (renderLightingQuality === LightingQuality.FULL) {
 									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
 								}
 
@@ -636,10 +634,10 @@ class VideoMainEngine {
 								0, // (y-source) Start at the bottom of the image (y pixel)
 								asset.width, // (width-source) Slice 1 pixel wide
 								asset.height, // (height-source) height of our test image
-								renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeight / 2 / renderHeightFactor, // (x-destination) Draw sliced image at pixel
-								(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								renderWallHeight / renderHeightFactor, // (width-destination) Draw the sliced image as 1 pixel wide
-								renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+								renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
+								(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+								renderWallHeightFactored, // (width-destination) Draw the sliced image as 1 pixel wide
+								renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 							);
 						}
 					}
