@@ -263,6 +263,8 @@ class VideoEditorEngine {
 			offscreenCanvasWidthPx: number = 0,
 			offscreenCanvasWidthPxEff: number = 0,
 			frameCount: number = 0,
+			renderCellOutlineOffset: number,
+			renderCellOutlineWidth: number,
 			report: GamingCanvasReport = VideoEditorEngine.report,
 			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
@@ -337,6 +339,9 @@ class VideoEditorEngine {
 						calculationsViewportHeightStartPx = calculationsViewport.heightStartPx;
 						calculationsViewportWidthStart = calculationsViewport.widthStart;
 						calculationsViewportWidthStartPx = calculationsViewport.widthStartPx;
+
+						renderCellOutlineWidth = Math.max(2, calculationsViewport.cellSizePx / 8);
+						renderCellOutlineOffset = renderCellOutlineWidth / 2;
 
 						characterPlayer1XEff = characterPlayer1.camera.x - calculationsViewportWidthStart;
 						characterPlayer1YEff = characterPlayer1.camera.y - calculationsViewportHeightStart;
@@ -467,6 +472,17 @@ class VideoEditorEngine {
 										<OffscreenCanvas>cacheCanvas.get(assetId) || testImage,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									);
+								}
+
+								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+									offscreenCanvasContext.strokeStyle = 'yellow';
+									offscreenCanvasContext.strokeRect(
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 									);
 								}
 							}
