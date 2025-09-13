@@ -1,5 +1,12 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
-import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvas,
+	GamingCanvasConstPI,
+	GamingCanvasConstPIDouble,
+	GamingCanvasConstPIHalf,
+	GamingCanvasReport,
+	GamingCanvasUtilScale,
+} from '@tknight-dev/gaming-canvas';
 import {
 	gameGridCellMaskExtendedDoor,
 	GameGridCellMasksAndValues,
@@ -253,6 +260,8 @@ class VideoMainEngine {
 			renderLightingQuality: LightingQuality,
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
+			renderSpriteFixedCoordinates: number[] = new Array(4),
+			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
 			renderSpriteXFactor2: number,
 			renderWallHeight: number,
@@ -536,58 +545,92 @@ class VideoMainEngine {
 							// Asset
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 							offscreenCanvasContext.filter = 'none';
+							renderSpriteFixedNS = (gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
 
-							// NS
-							if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0) {
-								// Calc: Position
-								y = gameMapGridIndex % gameMapGridSideLength;
-								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
-								y -= calculationsCamera.y - 0.5; // 0.5 is center
+							// Calc: Position
+							y = gameMapGridIndex % gameMapGridSideLength;
+							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x;
+							y -= calculationsCamera.y;
 
-								// Calc: Distance
-								renderDistance = (x * x + y * y) ** 0.5;
+							/**
+							 * Position 1
+							 */
+							x += renderSpriteFixedNS === true ? 0.5 : 0; // 0.5 is center
+							y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
+
+							// Calc: Distance
+							renderDistance = (x * x + y * y) ** 0.5;
+
+							// Calc: Height
+							renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+
+							// Corrections for rotations between 0 and 2pi
+							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+							if (renderSpriteXFactor > GamingCanvasConstPI) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+
+							renderSpriteFixedCoordinates[0] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
+
+							/**
+							 * Position 2
+							 */
+							x += renderSpriteFixedNS === true ? 0 : 1;
+							y += renderSpriteFixedNS === true ? 1 : 0;
+
+							// Calc: Distance
+							renderDistance = (x * x + y * y) ** 0.5;
+
+							// Calc: Height
+							renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+
+							// Corrections for rotations between 0 and 2pi
+							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+							if (renderSpriteXFactor > GamingCanvasConstPI) {
+								renderSpriteXFactor -= GamingCanvasConstPIDouble;
+							}
+
+							renderSpriteFixedCoordinates[2] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
+
+							/**
+							 * Render images between coordinates
+							 */
+							x = renderSpriteFixedCoordinates[0] - renderSpriteFixedCoordinates[2];
+							y = renderSpriteFixedCoordinates[1] - renderSpriteFixedCoordinates[3];
+
+							// Calc: Width of sprite in pixels
+							renderDistance = ((x * x + y * y) ** 0.5) | 0;
+							// renderDistance = Math.min(offscreenCanvasWidthPx, renderDistance);
+
+							for (i = 0; i < renderDistance; i++) {
+								x = i / renderDistance; // Determine percentage of left to right
 
 								// Calc: Height
-								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
-								renderWallHeightFactored = renderWallHeight / renderHeightFactor;
-								renderWallHeightHalf = renderWallHeight / 2;
+								renderWallHeight = GamingCanvasUtilScale(x, 0, 1, renderSpriteFixedCoordinates[1], renderSpriteFixedCoordinates[3]);
+								// renderWallHeight = Math.min(offscreenCanvasHeightPx, renderWallHeight);
 
-								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
-
-								// Corrections for rotations between 0 and 2pi
-								if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
-									renderSpriteXFactor -= GamingCanvasConstPIDouble;
-								}
-								if (renderSpriteXFactor > GamingCanvasConstPI) {
-									renderSpriteXFactor -= GamingCanvasConstPIDouble;
-								}
-
-								renderSpriteXFactor /= settingsFOV;
-
-								// Draw
-								offscreenCanvasContext.strokeStyle = 'red';
-								offscreenCanvasContext.lineWidth = 2;
-								offscreenCanvasContext.beginPath();
-								offscreenCanvasContext.moveTo(renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, 0);
-								offscreenCanvasContext.lineTo(
-									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor,
-									renderWallHeightFactored,
+								// Render: 3D Projection
+								offscreenCanvasContext.drawImage(
+									asset, // (image) Draw from our test image
+									x * asset.width, // (x-source) Specific how far from the left to draw from the test image
+									0, // (y-source) Start at the bottom of the image (y pixel)
+									1, // (width-source) Slice 1 pixel wide
+									asset.height, // (height-source) height of our test image
+									GamingCanvasUtilScale(x, 0, 1, renderSpriteFixedCoordinates[0], renderSpriteFixedCoordinates[2]), // (x-destination) Draw sliced image at pixel
+									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+									2, // (width-destination) Draw the sliced image as 1 pixel wide
+									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 								);
-								offscreenCanvasContext.closePath();
-								offscreenCanvasContext.stroke();
-
-								// offscreenCanvasContext.drawImage(
-								// 	asset, // (image) Draw from our test image
-								// 	0, // (x-source) Specific how far from the left to draw from the test image
-								// 	0, // (y-source) Start at the bottom of the image (y pixel)
-								// 	asset.width, // (width-source) Slice 1 pixel wide
-								// 	asset.height, // (height-source) height of our test image
-								// 	renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
-								// 	(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								// 	renderWallHeightFactored, // (width-destination) Draw the sliced image as 1 pixel wide
-								// 	renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
-								// );
 							}
 						} else {
 							/**
@@ -641,11 +684,11 @@ class VideoMainEngine {
 								asset, // (image) Draw from our test image
 								0, // (x-source) Specific how far from the left to draw from the test image
 								0, // (y-source) Start at the bottom of the image (y pixel)
-								asset.width, // (width-source) Slice 1 pixel wide
-								asset.height, // (height-source) height of our test image
+								asset.width, // (width-source) width of our image
+								asset.height, // (height-source) height of our image
 								renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
 								(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-								renderWallHeightFactored, // (width-destination) Draw the sliced image as 1 pixel wide
+								renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
 								renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 							);
 						}

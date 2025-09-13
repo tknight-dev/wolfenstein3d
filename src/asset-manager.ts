@@ -360,7 +360,7 @@ export enum AssetIdImg {
 	SPRITE_LIGHT_FLOOR_OFF = 15,
 	SPRITE_LIGHT_FLOOR_ON = 16,
 	SPRITE_MEDKIT = 17,
-	// SPRITE_METAL_DOOR = 18,
+	SPRITE_VINES = 18,
 	SPRITE_METAL_DOOR_INSIDE = 19,
 	// SPRITE_METAL_DOOR_INSIDE2 = 20,
 	// SPRITE_METAL_DOOR_LOCKED = 21,
@@ -1256,6 +1256,16 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtImg.PNG,
 		file: 'img/sprite/vase.png',
 		title: 'Vase',
+	});
+
+	assetsImages.set(AssetIdImg.SPRITE_VINES, {
+		alpha: true,
+		author: 'Id Software',
+		blocking: true,
+		category: AssetImgCategory.SPRITE,
+		ext: AssetExtImg.PNG,
+		file: 'img/sprite/vines.png',
+		title: 'Vines',
 	});
 
 	assetsImages.set(AssetIdImg.SPRITE_WATER, {
