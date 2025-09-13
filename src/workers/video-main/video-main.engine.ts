@@ -584,10 +584,10 @@ class VideoMainEngine {
 							y += renderSpriteFixedNS === true ? 1 : 0;
 
 							// Calc: Distance
-							renderDistance = (x * x + y * y) ** 0.5;
+							renderDistance2 = (x * x + y * y) ** 0.5;
 
 							// Calc: Height
-							renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+							renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance2) * renderWallHeightFactor;
 
 							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
 							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
@@ -601,6 +601,24 @@ class VideoMainEngine {
 							}
 
 							renderSpriteFixedCoordinates[2] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
+
+							/**
+							 * Render: Lighting
+							 */
+							renderDistance = (renderDistance + renderDistance2) / 2;
+
+							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
+								offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
+							} else if (renderLightingQuality !== LightingQuality.NONE) {
+								renderBrightness = 0;
+
+								if (renderLightingQuality === LightingQuality.FULL) {
+									renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
+								}
+
+								// Filter: End
+								offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+							}
 
 							/**
 							 * Render images between coordinates
@@ -670,9 +688,8 @@ class VideoMainEngine {
 							} else if (renderLightingQuality !== LightingQuality.NONE) {
 								renderBrightness = 0;
 
-								// Filter: Start
 								if (renderLightingQuality === LightingQuality.FULL) {
-									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+									renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
 								}
 
 								// Filter: End
