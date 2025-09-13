@@ -433,7 +433,9 @@ class VideoMainEngine {
 				for (i of calculationsRaysMapKeysSorted) {
 					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(i);
 
-					// Draw: Rays
+					/**
+					 * Draw: Ray
+					 */
 					if (renderRayDistanceMapInstance.ray !== undefined) {
 						renderRayIndex = renderRayDistanceMapInstance.ray;
 						gameMapGridIndex = calculationsRays[renderRayIndex + 3];
@@ -515,7 +517,9 @@ class VideoMainEngine {
 						);
 					}
 
-					// Draw: Sprites
+					/**
+					 * Draw: Sprites
+					 */
 					if (renderRayDistanceMapInstance.cell !== undefined) {
 						gameMapGridIndex = renderRayDistanceMapInstance.cell;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
@@ -525,21 +529,16 @@ class VideoMainEngine {
 							continue;
 						}
 
+						/**
+						 * Draw: Sprites - Fixed
+						 */
 						if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
 							// Asset
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+							offscreenCanvasContext.filter = 'none';
 
-							// Calc: Position
-							y = gameMapGridIndex % gameMapGridSideLength;
-							x = (gameMapGridIndex - y) / gameMapGridSideLength;
-
-							// Calc: Distance
-							// EW: Door
-
-							// NS: Door
+							// NS
 							if ((gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0) {
-								offscreenCanvasContext.filter = 'none';
-
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;
 								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
@@ -570,19 +569,30 @@ class VideoMainEngine {
 								offscreenCanvasContext.strokeStyle = 'red';
 								offscreenCanvasContext.lineWidth = 2;
 								offscreenCanvasContext.beginPath();
-								offscreenCanvasContext.moveTo(
-									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeight / 2 / renderHeightFactor,
-									(renderWallHeight - renderWallHeight / 2) / renderHeightFactor,
-								);
+								offscreenCanvasContext.moveTo(renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, 0);
 								offscreenCanvasContext.lineTo(
-									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeight / 2 / renderHeightFactor,
-									(renderWallHeight + renderWallHeight / 2) / renderHeightFactor,
+									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor,
+									renderWallHeightFactored,
 								);
 								offscreenCanvasContext.closePath();
 								offscreenCanvasContext.stroke();
+
+								// offscreenCanvasContext.drawImage(
+								// 	asset, // (image) Draw from our test image
+								// 	0, // (x-source) Specific how far from the left to draw from the test image
+								// 	0, // (y-source) Start at the bottom of the image (y pixel)
+								// 	asset.width, // (width-source) Slice 1 pixel wide
+								// 	asset.height, // (height-source) height of our test image
+								// 	renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
+								// 	(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+								// 	renderWallHeightFactored, // (width-destination) Draw the sliced image as 1 pixel wide
+								// 	renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
+								// );
 							}
 						} else {
-							// Asset
+							/**
+							 * Draw: Sprites - Rotating
+							 */
 							asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 
 							// Calc: Position
