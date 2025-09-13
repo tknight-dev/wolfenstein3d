@@ -1,12 +1,27 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
-import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
  */
+
+/*
+ * Actions
+ */
+
+export interface CalcBusActionDoorState {
+	cellSide: GamingCanvasGridRaycastCellSide;
+	closed: boolean;
+	closing: boolean;
+	open: boolean;
+	timestampUnix: number; // Unix Timestamp for syncing between threads (WebWorkers)
+	timeout?: ReturnType<typeof setTimeout>;
+}
+export const CalcBusActionDoorStateAutoCloseDurationInMS: number = 5000;
+export const CalcBusActionDoorStateChangeDurationInMS: number = 2000;
 
 /*
  * Input
@@ -47,10 +62,17 @@ export interface CalcBusInputPayload {
  * Output
  */
 export enum CalcBusOutputCmd {
+	ACTION_DOOR_OPEN,
 	CAMERA,
 	CALCULATIONS,
 	INIT_COMPLETE,
 	STATS,
+}
+
+export interface CalcBusOutputDataActionDoorOpen {
+	cellSide: GamingCanvasGridRaycastCellSide;
+	gridIndex: number;
+	timestampUnix: number;
 }
 
 export interface CalcBusOutputDataCamera {
@@ -77,5 +99,5 @@ export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
+	data: boolean | CalcBusOutputDataActionDoorOpen | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
 }

@@ -8,6 +8,8 @@ import {
 	CalcBusOutputDataCalculations,
 	CalcBusOutputDataStats,
 	CalcBusOutputPayload,
+	CalcBusActionDoorState,
+	CalcBusOutputDataActionDoorOpen,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
 
@@ -16,6 +18,7 @@ import { GameMap } from '../../models/game.model.js';
  */
 
 export class CalcBus {
+	private static callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void;
 	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
 	private static callbackCalculations: (data: CalcBusOutputDataCalculations) => void;
 	private static callbackInitComplete: (status: boolean) => void;
@@ -60,6 +63,9 @@ export class CalcBus {
 
 			for (payload of payloads) {
 				switch (payload.cmd) {
+					case CalcBusOutputCmd.ACTION_DOOR_OPEN:
+						CalcBus.callbackActionDoor(<CalcBusOutputDataActionDoorOpen>payload.data);
+						break;
 					case CalcBusOutputCmd.CAMERA:
 						CalcBus.callbackCamera(<CalcBusOutputDataCamera>payload.data);
 						break;
@@ -119,6 +125,10 @@ export class CalcBus {
 			cmd: CalcBusInputCmd.SETTINGS,
 			data: settings,
 		});
+	}
+
+	public static setCallbackActionDoor(callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void): void {
+		CalcBus.callbackActionDoor = callbackActionDoor;
 	}
 
 	public static setCallbackCamera(callbackCamera: (data: CalcBusOutputDataCamera) => void): void {

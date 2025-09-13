@@ -1,5 +1,8 @@
 import { Character, CharacterInput } from '../../models/character.model.js';
 import {
+	CalcBusActionDoorState,
+	CalcBusActionDoorStateAutoCloseDurationInMS,
+	CalcBusActionDoorStateChangeDurationInMS,
 	CalcBusInputCmd,
 	CalcBusInputDataInit,
 	CalcBusInputDataPlayerInput,
@@ -15,6 +18,7 @@ import {
 	GamingCanvasGridCharacterControlStyle,
 	GamingCanvasGridCharacterControlOptions,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
+	GamingCanvasGridRaycastCellSide,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
 	GamingCanvasGridCamera,
@@ -169,7 +173,10 @@ class CalcEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
+		let actionDoors: Map<number, CalcBusActionDoorState> = new Map(),
+			actionDoorState: CalcBusActionDoorState,
+			buffers: ArrayBufferLike[] = [],
+			camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
 				CalcEngine.characterPlayer1.camera.r,
 				CalcEngine.characterPlayer1.camera.x,
 				CalcEngine.characterPlayer1.camera.y,
@@ -178,7 +185,7 @@ class CalcEngine {
 			cameraEncoded: Float64Array,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
-			buffers: ArrayBufferLike[] = [],
+			cellSide: GamingCanvasGridRaycastCellSide,
 			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
 				clip: true,
 				factorPosition: 0.0055,
@@ -238,6 +245,65 @@ class CalcEngine {
 			timestampFPSThen: number = 0,
 			timestampThen: number = 0;
 
+		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
+			let state: CalcBusActionDoorState = <CalcBusActionDoorState>actionDoors.get(gridIndex),
+				durationEff: number;
+
+			if (state === undefined) {
+				state = {
+					cellSide: cellSide,
+					closed: false,
+					closing: false,
+					open: false,
+					timestampUnix: 0,
+				};
+				actionDoors.set(gridIndex, state);
+			}
+
+			if (state.open === false) {
+				if (state.closing === true) {
+					durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - state.timestampUnix);
+				} else {
+					durationEff = CalcBusActionDoorStateChangeDurationInMS;
+				}
+
+				state.closed = false;
+				state.closing = false;
+				state.timestampUnix = Date.now();
+				CalcEngine.post([
+					{
+						cmd: CalcBusOutputCmd.ACTION_DOOR_OPEN,
+						data: {
+							cellSide: cellSide,
+							gridIndex: gridIndex,
+							timestampUnix: state.timestampUnix,
+						},
+					},
+				]);
+
+				clearTimeout(state.timeout);
+				state.timeout = setTimeout(() => {
+					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
+					state.open = true;
+
+					setTimeout(() => {
+						gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+						state.closing = true;
+						state.open = false;
+						state.timestampUnix = new Date().getTime();
+
+						state.timeout = setTimeout(() => {
+							state.closed = false;
+							state.closing = false;
+							state.open = false;
+						}, CalcBusActionDoorStateChangeDurationInMS);
+					}, CalcBusActionDoorStateAutoCloseDurationInMS);
+				}, durationEff);
+			}
+		};
+
+		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {};
+
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			CalcEngine.request = requestAnimationFrame(CalcEngine.go);
@@ -270,6 +336,11 @@ class CalcEngine {
 
 				if (CalcEngine.gameMapNew === true) {
 					CalcEngine.gameMapNew = false;
+
+					for (actionDoorState of actionDoors.values()) {
+						clearTimeout(actionDoorState.timeout);
+					}
+					actionDoors.clear();
 
 					gameMapGrid = CalcEngine.gameMap.grid;
 					((gameMapGridData = CalcEngine.gameMap.grid.data), (gameMapSideLength = CalcEngine.gameMap.grid.sideLength));
@@ -394,28 +465,26 @@ class CalcEngine {
 						// 225deg = 3.9270rad (SW)
 						// 315deg = 5.4978rad (SE)
 						if (characterPlayer1.camera.r > 0.7854 && characterPlayer1.camera.r < 2.3562) {
-							// East
+							cellSide = GamingCanvasGridRaycastCellSide.EAST;
 							gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
 						} else if (characterPlayer1.camera.r > 3.927 && characterPlayer1.camera.r < 5.4978) {
-							// West
+							cellSide = GamingCanvasGridRaycastCellSide.WEST;
 							gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
 						} else if (characterPlayer1.camera.r > 2.3562 && characterPlayer1.camera.r < 3.927) {
-							// North
-							gameMapIndexEff = characterPlayer1GridIndex + 1;
-						} else {
-							// South
+							cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 							gameMapIndexEff = characterPlayer1GridIndex - 1;
+						} else {
+							cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+							gameMapIndexEff = characterPlayer1GridIndex + 1;
 						}
 
 						if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.EXTENDED) !== 0) {
 							if ((gameMapGridData[gameMapIndexEff] & gameGridCellMaskExtendedDoor) !== 0) {
-								console.log('ACTION: DOOR');
+								actionDoor(cellSide, gameMapIndexEff);
 							}
 						} else if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
-							console.log('ACTION: MOVE WALL');
+							actionWallMovable(cellSide, gameMapIndexEff);
 						}
-
-						// Check for actionable things in front of player
 					} else if (characterPlayer1Action === true && characterPlayer1Input.action === false) {
 						characterPlayer1Action = false;
 					}
@@ -425,7 +494,31 @@ class CalcEngine {
 							characterPlayer2Action = true;
 							characterPlayer2GridIndex = (characterPlayer2.camera.x | 0) * gameMapSideLength + (characterPlayer2.camera.y | 0);
 
-							// Check for actionable things in front of player
+							// 45deg = 0.7854rad (NE)
+							// 135deg = 2.3562rad (NW)
+							// 225deg = 3.9270rad (SW)
+							// 315deg = 5.4978rad (SE)
+							if (characterPlayer2.camera.r > 0.7854 && characterPlayer2.camera.r < 2.3562) {
+								cellSide = GamingCanvasGridRaycastCellSide.EAST;
+								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
+							} else if (characterPlayer2.camera.r > 3.927 && characterPlayer2.camera.r < 5.4978) {
+								cellSide = GamingCanvasGridRaycastCellSide.WEST;
+								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
+							} else if (characterPlayer2.camera.r > 2.3562 && characterPlayer2.camera.r < 3.927) {
+								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
+								gameMapIndexEff = characterPlayer2GridIndex - 1;
+							} else {
+								cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+								gameMapIndexEff = characterPlayer2GridIndex + 1;
+							}
+
+							if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+								if ((gameMapGridData[gameMapIndexEff] & gameGridCellMaskExtendedDoor) !== 0) {
+									actionDoor(cellSide, gameMapIndexEff);
+								}
+							} else if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+								actionWallMovable(cellSide, gameMapIndexEff);
+							}
 						} else if (characterPlayer2Action === true && characterPlayer2Input.action === false) {
 							characterPlayer2Action = false;
 						}

@@ -2,6 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+import { CalcBusOutputDataActionDoorOpen } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -11,6 +12,7 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
  * Input
  */
 export enum VideoMainBusInputCmd {
+	ACTION_DOOR_OPEN,
 	CALCULATIONS,
 	INIT,
 	MAP,
@@ -46,7 +48,14 @@ export interface VideoMainBusInputDataSettings {
 
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
-	data: Float64Array | GameMap | GamingCanvasReport | VideoMainBusInputDataCalculations | VideoMainBusInputDataInit | VideoMainBusInputDataSettings;
+	data:
+		| CalcBusOutputDataActionDoorOpen
+		| Float64Array
+		| GameMap
+		| GamingCanvasReport
+		| VideoMainBusInputDataCalculations
+		| VideoMainBusInputDataInit
+		| VideoMainBusInputDataSettings;
 }
 
 /*

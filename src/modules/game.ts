@@ -2,7 +2,14 @@ import { Assets } from './assets.js';
 import { AssetIdImg, AssetIdMap, AssetImgCategory, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
 import { Settings } from './settings.js';
 import { DOM } from './dom.js';
-import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
+import {
+	CalcBusOutputDataCalculations,
+	CalcBusInputDataPlayerInput,
+	CalcBusInputDataSettings,
+	CalcBusOutputDataCamera,
+	CalcBusActionDoorState,
+	CalcBusOutputDataActionDoorOpen,
+} from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
@@ -690,6 +697,11 @@ export class Game {
 			updated: boolean,
 			updatedR: boolean = true,
 			viewport: GamingCanvasGridViewport = Game.viewport;
+
+		// Calc: Action Door Open
+		CalcBus.setCallbackActionDoor((data: CalcBusOutputDataActionDoorOpen) => {
+			VideoMainBus.outputActionDoor(data);
+		});
 
 		// Calc: Camera Mode
 		CalcBus.setCallbackCamera((data: CalcBusOutputDataCamera) => {

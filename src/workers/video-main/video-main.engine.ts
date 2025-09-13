@@ -1,5 +1,12 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
-import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvasConstPI,
+	GamingCanvasConstPIDouble,
+	GamingCanvasConstPIHalf,
+	GamingCanvasFIFOQueue,
+	GamingCanvasReport,
+	GamingCanvasUtilScale,
+} from '@tknight-dev/gaming-canvas';
 import {
 	gameGridCellMaskExtendedDoor,
 	GameGridCellMasksAndValues,
@@ -25,6 +32,12 @@ import {
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
+import {
+	CalcBusActionDoorState,
+	CalcBusActionDoorStateAutoCloseDurationInMS,
+	CalcBusActionDoorStateChangeDurationInMS,
+	CalcBusOutputDataActionDoorOpen,
+} from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -37,6 +50,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoMainBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case VideoMainBusInputCmd.ACTION_DOOR_OPEN:
+			VideoMainEngine.inputActionDoorOpen(<CalcBusOutputDataActionDoorOpen>payload.data);
+			break;
 		case VideoMainBusInputCmd.CALCULATIONS:
 			VideoMainEngine.inputCalculations(<VideoMainBusInputDataCalculations>payload.data);
 			break;
@@ -56,6 +72,7 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
+	private static actionDoors: Map<number, CalcBusActionDoorState> = new Map();
 	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
@@ -167,6 +184,50 @@ class VideoMainEngine {
 	 * Input
 	 */
 
+	public static inputActionDoorOpen(data: CalcBusOutputDataActionDoorOpen): void {
+		let durationEff: number,
+			state: CalcBusActionDoorState = <CalcBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
+
+		if (state === undefined) {
+			state = {
+				cellSide: data.cellSide,
+				closed: false,
+				closing: false,
+				open: false,
+				timestampUnix: data.timestampUnix,
+			};
+			VideoMainEngine.actionDoors.set(data.gridIndex, state);
+
+			durationEff = CalcBusActionDoorStateChangeDurationInMS;
+		} else {
+			durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
+
+			state.closed = false;
+			clearTimeout(state.timeout);
+			state.timestampUnix = data.timestampUnix;
+		}
+
+		setTimeout(() => {
+			VideoMainEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
+			state.closing = false;
+			state.open = true;
+			state.timestampUnix = Date.now();
+
+			setTimeout(() => {
+				VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+				state.closing = true;
+				state.timestampUnix = Date.now();
+
+				clearTimeout(state.timeout);
+				state.timeout = setTimeout(() => {
+					state.closed = true;
+					state.closing = false;
+					state.open = false;
+				}, CalcBusActionDoorStateChangeDurationInMS);
+			}, CalcBusActionDoorStateAutoCloseDurationInMS);
+		}, durationEff);
+	}
+
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
 		VideoMainEngine.calculations = data;
 
@@ -208,7 +269,10 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let asset: OffscreenCanvas,
+		let actionDoorRequest: CalcBusOutputDataActionDoorOpen,
+			actionDoors: Map<number, CalcBusActionDoorState> = VideoMainEngine.actionDoors,
+			actionDoorState: CalcBusActionDoorState,
+			asset: OffscreenCanvas,
 			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
@@ -254,6 +318,7 @@ class VideoMainEngine {
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
 			renderSpriteFixedCoordinates: number[] = new Array(4),
+			renderSpriteFixedDoorOffset: number,
 			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
 			renderSpriteXFactor2: number,
@@ -269,6 +334,7 @@ class VideoMainEngine {
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
+			timestampUnix: number,
 			x: number,
 			y: number;
 
@@ -289,6 +355,7 @@ class VideoMainEngine {
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				timestampUnix = Date.now();
 				frameCount++;
 
 				/*
@@ -306,6 +373,11 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.gameMapNew === true) {
 					VideoMainEngine.gameMapNew = false;
+
+					for (actionDoorState of actionDoors.values()) {
+						clearTimeout(actionDoorState.timeout);
+					}
+					actionDoors.clear();
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
@@ -549,6 +621,40 @@ class VideoMainEngine {
 							y = gameMapGridIndex % gameMapGridSideLength;
 							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x;
 							y -= calculationsCamera.y;
+
+							/**
+							 * Action: Door
+							 */
+							renderSpriteFixedDoorOffset = 0;
+							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
+								actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
+
+								// Door in a non-closed state
+								if (actionDoorState !== undefined && actionDoorState.closed !== true) {
+									if (actionDoorState.open === true && actionDoorState.closing === false) {
+										renderSpriteFixedDoorOffset = 1;
+									} else if (actionDoorState.closing === true) {
+										renderSpriteFixedDoorOffset = Math.max(
+											0,
+											1 - (timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+										);
+									} else {
+										renderSpriteFixedDoorOffset = Math.min(
+											1,
+											(timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+										);
+									}
+
+									if (
+										actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.NORTH ||
+										actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.SOUTH
+									) {
+										x += renderSpriteFixedDoorOffset;
+									} else {
+										y += renderSpriteFixedDoorOffset;
+									}
+								}
+							}
 
 							/**
 							 * Position 1
