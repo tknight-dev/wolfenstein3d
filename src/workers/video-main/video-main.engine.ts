@@ -739,6 +739,10 @@ class VideoMainEngine {
 							for (i = 0; i < renderDistance; i++) {
 								x = i / renderDistance; // Determine percentage of left to right
 
+								if (x > 1 - renderSpriteFixedDoorOffset) {
+									continue;
+								}
+
 								// Calc: Height
 								renderWallHeight = GamingCanvasUtilScale(x, 0, 1, renderSpriteFixedCoordinates[1], renderSpriteFixedCoordinates[3]);
 								// renderWallHeight = Math.min(offscreenCanvasHeightPx, renderWallHeight);
