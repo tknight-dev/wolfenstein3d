@@ -2,7 +2,6 @@ import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initi
 import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	gameGridCellMaskExtendedDoor,
-	gameGridCellMaskFloorOrNull,
 	GameGridCellMasksAndValues,
 	GameGridCellMasksAndValuesExtended,
 	gameGridCellMaskSpriteFixed,
