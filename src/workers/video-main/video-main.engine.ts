@@ -630,6 +630,8 @@ class VideoMainEngine {
 							renderDistance = ((x * x + y * y) ** 0.5) | 0;
 							// renderDistance = Math.min(offscreenCanvasWidthPx, renderDistance);
 
+							// y = Math.max(1, renderDistance / asset.width) | 0; // Vines have graphical issue with this optimization
+
 							for (i = 0; i < renderDistance; i++) {
 								x = i / renderDistance; // Determine percentage of left to right
 
