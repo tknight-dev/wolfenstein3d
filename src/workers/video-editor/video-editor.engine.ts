@@ -340,7 +340,7 @@ class VideoEditorEngine {
 						calculationsViewportWidthStart = calculationsViewport.widthStart;
 						calculationsViewportWidthStartPx = calculationsViewport.widthStartPx;
 
-						renderCellOutlineWidth = Math.max(2, calculationsViewport.cellSizePx / 8);
+						renderCellOutlineWidth = Math.max(3, calculationsViewport.cellSizePx / 8);
 						renderCellOutlineOffset = renderCellOutlineWidth / 2;
 
 						characterPlayer1XEff = characterPlayer1.camera.x - calculationsViewportWidthStart;
@@ -477,7 +477,7 @@ class VideoEditorEngine {
 
 								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
-									offscreenCanvasContext.strokeStyle = 'yellow';
+									offscreenCanvasContext.strokeStyle = 'white';
 									offscreenCanvasContext.strokeRect(
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
