@@ -9,6 +9,7 @@ import {
 	CalcBusOutputDataCamera,
 	CalcBusActionDoorState,
 	CalcBusOutputDataActionDoorOpen,
+	CalcBusOutputDataAudio,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -701,6 +702,13 @@ export class Game {
 		// Calc: Action Door Open
 		CalcBus.setCallbackActionDoor((data: CalcBusOutputDataActionDoorOpen) => {
 			VideoMainBus.outputActionDoor(data);
+		});
+
+		// Calc: Audio
+		CalcBus.setCallbackAudio(async (data: CalcBusOutputDataAudio) => {
+			if (data.assetId !== undefined) {
+				console.log('audio', data, await GamingCanvas.audioControlPlay(data.assetId, true, false, data.pan, 0, data.volume));
+			}
 		});
 
 		// Calc: Camera Mode

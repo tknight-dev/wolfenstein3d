@@ -27,12 +27,18 @@ export const CalcBusActionDoorStateChangeDurationInMS: number = 2000;
  * Input
  */
 export enum CalcBusInputCmd {
+	AUDIO,
 	CAMERA,
 	CHARACTER_INPUT,
 	INIT,
 	MAP,
 	REPORT,
 	SETTINGS,
+}
+
+export interface CalcBusInputDataAudio {
+	instance: number;
+	request: number; // unique to calc engine
 }
 
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
@@ -55,7 +61,15 @@ export interface CalcBusInputDataSettings {
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float64Array | GameMap | CharacterInput | GamingCanvasReport;
+	data:
+		| CalcBusInputDataAudio
+		| CalcBusInputDataInit
+		| CalcBusInputDataPlayerInput
+		| CalcBusInputDataSettings
+		| Float64Array
+		| GameMap
+		| CharacterInput
+		| GamingCanvasReport;
 }
 
 /*
@@ -63,6 +77,7 @@ export interface CalcBusInputPayload {
  */
 export enum CalcBusOutputCmd {
 	ACTION_DOOR_OPEN,
+	AUDIO,
 	CAMERA,
 	CALCULATIONS,
 	INIT_COMPLETE,
@@ -73,6 +88,14 @@ export interface CalcBusOutputDataActionDoorOpen {
 	cellSide: GamingCanvasGridRaycastCellSide;
 	gridIndex: number;
 	timestampUnix: number;
+}
+
+export interface CalcBusOutputDataAudio {
+	assetId?: number; // no assetId is modify existing instance
+	instance?: number; // assetId and instance is stop old instance; assetId and no instance is play new asset
+	pan: number;
+	volume: number;
+	request: number; // unique to calc engine
 }
 
 export interface CalcBusOutputDataCamera {
@@ -99,5 +122,5 @@ export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusOutputDataActionDoorOpen | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
+	data: boolean | CalcBusOutputDataActionDoorOpen | CalcBusOutputDataAudio | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
 }

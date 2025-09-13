@@ -171,12 +171,12 @@ class Blockenstein {
 		console.log('System Loaded in', performance.now() - then, 'ms');
 
 		// Start the music!!
-		// let bufferId: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
-		// if (bufferId !== null) {
-		// 	GamingCanvas.audioControlPan(bufferId, 1, 5000, (bufferId: number) => {
-		// 		GamingCanvas.audioControlPan(bufferId, 0, 5000);
+		// let instance: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
+		// if (instance !== null) {
+		// 	GamingCanvas.audioControlPan(instance, 1, 5000, (instance: number) => {
+		// 		GamingCanvas.audioControlPan(instance, 0, 5000);
 		// 	});
-		// 	GamingCanvas.audioControlVolume(bufferId, 1, 5000);
+		// 	GamingCanvas.audioControlVolume(instance, 1, 5000);
 		// }
 	}
 

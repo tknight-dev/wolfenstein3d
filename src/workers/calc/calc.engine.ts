@@ -29,6 +29,7 @@ import {
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
+import { AssetIdAudio } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -279,6 +280,15 @@ class CalcEngine {
 							timestampUnix: state.timestampUnix,
 						},
 					},
+					{
+						cmd: CalcBusOutputCmd.AUDIO,
+						data: {
+							assetId: AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN,
+							pan: 0,
+							volume: 1,
+							request: 0, // unique to calc engine
+						},
+					},
 				]);
 
 				clearTimeout(state.timeout);
@@ -291,6 +301,18 @@ class CalcEngine {
 						state.closing = true;
 						state.open = false;
 						state.timestampUnix = new Date().getTime();
+
+						CalcEngine.post([
+							{
+								cmd: CalcBusOutputCmd.AUDIO,
+								data: {
+									assetId: AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE,
+									pan: 0,
+									volume: 1, // Distance calc here!
+									request: 0, // unique to calc engine
+								},
+							},
+						]);
 
 						state.timeout = setTimeout(() => {
 							state.closed = false;

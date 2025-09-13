@@ -43,6 +43,7 @@ export const assetLoaderAudio = async (): Promise<Map<AssetIdAudio, string>> => 
 
 		// File found but not defined as an asset
 		if (assetId === undefined) {
+			// console.log('UNKNOWN ASSET ID', filename);
 			continue;
 		}
 
