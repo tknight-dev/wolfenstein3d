@@ -5,7 +5,7 @@ import { DOM } from './dom.js';
 import { CalcBusOutputDataCalculations, CalcBusInputDataPlayerInput, CalcBusInputDataSettings, CalcBusOutputDataCamera } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
-import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
+import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
 import { VideoMainBusInputDataSettings } from '../workers/video-main/video-main.model.js';
@@ -17,33 +17,27 @@ import {
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
 	GamingCanvasInputGamepad,
+	GamingCanvasInputGamepadControllerButtons,
 	GamingCanvasInputKeyboard,
 	GamingCanvasInputMouse,
 	GamingCanvasInputMouseAction,
 	GamingCanvasInputPosition,
 	GamingCanvasInputPositionBasic,
 	GamingCanvasInputPositionClone,
-	GamingCanvasInputPositionDistance,
 	GamingCanvasInputPositionOverlay,
-	GamingCanvasInputTouch,
-	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
 	GamingCanvasOptions,
-	GamingCanvasOrientation,
 	GamingCanvasReport,
-	GamingCanvasResolutionScaleType,
-	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCamera,
-	GamingCanvasGridICamera,
-	GamingCanvasGridCharacterInput,
 	GamingCanvasGridInputOverlaySnapPxTopLeft,
 	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridInputToCoordinate,
 } from '@tknight-dev/gaming-canvas/grid';
+import { CharacterInput } from '../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -663,17 +657,21 @@ export class Game {
 			cameraZoomStep: number = 0.3,
 			characterPlayerInput: CalcBusInputDataPlayerInput = {
 				player1: {
+					action: false,
+					fire: false,
 					r: 0, // -1 to 1 (-1 is increase r)
 					x: 0, // -1 to 1 (-1 is left)
 					y: 0, // -1 to 1 (-1 is up)
 				},
 				player2: {
+					action: false,
+					fire: false,
 					r: 0, // -1 to 1 (-1 is increase r)
 					x: 0, // -1 to 1 (-1 is left)
 					y: 0, // -1 to 1 (-1 is up)
 				},
 			},
-			characterPlayerInputPlayer: GamingCanvasGridCharacterInput,
+			characterPlayerInputPlayer: CharacterInput,
 			dataUpdated: boolean,
 			down: boolean,
 			downMode: boolean,
@@ -900,9 +898,13 @@ export class Game {
 
 					camera = Game.camera;
 					cameraZoom = camera.z;
+					characterPlayerInput.player1.action = false;
+					characterPlayerInput.player1.fire = false;
 					characterPlayerInput.player1.r = 0;
 					characterPlayerInput.player1.x = 0;
 					characterPlayerInput.player1.y = 0;
+					characterPlayerInput.player2.action = false;
+					characterPlayerInput.player2.fire = false;
 					characterPlayerInput.player2.r = 0;
 					characterPlayerInput.player2.x = 0;
 					characterPlayerInput.player2.y = 0;
@@ -955,8 +957,11 @@ export class Game {
 					characterPlayerInputPlayer.x = input.propriatary.axes[0];
 					characterPlayerInputPlayer.y = input.propriatary.axes[1];
 					characterPlayerInputPlayer.r = input.propriatary.axes[2];
-				} else {
-					// Button
+				}
+
+				if (input.propriatary.buttons) {
+					characterPlayerInputPlayer.action === input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__LEFT];
+					characterPlayerInputPlayer.fire === input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT];
 				}
 
 				updated = true;
@@ -978,6 +983,14 @@ export class Game {
 				}
 
 				switch (input.propriatary.action.code) {
+					case 'ArrowDown':
+						if (down) {
+							characterPlayerInputPlayer.action = true;
+						} else if ((characterPlayerInputPlayer.action = true)) {
+							characterPlayerInputPlayer.action = false;
+						}
+						updated = true;
+						break;
 					case 'ArrowLeft':
 						if (down) {
 							characterPlayerInputPlayer.r = -1;
@@ -991,6 +1004,14 @@ export class Game {
 							characterPlayerInputPlayer.r = 1;
 						} else if (characterPlayerInputPlayer.r === 1) {
 							characterPlayerInputPlayer.r = 0;
+						}
+						updated = true;
+						break;
+					case 'ArrowUp':
+						if (down) {
+							characterPlayerInputPlayer.fire = true;
+						} else if ((characterPlayerInputPlayer.fire = true)) {
+							characterPlayerInputPlayer.fire = false;
 						}
 						updated = true;
 						break;

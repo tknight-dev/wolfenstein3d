@@ -1,4 +1,4 @@
-import { Character } from '../../models/character.model.js';
+import { Character, CharacterInput } from '../../models/character.model.js';
 import {
 	CalcBusInputCmd,
 	CalcBusInputDataInit,
@@ -14,7 +14,6 @@ import {
 	GamingCanvasGridCharacterControl,
 	GamingCanvasGridCharacterControlStyle,
 	GamingCanvasGridCharacterControlOptions,
-	GamingCanvasGridCharacterInput,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
@@ -186,7 +185,9 @@ class CalcEngine {
 				factorRotation: 0.00225,
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},
-			characterPlayer1Input: GamingCanvasGridCharacterInput = {
+			characterPlayer1Input: CharacterInput = {
+				action: false,
+				fire: false,
 				r: 0,
 				x: 0,
 				y: 0,
@@ -198,7 +199,9 @@ class CalcEngine {
 			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array,
 			characterPlayer1RaycastRays: Float64Array | undefined,
-			characterPlayer2Input: GamingCanvasGridCharacterInput = {
+			characterPlayer2Input: CharacterInput = {
+				action: false,
+				fire: false,
 				r: 0,
 				x: 0,
 				y: 0,

@@ -1,12 +1,5 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
-import {
-	GamingCanvas,
-	GamingCanvasConstPI,
-	GamingCanvasConstPIDouble,
-	GamingCanvasConstPIHalf,
-	GamingCanvasReport,
-	GamingCanvasUtilScale,
-} from '@tknight-dev/gaming-canvas';
+import { GamingCanvasConstPI, GamingCanvasConstPIDouble, GamingCanvasConstPIHalf, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 import {
 	gameGridCellMaskExtendedDoor,
 	GameGridCellMasksAndValues,

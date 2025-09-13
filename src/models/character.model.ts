@@ -1,4 +1,4 @@
-import { GamingCanvasGridCharacter } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCharacter, GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -9,4 +9,9 @@ export interface Character extends GamingCanvasGridCharacter {
 	id: number;
 	npc: boolean;
 	player1: boolean;
+}
+
+export interface CharacterInput extends GamingCanvasGridCharacterInput {
+	action: boolean;
+	fire: boolean;
 }

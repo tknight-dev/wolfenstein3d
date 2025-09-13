@@ -10,7 +10,6 @@ import {
 	CalcBusOutputPayload,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev

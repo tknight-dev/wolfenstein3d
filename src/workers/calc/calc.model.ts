@@ -1,7 +1,8 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
-import { GamingCanvasGridCharacterInput, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+import { CharacterInput } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -25,8 +26,8 @@ export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
 }
 
 export interface CalcBusInputDataPlayerInput {
-	player1: GamingCanvasGridCharacterInput;
-	player2: GamingCanvasGridCharacterInput;
+	player1: CharacterInput;
+	player2: CharacterInput;
 }
 
 export interface CalcBusInputDataSettings {
@@ -39,14 +40,7 @@ export interface CalcBusInputDataSettings {
 
 export interface CalcBusInputPayload {
 	cmd: CalcBusInputCmd;
-	data:
-		| CalcBusInputDataInit
-		| CalcBusInputDataPlayerInput
-		| CalcBusInputDataSettings
-		| Float64Array
-		| GameMap
-		| GamingCanvasGridCharacterInput
-		| GamingCanvasReport;
+	data: CalcBusInputDataInit | CalcBusInputDataPlayerInput | CalcBusInputDataSettings | Float64Array | GameMap | CharacterInput | GamingCanvasReport;
 }
 
 /*
