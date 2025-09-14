@@ -300,57 +300,91 @@ class CalcEngine {
 			if (state === undefined) {
 				state = {
 					cellSide: cellSide,
-					closed: false,
 					closing: false,
+					gridIndex: gridIndex,
+					opening: false,
 					open: false,
 					timestampUnix: 0,
 				};
 				actionDoors.set(gridIndex, state);
 			}
 
-			if (state.open === false) {
+			// Don't do anything
+			if (state.opening === true) {
+				return;
+			}
+
+			// Calc: Action
+			if (state.closing === true || state.open !== true) {
+				// Open Door
+
 				if (state.closing === true) {
 					durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - state.timestampUnix);
 				} else {
 					durationEff = CalcBusActionDoorStateChangeDurationInMS;
 				}
-
-				state.closed = false;
 				state.closing = false;
-				state.timestampUnix = Date.now();
-				CalcEngine.post([
-					{
-						cmd: CalcBusOutputCmd.ACTION_DOOR_OPEN,
-						data: {
-							cellSide: cellSide,
-							gridIndex: gridIndex,
-							timestampUnix: state.timestampUnix,
-						},
-					},
-				]);
+				state.open = false;
+				state.opening = true;
 				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, gridIndex);
+			} else {
+				// Close Door
+				durationEff = CalcBusActionDoorStateChangeDurationInMS;
 
-				clearTimeout(state.timeout);
-				state.timeout = setTimeout(() => {
-					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
+				state.closing = true;
+				state.open = false;
+				state.opening = false;
+				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
+			}
+
+			// Calc: Meta
+			state.cellSide = cellSide;
+			state.gridIndex = gridIndex;
+			state.timestampUnix = Date.now();
+
+			// Post to other threads
+			CalcEngine.post([
+				{
+					cmd: CalcBusOutputCmd.ACTION_DOOR,
+					data: state,
+				},
+			]);
+
+			clearTimeout(state.timeout);
+			state.timeout = setTimeout(() => {
+				// Change state complete
+				if (state.closing === true) {
+					state.closing = false;
+					state.open = false;
+					state.opening = false;
+					gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+				} else if (state.opening === true) {
+					state.closing = false;
 					state.open = true;
+					state.opening = false;
+					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
 
-					setTimeout(() => {
-						gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+					state.timeout = setTimeout(() => {
+						// Auto close
 						state.closing = true;
 						state.open = false;
-						state.timestampUnix = new Date().getTime();
+						state.opening = false;
+						gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 
 						audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
+						state.timestampUnix = Date.now();
 
 						state.timeout = setTimeout(() => {
-							state.closed = false;
+							// Auto close complete
 							state.closing = false;
 							state.open = false;
+							state.opening = false;
+							state.timestampUnix = Date.now();
 						}, CalcBusActionDoorStateChangeDurationInMS);
 					}, CalcBusActionDoorStateAutoCloseDurationInMS);
-				}, durationEff);
-			}
+				}
+				state.timestampUnix = Date.now();
+			}, durationEff);
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {

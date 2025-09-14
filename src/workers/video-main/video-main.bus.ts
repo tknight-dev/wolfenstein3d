@@ -10,7 +10,7 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusOutputDataActionDoorOpen, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
+import { CalcBusActionDoorState, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -127,16 +127,16 @@ export class VideoMainBus {
 	 * Output
 	 */
 
-	public static outputActionDoorOpen(data: CalcBusOutputDataActionDoorOpen): void {
+	public static outputActionDoor(data: CalcBusActionDoorState): void {
 		VideoMainBus.workerPlayer1.postMessage({
-			cmd: VideoMainBusInputCmd.ACTION_DOOR_OPEN,
+			cmd: VideoMainBusInputCmd.ACTION_DOOR,
 			data: data,
 		});
 
-		VideoMainBus.workerPlayer2.postMessage({
-			cmd: VideoMainBusInputCmd.ACTION_DOOR_OPEN,
-			data: data,
-		});
+		// VideoMainBus.workerPlayer2.postMessage({
+		// 	cmd: VideoMainBusInputCmd.ACTION_DOOR,
+		// 	data: data,
+		// });
 	}
 
 	public static outputActionWallMove(data: CalcBusOutputDataActionWallMove): void {

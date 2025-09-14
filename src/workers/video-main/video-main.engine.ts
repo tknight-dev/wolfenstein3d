@@ -37,7 +37,6 @@ import {
 	CalcBusActionDoorStateAutoCloseDurationInMS,
 	CalcBusActionDoorStateChangeDurationInMS,
 	CalcBusActionWallMoveStateChangeDurationInMS,
-	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
 
@@ -52,8 +51,8 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoMainBusInputPayload = event.data;
 
 	switch (payload.cmd) {
-		case VideoMainBusInputCmd.ACTION_DOOR_OPEN:
-			VideoMainEngine.inputActionDoorOpen(<CalcBusOutputDataActionDoorOpen>payload.data);
+		case VideoMainBusInputCmd.ACTION_DOOR:
+			VideoMainEngine.inputActionDoor(<CalcBusActionDoorState>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
 			VideoMainEngine.inputActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
@@ -190,47 +189,47 @@ class VideoMainEngine {
 	 * Input
 	 */
 
-	public static inputActionDoorOpen(data: CalcBusOutputDataActionDoorOpen): void {
+	public static inputActionDoor(data: CalcBusActionDoorState): void {
 		let durationEff: number,
-			state: CalcBusActionDoorState = <CalcBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
+			statePrevious: CalcBusActionDoorState = <CalcBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
 
-		if (state === undefined) {
-			state = {
-				cellSide: data.cellSide,
-				closed: false,
-				closing: false,
-				open: false,
-				timestampUnix: data.timestampUnix,
-			};
-			VideoMainEngine.actionDoors.set(data.gridIndex, state);
-
-			durationEff = CalcBusActionDoorStateChangeDurationInMS;
-		} else {
-			durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
-
-			state.closed = false;
-			clearTimeout(state.timeout);
-			state.timestampUnix = data.timestampUnix;
+		if (statePrevious !== undefined) {
+			clearTimeout(statePrevious.timeout);
 		}
+		durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
+		VideoMainEngine.actionDoors.set(data.gridIndex, data);
 
-		setTimeout(() => {
-			VideoMainEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
-			state.closing = false;
-			state.open = true;
-			state.timestampUnix = Date.now();
-
-			setTimeout(() => {
+		data.timeout = setTimeout(() => {
+			// Change state complete
+			if (data.closing === true) {
+				data.closing = false;
+				data.open = false;
+				data.opening = false;
 				VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
-				state.closing = true;
-				state.timestampUnix = Date.now();
+			} else if (data.opening === true) {
+				data.closing = false;
+				data.open = true;
+				data.opening = false;
+				VideoMainEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
 
-				clearTimeout(state.timeout);
-				state.timeout = setTimeout(() => {
-					state.closed = true;
-					state.closing = false;
-					state.open = false;
-				}, CalcBusActionDoorStateChangeDurationInMS);
-			}, CalcBusActionDoorStateAutoCloseDurationInMS);
+				data.timeout = setTimeout(() => {
+					// Auto close
+					data.closing = true;
+					data.open = false;
+					data.opening = false;
+					VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+
+					data.timestampUnix = Date.now();
+
+					data.timeout = setTimeout(() => {
+						// Auto close complete
+						data.closing = false;
+						data.open = false;
+						data.opening = false;
+						data.timestampUnix = Date.now();
+					}, CalcBusActionDoorStateChangeDurationInMS);
+				}, CalcBusActionDoorStateAutoCloseDurationInMS);
+			}
 		}, durationEff);
 	}
 
@@ -332,7 +331,7 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let actionDoorRequest: CalcBusOutputDataActionDoorOpen,
+		let actionDoorRequest: CalcBusActionDoorState,
 			actionDoors: Map<number, CalcBusActionDoorState> = VideoMainEngine.actionDoors,
 			actionDoorState: CalcBusActionDoorState,
 			actionWall: Map<number, CalcBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
@@ -692,19 +691,25 @@ class VideoMainEngine {
 								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
 
 								// Door in a non-closed state
-								if (actionDoorState !== undefined && actionDoorState.closed !== true) {
+								if (
+									actionDoorState !== undefined &&
+									(actionDoorState.closing === true || actionDoorState.open === true || actionDoorState.opening === true)
+								) {
 									if (actionDoorState.open === true && actionDoorState.closing === false) {
 										renderSpriteFixedDoorOffset = 1;
+										// console.log('DOOR OPEN', renderSpriteFixedDoorOffset);
 									} else if (actionDoorState.closing === true) {
 										renderSpriteFixedDoorOffset = Math.max(
 											0,
 											1 - (timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
 										);
+										// console.log('DOOR CLOSING', renderSpriteFixedDoorOffset);
 									} else {
 										renderSpriteFixedDoorOffset = Math.min(
 											1,
 											(timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
 										);
+										// console.log('DOOR OPENING', renderSpriteFixedDoorOffset);
 									}
 
 									if (

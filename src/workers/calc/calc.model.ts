@@ -14,9 +14,10 @@ import { CharacterInput } from '../../models/character.model.js';
 
 export interface CalcBusActionDoorState {
 	cellSide: GamingCanvasGridRaycastCellSide;
-	closed: boolean;
 	closing: boolean;
+	gridIndex: number;
 	open: boolean;
+	opening: boolean;
 	timestampUnix: number; // Unix Timestamp for syncing between threads (WebWorkers)
 	timeout?: ReturnType<typeof setTimeout>;
 }
@@ -78,19 +79,13 @@ export interface CalcBusInputPayload {
  * Output
  */
 export enum CalcBusOutputCmd {
-	ACTION_DOOR_OPEN,
+	ACTION_DOOR,
 	ACTION_WALL_MOVE,
 	AUDIO,
 	CAMERA,
 	CALCULATIONS,
 	INIT_COMPLETE,
 	STATS,
-}
-
-export interface CalcBusOutputDataActionDoorOpen {
-	cellSide: GamingCanvasGridRaycastCellSide;
-	gridIndex: number;
-	timestampUnix: number;
 }
 
 export interface CalcBusOutputDataActionWallMove {
@@ -131,5 +126,5 @@ export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusOutputDataActionDoorOpen | CalcBusOutputDataAudio | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
+	data: boolean | CalcBusActionDoorState | CalcBusOutputDataAudio | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
 }

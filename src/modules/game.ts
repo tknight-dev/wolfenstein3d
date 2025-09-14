@@ -729,8 +729,8 @@ export class Game {
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Action Door Open
-		CalcBus.setCallbackActionDoorOpen((data: CalcBusOutputDataActionDoorOpen) => {
-			VideoMainBus.outputActionDoorOpen(data);
+		CalcBus.setCallbackActionDoor((data: CalcBusActionDoorState) => {
+			VideoMainBus.outputActionDoor(data);
 		});
 
 		// Calc: Action Wall Move

@@ -21,7 +21,7 @@ import { GameMap } from '../../models/game.model.js';
  */
 
 export class CalcBus {
-	private static callbackActionDoorOpen: (data: CalcBusOutputDataActionDoorOpen) => void;
+	private static callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void;
 	private static callbackActionWallMove: (data: CalcBusOutputDataActionWallMove) => void;
 	private static callbackAudio: (data: CalcBusOutputDataAudio) => void;
 	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
@@ -68,8 +68,8 @@ export class CalcBus {
 
 			for (payload of payloads) {
 				switch (payload.cmd) {
-					case CalcBusOutputCmd.ACTION_DOOR_OPEN:
-						CalcBus.callbackActionDoorOpen(<CalcBusOutputDataActionDoorOpen>payload.data);
+					case CalcBusOutputCmd.ACTION_DOOR:
+						CalcBus.callbackActionDoor(<CalcBusActionDoorState>payload.data);
 						break;
 					case CalcBusOutputCmd.ACTION_WALL_MOVE:
 						CalcBus.callbackActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
@@ -152,8 +152,8 @@ export class CalcBus {
 		});
 	}
 
-	public static setCallbackActionDoorOpen(callbackActionDoorOpen: (data: CalcBusOutputDataActionDoorOpen) => void): void {
-		CalcBus.callbackActionDoorOpen = callbackActionDoorOpen;
+	public static setCallbackActionDoor(callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void): void {
+		CalcBus.callbackActionDoor = callbackActionDoor;
 	}
 
 	public static setCallbackActionWallMove(callbackActionWallMove: (data: CalcBusOutputDataActionWallMove) => void): void {
