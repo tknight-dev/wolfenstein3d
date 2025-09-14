@@ -707,7 +707,31 @@ export class Game {
 		// Calc: Audio
 		CalcBus.setCallbackAudio(async (data: CalcBusOutputDataAudio) => {
 			if (data.assetId !== undefined) {
-				console.log('audio', data, await GamingCanvas.audioControlPlay(data.assetId, true, false, data.pan, 0, data.volume));
+				const instance: number | null = await GamingCanvas.audioControlPlay(
+					data.assetId,
+					true,
+					false,
+					data.pan || 0,
+					0,
+					data.volume || 1,
+					(instance: number) => {
+						CalcBus.outputAudioStop({
+							instance: instance,
+							request: data.request,
+						});
+					},
+				);
+				CalcBus.outputAudioStart({
+					instance: instance,
+					request: data.request,
+				});
+			} else if (data.instance !== undefined) {
+				if (data.pan !== undefined) {
+					GamingCanvas.audioControlPan(data.instance, data.pan);
+				}
+				if (data.volume !== undefined) {
+					GamingCanvas.audioControlVolume(data.instance, data.volume);
+				}
 			}
 		});
 

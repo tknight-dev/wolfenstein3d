@@ -15,9 +15,9 @@ export class Settings {
 		/**
 		 * Non-worker specific
 		 */
-		Game.settingAudioVolume = 0.6; // def: 0.6
-		Game.settingAudioVolumeEffect = 0.6; // def: 0.6
-		Game.settingAudioVolumeMusic = 0.8; // def: 0.8
+		Game.settingAudioVolume = 0.8; // def: 0.8
+		Game.settingAudioVolumeEffect = 0.8; // def: 0.8
+		Game.settingAudioVolumeMusic = 1; // def: 1
 		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true

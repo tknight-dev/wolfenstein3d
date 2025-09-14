@@ -4,6 +4,7 @@ import {
 	CalcBusActionDoorStateAutoCloseDurationInMS,
 	CalcBusActionDoorStateChangeDurationInMS,
 	CalcBusInputCmd,
+	CalcBusInputDataAudio,
 	CalcBusInputDataInit,
 	CalcBusInputDataPlayerInput,
 	CalcBusInputDataSettings,
@@ -12,13 +13,15 @@ import {
 	CalcBusOutputPayload,
 } from './calc.model.js';
 import { gameGridCellMaskExtendedDoor, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
-import { GamingCanvasOrientation, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCharacterControl,
 	GamingCanvasGridCharacterControlStyle,
 	GamingCanvasGridCharacterControlOptions,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridRaycastCellSide,
+	GamingCanvasConstPIDouble,
+	GamingCanvasConstPI,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
 	GamingCanvasGridCamera,
@@ -42,6 +45,12 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: CalcBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case CalcBusInputCmd.AUDIO_START:
+			CalcEngine.inputAudio(true, <CalcBusInputDataAudio>payload.data);
+			break;
+		case CalcBusInputCmd.AUDIO_STOP:
+			CalcEngine.inputAudio(false, <CalcBusInputDataAudio>payload.data);
+			break;
 		case CalcBusInputCmd.CAMERA:
 			CalcEngine.inputCamera(<Float64Array>payload.data);
 			break;
@@ -63,7 +72,15 @@ self.onmessage = (event: MessageEvent) => {
 	}
 };
 
+interface AudioInstance {
+	assetId: AssetIdAudio;
+	instance: number;
+	x: number;
+	y: number;
+}
+
 class CalcEngine {
+	private static audio: Map<number, AudioInstance> = new Map();
 	private static camera: Float64Array;
 	private static cameraNew: boolean;
 	private static characterPlayerInput: CalcBusInputDataPlayerInput;
@@ -130,6 +147,20 @@ class CalcEngine {
 	 * Input
 	 */
 
+	public static inputAudio(start: boolean, data: CalcBusInputDataAudio): void {
+		if (data.instance !== null && data.request !== undefined) {
+			if (start === true) {
+				const audioInstance: AudioInstance = <AudioInstance>CalcEngine.audio.get(data.request);
+
+				if (audioInstance !== undefined) {
+					audioInstance.instance = data.instance;
+				}
+			} else {
+				CalcEngine.audio.delete(data.request);
+			}
+		}
+	}
+
 	public static inputCamera(data: Float64Array): void {
 		CalcEngine.camera = data;
 		CalcEngine.cameraNew = true;
@@ -176,6 +207,12 @@ class CalcEngine {
 	public static go__funcForward(): void {
 		let actionDoors: Map<number, CalcBusActionDoorState> = new Map(),
 			actionDoorState: CalcBusActionDoorState,
+			audio: Map<number, AudioInstance> = CalcEngine.audio,
+			audioDistanceMax: number = 30,
+			audioInstance: AudioInstance,
+			audioPostStack: CalcBusOutputPayload[],
+			audioRequest: number,
+			audioRequestCounter: number = 0,
 			buffers: ArrayBufferLike[] = [],
 			camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
 				CalcEngine.characterPlayer1.camera.r,
@@ -184,6 +221,7 @@ class CalcEngine {
 				CalcEngine.characterPlayer1.camera.z,
 			),
 			cameraEncoded: Float64Array,
+			cameraInstance: GamingCanvasGridICamera,
 			cameraMode: boolean = false,
 			cameraUpdated: boolean = true,
 			cellSide: GamingCanvasGridRaycastCellSide,
@@ -226,6 +264,8 @@ class CalcEngine {
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer2RaycastRays: Float64Array | undefined,
 			cycleMinMs: number = 10,
+			distance: number,
+			distance2: number,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
 			gameMapIndexEff: number,
@@ -241,10 +281,13 @@ class CalcEngine {
 			reportOrientationForce: boolean = true,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
+			timestampAudio: number = 0,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
-			timestampThen: number = 0;
+			timestampThen: number = 0,
+			x: number,
+			y: number;
 
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			let state: CalcBusActionDoorState = <CalcBusActionDoorState>actionDoors.get(gridIndex),
@@ -280,16 +323,8 @@ class CalcEngine {
 							timestampUnix: state.timestampUnix,
 						},
 					},
-					{
-						cmd: CalcBusOutputCmd.AUDIO,
-						data: {
-							assetId: AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN,
-							pan: 0,
-							volume: 1,
-							request: 0, // unique to calc engine
-						},
-					},
 				]);
+				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, gridIndex);
 
 				clearTimeout(state.timeout);
 				state.timeout = setTimeout(() => {
@@ -302,17 +337,7 @@ class CalcEngine {
 						state.open = false;
 						state.timestampUnix = new Date().getTime();
 
-						CalcEngine.post([
-							{
-								cmd: CalcBusOutputCmd.AUDIO,
-								data: {
-									assetId: AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE,
-									pan: 0,
-									volume: 1, // Distance calc here!
-									request: 0, // unique to calc engine
-								},
-							},
-						]);
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
 
 						state.timeout = setTimeout(() => {
 							state.closed = false;
@@ -325,6 +350,68 @@ class CalcEngine {
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {};
+
+		const audioPlay = (assetId: AssetIdAudio, gridIndex: number) => {
+			y = gridIndex % gameMapGrid.sideLength;
+
+			// Cache
+			const audioInstance: AudioInstance = {
+					assetId: assetId,
+					instance: 0,
+					x: (gridIndex - y) / gameMapGrid.sideLength + 0.5, // 0.5 center
+					y: y + 0.5, // 0.5 center
+				},
+				request: number = audioRequestCounter++;
+
+			// Calc: Distance - Player1
+			cameraInstance = characterPlayer1.camera;
+			x = audioInstance.x - cameraInstance.x;
+			y = audioInstance.y - cameraInstance.y;
+			distance = (x * x + y * y) ** 0.5;
+
+			// Calc: Distance - Player2, if required, and compare for closest to audio source
+			if (settingsPlayer2Enable === true) {
+				x = audioInstance.x - characterPlayer2.camera.x;
+				y = audioInstance.y - characterPlayer2.camera.y;
+				distance2 = (x * x + y * y) ** 0.5;
+
+				// Calc: Shortest Distance
+				if (distance2 < distance) {
+					// Use player2 distance and rotation
+					cameraInstance = characterPlayer2.camera;
+					distance = distance2;
+				}
+			}
+
+			// Calc: Angle
+			x = cameraInstance.r - Math.atan2(x, y);
+
+			// Corrections for rotations between 0 and 2pi
+			if (x > GamingCanvasConstPIDouble) {
+				x -= GamingCanvasConstPIDouble;
+			}
+			if (x > GamingCanvasConstPI) {
+				x -= GamingCanvasConstPIDouble;
+			}
+
+			// Cache
+			audio.set(request, audioInstance);
+
+			// Post to audio engine thread
+			CalcEngine.post([
+				{
+					cmd: CalcBusOutputCmd.AUDIO,
+					data: {
+						assetId: assetId,
+						pan: x,
+						volume: GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
+						request: request,
+					},
+				},
+			]);
+
+			return request;
+		};
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
@@ -479,20 +566,21 @@ class CalcEngine {
 					 * Action
 					 */
 					if (characterPlayer1Action === false && characterPlayer1Input.action === true) {
+						cameraInstance = characterPlayer1.camera;
 						characterPlayer1Action = true;
-						characterPlayer1GridIndex = (characterPlayer1.camera.x | 0) * gameMapSideLength + (characterPlayer1.camera.y | 0);
+						characterPlayer1GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
 						// 45deg = 0.7854rad (NE)
 						// 135deg = 2.3562rad (NW)
 						// 225deg = 3.9270rad (SW)
 						// 315deg = 5.4978rad (SE)
-						if (characterPlayer1.camera.r > 0.7854 && characterPlayer1.camera.r < 2.3562) {
+						if (cameraInstance.r > 0.7854 && cameraInstance.r < 2.3562) {
 							cellSide = GamingCanvasGridRaycastCellSide.EAST;
 							gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
-						} else if (characterPlayer1.camera.r > 3.927 && characterPlayer1.camera.r < 5.4978) {
+						} else if (cameraInstance.r > 3.927 && cameraInstance.r < 5.4978) {
 							cellSide = GamingCanvasGridRaycastCellSide.WEST;
 							gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
-						} else if (characterPlayer1.camera.r > 2.3562 && characterPlayer1.camera.r < 3.927) {
+						} else if (cameraInstance.r > 2.3562 && cameraInstance.r < 3.927) {
 							cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 							gameMapIndexEff = characterPlayer1GridIndex - 1;
 						} else {
@@ -513,20 +601,21 @@ class CalcEngine {
 
 					if (settingsPlayer2Enable === true) {
 						if (characterPlayer2Action === false && characterPlayer2Input.action === true) {
+							cameraInstance = characterPlayer2.camera;
 							characterPlayer2Action = true;
-							characterPlayer2GridIndex = (characterPlayer2.camera.x | 0) * gameMapSideLength + (characterPlayer2.camera.y | 0);
+							characterPlayer2GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
 							// 45deg = 0.7854rad (NE)
 							// 135deg = 2.3562rad (NW)
 							// 225deg = 3.9270rad (SW)
 							// 315deg = 5.4978rad (SE)
-							if (characterPlayer2.camera.r > 0.7854 && characterPlayer2.camera.r < 2.3562) {
+							if (cameraInstance.r > 0.7854 && cameraInstance.r < 2.3562) {
 								cellSide = GamingCanvasGridRaycastCellSide.EAST;
-								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
-							} else if (characterPlayer2.camera.r > 3.927 && characterPlayer2.camera.r < 5.4978) {
+								gameMapIndexEff = characterPlayer2GridIndex + gameMapSideLength;
+							} else if (cameraInstance.r > 3.927 && cameraInstance.r < 5.4978) {
 								cellSide = GamingCanvasGridRaycastCellSide.WEST;
-								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
-							} else if (characterPlayer2.camera.r > 2.3562 && characterPlayer2.camera.r < 3.927) {
+								gameMapIndexEff = characterPlayer2GridIndex - gameMapSideLength;
+							} else if (cameraInstance.r > 2.3562 && cameraInstance.r < 3.927) {
 								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 								gameMapIndexEff = characterPlayer2GridIndex - 1;
 							} else {
@@ -561,6 +650,63 @@ class CalcEngine {
 				cameraUpdated = false;
 				characterPlayer1.timestampPrevious = timestampNow;
 				characterPlayer2.timestampPrevious = timestampNow;
+			}
+
+			/**
+			 * Audio (Pan and Volume)
+			 */
+			if (timestampNow - timestampAudio > 20) {
+				audioPostStack = new Array();
+				timestampAudio = timestampNow;
+
+				// Don't update if the players haven't moved
+				if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {
+					for (audioInstance of audio.values()) {
+						// Calc: Distance - Player1
+						cameraInstance = characterPlayer1.camera;
+						x = audioInstance.x - cameraInstance.x;
+						y = audioInstance.y - cameraInstance.y;
+						distance = (x * x + y * y) ** 0.5;
+
+						// Calc: Distance - Player2, if required, and compare for closest to audio source
+						if (settingsPlayer2Enable === true) {
+							x = audioInstance.x - characterPlayer2.camera.x;
+							y = audioInstance.y - characterPlayer2.camera.y;
+							distance2 = (x * x + y * y) ** 0.5;
+
+							// Calc: Shortest Distance
+							if (distance2 < distance) {
+								// Use player2 distance and rotation
+								cameraInstance = characterPlayer2.camera;
+								distance = distance2;
+							}
+						}
+
+						// Calc: Angle
+						x = cameraInstance.r - Math.atan2(x, y);
+
+						// Corrections for rotations between 0 and 2pi
+						if (x > GamingCanvasConstPIDouble) {
+							x -= GamingCanvasConstPIDouble;
+						}
+						if (x > GamingCanvasConstPI) {
+							x -= GamingCanvasConstPIDouble;
+						}
+
+						// Buffer for audio engine thread push
+						audioPostStack.push({
+							cmd: CalcBusOutputCmd.AUDIO,
+							data: {
+								instance: audioInstance.instance,
+								pan: x,
+								volume: GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
+							},
+						});
+					}
+
+					// Push to audio engine thread
+					CalcEngine.post(audioPostStack);
+				}
 			}
 
 			/**

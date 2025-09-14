@@ -11,6 +11,7 @@ import {
 	CalcBusActionDoorState,
 	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataAudio,
+	CalcBusInputDataAudio,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
 
@@ -91,6 +92,20 @@ export class CalcBus {
 	/*
 	 * Output
 	 */
+
+	public static outputAudioStart(data: CalcBusInputDataAudio): void {
+		CalcBus.worker.postMessage({
+			cmd: CalcBusInputCmd.AUDIO_START,
+			data: data,
+		});
+	}
+
+	public static outputAudioStop(data: CalcBusInputDataAudio): void {
+		CalcBus.worker.postMessage({
+			cmd: CalcBusInputCmd.AUDIO_STOP,
+			data: data,
+		});
+	}
 
 	public static outputCamera(camera: Float64Array): void {
 		CalcBus.worker.postMessage(

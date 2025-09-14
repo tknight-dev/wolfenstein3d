@@ -21,13 +21,14 @@ export interface CalcBusActionDoorState {
 	timeout?: ReturnType<typeof setTimeout>;
 }
 export const CalcBusActionDoorStateAutoCloseDurationInMS: number = 5000;
-export const CalcBusActionDoorStateChangeDurationInMS: number = 2000;
+export const CalcBusActionDoorStateChangeDurationInMS: number = 1000;
 
 /*
  * Input
  */
 export enum CalcBusInputCmd {
-	AUDIO,
+	AUDIO_START,
+	AUDIO_STOP,
 	CAMERA,
 	CHARACTER_INPUT,
 	INIT,
@@ -37,8 +38,8 @@ export enum CalcBusInputCmd {
 }
 
 export interface CalcBusInputDataAudio {
-	instance: number;
-	request: number; // unique to calc engine
+	instance: number | null; // null on failure
+	request?: number; // unique to calc engine
 }
 
 export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
@@ -93,9 +94,9 @@ export interface CalcBusOutputDataActionDoorOpen {
 export interface CalcBusOutputDataAudio {
 	assetId?: number; // no assetId is modify existing instance
 	instance?: number; // assetId and instance is stop old instance; assetId and no instance is play new asset
-	pan: number;
-	volume: number;
-	request: number; // unique to calc engine
+	pan?: number;
+	volume?: number;
+	request?: number; // unique to calc engine
 }
 
 export interface CalcBusOutputDataCamera {
