@@ -109,6 +109,21 @@ export class Settings {
 				Game.settingsVideoEditor.antialias === true ? GamingCanvasResolutionScaleType.ANTIALIAS : GamingCanvasResolutionScaleType.PIXELATED,
 		};
 
+		// Overlay
+		if (Game.settingsCalc.player2Enable === true) {
+			if (DOM.elPlayerOverlay1.style.display === 'flex') {
+				DOM.elPlayerOverlay2.style.display = 'flex';
+			}
+
+			DOM.elPlayerOverlay1.classList.add('multiplayer');
+			DOM.elPlayerOverlay2.classList.add('multiplayer');
+		} else {
+			DOM.elPlayerOverlay2.style.display = 'none';
+
+			DOM.elPlayerOverlay1.classList.add('remove');
+			DOM.elPlayerOverlay2.classList.add('remove');
+		}
+
 		/**
 		 * HTML
 		 */

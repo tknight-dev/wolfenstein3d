@@ -35,6 +35,7 @@ import {
 	GamingCanvasInputPositionOverlay,
 	GamingCanvasInputType,
 	GamingCanvasOptions,
+	GamingCanvasOrientation,
 	GamingCanvasReport,
 } from '@tknight-dev/gaming-canvas';
 import {
@@ -633,10 +634,27 @@ export class Game {
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
 		Game.viewport.apply(Game.camera, false);
 
+		// Overlay
+		if (GamingCanvas.getReport().orientation === GamingCanvasOrientation.PORTRAIT) {
+			DOM.elPlayerOverlay1.classList.add('portrait');
+			DOM.elPlayerOverlay2.classList.add('portrait');
+		} else {
+			DOM.elPlayerOverlay1.classList.remove('portrait');
+			DOM.elPlayerOverlay2.classList.remove('portrait');
+		}
+
 		// Report
 		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
 			Game.report = report;
 			Game.reportNew = true;
+
+			if (report.orientation === GamingCanvasOrientation.PORTRAIT) {
+				DOM.elPlayerOverlay1.classList.add('portrait');
+				DOM.elPlayerOverlay2.classList.add('portrait');
+			} else {
+				DOM.elPlayerOverlay1.classList.remove('portrait');
+				DOM.elPlayerOverlay2.classList.remove('portrait');
+			}
 
 			CalcBus.outputReport(report);
 			VideoEditorBus.outputReport(report);
@@ -1355,6 +1373,10 @@ export class Game {
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 			Game.modeEditType = EditType.PAN_ZOOM;
 
+			// Overlay
+			DOM.elPlayerOverlay1.style.display = 'none';
+			DOM.elPlayerOverlay2.style.display = 'none';
+
 			// Video
 			Settings.singleVideoFeedOverride(true);
 		}
@@ -1390,6 +1412,15 @@ export class Game {
 			}
 			for (element of DOM.elEditorPropertiesInputs) {
 				element.checked = false;
+			}
+
+			// Overlay
+			DOM.elPlayerOverlay1.style.display = 'flex';
+
+			if (Game.settingsCalc.player2Enable === true) {
+				DOM.elPlayerOverlay2.style.display = 'flex';
+			} else {
+				DOM.elPlayerOverlay2.style.display = 'none';
 			}
 
 			// Video

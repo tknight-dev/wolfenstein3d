@@ -101,6 +101,14 @@ export class DOM {
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
+	public static elPlayerOverlay1: HTMLElement;
+	public static elPlayerOverlay1Ammo: HTMLElement;
+	public static elPlayerOverlay1Health: HTMLElement;
+	public static elPlayerOverlay1Lives: HTMLElement;
+	public static elPlayerOverlay2: HTMLElement;
+	public static elPlayerOverlay2Ammo: HTMLElement;
+	public static elPlayerOverlay2Health: HTMLElement;
+	public static elPlayerOverlay2Lives: HTMLElement;
 	public static elSettings: HTMLElement;
 	public static elSettingsApply: HTMLElement;
 	public static elSettingsBodyAudio: HTMLElement;
@@ -315,6 +323,15 @@ export class DOM {
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
+
+		DOM.elPlayerOverlay1 = <HTMLElement>document.getElementById('player-overlay-1');
+		DOM.elPlayerOverlay1Ammo = <HTMLElement>document.getElementById('player-overlay-1-ammo');
+		DOM.elPlayerOverlay1Health = <HTMLElement>document.getElementById('player-overlay-1-health');
+		DOM.elPlayerOverlay1Lives = <HTMLElement>document.getElementById('player-overlay-1-lives');
+		DOM.elPlayerOverlay2 = <HTMLElement>document.getElementById('player-overlay-2');
+		DOM.elPlayerOverlay2Ammo = <HTMLElement>document.getElementById('player-overlay-2-ammo');
+		DOM.elPlayerOverlay2Health = <HTMLElement>document.getElementById('player-overlay-2-health');
+		DOM.elPlayerOverlay2Lives = <HTMLElement>document.getElementById('player-overlay-2-lives');
 
 		DOM.elSettings = <HTMLElement>document.getElementById('settings');
 		DOM.elSettingsApply = <HTMLElement>document.getElementById('settings-apply');

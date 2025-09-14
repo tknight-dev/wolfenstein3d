@@ -120,6 +120,7 @@ $main-logo-width: 152px;
 		.fps,
 		.icons,
 		.meta,
+		.player-overlay,
 		.settings,
 		.spinner,
 		.video,
@@ -717,6 +718,82 @@ $main-logo-width: 152px;
 				div {
 					text-align: center;
 					width: 65px;
+				}
+			}
+		}
+
+		.player-overlay {
+			align-items: center;
+			bottom: 10px;
+			display: none;
+			height: 60px;
+			justify-content: center;
+			left: 0;
+			right: 0;
+			z-index: 2;
+
+			&.multiplayer {
+				bottom: 10px;
+				left: 0;
+				right: 50%;
+				top: auto;
+
+				&.player2 {
+					bottom: 10px;
+					left: 50%;
+					right: 0;
+					top: auto;
+				}
+
+				&.portrait {
+					bottom: auto;
+					left: 0;
+					right: 0;
+					top: calc(50% - 65px);
+
+					&.player2 {
+						bottom: auto;
+						left: 0;
+						right: 0;
+						top: calc(50% + 5px);
+					}
+				}
+			}
+
+			.section {
+				background-color: #0000a6;
+				border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+				border-left: 2px solid rgba(255, 255, 255, 0.5);
+				border-right: 2px solid rgba(0, 0, 0, 0.5);
+				border-top: 2px solid rgba(255, 255, 255, 0.5);
+				height: 100%;
+				position: relative;
+				width: 100px;
+
+				.body,
+				.title {
+					left: 0;
+					position: absolute;
+					right: 0;
+				}
+
+				.body {
+					align-items: center;
+					bottom: 0;
+					display: flex;
+					font-size: 20px;
+					font-weight: bold;
+					justify-content: center;
+					top: 20px;
+				}
+
+				.title {
+					color: #888888;
+					font-size: 20px;
+					font-weight: bold;
+					height: 20px;
+					text-align: center;
+					top: 0;
 				}
 			}
 		}
