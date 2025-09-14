@@ -576,7 +576,7 @@ interface AssetProperties {
 export interface AssetPropertiesAudio extends AssetProperties {
 	effect: boolean;
 	ext: AssetExtAudio;
-	volume: number; // 0-1 range for default volume
+	volume?: number; // 0-1 range for default volume
 }
 
 export interface AssetPropertiesCharacter extends AssetPropertiesImage {}
@@ -759,7 +759,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/ammo.mp3',
 		title: 'Ammo',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
@@ -768,7 +767,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_close.mp3',
 		title: 'Door Close',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, {
@@ -777,7 +775,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_open.mp3',
 		title: 'Door Open',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE, {
@@ -786,7 +783,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/extra_life.mp3',
 		title: 'Extra Life',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD, {
@@ -795,7 +791,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/food.mp3',
 		title: 'Food',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, {
@@ -804,7 +799,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death.mp3',
 		title: 'Guard Death',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2, {
@@ -813,7 +807,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death2.mp3',
 		title: 'Guard Death2',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, {
@@ -822,7 +815,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_fire.mp3',
 		title: 'Guard Fire',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, {
@@ -831,7 +823,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_suprise.mp3',
 		title: 'Guard Surprise',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_FIRE, {
@@ -840,7 +831,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/machine_gun_fire.mp3',
 		title: 'Machine Gun Fire',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL_FIRE, {
@@ -849,7 +839,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/pistol_fire.mp3',
 		title: 'Pistol Fire',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SWITCH, {
@@ -858,7 +847,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/switch.mp3',
 		title: 'Switch',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST, {
@@ -867,7 +855,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_chest.mp3',
 		title: 'Treasure Chest',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS, {
@@ -876,7 +863,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cross.mp3',
 		title: 'Treasure Cross',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN, {
@@ -885,7 +871,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_crown.mp3',
 		title: 'Treasure Crown',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP, {
@@ -894,7 +879,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cup.mp3',
 		title: 'Treasure Cup',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_HIT, {
@@ -903,7 +887,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_hit.mp3',
 		title: 'Wall Hit',
-		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, {
@@ -912,7 +895,6 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_move.mp3',
 		title: 'Wall Move',
-		volume: 1,
 	});
 
 	/**
@@ -925,7 +907,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/lvl1.mp3',
 		title: 'Get Them Before They Get You',
-		volume: 1,
+		volume: 0.6,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MENU, {

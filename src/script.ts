@@ -11,7 +11,7 @@ import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-edit
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
 import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
-import { AssetIdAudio, initializeAssetManager } from './asset-manager.js';
+import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from './asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -171,12 +171,12 @@ class Blockenstein {
 		console.log('System Loaded in', performance.now() - then, 'ms');
 
 		// Start the music!!
-		// let instance: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
+		// let instance: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_LVL1, false, true, -1, 0, 0);
 		// if (instance !== null) {
 		// 	GamingCanvas.audioControlPan(instance, 1, 5000, (instance: number) => {
 		// 		GamingCanvas.audioControlPan(instance, 0, 5000);
 		// 	});
-		// 	GamingCanvas.audioControlVolume(instance, 1, 5000);
+		// 	GamingCanvas.audioControlVolume(instance, (<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume || 1, 5000);
 		// }
 	}
 
