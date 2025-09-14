@@ -351,7 +351,6 @@ class CalcEngine {
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
-			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_MOVABLE;
 			CalcEngine.post([
 				{
 					cmd: CalcBusOutputCmd.ACTION_WALL_MOVE,
@@ -362,6 +361,7 @@ class CalcEngine {
 					},
 				},
 			]);
+			audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, gridIndex);
 
 			// Calc: Offset
 			let offset: number;
@@ -370,28 +370,33 @@ class CalcEngine {
 					offset = gameMapSideLength;
 					break;
 				case GamingCanvasGridRaycastCellSide.NORTH:
-					offset = 1;
+					offset = -1;
 					break;
 				case GamingCanvasGridRaycastCellSide.SOUTH:
-					offset = -1;
+					offset = 1;
 					break;
 				case GamingCanvasGridRaycastCellSide.WEST:
 					offset = -gameMapSideLength;
 					break;
 			}
 
-			// Calc: Move 1st block
+			// Calc: State
+			gameMapGridData[gridIndex + offset * 2] = gameMapGridData[gridIndex] & ~GameGridCellMasksAndValues.WALL_MOVABLE;
+
+			gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR | GameGridCellMasksAndValues.WALL_INVISIBLE;
+
+			gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR | GameGridCellMasksAndValues.WALL_INVISIBLE;
+
+			// Calc: Move 1st Block
 			setTimeout(
 				() => {
-					gameMapGridData[gridIndex + offset] = gameMapGridData[gridIndex];
 					gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR;
 				},
 				(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 			);
 
-			// Calc: Move 2nd block
+			// Calc: Move 2nd Block
 			setTimeout(() => {
-				gameMapGridData[gridIndex + offset * 2] = gameMapGridData[gridIndex + offset];
 				gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
 			}, CalcBusActionWallMoveStateChangeDurationInMS);
 		};

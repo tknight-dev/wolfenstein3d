@@ -78,6 +78,7 @@ self.onmessage = (event: MessageEvent) => {
 
 class VideoMainEngine {
 	private static actionDoors: Map<number, CalcBusActionDoorState> = new Map();
+	private static actionWall: Map<number, CalcBusOutputDataActionWallMove> = new Map();
 	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
@@ -236,36 +237,57 @@ class VideoMainEngine {
 	public static inputActionWallMove(data: CalcBusOutputDataActionWallMove): void {
 		const gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data;
 
+		// Cache: store the timestamp for animation
+		VideoMainEngine.actionWall.set(data.gridIndex, data);
+
 		// Calc: Offset
-		let offset: number;
+		let offset: number, spriteType: number;
 		switch (data.cellSide) {
 			case GamingCanvasGridRaycastCellSide.EAST:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
 				offset = VideoMainEngine.gameMap.grid.sideLength;
 				break;
 			case GamingCanvasGridRaycastCellSide.NORTH:
-				offset = 1;
-				break;
-			case GamingCanvasGridRaycastCellSide.SOUTH:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
 				offset = -1;
 				break;
+			case GamingCanvasGridRaycastCellSide.SOUTH:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
+				offset = 1;
+				break;
 			case GamingCanvasGridRaycastCellSide.WEST:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
 				offset = -VideoMainEngine.gameMap.grid.sideLength;
 				break;
 		}
 
-		// Calc: Move 1st block
+		// Calc: State
+		gameMapGridData[data.gridIndex + offset * 2] = gameMapGridData[data.gridIndex] & ~GameGridCellMasksAndValues.WALL_MOVABLE;
+
+		gameMapGridData[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL;
+		gameMapGridData[data.gridIndex] |= spriteType;
+
+		// Calc: Move 1st Block
 		setTimeout(
 			() => {
+				// 2nd block
 				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
+
+				data.timestampUnix += (CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0;
+				VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
+
+				// 1st block
 				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+				VideoMainEngine.actionWall.delete(data.gridIndex);
 			},
 			(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 		);
 
-		// Calc: Move 2nd block
+		// Calc: Move 2nd Block
 		setTimeout(() => {
-			gameMapGridData[data.gridIndex + offset * 2] = gameMapGridData[data.gridIndex + offset];
 			gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+
+			VideoMainEngine.actionWall.delete(data.gridIndex + offset);
 		}, CalcBusActionWallMoveStateChangeDurationInMS);
 	}
 
@@ -313,6 +335,8 @@ class VideoMainEngine {
 		let actionDoorRequest: CalcBusOutputDataActionDoorOpen,
 			actionDoors: Map<number, CalcBusActionDoorState> = VideoMainEngine.actionDoors,
 			actionDoorState: CalcBusActionDoorState,
+			actionWall: Map<number, CalcBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
+			actionWallState: CalcBusOutputDataActionWallMove,
 			asset: OffscreenCanvas,
 			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
@@ -360,6 +384,7 @@ class VideoMainEngine {
 			renderRayIndex: number,
 			renderSpriteFixedCoordinates: number[] = new Array(4),
 			renderSpriteFixedDoorOffset: number,
+			renderSpriteFixedWallMovableOffset: number,
 			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
 			renderSpriteXFactor2: number,
@@ -419,6 +444,7 @@ class VideoMainEngine {
 						clearTimeout(actionDoorState.timeout);
 					}
 					actionDoors.clear();
+					actionWall.clear();
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
@@ -638,6 +664,7 @@ class VideoMainEngine {
 					if (renderRayDistanceMapInstance.cell !== undefined) {
 						gameMapGridIndex = renderRayDistanceMapInstance.cell;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
+						renderGlobalShadow = false;
 
 						// Not sprites
 						if (gameMapGridCell === GameGridCellMasksAndValues.NULL || gameMapGridCell === GameGridCellMasksAndValues.FLOOR) {
@@ -648,13 +675,6 @@ class VideoMainEngine {
 						 * Draw: Sprites - Fixed
 						 */
 						if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
-							// Asset
-							asset =
-								assets.get(
-									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-								) || renderImageTest;
 							offscreenCanvasContext.filter = 'none';
 							renderSpriteFixedNS = (gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
 
@@ -669,6 +689,7 @@ class VideoMainEngine {
 							renderSpriteFixedDoorOffset = 0;
 							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
 								actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
+								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
 
 								// Door in a non-closed state
 								if (actionDoorState !== undefined && actionDoorState.closed !== true) {
@@ -693,6 +714,39 @@ class VideoMainEngine {
 										x += renderSpriteFixedDoorOffset;
 									} else {
 										y += renderSpriteFixedDoorOffset;
+									}
+								}
+							} else {
+								asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+							}
+
+							/**
+							 * Action: Wall Move
+							 */
+							renderSpriteFixedWallMovableOffset = 0;
+							if ((gameMapGridCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0 && actionWall.has(gameMapGridIndex) === true) {
+								actionWallState = <CalcBusOutputDataActionWallMove>actionWall.get(gameMapGridIndex);
+
+								if (actionWallState !== undefined) {
+									renderSpriteFixedWallMovableOffset =
+										2 * Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcBusActionWallMoveStateChangeDurationInMS);
+
+									// Render: Modification based on cell sidedness
+									switch (actionWallState.cellSide) {
+										case GamingCanvasGridRaycastCellSide.EAST:
+											renderGlobalShadow = true;
+											x += renderSpriteFixedWallMovableOffset + 0.5;
+											break;
+										case GamingCanvasGridRaycastCellSide.NORTH:
+											y -= renderSpriteFixedWallMovableOffset + 0.5;
+											break;
+										case GamingCanvasGridRaycastCellSide.SOUTH:
+											y += renderSpriteFixedWallMovableOffset - 0.5;
+											break;
+										case GamingCanvasGridRaycastCellSide.WEST:
+											x -= renderSpriteFixedWallMovableOffset - 0.5;
+											renderGlobalShadow = true;
+											break;
 									}
 								}
 							}
@@ -757,8 +811,17 @@ class VideoMainEngine {
 							} else if (renderLightingQuality !== LightingQuality.NONE) {
 								renderBrightness = 0;
 
+								// Filter: Start
 								if (renderLightingQuality === LightingQuality.FULL) {
-									renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
+									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+
+									if (renderGlobalShadow === true) {
+										renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
+									}
+								} else if (renderLightingQuality === LightingQuality.BASIC) {
+									if (renderGlobalShadow === true) {
+										renderBrightness -= 0.3;
+									}
 								}
 
 								// Filter: End
@@ -806,7 +869,7 @@ class VideoMainEngine {
 							 * Draw: Sprites - Rotating
 							 */
 							asset =
-								assets.get(
+								assetsInvertHorizontal.get(
 									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
 										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
 										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
@@ -844,8 +907,17 @@ class VideoMainEngine {
 							} else if (renderLightingQuality !== LightingQuality.NONE) {
 								renderBrightness = 0;
 
+								// Filter: Start
 								if (renderLightingQuality === LightingQuality.FULL) {
-									renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
+									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+
+									// if (renderGlobalShadow === true) {
+									// 	renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
+									// }
+								} else if (renderLightingQuality === LightingQuality.BASIC) {
+									// if (renderGlobalShadow === true) {
+									// 	renderBrightness -= 0.3;
+									// }
 								}
 
 								// Filter: End
