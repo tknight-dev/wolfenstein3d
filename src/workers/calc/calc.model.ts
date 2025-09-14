@@ -22,6 +22,7 @@ export interface CalcBusActionDoorState {
 }
 export const CalcBusActionDoorStateAutoCloseDurationInMS: number = 5000;
 export const CalcBusActionDoorStateChangeDurationInMS: number = 1000;
+export const CalcBusActionWallMoveStateChangeDurationInMS: number = 5000;
 
 /*
  * Input
@@ -78,6 +79,7 @@ export interface CalcBusInputPayload {
  */
 export enum CalcBusOutputCmd {
 	ACTION_DOOR_OPEN,
+	ACTION_WALL_MOVE,
 	AUDIO,
 	CAMERA,
 	CALCULATIONS,
@@ -86,6 +88,12 @@ export enum CalcBusOutputCmd {
 }
 
 export interface CalcBusOutputDataActionDoorOpen {
+	cellSide: GamingCanvasGridRaycastCellSide;
+	gridIndex: number;
+	timestampUnix: number;
+}
+
+export interface CalcBusOutputDataActionWallMove {
 	cellSide: GamingCanvasGridRaycastCellSide;
 	gridIndex: number;
 	timestampUnix: number;

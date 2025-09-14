@@ -10,6 +10,7 @@ import {
 	CalcBusActionDoorState,
 	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataAudio,
+	CalcBusOutputDataActionWallMove,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -648,6 +649,34 @@ export class Game {
 		Game.inputRequest = requestAnimationFrame(Game.processor);
 	}
 
+	public static start(): void {
+		// Integrations
+		Game.report = GamingCanvas.getReport();
+
+		// GameMap
+		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+
+		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+
+		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+		Game.viewport.apply(Game.camera, false);
+
+		// Report
+		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
+			Game.report = report;
+			Game.reportNew = true;
+
+			CalcBus.outputReport(report);
+			VideoEditorBus.outputReport(report);
+			VideoMainBus.outputReport(report);
+		});
+
+		// Start inputs
+		Game.processorBinder();
+		Game.inputRequest = requestAnimationFrame(Game.processor);
+	}
+
 	private static processor(_: number): void {}
 
 	private static processorBinder(): void {
@@ -696,12 +725,17 @@ export class Game {
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
 			updated: boolean,
-			updatedR: boolean = true,
+			updatedR: boolean,
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Action Door Open
-		CalcBus.setCallbackActionDoor((data: CalcBusOutputDataActionDoorOpen) => {
-			VideoMainBus.outputActionDoor(data);
+		CalcBus.setCallbackActionDoorOpen((data: CalcBusOutputDataActionDoorOpen) => {
+			VideoMainBus.outputActionDoorOpen(data);
+		});
+
+		// Calc: Action Wall Move
+		CalcBus.setCallbackActionWallMove((data: CalcBusOutputDataActionWallMove) => {
+			VideoMainBus.outputActionWallMove(data);
 		});
 
 		// Calc: Audio

@@ -12,6 +12,7 @@ import {
 	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataAudio,
 	CalcBusInputDataAudio,
+	CalcBusOutputDataActionWallMove,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
 
@@ -20,7 +21,8 @@ import { GameMap } from '../../models/game.model.js';
  */
 
 export class CalcBus {
-	private static callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void;
+	private static callbackActionDoorOpen: (data: CalcBusOutputDataActionDoorOpen) => void;
+	private static callbackActionWallMove: (data: CalcBusOutputDataActionWallMove) => void;
 	private static callbackAudio: (data: CalcBusOutputDataAudio) => void;
 	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
 	private static callbackCalculations: (data: CalcBusOutputDataCalculations) => void;
@@ -67,7 +69,10 @@ export class CalcBus {
 			for (payload of payloads) {
 				switch (payload.cmd) {
 					case CalcBusOutputCmd.ACTION_DOOR_OPEN:
-						CalcBus.callbackActionDoor(<CalcBusOutputDataActionDoorOpen>payload.data);
+						CalcBus.callbackActionDoorOpen(<CalcBusOutputDataActionDoorOpen>payload.data);
+						break;
+					case CalcBusOutputCmd.ACTION_WALL_MOVE:
+						CalcBus.callbackActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
 						break;
 					case CalcBusOutputCmd.AUDIO:
 						CalcBus.callbackAudio(<CalcBusOutputDataAudio>payload.data);
@@ -147,8 +152,12 @@ export class CalcBus {
 		});
 	}
 
-	public static setCallbackActionDoor(callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void): void {
-		CalcBus.callbackActionDoor = callbackActionDoor;
+	public static setCallbackActionDoorOpen(callbackActionDoorOpen: (data: CalcBusOutputDataActionDoorOpen) => void): void {
+		CalcBus.callbackActionDoorOpen = callbackActionDoorOpen;
+	}
+
+	public static setCallbackActionWallMove(callbackActionWallMove: (data: CalcBusOutputDataActionWallMove) => void): void {
+		CalcBus.callbackActionWallMove = callbackActionWallMove;
 	}
 
 	public static setCallbackAudio(callbackAudio: (data: CalcBusOutputDataAudio) => void): void {

@@ -3,6 +3,7 @@ import {
 	CalcBusActionDoorState,
 	CalcBusActionDoorStateAutoCloseDurationInMS,
 	CalcBusActionDoorStateChangeDurationInMS,
+	CalcBusActionWallMoveStateChangeDurationInMS,
 	CalcBusInputCmd,
 	CalcBusInputDataAudio,
 	CalcBusInputDataInit,
@@ -349,7 +350,51 @@ class CalcEngine {
 			}
 		};
 
-		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {};
+		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
+			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_MOVABLE;
+			CalcEngine.post([
+				{
+					cmd: CalcBusOutputCmd.ACTION_WALL_MOVE,
+					data: {
+						cellSide: cellSide,
+						gridIndex: gridIndex,
+						timestampUnix: Date.now(),
+					},
+				},
+			]);
+
+			// Calc: Offset
+			let offset: number;
+			switch (cellSide) {
+				case GamingCanvasGridRaycastCellSide.EAST:
+					offset = gameMapSideLength;
+					break;
+				case GamingCanvasGridRaycastCellSide.NORTH:
+					offset = 1;
+					break;
+				case GamingCanvasGridRaycastCellSide.SOUTH:
+					offset = -1;
+					break;
+				case GamingCanvasGridRaycastCellSide.WEST:
+					offset = -gameMapSideLength;
+					break;
+			}
+
+			// Calc: Move 1st block
+			setTimeout(
+				() => {
+					gameMapGridData[gridIndex + offset] = gameMapGridData[gridIndex];
+					gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR;
+				},
+				(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+			);
+
+			// Calc: Move 2nd block
+			setTimeout(() => {
+				gameMapGridData[gridIndex + offset * 2] = gameMapGridData[gridIndex + offset];
+				gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+			}, CalcBusActionWallMoveStateChangeDurationInMS);
+		};
 
 		const audioPlay = (assetId: AssetIdAudio, gridIndex: number) => {
 			y = gridIndex % gameMapGrid.sideLength;

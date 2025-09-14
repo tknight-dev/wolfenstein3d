@@ -36,7 +36,9 @@ import {
 	CalcBusActionDoorState,
 	CalcBusActionDoorStateAutoCloseDurationInMS,
 	CalcBusActionDoorStateChangeDurationInMS,
+	CalcBusActionWallMoveStateChangeDurationInMS,
 	CalcBusOutputDataActionDoorOpen,
+	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
 
 /**
@@ -52,6 +54,9 @@ self.onmessage = (event: MessageEvent) => {
 	switch (payload.cmd) {
 		case VideoMainBusInputCmd.ACTION_DOOR_OPEN:
 			VideoMainEngine.inputActionDoorOpen(<CalcBusOutputDataActionDoorOpen>payload.data);
+			break;
+		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
+			VideoMainEngine.inputActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
 			break;
 		case VideoMainBusInputCmd.CALCULATIONS:
 			VideoMainEngine.inputCalculations(<VideoMainBusInputDataCalculations>payload.data);
@@ -226,6 +231,42 @@ class VideoMainEngine {
 				}, CalcBusActionDoorStateChangeDurationInMS);
 			}, CalcBusActionDoorStateAutoCloseDurationInMS);
 		}, durationEff);
+	}
+
+	public static inputActionWallMove(data: CalcBusOutputDataActionWallMove): void {
+		const gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data;
+
+		// Calc: Offset
+		let offset: number;
+		switch (data.cellSide) {
+			case GamingCanvasGridRaycastCellSide.EAST:
+				offset = VideoMainEngine.gameMap.grid.sideLength;
+				break;
+			case GamingCanvasGridRaycastCellSide.NORTH:
+				offset = 1;
+				break;
+			case GamingCanvasGridRaycastCellSide.SOUTH:
+				offset = -1;
+				break;
+			case GamingCanvasGridRaycastCellSide.WEST:
+				offset = -VideoMainEngine.gameMap.grid.sideLength;
+				break;
+		}
+
+		// Calc: Move 1st block
+		setTimeout(
+			() => {
+				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
+				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+			},
+			(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+		);
+
+		// Calc: Move 2nd block
+		setTimeout(() => {
+			gameMapGridData[data.gridIndex + offset * 2] = gameMapGridData[data.gridIndex + offset];
+			gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+		}, CalcBusActionWallMoveStateChangeDurationInMS);
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
@@ -732,29 +773,29 @@ class VideoMainEngine {
 
 							// Calc: Width of sprite in pixels
 							renderDistance = ((x * x + y * y) ** 0.5) | 0;
-							// renderDistance = Math.min(offscreenCanvasWidthPx, renderDistance);
 
-							// y = Math.max(1, renderDistance / asset.width) | 0; // Vines have graphical issue with this optimization
+							// Calc: Height/Width changes between cooridnates
+							x = renderSpriteFixedCoordinates[2] - renderSpriteFixedCoordinates[0];
+							y = renderSpriteFixedCoordinates[3] - renderSpriteFixedCoordinates[1];
 
-							for (i = 0; i < renderDistance; i++) {
-								x = i / renderDistance; // Determine percentage of left to right
+							for (i = 1; i < renderDistance; i++) {
+								renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
 
-								if (x > 1 - renderSpriteFixedDoorOffset) {
+								if (renderSpriteXFactor > 1 - renderSpriteFixedDoorOffset) {
 									continue;
 								}
 
 								// Calc: Height
-								renderWallHeight = GamingCanvasUtilScale(x, 0, 1, renderSpriteFixedCoordinates[1], renderSpriteFixedCoordinates[3]);
-								// renderWallHeight = Math.min(offscreenCanvasHeightPx, renderWallHeight);
+								renderWallHeight = renderSpriteFixedCoordinates[1] + y * renderSpriteXFactor;
 
 								// Render: 3D Projection
 								offscreenCanvasContext.drawImage(
 									asset, // (image) Draw from our test image
-									x * asset.width, // (x-source) Specific how far from the left to draw from the test image
+									renderSpriteXFactor * asset.width, // (x-source) Specific how far from the left to draw from the test image
 									0, // (y-source) Start at the bottom of the image (y pixel)
 									1, // (width-source) Slice 1 pixel wide
 									asset.height, // (height-source) height of our test image
-									GamingCanvasUtilScale(x, 0, 1, renderSpriteFixedCoordinates[0], renderSpriteFixedCoordinates[2]), // (x-destination) Draw sliced image at pixel
+									renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
 									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
 									2, // (width-destination) Draw the sliced image as 1 pixel wide
 									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
