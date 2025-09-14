@@ -8,7 +8,6 @@ import {
 	CalcBusInputDataSettings,
 	CalcBusOutputDataCamera,
 	CalcBusActionDoorState,
-	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataAudio,
 	CalcBusOutputDataActionWallMove,
 } from '../workers/calc/calc.model.js';

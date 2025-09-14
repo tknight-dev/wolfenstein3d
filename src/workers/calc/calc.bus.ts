@@ -9,7 +9,6 @@ import {
 	CalcBusOutputDataStats,
 	CalcBusOutputPayload,
 	CalcBusActionDoorState,
-	CalcBusOutputDataActionDoorOpen,
 	CalcBusOutputDataAudio,
 	CalcBusInputDataAudio,
 	CalcBusOutputDataActionWallMove,
@@ -21,7 +20,7 @@ import { GameMap } from '../../models/game.model.js';
  */
 
 export class CalcBus {
-	private static callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void;
+	private static callbackActionDoor: (data: CalcBusActionDoorState) => void;
 	private static callbackActionWallMove: (data: CalcBusOutputDataActionWallMove) => void;
 	private static callbackAudio: (data: CalcBusOutputDataAudio) => void;
 	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
@@ -152,7 +151,7 @@ export class CalcBus {
 		});
 	}
 
-	public static setCallbackActionDoor(callbackActionDoor: (data: CalcBusOutputDataActionDoorOpen) => void): void {
+	public static setCallbackActionDoor(callbackActionDoor: (data: CalcBusActionDoorState) => void): void {
 		CalcBus.callbackActionDoor = callbackActionDoor;
 	}
 

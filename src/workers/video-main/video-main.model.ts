@@ -2,7 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusActionDoorState, CalcBusOutputDataActionDoorOpen, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
+import { CalcBusActionDoorState, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
