@@ -576,7 +576,7 @@ interface AssetProperties {
 export interface AssetPropertiesAudio extends AssetProperties {
 	effect: boolean;
 	ext: AssetExtAudio;
-	volume?: number; // 0-1 range for default volume
+	volume: number; // 0-1 range for default volume
 }
 
 export interface AssetPropertiesCharacter extends AssetPropertiesImage {}
@@ -599,7 +599,7 @@ export const assetsImages: Map<AssetIdImg, AssetPropertiesImage> = new Map();
 export const assetsImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, AssetPropertiesCharacter>> = new Map();
 export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
 
-export const initializeAssetManager = async () => {
+export const initializeAssetManager = async (audioOnly?: boolean) => {
 	let cAssetIdImgCharacter: AssetIdImgCharacter,
 		cDir: string,
 		cFilePrefix: string,
@@ -608,132 +608,135 @@ export const initializeAssetManager = async () => {
 		cInstance: Map<AssetIdImgCharacter, AssetPropertiesCharacter>,
 		cMovement: AssetIdImgCharacter[],
 		cName: string;
-	for (const characterType of Object.values(AssetIdImgCharacterType)) {
-		if (typeof characterType !== 'number') {
-			continue;
-		}
 
-		switch (characterType) {
-			case AssetIdImgCharacterType.GUARD:
-				cDir = 'guard';
-				cHide = false;
-				cName = 'Guard';
-				break;
-		}
+	if (audioOnly !== true) {
+		for (const characterType of Object.values(AssetIdImgCharacterType)) {
+			if (typeof characterType !== 'number') {
+				continue;
+			}
 
-		cInstance = new Map();
-		assetsImageCharacters.set(characterType, cInstance);
+			switch (characterType) {
+				case AssetIdImgCharacterType.GUARD:
+					cDir = 'guard';
+					cHide = false;
+					cName = 'Guard';
+					break;
+			}
 
-		/**
-		 * Standard
-		 */
+			cInstance = new Map();
+			assetsImageCharacters.set(characterType, cInstance);
 
-		cInstance.set(AssetIdImgCharacter.AIM, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/aim.png`,
-			hide: cHide,
-			title: `${cName} Aim`,
-		});
+			/**
+			 * Standard
+			 */
 
-		cInstance.set(AssetIdImgCharacter.CORPSE, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/corpse.png`,
-			hide: cHide,
-			title: `${cName} Corpse`,
-		});
+			cInstance.set(AssetIdImgCharacter.AIM, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/aim.png`,
+				hide: cHide,
+				title: `${cName} Aim`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.DIE1, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/die1.png`,
-			hide: cHide,
-			title: `${cName} Die1`,
-		});
+			cInstance.set(AssetIdImgCharacter.CORPSE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/corpse.png`,
+				hide: cHide,
+				title: `${cName} Corpse`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.DIE2, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/die2.png`,
-			hide: cHide,
-			title: `${cName} Die2`,
-		});
+			cInstance.set(AssetIdImgCharacter.DIE1, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die1.png`,
+				hide: cHide,
+				title: `${cName} Die1`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.DIE3, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/die3.png`,
-			hide: cHide,
-			title: `${cName} Die3`,
-		});
+			cInstance.set(AssetIdImgCharacter.DIE2, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die2.png`,
+				hide: cHide,
+				title: `${cName} Die2`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.DIE4, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/die4.png`,
-			hide: cHide,
-			title: `${cName} Die4`,
-		});
+			cInstance.set(AssetIdImgCharacter.DIE3, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die3.png`,
+				hide: cHide,
+				title: `${cName} Die3`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.FIRE, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/fire.png`,
-			hide: cHide,
-			title: `${cName} Fire`,
-		});
+			cInstance.set(AssetIdImgCharacter.DIE4, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die4.png`,
+				hide: cHide,
+				title: `${cName} Die4`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.HIT, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/hit.png`,
-			hide: cHide,
-			title: `${cName} Hit`,
-		});
+			cInstance.set(AssetIdImgCharacter.FIRE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/fire.png`,
+				hide: cHide,
+				title: `${cName} Fire`,
+			});
 
-		cInstance.set(AssetIdImgCharacter.SUPRISE, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.CHARACTER,
-			ext: AssetExtImg.PNG,
-			file: `img/character/${cDir}/surprise.png`,
-			hide: cHide,
-			title: `${cName} Surprise`,
-		});
+			cInstance.set(AssetIdImgCharacter.HIT, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/hit.png`,
+				hide: cHide,
+				title: `${cName} Hit`,
+			});
 
-		/**
-		 * Movement
-		 */
-		for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
-			cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
+			cInstance.set(AssetIdImgCharacter.SUPRISE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/surprise.png`,
+				hide: cHide,
+				title: `${cName} Surprise`,
+			});
 
-			for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
-				cInstance.set(cAssetIdImgCharacter, {
-					alpha: true,
-					author: 'Id Software',
-					category: AssetImgCategory.CHARACTER,
-					ext: AssetExtImg.PNG,
-					file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
-					hide: cHide,
-					title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
-				});
+			/**
+			 * Movement
+			 */
+			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
+				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
+
+				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
+					cInstance.set(cAssetIdImgCharacter, {
+						alpha: true,
+						author: 'Id Software',
+						category: AssetImgCategory.CHARACTER,
+						ext: AssetExtImg.PNG,
+						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
+						hide: cHide,
+						title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
+					});
+				}
 			}
 		}
 	}
@@ -742,12 +745,14 @@ export const initializeAssetManager = async () => {
 	 * Assets: Maps
 	 */
 
-	assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
-		episode: 1,
-		file: 'map/episode_01_level_01.map',
-		level: 1,
-		title: 'Ammo',
-	});
+	if (audioOnly !== true) {
+		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
+			episode: 1,
+			file: 'map/episode_01_level_01.map',
+			level: 1,
+			title: 'Ammo',
+		});
+	}
 
 	/**
 	 * Assets: Audio - Effects
@@ -759,6 +764,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/ammo.mp3',
 		title: 'Ammo',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
@@ -767,6 +773,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_close.mp3',
 		title: 'Door Close',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, {
@@ -775,6 +782,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_open.mp3',
 		title: 'Door Open',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE, {
@@ -783,6 +791,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/extra_life.mp3',
 		title: 'Extra Life',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD, {
@@ -791,6 +800,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/food.mp3',
 		title: 'Food',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, {
@@ -799,6 +809,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death.mp3',
 		title: 'Guard Death',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2, {
@@ -807,6 +818,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death2.mp3',
 		title: 'Guard Death2',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, {
@@ -815,6 +827,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_fire.mp3',
 		title: 'Guard Fire',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, {
@@ -823,6 +836,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_suprise.mp3',
 		title: 'Guard Surprise',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_FIRE, {
@@ -831,6 +845,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/machine_gun_fire.mp3',
 		title: 'Machine Gun Fire',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL_FIRE, {
@@ -839,6 +854,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/pistol_fire.mp3',
 		title: 'Pistol Fire',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SWITCH, {
@@ -847,6 +863,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/switch.mp3',
 		title: 'Switch',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST, {
@@ -855,6 +872,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_chest.mp3',
 		title: 'Treasure Chest',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS, {
@@ -863,6 +881,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cross.mp3',
 		title: 'Treasure Cross',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN, {
@@ -871,6 +890,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_crown.mp3',
 		title: 'Treasure Crown',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP, {
@@ -879,6 +899,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cup.mp3',
 		title: 'Treasure Cup',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_HIT, {
@@ -887,6 +908,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_hit.mp3',
 		title: 'Wall Hit',
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, {
@@ -895,6 +917,7 @@ export const initializeAssetManager = async () => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_move.mp3',
 		title: 'Wall Move',
+		volume: 1,
 	});
 
 	/**
@@ -931,527 +954,528 @@ export const initializeAssetManager = async () => {
 	/**
 	 * Assets: Images - Sprites
 	 */
+	if (audioOnly !== true) {
+		assetsImages.set(AssetIdImg.SPRITE_AMMO, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/ammo.png',
+			title: 'Ammo',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_AMMO, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/ammo.png',
-		title: 'Ammo',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_ARMOR, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/armor.png',
+			title: 'Armor',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_ARMOR, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/armor.png',
-		title: 'Armor',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_BASKET, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/basket.png',
+			title: 'Basket',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_BASKET, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/basket.png',
-		title: 'Basket',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_BONE_PILE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/bone_pile.png',
+			title: 'Bone Pile',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_BONE_PILE, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/bone_pile.png',
-		title: 'Bone Pile',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_BARREL_GREEN, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/barrel_green.png',
+			title: 'Barrel Green',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_BARREL_GREEN, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/barrel_green.png',
-		title: 'Barrel Green',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_BARREL_WOOD, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/barrel_wood.png',
+			title: 'Barrel Wood',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_BARREL_WOOD, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/barrel_wood.png',
-		title: 'Barrel Wood',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_ELEVATOR_DOOR, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/elevator_door.png',
+			title: 'Elevator Door',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_ELEVATOR_DOOR, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/elevator_door.png',
-		title: 'Elevator Door',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_EXTRA_LIFE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/extra_life.png',
+			title: 'Extra Life',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_EXTRA_LIFE, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/extra_life.png',
-		title: 'Extra Life',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_FLAG, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/flag.png',
+			title: 'Flag',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_FLAG, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/flag.png',
-		title: 'Flag',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_FOOD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/food.png',
+			title: 'Food',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_FOOD, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/food.png',
-		title: 'Food',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_FOOD_DOG, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/food_dog.png',
+			title: 'Food (Dog)',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_FOOD_DOG, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/food_dog.png',
-		title: 'Food (Dog)',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_GUARD_CORPSE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/character/guard/corpse.png',
+			title: 'Guard Corpse',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_GUARD_CORPSE, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/character/guard/corpse.png',
-		title: 'Guard Corpse',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_OFF, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_ceiling_off.png',
+			title: 'Light Ceiling Off',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_OFF, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_ceiling_off.png',
-		title: 'Light Ceiling Off',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_ON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_ceiling_on.png',
+			title: 'Light Ceiling On',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_ON, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_ceiling_on.png',
-		title: 'Light Ceiling On',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CHANDELIER_OFF, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_chandelier_off.png',
+			title: 'Light Chandelier Off',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_CHANDELIER_OFF, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_chandelier_off.png',
-		title: 'Light Chandelier Off',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CHANDELIER_ON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_chandelier_on.png',
+			title: 'Light Chandelier On',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_CHANDELIER_ON, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_chandelier_on.png',
-		title: 'Light Chandelier On',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_FLOOR_OFF, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_floor_off.png',
+			title: 'Light Floor Off',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_FLOOR_OFF, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_floor_off.png',
-		title: 'Light Floor Off',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_LIGHT_FLOOR_ON, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.LIGHT,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/light_floor_on.png',
+			title: 'Light Floor On',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_LIGHT_FLOOR_ON, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.LIGHT,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/light_floor_on.png',
-		title: 'Light Floor On',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_MEDKIT, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/medkit.png',
+			title: 'Medkit',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_MEDKIT, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/medkit.png',
-		title: 'Medkit',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/metal_door.png',
+			title: 'Metal Door',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/metal_door.png',
-		title: 'Metal Door',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_INSIDE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/metal_door_inside.png',
+			hide: true,
+			title: 'Metal Door Inside',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_INSIDE, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/metal_door_inside.png',
-		hide: true,
-		title: 'Metal Door Inside',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_LOCKED, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/metal_door_locked.png',
+			title: 'Metal Door Locked',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_LOCKED, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/metal_door_locked.png',
-		title: 'Metal Door Locked',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_POTTED_PLANT, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/potted_plant.png',
+			title: 'Potted Plant',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_POTTED_PLANT, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/potted_plant.png',
-		title: 'Potted Plant',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_POTTED_TREE, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/potted_tree.png',
+			title: 'Potted Tree',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_POTTED_TREE, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/potted_tree.png',
-		title: 'Potted Tree',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_RIFLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/rifle.png',
+			title: 'Rifle',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_RIFLE, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/rifle.png',
-		title: 'Rifle',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_SKELETON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/skeleton.png',
+			title: 'Skeleton',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_SKELETON, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/skeleton.png',
-		title: 'Skeleton',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TABLE, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/table.png',
+			title: 'Table',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TABLE, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/table.png',
-		title: 'Table',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TABLE_CHAIRS, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/table_chairs.png',
+			title: 'Table Chairs',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TABLE_CHAIRS, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/table_chairs.png',
-		title: 'Table Chairs',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TREASURE_CHEST, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/treasure_chest.png',
+			title: 'Treasure Chest',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TREASURE_CHEST, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/treasure_chest.png',
-		title: 'Treasure Chest',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TREASURE_CROSS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/treasure_cross.png',
+			title: 'Treasure Cross',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TREASURE_CROSS, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/treasure_cross.png',
-		title: 'Treasure Cross',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TREASURE_CUP, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/treasure_cup.png',
+			title: 'Treasure Cup',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TREASURE_CUP, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/treasure_cup.png',
-		title: 'Treasure Cup',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_TREASURE_CROWN, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/treasure_crown.png',
+			title: 'Treasure Crown',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_TREASURE_CROWN, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE_PICKUP,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/treasure_crown.png',
-		title: 'Treasure Crown',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_VASE, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/vase.png',
+			title: 'Vase',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_VASE, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/vase.png',
-		title: 'Vase',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_VINES, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/vines.png',
+			title: 'Vines',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_VINES, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/vines.png',
-		title: 'Vines',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_WATER, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/water.png',
+			title: 'Water',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_WATER, {
-		alpha: true,
-		author: 'Id Software',
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/water.png',
-		title: 'Water',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_WELL_EMPTY, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/well_empty.png',
+			title: 'Well Empty',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_WELL_EMPTY, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/well_empty.png',
-		title: 'Well Empty',
-	});
+		assetsImages.set(AssetIdImg.SPRITE_WELL_WATER, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/well_water.png',
+			title: 'Well Water',
+		});
 
-	assetsImages.set(AssetIdImg.SPRITE_WELL_WATER, {
-		alpha: true,
-		author: 'Id Software',
-		blocking: true,
-		category: AssetImgCategory.SPRITE,
-		ext: AssetExtImg.PNG,
-		file: 'img/sprite/well_water.png',
-		title: 'Well Water',
-	});
+		/**
+		 * Assets: Images - Walls
+		 */
 
-	/**
-	 * Assets: Images - Walls
-	 */
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue.png',
+			title: 'Brick Blue',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_BRICK_BLUE, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/brick_blue.png',
-		title: 'Brick Blue',
-	});
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue2.png',
+			title: 'Brick Blue2',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_BRICK_BLUE2, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/brick_blue2.png',
-		title: 'Brick Blue2',
-	});
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue_cell.png',
+			title: 'Brick Blue Cell',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/brick_blue_cell.png',
-		title: 'Brick Blue Cell',
-	});
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue_cell_skeleton.png',
+			title: 'Brick Blue Cell Skeleton',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/brick_blue_cell_skeleton.png',
-		title: 'Brick Blue Cell Skeleton',
-	});
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_side.png',
+			title: 'Elevator Side',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_side.png',
-		title: 'Elevator Side',
-	});
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_switch_down.png',
+			title: 'Switch Down',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_switch_down.png',
-		title: 'Switch Down',
-	});
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_UP, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_switch_up.png',
+			title: 'Switch Up',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_UP, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.EXTENDED,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/elevator_switch_up.png',
-		title: 'Switch Up',
-	});
+		assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/outside_day.png',
+			title: 'Outside Day',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/outside_day.png',
-		title: 'Outside Day',
-	});
+		assetsImages.set(AssetIdImg.WALL_OUTSIDE_NIGHT, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/outside_night.png',
+			title: 'Outside Night',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_OUTSIDE_NIGHT, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/outside_night.png',
-		title: 'Outside Night',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey.png',
+			title: 'Stone Grey',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey.png',
-		title: 'Stone Grey',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey2.png',
+			title: 'Stone Grey2',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY2, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey2.png',
-		title: 'Stone Grey2',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY3, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey3.png',
+			title: 'Stone Grey3',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY3, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey3.png',
-		title: 'Stone Grey3',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_eagle.png',
+			title: 'Stone Grey Eagle',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY_EAGLE, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey_eagle.png',
-		title: 'Stone Grey Eagle',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_FLAG, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_flag.png',
+			title: 'Stone Grey Flag',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY_FLAG, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey_flag.png',
-		title: 'Stone Grey Flag',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_HITLER, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_hitler.png',
+			title: 'Stone Grey Hitler',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY_HITLER, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey_hitler.png',
-		title: 'Stone Grey Hitler',
-	});
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_SIGN_VERBOTEM, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_sign_verbotem.png',
+			title: 'Stone Grey Sign Verbotem',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_STONE_GREY_SIGN_VERBOTEM, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/stone_grey_sign_verbotem.png',
-		title: 'Stone Grey Sign Verbotem',
-	});
+		assetsImages.set(AssetIdImg.WALL_WOOD, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood.png',
+			title: 'Wood',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_WOOD, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/wood.png',
-		title: 'Wood',
-	});
+		assetsImages.set(AssetIdImg.WALL_WOOD_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood_eagle.png',
+			title: 'Wood',
+		});
 
-	assetsImages.set(AssetIdImg.WALL_WOOD_EAGLE, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/wood_eagle.png',
-		title: 'Wood',
-	});
-
-	assetsImages.set(AssetIdImg.WALL_WOOD_HITLER, {
-		alpha: false,
-		author: 'Id Software',
-		category: AssetImgCategory.WALL,
-		ext: AssetExtImg.PNG,
-		file: 'img/wall/wood_hitler.png',
-		title: 'Wood',
-	});
+		assetsImages.set(AssetIdImg.WALL_WOOD_HITLER, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood_hitler.png',
+			title: 'Wood',
+		});
+	}
 };

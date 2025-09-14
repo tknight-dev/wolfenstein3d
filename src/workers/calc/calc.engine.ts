@@ -33,7 +33,7 @@ import {
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
-import { AssetIdAudio } from '../../asset-manager.js';
+import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -96,7 +96,10 @@ class CalcEngine {
 	private static settings: CalcBusInputDataSettings;
 	private static settingsNew: boolean;
 
-	public static initialize(data: CalcBusInputDataInit): void {
+	public static async initialize(data: CalcBusInputDataInit): Promise<void> {
+		// Asset
+		await initializeAssetManager(true);
+
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
@@ -411,6 +414,7 @@ class CalcEngine {
 					x: (gridIndex - y) / gameMapGrid.sideLength + 0.5, // 0.5 center
 					y: y + 0.5, // 0.5 center
 				},
+				audioProperties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId),
 				request: number = audioRequestCounter++;
 
 			// Calc: Distance - Player1
@@ -454,7 +458,7 @@ class CalcEngine {
 					data: {
 						assetId: assetId,
 						pan: x,
-						volume: GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
+						volume: audioProperties.volume * GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
 						request: request,
 					},
 				},
