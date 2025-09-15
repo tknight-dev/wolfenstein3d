@@ -12,8 +12,10 @@ import {
 	CalcBusOutputDataAudio,
 	CalcBusInputDataAudio,
 	CalcBusOutputDataActionWallMove,
+	CalcBusOutputDataCharacterMeta,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
+import { VideoMainBus } from '../video-main/video-main.bus.js';
 
 /**
  * @author tknight-dev
@@ -25,6 +27,7 @@ export class CalcBus {
 	private static callbackAudio: (data: CalcBusOutputDataAudio) => void;
 	private static callbackCamera: (data: CalcBusOutputDataCamera) => void;
 	private static callbackCalculations: (data: CalcBusOutputDataCalculations) => void;
+	private static callbackCharacterMeta: (data: CalcBusOutputDataCharacterMeta) => void;
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
@@ -79,11 +82,17 @@ export class CalcBus {
 					case CalcBusOutputCmd.CAMERA:
 						CalcBus.callbackCamera(<CalcBusOutputDataCamera>payload.data);
 						break;
+					case CalcBusOutputCmd.CHARACTER_META:
+						CalcBus.callbackCharacterMeta(<CalcBusOutputDataCharacterMeta>payload.data);
+						break;
 					case CalcBusOutputCmd.CALCULATIONS:
 						CalcBus.callbackCalculations(<CalcBusOutputDataCalculations>payload.data);
 						break;
 					case CalcBusOutputCmd.INIT_COMPLETE:
 						CalcBus.callbackInitComplete(<boolean>payload.data);
+						break;
+					case CalcBusOutputCmd.MAP_UPDATE:
+						VideoMainBus.outputMapUpdate(<Uint16Array>payload.data);
 						break;
 					case CalcBusOutputCmd.STATS:
 						CalcBus.callbackStats(<CalcBusOutputDataStats>payload.data);
@@ -169,6 +178,10 @@ export class CalcBus {
 
 	public static setCallbackCalculations(callbackCalculations: (data: CalcBusOutputDataCalculations) => void): void {
 		CalcBus.callbackCalculations = callbackCalculations;
+	}
+
+	public static setCallbackCharacterMeta(callbackCharacterMeta: (data: CalcBusOutputDataCharacterMeta) => void): void {
+		CalcBus.callbackCharacterMeta = callbackCharacterMeta;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcBusOutputDataStats) => void): void {

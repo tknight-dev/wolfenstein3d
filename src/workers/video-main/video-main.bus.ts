@@ -177,6 +177,26 @@ export class VideoMainBus {
 		});
 	}
 
+	public static outputMapUpdate(data: Uint16Array): void {
+		let dataClone: Uint16Array = Uint16Array.from(data);
+
+		VideoMainBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoMainBusInputCmd.MAP_UPDATE,
+				data: dataClone,
+			},
+			[dataClone.buffer],
+		);
+
+		VideoMainBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoMainBusInputCmd.MAP_UPDATE,
+				data: data,
+			},
+			[data.buffer],
+		);
+	}
+
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {
 		VideoMainBus.workerPlayer1.postMessage({

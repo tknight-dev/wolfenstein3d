@@ -69,9 +69,9 @@ export interface CalcBusInputPayload {
 		| CalcBusInputDataInit
 		| CalcBusInputDataPlayerInput
 		| CalcBusInputDataSettings
+		| CharacterInput
 		| Float64Array
 		| GameMap
-		| CharacterInput
 		| GamingCanvasReport;
 }
 
@@ -84,7 +84,9 @@ export enum CalcBusOutputCmd {
 	AUDIO,
 	CAMERA,
 	CALCULATIONS,
+	CHARACTER_META,
 	INIT_COMPLETE,
+	MAP_UPDATE,
 	STATS,
 }
 
@@ -111,6 +113,11 @@ export interface CalcBusOutputDataCamera {
 	raysMapKeysSorted: Float64Array;
 }
 
+export interface CalcBusOutputDataCharacterMeta {
+	player1?: Uint16Array;
+	player2?: Uint16Array;
+}
+
 export interface CalcBusOutputDataCalculations {
 	characterPlayer1Camera?: Float64Array;
 	characterPlayer1Rays?: Float64Array;
@@ -126,5 +133,13 @@ export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
-	data: boolean | CalcBusActionDoorState | CalcBusOutputDataAudio | CalcBusOutputDataCamera | CalcBusOutputDataCalculations | CalcBusOutputDataStats;
+	data:
+		| boolean
+		| CalcBusActionDoorState
+		| CalcBusOutputDataAudio
+		| CalcBusOutputDataCamera
+		| CalcBusOutputDataCalculations
+		| CalcBusOutputDataCharacterMeta
+		| CalcBusOutputDataStats
+		| Uint16Array;
 }

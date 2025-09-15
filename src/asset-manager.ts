@@ -316,22 +316,32 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_DOOR_OPEN = 2,
 	AUDIO_EFFECT_EXTRA_LIFE = 3,
 	AUDIO_EFFECT_FOOD = 4,
-	AUDIO_EFFECT_GUARD_DEATH = 5,
-	AUDIO_EFFECT_GUARD_DEATH2 = 6,
-	AUDIO_EFFECT_GUARD_FIRE = 7,
-	AUDIO_EFFECT_GUARD_SURPRISE = 8,
-	AUDIO_EFFECT_MACHINE_GUN_FIRE = 9,
-	AUDIO_EFFECT_PISTOL_FIRE = 10,
-	AUDIO_EFFECT_SWITCH = 11,
-	AUDIO_EFFECT_TREASURE_CHEST = 12,
-	AUDIO_EFFECT_TREASURE_CROSS = 13,
-	AUDIO_EFFECT_TREASURE_CROWN = 14,
-	AUDIO_EFFECT_TREASURE_CUP = 15,
-	AUDIO_EFFECT_WALL_HIT = 16,
-	AUDIO_EFFECT_WALL_MOVE = 17,
-	AUDIO_MUSIC_LVL1 = 18,
-	AUDIO_MUSIC_MENU = 19,
-	AUDIO_MUSIC_MENU_INTRO = 20,
+	AUDIO_EFFECT_FOOD_DOG = 5,
+	AUDIO_EFFECT_GUARD_DEATH = 6,
+	AUDIO_EFFECT_GUARD_DEATH2 = 7,
+	AUDIO_EFFECT_GUARD_DEATH3 = 8,
+	AUDIO_EFFECT_GUARD_DEATH4 = 9,
+	AUDIO_EFFECT_GUARD_FIRE = 10,
+	AUDIO_EFFECT_GUARD_SURPRISE = 11,
+	AUDIO_EFFECT_KNIFE = 12,
+	AUDIO_EFFECT_MEDKIT = 13,
+	AUDIO_EFFECT_MENU_EXIT = 14,
+	AUDIO_EFFECT_MENU_OPEN = 15,
+	AUDIO_EFFECT_MENU_SELECT = 16,
+	AUDIO_EFFECT_MENU_SELECT_DOUBLE = 17,
+	AUDIO_EFFECT_PISTOL = 18,
+	AUDIO_EFFECT_SUB_MACHINE_GUN = 19,
+	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP = 20,
+	AUDIO_EFFECT_SWITCH = 21,
+	AUDIO_EFFECT_TREASURE_CHEST = 22,
+	AUDIO_EFFECT_TREASURE_CROSS = 23,
+	AUDIO_EFFECT_TREASURE_CROWN = 24,
+	AUDIO_EFFECT_TREASURE_CUP = 25,
+	AUDIO_EFFECT_WALL_HIT = 26,
+	AUDIO_EFFECT_WALL_MOVE = 27,
+	AUDIO_MUSIC_LVL1 = 28,
+	AUDIO_MUSIC_MENU = 29,
+	AUDIO_MUSIC_MENU_INTRO = 30,
 }
 
 export enum AssetIdImg {
@@ -344,6 +354,7 @@ export enum AssetIdImg {
 	EXTENDED_RESERVED6 = 6, // Extended AssetId
 	EXTENDED_RESERVED7 = 7, // Extended AssetId
 	SPRITE_AMMO = 57,
+	SPRITE_AMMO_DROPPED = 20,
 	SPRITE_ARMOR = 58,
 	SPRITE_BARREL_GREEN = 59,
 	SPRITE_BARREL_WOOD = 60,
@@ -367,8 +378,8 @@ export enum AssetIdImg {
 	// SPRITE_METAL_DOOR_LOCKED = 21,
 	SPRITE_POTTED_PLANT = 22,
 	SPRITE_POTTED_TREE = 23,
-	SPRITE_RIFLE = 24,
 	SPRITE_SKELETON = 25,
+	SPRITE_SUB_MACHINE_GUN = 24,
 	SPRITE_TABLE = 26,
 	SPRITE_TABLE_CHAIRS = 27,
 	SPRITE_TREASURE_CHEST = 28,
@@ -764,7 +775,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/ammo.mp3',
 		title: 'Ammo',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
@@ -782,7 +793,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_open.mp3',
 		title: 'Door Open',
-		volume: 1,
+		volume: 0.8,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE, {
@@ -791,7 +802,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/extra_life.mp3',
 		title: 'Extra Life',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD, {
@@ -800,25 +811,52 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/food.mp3',
 		title: 'Food',
-		volume: 1,
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/food_dog.mp3',
+		title: 'Food Dog',
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, {
 		author: 'Robert Prince',
 		effect: true,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/effect/guard_death.mp3',
+		file: 'audio/effect/guard_death_1.mp3',
 		title: 'Guard Death',
-		volume: 1,
+		volume: 0.75,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2, {
 		author: 'Robert Prince',
 		effect: true,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/effect/guard_death2.mp3',
+		file: 'audio/effect/guard_death_2.mp3',
 		title: 'Guard Death2',
-		volume: 1,
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH3, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/guard_death_3.mp3',
+		title: 'Guard Death3',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH4, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/guard_death_4.mp3',
+		title: 'Guard Death4',
+		volume: 0.75,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, {
@@ -827,7 +865,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_fire.mp3',
 		title: 'Guard Fire',
-		volume: 1,
+		volume: 0.75,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, {
@@ -836,25 +874,88 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_suprise.mp3',
 		title: 'Guard Surprise',
-		volume: 1,
+		volume: 0.75,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_FIRE, {
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_KNIFE, {
 		author: 'Robert Prince',
 		effect: true,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/effect/machine_gun_fire.mp3',
-		title: 'Machine Gun Fire',
-		volume: 1,
+		file: 'audio/effect/knife.mp3',
+		title: 'Knife',
+		volume: 0.75,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL_FIRE, {
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MEDKIT, {
 		author: 'Robert Prince',
 		effect: true,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/effect/pistol_fire.mp3',
+		file: 'audio/effect/medkit.mp3',
+		title: 'Medkit',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_EXIT, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/menu_exit.mp3',
+		title: 'Menu Exit',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/menu_open.mp3',
+		title: 'Menu Open',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/menu_select.mp3',
+		title: 'Menu Select',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/menu_select_double.mp3',
+		title: 'Menu Select Double',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/pistol.mp3',
 		title: 'Pistol Fire',
-		volume: 1,
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/sub_machine_gun.mp3',
+		title: 'Sub Machine Gun Fire',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/sub_machine_gun_pickup.mp3',
+		title: 'Sub Machine Gun Pickup',
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SWITCH, {
@@ -872,7 +973,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_chest.mp3',
 		title: 'Treasure Chest',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS, {
@@ -881,7 +982,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cross.mp3',
 		title: 'Treasure Cross',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN, {
@@ -890,7 +991,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_crown.mp3',
 		title: 'Treasure Crown',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP, {
@@ -899,7 +1000,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cup.mp3',
 		title: 'Treasure Cup',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_HIT, {
@@ -908,7 +1009,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_hit.mp3',
 		title: 'Wall Hit',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, {
@@ -917,7 +1018,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_move.mp3',
 		title: 'Wall Move',
-		volume: 1,
+		volume: 0.4,
 	});
 
 	/**
@@ -928,7 +1029,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		author: 'Robert Prince',
 		effect: false,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/music/lvl1.mp3',
+		file: 'audio/music/get_them_before_they_get_you.mp3',
 		title: 'Get Them Before They Get You',
 		volume: 0.6,
 	});
@@ -937,18 +1038,9 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		author: 'Robert Prince',
 		effect: false,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/music/menu-music.mp3',
+		file: 'audio/music/wodering_about_my_loved_ones.mp3',
 		title: 'Wondering About My Loved Ones',
-		volume: 1,
-	});
-
-	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MENU_INTRO, {
-		author: 'Robert Prince',
-		effect: false,
-		ext: AssetExtAudio.MP3,
-		file: 'audio/music/menu-intro.mp3',
-		title: 'Horst Wessel Lied',
-		volume: 1,
+		volume: 0.8,
 	});
 
 	/**
@@ -962,6 +1054,16 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/ammo.png',
 			title: 'Ammo',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_AMMO_DROPPED, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/ammo_dropped.png',
+			hide: true,
+			title: 'Ammo Dropped',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_ARMOR, {
@@ -1180,15 +1282,6 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Potted Tree',
 		});
 
-		assetsImages.set(AssetIdImg.SPRITE_RIFLE, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.SPRITE_PICKUP,
-			ext: AssetExtImg.PNG,
-			file: 'img/sprite/rifle.png',
-			title: 'Rifle',
-		});
-
 		assetsImages.set(AssetIdImg.SPRITE_SKELETON, {
 			alpha: true,
 			author: 'Id Software',
@@ -1196,6 +1289,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/skeleton.png',
 			title: 'Skeleton',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_SUB_MACHINE_GUN, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/sub_machine_gun.png',
+			title: 'Sub Machine Gun',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_TABLE, {

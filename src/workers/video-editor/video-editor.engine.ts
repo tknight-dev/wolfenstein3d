@@ -9,7 +9,7 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
-import { Character } from '../../models/character.model.js';
+import { Character, CharacterWeapon } from '../../models/character.model.js';
 import {
 	GamingCanvasGridCamera,
 	GamingCanvasGridICamera,
@@ -52,8 +52,8 @@ class VideoEditorEngine {
 	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoEditorBusInputDataCalculations;
 	private static calculationsNew: boolean;
-	private static characterPlayer1: Character;
-	private static characterPlayer2: Character;
+	private static characterPlayer1Camera: GamingCanvasGridCamera;
+	private static characterPlayer2Camera: GamingCanvasGridCamera;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
@@ -109,28 +109,18 @@ class VideoEditorEngine {
 		VideoEditorEngine.inputCalculations(data);
 
 		// Config: Character
-		VideoEditorEngine.characterPlayer1 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
-			cameraPrevious: <GamingCanvasGridICamera>{},
-			health: 100,
-			id: 0,
-			npc: false,
-			player1: true,
-			size: 0.25,
-			timestamp: 0,
-			timestampPrevious: 0,
-		};
-		VideoEditorEngine.characterPlayer2 = {
-			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
-			cameraPrevious: <GamingCanvasGridICamera>{},
-			health: VideoEditorEngine.characterPlayer1.health,
-			id: 1,
-			npc: false,
-			player1: false,
-			size: VideoEditorEngine.characterPlayer1.size,
-			timestamp: VideoEditorEngine.characterPlayer1.timestamp,
-			timestampPrevious: VideoEditorEngine.characterPlayer1.timestampPrevious,
-		};
+		VideoEditorEngine.characterPlayer1Camera = new GamingCanvasGridCamera(
+			data.gameMap.position.r,
+			data.gameMap.position.x + 0.5,
+			data.gameMap.position.y + 0.5,
+			1,
+		);
+		VideoEditorEngine.characterPlayer2Camera = new GamingCanvasGridCamera(
+			data.gameMap.position.r,
+			data.gameMap.position.x + 0.5,
+			data.gameMap.position.y + 0.5,
+			1,
+		);
 
 		// Config: Report
 		VideoEditorEngine.inputReport(data.report);
@@ -247,10 +237,10 @@ class VideoEditorEngine {
 			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheCellSizePx: number = -1,
-			characterPlayer1: Character = VideoEditorEngine.characterPlayer1,
+			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
-			characterPlayer2: Character = VideoEditorEngine.characterPlayer2,
+			characterPlayer2: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer2Camera,
 			characterPlayer2XEff: number,
 			characterPlayer2YEff: number,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
@@ -322,10 +312,10 @@ class VideoEditorEngine {
 						calculationsViewport.decode(VideoEditorEngine.calculations.viewport);
 
 						if (VideoEditorEngine.calculations.player1Camera !== undefined) {
-							(<GamingCanvasGridCamera>characterPlayer1.camera).decode(VideoEditorEngine.calculations.player1Camera);
+							characterPlayer1.decode(VideoEditorEngine.calculations.player1Camera);
 						}
 						if (VideoEditorEngine.calculations.player2Camera !== undefined) {
-							(<GamingCanvasGridCamera>characterPlayer2.camera).decode(VideoEditorEngine.calculations.player2Camera);
+							characterPlayer2.decode(VideoEditorEngine.calculations.player2Camera);
 						}
 
 						// if (calculationsGameMode === true) {
@@ -343,10 +333,10 @@ class VideoEditorEngine {
 						renderCellOutlineWidth = Math.max(3, calculationsViewport.cellSizePx / 8);
 						renderCellOutlineOffset = renderCellOutlineWidth / 2;
 
-						characterPlayer1XEff = characterPlayer1.camera.x - calculationsViewportWidthStart;
-						characterPlayer1YEff = characterPlayer1.camera.y - calculationsViewportHeightStart;
-						characterPlayer2XEff = characterPlayer2.camera.x - calculationsViewportWidthStart;
-						characterPlayer2YEff = characterPlayer2.camera.y - calculationsViewportHeightStart;
+						characterPlayer1XEff = characterPlayer1.x - calculationsViewportWidthStart;
+						characterPlayer1YEff = characterPlayer1.y - calculationsViewportHeightStart;
+						characterPlayer2XEff = characterPlayer2.x - calculationsViewportWidthStart;
+						characterPlayer2YEff = characterPlayer2.y - calculationsViewportHeightStart;
 					}
 
 					// Report
@@ -531,8 +521,8 @@ class VideoEditorEngine {
 				offscreenCanvasContext.beginPath();
 				offscreenCanvasContext.moveTo(characterPlayer1XEff * calculationsViewportCellSizePx, characterPlayer1YEff * calculationsViewportCellSizePx); // Center
 				offscreenCanvasContext.lineTo(
-					calculationsViewportCellSizePx * (Math.sin(characterPlayer1.camera.r) + characterPlayer1XEff),
-					calculationsViewportCellSizePx * (Math.cos(characterPlayer1.camera.r) + characterPlayer1YEff),
+					calculationsViewportCellSizePx * (Math.sin(characterPlayer1.r) + characterPlayer1XEff),
+					calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1YEff),
 				);
 				offscreenCanvasContext.closePath();
 				offscreenCanvasContext.stroke();
@@ -557,8 +547,8 @@ class VideoEditorEngine {
 					offscreenCanvasContext.beginPath();
 					offscreenCanvasContext.moveTo(characterPlayer2XEff * calculationsViewportCellSizePx, characterPlayer2YEff * calculationsViewportCellSizePx); // Center
 					offscreenCanvasContext.lineTo(
-						calculationsViewportCellSizePx * (Math.sin(characterPlayer2.camera.r) + characterPlayer2XEff),
-						calculationsViewportCellSizePx * (Math.cos(characterPlayer2.camera.r) + characterPlayer2YEff),
+						calculationsViewportCellSizePx * (Math.sin(characterPlayer2.r) + characterPlayer2XEff),
+						calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2YEff),
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.stroke();

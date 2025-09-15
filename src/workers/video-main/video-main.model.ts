@@ -17,6 +17,7 @@ export enum VideoMainBusInputCmd {
 	CALCULATIONS,
 	INIT,
 	MAP,
+	MAP_UPDATE,
 	REPORT,
 	SETTINGS,
 }
@@ -55,6 +56,7 @@ export interface VideoMainBusInputPayload {
 		| Float64Array
 		| GameMap
 		| GamingCanvasReport
+		| Uint16Array
 		| VideoMainBusInputDataCalculations
 		| VideoMainBusInputDataInit
 		| VideoMainBusInputDataSettings;

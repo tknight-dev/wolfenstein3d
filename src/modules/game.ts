@@ -758,20 +758,12 @@ export class Game {
 		// Calc: Audio
 		CalcBus.setCallbackAudio(async (data: CalcBusOutputDataAudio) => {
 			if (data.assetId !== undefined) {
-				const instance: number | null = await GamingCanvas.audioControlPlay(
-					data.assetId,
-					true,
-					false,
-					data.pan || 0,
-					0,
-					data.volume || 1,
-					(instance: number) => {
-						CalcBus.outputAudioStop({
-							instance: instance,
-							request: data.request,
-						});
-					},
-				);
+				const instance: number | null = await GamingCanvas.audioControlPlay(data.assetId, true, false, data.pan, 0, data.volume, (instance: number) => {
+					CalcBus.outputAudioStop({
+						instance: instance,
+						request: data.request,
+					});
+				});
 				CalcBus.outputAudioStart({
 					instance: instance,
 					request: data.request,

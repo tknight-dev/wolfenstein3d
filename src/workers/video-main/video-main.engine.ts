@@ -66,6 +66,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.MAP:
 			VideoMainEngine.inputMap(<GameMap>payload.data);
 			break;
+		case VideoMainBusInputCmd.MAP_UPDATE:
+			VideoMainEngine.inputMapUpdate(<Uint16Array>payload.data);
+			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -84,6 +87,8 @@ class VideoMainEngine {
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static gameMapUpdate: Uint16Array;
+	private static gameMapUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
@@ -304,6 +309,11 @@ class VideoMainEngine {
 		VideoMainEngine.gameMapNew = true;
 	}
 
+	public static inputMapUpdate(data: Uint16Array): void {
+		VideoMainEngine.gameMapUpdate = data;
+		VideoMainEngine.gameMapUpdateNew = true;
+	}
+
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
 
@@ -356,6 +366,7 @@ class VideoMainEngine {
 			gameMapGridIndex: number,
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
+			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
 			renderAssetId: number,
@@ -447,6 +458,15 @@ class VideoMainEngine {
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
+				}
+
+				if (VideoMainEngine.gameMapUpdateNew === true) {
+					VideoMainEngine.gameMapUpdateNew = false;
+
+					gameMapUpdate = VideoMainEngine.gameMapUpdate;
+					for (i = 0; i < gameMapUpdate.length; i += 2) {
+						gameMapGridData[gameMapUpdate[i]] = gameMapUpdate[i + 1];
+					}
 				}
 
 				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {

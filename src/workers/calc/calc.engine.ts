@@ -1,4 +1,4 @@
-import { Character, CharacterInput } from '../../models/character.model.js';
+import { Character, CharacterInput, CharacterMetaEncode, CharacterWeapon } from '../../models/character.model.js';
 import {
 	CalcBusActionDoorState,
 	CalcBusActionDoorStateAutoCloseDurationInMS,
@@ -33,7 +33,7 @@ import {
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
-import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from '../../asset-manager.js';
+import { AssetIdAudio, AssetIdImg, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -102,24 +102,32 @@ class CalcEngine {
 
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
+			ammo: 8,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			health: 100,
+			health: 50,
 			id: 0,
-			npc: false,
+			lives: 3,
 			player1: true,
+			score: 0,
 			size: 0.25,
+			weapon: CharacterWeapon.PISTOL,
+			weapons: [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL],
 			timestamp: 0,
 			timestampPrevious: 0,
 		};
 		CalcEngine.characterPlayer2 = {
+			ammo: CalcEngine.characterPlayer1.ammo,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			health: CalcEngine.characterPlayer1.health,
 			id: 1,
-			npc: false,
-			player1: false,
+			lives: 3,
+			player1: true,
+			score: CalcEngine.characterPlayer1.score,
 			size: CalcEngine.characterPlayer1.size,
+			weapon: CalcEngine.characterPlayer1.weapon,
+			weapons: [...CalcEngine.characterPlayer1.weapons],
 			timestamp: CalcEngine.characterPlayer1.timestamp,
 			timestampPrevious: CalcEngine.characterPlayer1.timestampPrevious,
 		};
@@ -212,10 +220,9 @@ class CalcEngine {
 		let actionDoors: Map<number, CalcBusActionDoorState> = new Map(),
 			actionDoorState: CalcBusActionDoorState,
 			audio: Map<number, AudioInstance> = CalcEngine.audio,
-			audioDistanceMax: number = 30,
+			audioDistanceMax: number = 25,
 			audioInstance: AudioInstance,
 			audioPostStack: CalcBusOutputPayload[],
-			audioRequest: number,
 			audioRequestCounter: number = 0,
 			buffers: ArrayBufferLike[] = [],
 			camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
@@ -246,7 +253,10 @@ class CalcEngine {
 			characterPlayer1Action: boolean = false,
 			characterPlayer1CameraEncoded: Float64Array | undefined,
 			characterPlayer1Changed: boolean,
+			characterPlayer1ChangedMetaPickup: boolean,
+			characterPlayer1ChangedMetaReport: boolean = false,
 			characterPlayer1GridIndex: number,
+			characterPlayer1MetaEncoded: Uint16Array | undefined,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array,
@@ -262,7 +272,10 @@ class CalcEngine {
 			characterPlayer2Action: boolean = false,
 			characterPlayer2CameraEncoded: Float64Array | undefined,
 			characterPlayer2Changed: boolean,
+			characterPlayer2ChangedMetaPickup: boolean,
+			characterPlayer2ChangedMetaReport: boolean = false,
 			characterPlayer2GridIndex: number,
+			characterPlayer2MetaEncoded: Uint16Array | undefined,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
@@ -274,6 +287,9 @@ class CalcEngine {
 			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
 			gameMapIndexEff: number,
 			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
+			gameMapUpdate: number[] = new Array(50), // arbitrary size
+			gameMapUpdateEncoded: Uint16Array,
+			gameMapUpdateIndex: number = 0,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
 				distanceMapEnable: true,
@@ -438,67 +454,86 @@ class CalcEngine {
 			}, CalcBusActionWallMoveStateChangeDurationInMS);
 		};
 
-		const audioPlay = (assetId: AssetIdAudio, gridIndex: number) => {
-			y = gridIndex % gameMapGrid.sideLength;
+		/**
+		 * @param gridIndex allows for 3d audio with live updates
+		 */
+		const audioPlay = (assetId: AssetIdAudio, gridIndex?: number): number | null => {
+			let audioProperties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId);
 
-			// Cache
-			const audioInstance: AudioInstance = {
-					assetId: assetId,
-					instance: 0,
-					x: (gridIndex - y) / gameMapGrid.sideLength + 0.5, // 0.5 center
-					y: y + 0.5, // 0.5 center
-				},
-				audioProperties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId),
-				request: number = audioRequestCounter++;
+			if (gridIndex !== undefined) {
+				y = gridIndex % gameMapGrid.sideLength;
 
-			// Calc: Distance - Player1
-			cameraInstance = characterPlayer1.camera;
-			x = audioInstance.x - cameraInstance.x;
-			y = audioInstance.y - cameraInstance.y;
-			distance = (x * x + y * y) ** 0.5;
-
-			// Calc: Distance - Player2, if required, and compare for closest to audio source
-			if (settingsPlayer2Enable === true) {
-				x = audioInstance.x - characterPlayer2.camera.x;
-				y = audioInstance.y - characterPlayer2.camera.y;
-				distance2 = (x * x + y * y) ** 0.5;
-
-				// Calc: Shortest Distance
-				if (distance2 < distance) {
-					// Use player2 distance and rotation
-					cameraInstance = characterPlayer2.camera;
-					distance = distance2;
-				}
-			}
-
-			// Calc: Angle
-			x = cameraInstance.r - Math.atan2(x, y);
-
-			// Corrections for rotations between 0 and 2pi
-			if (x > GamingCanvasConstPIDouble) {
-				x -= GamingCanvasConstPIDouble;
-			}
-			if (x > GamingCanvasConstPI) {
-				x -= GamingCanvasConstPIDouble;
-			}
-
-			// Cache
-			audio.set(request, audioInstance);
-
-			// Post to audio engine thread
-			CalcEngine.post([
-				{
-					cmd: CalcBusOutputCmd.AUDIO,
-					data: {
+				// Cache
+				const audioInstance: AudioInstance = {
 						assetId: assetId,
-						pan: x,
-						volume: audioProperties.volume * GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
-						request: request,
+						instance: 0,
+						x: (gridIndex - y) / gameMapGrid.sideLength + 0.5, // 0.5 center
+						y: y + 0.5, // 0.5 center
 					},
-				},
-			]);
+					request: number = audioRequestCounter++;
 
-			return request;
+				// Calc: Distance - Player1
+				cameraInstance = characterPlayer1.camera;
+				x = audioInstance.x - cameraInstance.x;
+				y = audioInstance.y - cameraInstance.y;
+				distance = (x * x + y * y) ** 0.5;
+
+				// Calc: Distance - Player2, if required, and compare for closest to audio source
+				if (settingsPlayer2Enable === true) {
+					x = audioInstance.x - characterPlayer2.camera.x;
+					y = audioInstance.y - characterPlayer2.camera.y;
+					distance2 = (x * x + y * y) ** 0.5;
+
+					// Calc: Shortest Distance
+					if (distance2 < distance) {
+						// Use player2 distance and rotation
+						cameraInstance = characterPlayer2.camera;
+						distance = distance2;
+					}
+				}
+
+				// Calc: Angle
+				x = cameraInstance.r - Math.atan2(x, y);
+
+				// Corrections for rotations between 0 and 2pi
+				if (x > GamingCanvasConstPIDouble) {
+					x -= GamingCanvasConstPIDouble;
+				}
+				if (x > GamingCanvasConstPI) {
+					x -= GamingCanvasConstPIDouble;
+				}
+
+				// Cache
+				audio.set(request, audioInstance);
+
+				// Post to audio engine thread
+				CalcEngine.post([
+					{
+						cmd: CalcBusOutputCmd.AUDIO,
+						data: {
+							assetId: assetId,
+							pan: Math.max(-1, Math.min(1, x)),
+							volume: audioProperties.volume * GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
+							request: request,
+						},
+					},
+				]);
+
+				return request;
+			} else {
+				CalcEngine.post([
+					{
+						cmd: CalcBusOutputCmd.AUDIO,
+						data: {
+							assetId: assetId,
+							pan: 0,
+							volume: audioProperties.volume,
+						},
+					},
+				]);
+
+				return null;
+			}
 		};
 
 		const go = (timestampNow: number) => {
@@ -521,7 +556,7 @@ class CalcEngine {
 				characterPlayer1Changed = false;
 
 				characterPlayer2.timestamp = timestampNow;
-				characterPlayer2Changed = false;
+				characterPlayer2ChangedMetaPickup = false;
 
 				if (CalcEngine.cameraNew) {
 					CalcEngine.cameraNew = false;
@@ -722,6 +757,159 @@ class CalcEngine {
 							characterPlayer2Action = false;
 						}
 					}
+
+					/**
+					 * Pickup
+					 */
+					if (characterPlayer1Changed === true) {
+						characterPlayer1GridIndex = (characterPlayer1.camera.x | 0) * gameMapSideLength + (characterPlayer1.camera.y | 0);
+
+						if ((gameMapGridData[characterPlayer1GridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
+							characterPlayer1ChangedMetaPickup = true;
+
+							// Character
+							switch (gameMapGridData[characterPlayer1GridIndex] & GameGridCellMasksAndValues.ID_MASK) {
+								case AssetIdImg.SPRITE_AMMO:
+									characterPlayer1.ammo += 8;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_AMMO_DROPPED:
+									characterPlayer1.ammo += 4;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
+									characterPlayer1.ammo += 6;
+									if (characterPlayer1.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
+										characterPlayer1.weapon = CharacterWeapon.SUB_MACHINE_GUN;
+										characterPlayer1.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
+									}
+									break;
+								case AssetIdImg.SPRITE_MEDKIT:
+									if (characterPlayer1.health !== 0) {
+										characterPlayer1.health = Math.min(100, characterPlayer1.health + 15);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD:
+									if (characterPlayer1.health !== 0) {
+										characterPlayer1.health = Math.min(100, characterPlayer1.health + 10);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD_DOG:
+									if (characterPlayer1.health !== 0) {
+										characterPlayer1.health = Math.min(100, characterPlayer1.health + 4);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
+									}
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CHEST:
+									characterPlayer1.score += 1000;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROSS:
+									characterPlayer1.score += 100;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROWN:
+									characterPlayer1.score += 5000;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CUP:
+									characterPlayer1.score += 500;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
+									break;
+								default:
+									characterPlayer1ChangedMetaPickup = false;
+									break;
+							}
+
+							// Map
+							if (characterPlayer1ChangedMetaPickup === true) {
+								characterPlayer1ChangedMetaReport = true;
+
+								gameMapGridData[characterPlayer1GridIndex] = GameGridCellMasksAndValues.FLOOR;
+
+								gameMapUpdate[gameMapUpdateIndex++] = characterPlayer1GridIndex;
+								gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
+							}
+						}
+					}
+
+					if (characterPlayer2Changed === true) {
+						characterPlayer2GridIndex = (characterPlayer2.camera.x | 0) * gameMapSideLength + (characterPlayer2.camera.y | 0);
+
+						if ((gameMapGridData[characterPlayer2GridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
+							characterPlayer2ChangedMetaPickup = true;
+
+							// Character
+							switch (gameMapGridData[characterPlayer2GridIndex] & GameGridCellMasksAndValues.ID_MASK) {
+								case AssetIdImg.SPRITE_AMMO:
+									characterPlayer2.ammo += 8;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_AMMO_DROPPED:
+									characterPlayer2.ammo += 4;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
+									characterPlayer2.ammo += 6;
+									if (characterPlayer2.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
+										characterPlayer2.weapon = CharacterWeapon.SUB_MACHINE_GUN;
+										characterPlayer2.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
+									}
+									break;
+								case AssetIdImg.SPRITE_MEDKIT:
+									if (characterPlayer2.health !== 0) {
+										characterPlayer2.health = Math.min(100, characterPlayer2.health + 15);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD:
+									if (characterPlayer2.health !== 0) {
+										characterPlayer2.health = Math.min(100, characterPlayer2.health + 10);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD_DOG:
+									if (characterPlayer2.health !== 0) {
+										characterPlayer2.health = Math.min(100, characterPlayer2.health + 4);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
+									}
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CHEST:
+									characterPlayer2.score += 1000;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROSS:
+									characterPlayer2.score += 100;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROWN:
+									characterPlayer2.score += 5000;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CUP:
+									characterPlayer2.score += 500;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
+									break;
+								default:
+									characterPlayer2ChangedMetaPickup = false;
+									break;
+							}
+
+							// Map
+							if (characterPlayer2ChangedMetaPickup === true) {
+								characterPlayer2ChangedMetaReport = true;
+
+								gameMapGridData[characterPlayer2GridIndex] = GameGridCellMasksAndValues.FLOOR;
+
+								gameMapUpdate[gameMapUpdateIndex++] = characterPlayer1GridIndex;
+								gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
+							}
+						}
+					}
 				} else if (cameraUpdated) {
 					// Camera mode means we only need one raycast no matter how many players
 					characterPlayer1Raycast = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE, raycastOptions);
@@ -787,7 +975,9 @@ class CalcEngine {
 							data: {
 								instance: audioInstance.instance,
 								pan: x,
-								volume: GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
+								volume:
+									(<AssetPropertiesAudio>assetsAudio.get(audioInstance.assetId)).volume *
+									GamingCanvasUtilScale(distance, 0, audioDistanceMax, 1, 0),
 							},
 						});
 					}
@@ -805,10 +995,7 @@ class CalcEngine {
 				// More accurately calculate for more stable FPS
 				timestampFPSThen = timestampNow - (timestampFPSDelta % settingsFPMS);
 
-				// if (characterPlayer1RaycastRays !== undefined) {
-				// 	console.log('rays', characterPlayer1RaycastRays.length / 6, (characterPlayer1RaycastDistanceMapKeysSorted || []).length);
-				// }
-
+				// Cameras
 				if (cameraMode === true) {
 					if (characterPlayer1RaycastRays !== undefined) {
 						cameraEncoded = camera.encode();
@@ -886,6 +1073,54 @@ class CalcEngine {
 						characterPlayer1RaycastRays = undefined;
 						characterPlayer2RaycastRays = undefined;
 					}
+				}
+
+				// Character
+				if (characterPlayer1ChangedMetaReport === true || characterPlayer2ChangedMetaReport === true) {
+					buffers.length = 0;
+
+					if (characterPlayer1ChangedMetaReport === true) {
+						characterPlayer1MetaEncoded = CharacterMetaEncode(characterPlayer1);
+						buffers.push(characterPlayer1MetaEncoded.buffer);
+					}
+					if (characterPlayer2ChangedMetaReport === true) {
+						characterPlayer2MetaEncoded = CharacterMetaEncode(characterPlayer2);
+						buffers.push(characterPlayer2MetaEncoded.buffer);
+					}
+
+					CalcEngine.post(
+						[
+							{
+								cmd: CalcBusOutputCmd.CHARACTER_META,
+								data: {
+									player1: characterPlayer1MetaEncoded,
+									player2: characterPlayer2MetaEncoded,
+								},
+							},
+						],
+						buffers,
+					);
+
+					characterPlayer1ChangedMetaReport = false;
+					characterPlayer1MetaEncoded = undefined;
+					characterPlayer2ChangedMetaReport = false;
+					characterPlayer2MetaEncoded = undefined;
+				}
+
+				// Map
+				if (gameMapUpdateIndex !== 0) {
+					gameMapUpdateEncoded = Uint16Array.from(gameMapUpdate.slice(0, gameMapUpdateIndex));
+					gameMapUpdateIndex = 0;
+
+					CalcEngine.post(
+						[
+							{
+								cmd: CalcBusOutputCmd.MAP_UPDATE,
+								data: gameMapUpdateEncoded,
+							},
+						],
+						[gameMapUpdateEncoded.buffer],
+					);
 				}
 			}
 		};
