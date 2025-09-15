@@ -410,6 +410,21 @@ export enum AssetIdImg {
 	WALL_WOOD = 53,
 	WALL_WOOD_EAGLE = 54,
 	WALL_WOOD_HITLER = 55,
+	WEAPON_KNIFE_1 = 10000,
+	WEAPON_KNIFE_2 = 10001,
+	WEAPON_KNIFE_3 = 10002,
+	WEAPON_KNIFE_4 = 10003,
+	WEAPON_KNIFE_5 = 10004,
+	WEAPON_PISTOL_1 = 10005,
+	WEAPON_PISTOL_2 = 10006,
+	WEAPON_PISTOL_3 = 10007,
+	WEAPON_PISTOL_4 = 10008,
+	WEAPON_PISTOL_5 = 10009,
+	WEAPON_SUB_MACHINE_GUN_1 = 10010,
+	WEAPON_SUB_MACHINE_GUN_2 = 10011,
+	WEAPON_SUB_MACHINE_GUN_3 = 10012,
+	WEAPON_SUB_MACHINE_GUN_4 = 10013,
+	WEAPON_SUB_MACHINE_GUN_5 = 10014,
 }
 
 export enum AssetIdImgCharacter {
@@ -574,6 +589,7 @@ export enum AssetImgCategory {
 	SPRITE,
 	SPRITE_PICKUP,
 	WALL,
+	WEAPON,
 }
 
 interface AssetProperties {
@@ -1578,6 +1594,141 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/wall/wood_hitler.png',
 			title: 'Wood',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_1, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_1.png',
+			title: 'Knife 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_2.png',
+			title: 'Knife 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_3, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_3.png',
+			title: 'Knife 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_4, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_4.png',
+			title: 'Knife 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_5, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_5.png',
+			title: 'Knife 5',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_1, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_1.png',
+			title: 'Pistol 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_2.png',
+			title: 'Pistol 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_3, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_3.png',
+			title: 'Pistol 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_4, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_4.png',
+			title: 'Pistol 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_5, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_5.png',
+			title: 'Pistol 5',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_1.png',
+			title: 'Sub Machine Gun 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_2.png',
+			title: 'Sub Machine Gun 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_3, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_3.png',
+			title: 'Sub Machine Gun 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_4, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_4.png',
+			title: 'Sub Machine Gun 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_5, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_5.png',
+			title: 'Sub Machine Gun 5',
 		});
 	}
 };

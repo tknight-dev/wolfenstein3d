@@ -428,6 +428,7 @@ export class DOM {
 
 			switch ((<AssetPropertiesImage>properties).category) {
 				case AssetImgCategory.CHARACTER:
+				case AssetImgCategory.WEAPON:
 					continue;
 				case AssetImgCategory.EXTENDED:
 					elementContainer = DOM.elEditorContainerExtendedContent;
