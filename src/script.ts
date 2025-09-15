@@ -58,7 +58,7 @@ class Blockenstein {
 				character = CharacterMetaDecode(data.player1);
 
 				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health);
+				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
 				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
 			}
 
@@ -66,7 +66,7 @@ class Blockenstein {
 				character = CharacterMetaDecode(data.player2);
 
 				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health);
+				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
 				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
 			}
 		});

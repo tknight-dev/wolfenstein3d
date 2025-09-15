@@ -105,7 +105,7 @@ class CalcEngine {
 			ammo: 8,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			health: 50,
+			health: 100,
 			id: 0,
 			lives: 3,
 			player1: true,
@@ -786,21 +786,27 @@ class CalcEngine {
 									}
 									break;
 								case AssetIdImg.SPRITE_MEDKIT:
-									if (characterPlayer1.health !== 0) {
+									if (characterPlayer1.health !== 100) {
 										characterPlayer1.health = Math.min(100, characterPlayer1.health + 15);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
+									} else {
+										characterPlayer1ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_FOOD:
-									if (characterPlayer1.health !== 0) {
+									if (characterPlayer1.health !== 100) {
 										characterPlayer1.health = Math.min(100, characterPlayer1.health + 10);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
+									} else {
+										characterPlayer1ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_FOOD_DOG:
-									if (characterPlayer1.health !== 0) {
+									if (characterPlayer1.health !== 100) {
 										characterPlayer1.health = Math.min(100, characterPlayer1.health + 4);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
+									} else {
+										characterPlayer1ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_TREASURE_CHEST:
@@ -861,21 +867,27 @@ class CalcEngine {
 									}
 									break;
 								case AssetIdImg.SPRITE_MEDKIT:
-									if (characterPlayer2.health !== 0) {
+									if (characterPlayer2.health !== 100) {
 										characterPlayer2.health = Math.min(100, characterPlayer2.health + 15);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
+									} else {
+										characterPlayer2ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_FOOD:
-									if (characterPlayer2.health !== 0) {
+									if (characterPlayer2.health !== 100) {
 										characterPlayer2.health = Math.min(100, characterPlayer2.health + 10);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
+									} else {
+										characterPlayer2ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_FOOD_DOG:
-									if (characterPlayer2.health !== 0) {
+									if (characterPlayer2.health !== 100) {
 										characterPlayer2.health = Math.min(100, characterPlayer2.health + 4);
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
+									} else {
+										characterPlayer2ChangedMetaPickup = false;
 									}
 									break;
 								case AssetIdImg.SPRITE_TREASURE_CHEST:
