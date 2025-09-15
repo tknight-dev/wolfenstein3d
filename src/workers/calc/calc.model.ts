@@ -80,6 +80,7 @@ export interface CalcBusInputPayload {
  */
 export enum CalcBusOutputCmd {
 	ACTION_DOOR,
+	ACTION_SWITCH,
 	ACTION_WALL_MOVE,
 	AUDIO,
 	CAMERA,
@@ -88,6 +89,11 @@ export enum CalcBusOutputCmd {
 	INIT_COMPLETE,
 	MAP_UPDATE,
 	STATS,
+}
+
+export interface CalcBusOutputDataActionSwitch {
+	cellValue: number;
+	gridIndex: number;
 }
 
 export interface CalcBusOutputDataActionWallMove {
@@ -135,6 +141,8 @@ export interface CalcBusOutputPayload {
 	cmd: CalcBusOutputCmd;
 	data:
 		| boolean
+		| CalcBusOutputDataActionSwitch
+		| CalcBusOutputDataActionWallMove
 		| CalcBusActionDoorState
 		| CalcBusOutputDataAudio
 		| CalcBusOutputDataCamera

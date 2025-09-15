@@ -1,5 +1,14 @@
 import { Assets } from './assets.js';
-import { AssetIdImg, AssetIdMap, AssetImgCategory, AssetPropertiesImage, assetsImages } from '../asset-manager.js';
+import {
+	AssetIdAudio,
+	AssetIdImg,
+	AssetIdMap,
+	AssetImgCategory,
+	AssetPropertiesAudio,
+	AssetPropertiesImage,
+	assetsAudio,
+	assetsImages,
+} from '../asset-manager.js';
 import { Settings } from './settings.js';
 import { DOM } from './dom.js';
 import {
@@ -10,6 +19,7 @@ import {
 	CalcBusActionDoorState,
 	CalcBusOutputDataAudio,
 	CalcBusOutputDataActionWallMove,
+	CalcBusOutputDataActionSwitch,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -49,6 +59,8 @@ import {
 import { CharacterInput } from '../models/character.model.js';
 
 /**
+ * Guards are 100 points
+ *
  * @author tknight-dev
  */
 
@@ -70,10 +82,12 @@ export class Game {
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
 	public static inputRequest: number;
+	public static inputSuspend: boolean = true;
 	public static map: GameMap;
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
+	public static musicInstance: number | null;
 	public static position: GamingCanvasInputPositionBasic;
 	public static positionCellHighlight: GamingCanvasInputPositionOverlay;
 	public static report: GamingCanvasReport;
@@ -87,6 +101,7 @@ export class Game {
 	public static settingGraphicsFPSDisplay: boolean;
 	public static settingGamePlayer2InputDevice: InputDevice;
 	public static settingGraphicsResolution: Resolution;
+	public static settingIntro: boolean;
 	public static settingsCalc: CalcBusInputDataSettings;
 	public static settingsGamingCanvas: GamingCanvasOptions;
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
@@ -360,6 +375,7 @@ export class Game {
 		DOM.elEditorCommandMetaMenu.onclick = () => {
 			Settings.setMetaMap(false);
 			DOM.elMetaMap.style.display = 'block';
+			Game.inputSuspend = true;
 		};
 
 		// Editor items
@@ -507,6 +523,7 @@ export class Game {
 
 			DOM.elSettingsSubGame.click();
 			DOM.elSettings.style.display = 'block';
+			Game.inputSuspend = true;
 		};
 
 		document.addEventListener('click', (event: any) => {
@@ -520,11 +537,13 @@ export class Game {
 		DOM.elMetaMapApply.onclick = () => {
 			Settings.setMetaMap(true);
 			DOM.elMetaMap.style.display = 'none';
+			Game.inputSuspend = false;
 		};
 
 		DOM.elMetaMapCancel.onclick = () => {
 			Settings.setMetaMap(false);
 			DOM.elMetaMap.style.display = 'none';
+			Game.inputSuspend = false;
 		};
 
 		DOM.elMetaMapLocation.onclick = () => {
@@ -748,6 +767,35 @@ export class Game {
 		// Calc: Action Door Open
 		CalcBus.setCallbackActionDoor((data: CalcBusActionDoorState) => {
 			VideoMainBus.outputActionDoor(data);
+		});
+
+		// Calc: Action Switch
+		CalcBus.setCallbackActionSwitch((data: CalcBusOutputDataActionSwitch) => {
+			VideoMainBus.outputActionSwitch(data);
+
+			Game.inputSuspend = true;
+
+			setTimeout(() => {
+				DOM.screenControl(DOM.elScreenLevelEnd);
+
+				if (Game.musicInstance !== null) {
+					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
+				}
+
+				setTimeout(async () => {
+					if (Game.musicInstance !== null) {
+						GamingCanvas.audioControlStop(Game.musicInstance);
+					}
+					Game.musicInstance = await GamingCanvas.audioControlPlay(
+						AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL,
+						false,
+						false,
+						0,
+						0,
+						(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
+					);
+				}, 1500);
+			}, 500);
 		});
 
 		// Calc: Action Wall Move
@@ -1006,6 +1054,10 @@ export class Game {
 
 				while (queue.length !== 0) {
 					queueInput = <GamingCanvasInput>queue.pop();
+
+					if (Game.inputSuspend === true) {
+						continue;
+					}
 
 					switch (queueInput.type) {
 						case GamingCanvasInputType.GAMEPAD:

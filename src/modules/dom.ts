@@ -4,12 +4,14 @@ import {
 	AssetIdImgCharacter,
 	assetIdImgCharacterMenu,
 	AssetIdImgCharacterType,
+	AssetIdImgMenu,
 	AssetImgCategory,
 	AssetPropertiesAudio,
 	AssetPropertiesCharacter,
 	AssetPropertiesImage,
 	assetsImages,
 	assetsImageCharacters,
+	assetsImageMenus,
 } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
@@ -109,6 +111,14 @@ export class DOM {
 	public static elPlayerOverlay2Ammo: HTMLElement;
 	public static elPlayerOverlay2Health: HTMLElement;
 	public static elPlayerOverlay2Lives: HTMLElement;
+	public static elScreenActive: HTMLElement;
+	public static elScreenBlack: HTMLElement;
+	public static elScreenLevelEnd: HTMLElement;
+	public static elScreenLevelEndImage1: HTMLImageElement;
+	public static elScreenLevelEndImage2: HTMLImageElement;
+	public static elScreenRating: HTMLElement;
+	public static elScreenStats: HTMLElement;
+	public static elScreenTitle: HTMLElement;
 	public static elSettings: HTMLElement;
 	public static elSettingsApply: HTMLElement;
 	public static elSettingsBodyAudio: HTMLElement;
@@ -143,6 +153,7 @@ export class DOM {
 	public static elVideoInteractive: HTMLElement;
 	public static elVersion: HTMLAnchorElement;
 	private static timeoutError: ReturnType<typeof setTimeout>;
+	private static timeoutScreen: ReturnType<typeof setTimeout>;
 	private static timeoutSpinner: ReturnType<typeof setTimeout>;
 
 	public static initialize(): void {
@@ -333,6 +344,14 @@ export class DOM {
 		DOM.elPlayerOverlay2Health = <HTMLElement>document.getElementById('player-overlay-2-health');
 		DOM.elPlayerOverlay2Lives = <HTMLElement>document.getElementById('player-overlay-2-lives');
 
+		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
+		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
+		DOM.elScreenLevelEndImage1 = <HTMLImageElement>document.getElementById('screen-level-end-image1');
+		DOM.elScreenLevelEndImage2 = <HTMLImageElement>document.getElementById('screen-level-end-image2');
+		DOM.elScreenRating = <HTMLElement>document.getElementById('screen-rating');
+		DOM.elScreenStats = <HTMLElement>document.getElementById('screen-stats');
+		DOM.elScreenTitle = <HTMLElement>document.getElementById('screen-title');
+
 		DOM.elSettings = <HTMLElement>document.getElementById('settings');
 		DOM.elSettingsApply = <HTMLElement>document.getElementById('settings-apply');
 		DOM.elSettingsBodyAudio = <HTMLElement>document.getElementById('settings-body-audio');
@@ -428,6 +447,7 @@ export class DOM {
 
 			switch ((<AssetPropertiesImage>properties).category) {
 				case AssetImgCategory.CHARACTER:
+				case AssetImgCategory.MENU:
 				case AssetImgCategory.WEAPON:
 					continue;
 				case AssetImgCategory.EXTENDED:
@@ -460,6 +480,40 @@ export class DOM {
 			elementContentTitle.className = 'title';
 			elementContentTitle.innerText = properties.title;
 			elementContent.appendChild(elementContentTitle);
+		}
+	}
+
+	// Assets needs to be loaded
+	public static initializeScreens(): void {
+		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_1);
+		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_2);
+		DOM.elScreenRating.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.RATING)})`;
+		DOM.elScreenStats.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_STATS)})`;
+		DOM.elScreenTitle.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_TITLE)})`;
+	}
+
+	public static screenControl(screen: HTMLElement): void {
+		if (DOM.elScreenActive === undefined) {
+			screen.style.display = 'flex';
+
+			DOM.elScreenActive = screen;
+		} else {
+			clearTimeout(DOM.timeoutScreen);
+			DOM.elScreenBlack.classList.remove('fadein');
+			DOM.elScreenBlack.style.display = 'flex';
+
+			setTimeout(() => {
+				DOM.elScreenBlack.classList.add('fadein');
+
+				// Now black
+				setTimeout(() => {
+					DOM.elScreenActive.style.display = 'none';
+					screen.style.display = 'flex';
+
+					DOM.elScreenActive = screen;
+					DOM.elScreenBlack.classList.remove('fadein');
+				}, 1000);
+			}, 1000);
 		}
 	}
 

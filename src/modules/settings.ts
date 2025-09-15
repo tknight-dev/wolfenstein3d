@@ -24,6 +24,7 @@ export class Settings {
 		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
 		Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		// Game.settingGraphicsResolution = 320;
+		Game.settingIntro = true;
 
 		/**
 		 * Worker specific
@@ -69,6 +70,9 @@ export class Settings {
 					break;
 				case 'fps':
 					Game.settingGraphicsFPSDisplay = String(value).toLowerCase() === 'true';
+					break;
+				case 'intro':
+					Game.settingIntro = String(value).toLowerCase() === 'true';
 					break;
 				case 'res':
 					if (String(value).toLowerCase() === 'null') {

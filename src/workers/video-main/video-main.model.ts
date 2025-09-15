@@ -2,7 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusActionDoorState, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
+import { CalcBusActionDoorState, CalcBusOutputDataActionSwitch, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -13,6 +13,7 @@ import { CalcBusActionDoorState, CalcBusOutputDataActionWallMove } from '../calc
  */
 export enum VideoMainBusInputCmd {
 	ACTION_DOOR,
+	ACTION_SWITCH,
 	ACTION_WALL_MOVE,
 	CALCULATIONS,
 	INIT,
@@ -52,6 +53,7 @@ export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
 	data:
 		| CalcBusActionDoorState
+		| CalcBusOutputDataActionSwitch
 		| CalcBusOutputDataActionWallMove
 		| Float64Array
 		| GameMap

@@ -239,6 +239,72 @@ export const assetLoaderImageCharacter = async (toDataURL?: boolean): Promise<Ma
 	return data;
 };
 
+/**
+ * @return is dataURL
+ */
+export const assetLoaderImageMenu = async (): Promise<Map<AssetIdImgMenu, string>> => {
+	let assetId: AssetIdImgMenu,
+		data: Map<AssetIdImgMenu, string> = new Map(),
+		dataType: string | undefined,
+		filename: string,
+		properties: AssetPropertiesImage | undefined,
+		response: Response,
+		zip: JSZip;
+
+	// Load file
+	response = await fetch('./assets');
+
+	if (response.status !== 200) {
+		console.error(`assetLoaderImageMenu: failed to find '${response.url}' with status code ${response.status}: ${response.statusText}`);
+		return data;
+	}
+
+	// Create a new reference map from file to assetId
+	const assetsByFile: { [key: string]: AssetIdImgMenu } = {};
+	for ([assetId, properties] of assetsImageMenus) {
+		assetsByFile[properties.file] = assetId;
+	}
+
+	zip = <JSZip>await JSZip.loadAsync(await response.blob());
+	for (filename of Object.keys(zip.files)) {
+		assetId = assetsByFile[filename];
+
+		// File found but not defined as an asset
+		if (assetId === undefined) {
+			continue;
+		}
+
+		properties = assetsImageMenus.get(assetId);
+
+		// Filter
+		if (properties === undefined) {
+			continue;
+		}
+
+		switch (properties.ext) {
+			case AssetExtImg.PNG:
+				dataType = 'image/png';
+				break;
+			default:
+				console.error(`assetLoaderImageMenu: unsupported file type ${properties.ext} for file ${properties.file}`);
+				continue;
+		}
+
+		data.set(
+			assetId,
+			`data:${dataType};base64,` +
+				btoa(
+					new Uint8Array(await (<JSZip.JSZipObject>zip.file(filename)).async('arraybuffer')).reduce(
+						(acc, i) => (acc += String.fromCharCode.apply(null, [i])),
+						'',
+					),
+				),
+		);
+	}
+
+	return data;
+};
+
 export const assetLoaderMap = async (): Promise<Map<AssetIdMap, GameMap>> => {
 	let assetId: AssetIdMap,
 		data: Map<AssetIdMap, GameMap> = new Map(),
@@ -339,9 +405,10 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_TREASURE_CUP = 25,
 	AUDIO_EFFECT_WALL_HIT = 26,
 	AUDIO_EFFECT_WALL_MOVE = 27,
-	AUDIO_MUSIC_LVL1 = 28,
-	AUDIO_MUSIC_MENU = 29,
-	AUDIO_MUSIC_MENU_INTRO = 30,
+	AUDIO_MUSIC_END_OF_LEVEL = 28,
+	AUDIO_MUSIC_LVL1 = 29,
+	AUDIO_MUSIC_MENU = 30,
+	AUDIO_MUSIC_MENU_INTRO = 31,
 }
 
 export enum AssetIdImg {
@@ -479,6 +546,17 @@ export enum AssetIdImgCharacter {
 	SUPRISE = 49,
 }
 
+export enum AssetIdImgMenu {
+	END_LEVEL_PISTOL_1,
+	END_LEVEL_PISTOL_2,
+	GET_PSYCHED,
+	MENU_PISTOL,
+	MENU_PISTOL_DARK,
+	RATING,
+	SCREEN_STATS,
+	SCREEN_TITLE,
+}
+
 export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
 	AssetIdImgCharacter.MOVE1_S,
 	AssetIdImgCharacter.STAND_S,
@@ -586,6 +664,7 @@ export enum AssetImgCategory {
 	CHARACTER,
 	EXTENDED,
 	LIGHT,
+	MENU,
 	SPRITE,
 	SPRITE_PICKUP,
 	WALL,
@@ -624,6 +703,7 @@ export interface AssetPropertiesMap extends AssetProperties {
 export const assetsAudio: Map<AssetIdAudio, AssetPropertiesAudio> = new Map();
 export const assetsImages: Map<AssetIdImg, AssetPropertiesImage> = new Map();
 export const assetsImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, AssetPropertiesCharacter>> = new Map();
+export const assetsImageMenus: Map<AssetIdImgMenu, AssetPropertiesImage> = new Map();
 export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
 
 export const initializeAssetManager = async (audioOnly?: boolean) => {
@@ -1041,6 +1121,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 * Assets: Audio - Music
 	 */
 
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL, {
+		author: 'Robert Prince',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/end_of_level.mp3',
+		title: 'End Of Level',
+		volume: 0.6,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_LVL1, {
 		author: 'Robert Prince',
 		effect: false,
@@ -1059,10 +1148,10 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.8,
 	});
 
-	/**
-	 * Assets: Images - Sprites
-	 */
 	if (audioOnly !== true) {
+		/**
+		 * Assets: Images - Sprites
+		 */
 		assetsImages.set(AssetIdImg.SPRITE_AMMO, {
 			alpha: true,
 			author: 'Id Software',
@@ -1729,6 +1818,81 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/weapon/sub_machine_gun_5.png',
 			title: 'Sub Machine Gun 5',
+		});
+
+		/**
+		 * Assets: Images - Menu
+		 */
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/end_level_pistol1.png',
+			title: 'End Level Pistol 1',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/end_level_pistol2.png',
+			title: 'End Level Pistol 2',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.GET_PSYCHED, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/get_psyched.png',
+			title: 'Get Psyched!',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.MENU_PISTOL, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/menu_pistol.png',
+			title: 'Menu Pistol',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.MENU_PISTOL_DARK, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/menu_pistol_dark.png',
+			title: 'Menu Pistol',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.RATING, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/rating.png',
+			title: 'Rating',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.SCREEN_STATS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/screen_stats.png',
+			title: 'Screen Stats',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.SCREEN_TITLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/screen_title.png',
+			title: 'Screen Title',
 		});
 	}
 };

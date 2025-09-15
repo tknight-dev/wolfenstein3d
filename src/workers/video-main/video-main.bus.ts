@@ -10,7 +10,7 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusActionDoorState, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
+import { CalcBusActionDoorState, CalcBusOutputDataActionSwitch, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -133,10 +133,22 @@ export class VideoMainBus {
 			data: data,
 		});
 
-		// VideoMainBus.workerPlayer2.postMessage({
-		// 	cmd: VideoMainBusInputCmd.ACTION_DOOR,
-		// 	data: data,
-		// });
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.ACTION_DOOR,
+			data: data,
+		});
+	}
+
+	public static outputActionSwitch(data: CalcBusOutputDataActionSwitch): void {
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.ACTION_SWITCH,
+			data: data,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.ACTION_SWITCH,
+			data: data,
+		});
 	}
 
 	public static outputActionWallMove(data: CalcBusOutputDataActionWallMove): void {

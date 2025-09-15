@@ -2,7 +2,6 @@
     "author": "tknight-dev",
     "description": "A multithreaded raycast game",
     "name": "blockenstein",
-    "license": "MIT",
     "scripts": {
         "assets:build": "node assets.cjs",
         "assets:watch": "nodemon --ext \"*\" --exec \"node assets.cjs\" --watch assets",

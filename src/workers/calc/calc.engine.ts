@@ -285,6 +285,7 @@ class CalcEngine {
 			distance2: number,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
+			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
 			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
@@ -401,6 +402,33 @@ class CalcEngine {
 				}
 				state.timestampUnix = Date.now();
 			}, durationEff);
+		};
+
+		const actionSwitch = (gridIndex: number) => {
+			// Calc: AssetId
+			let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.ID_MASK;
+			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValuesExtended.ID_MASK;
+			if (assetId === AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN) {
+				assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_UP;
+			} else {
+				assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN;
+			}
+
+			// Set: Grid
+			gameMapGridData[gridIndex] |= assetId;
+			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValuesExtended.SWITCH;
+
+			// Post to other threads
+			audioPlay(AssetIdAudio.AUDIO_EFFECT_SWITCH, gridIndex);
+			CalcEngine.post([
+				{
+					cmd: CalcBusOutputCmd.ACTION_SWITCH,
+					data: {
+						cellValue: gameMapGridData[gridIndex],
+						gridIndex: gridIndex,
+					},
+				},
+			]);
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
@@ -711,11 +739,14 @@ class CalcEngine {
 							gameMapIndexEff = characterPlayer1GridIndex + 1;
 						}
 
-						if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-							if ((gameMapGridData[gameMapIndexEff] & gameGridCellMaskExtendedDoor) !== 0) {
+						gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
+						if ((gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+							if ((gameMapGridDataCell & gameGridCellMaskExtendedDoor) !== 0) {
 								actionDoor(cellSide, gameMapIndexEff);
+							} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
+								actionSwitch(gameMapIndexEff);
 							}
-						} else if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+						} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 							actionWallMovable(cellSide, gameMapIndexEff);
 						}
 					} else if (characterPlayer1Action === true && characterPlayer1Input.action === false) {
@@ -746,11 +777,14 @@ class CalcEngine {
 								gameMapIndexEff = characterPlayer2GridIndex + 1;
 							}
 
-							if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-								if ((gameMapGridData[gameMapIndexEff] & gameGridCellMaskExtendedDoor) !== 0) {
+							gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
+							if ((gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+								if ((gameMapGridDataCell & gameGridCellMaskExtendedDoor) !== 0) {
 									actionDoor(cellSide, gameMapIndexEff);
+								} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
+									actionSwitch(gameMapIndexEff);
 								}
-							} else if ((gameMapGridData[gameMapIndexEff] & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 								actionWallMovable(cellSide, gameMapIndexEff);
 							}
 						} else if (characterPlayer2Action === true && characterPlayer2Input.action === false) {

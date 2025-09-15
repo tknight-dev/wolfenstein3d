@@ -37,6 +37,7 @@ import {
 	CalcBusActionDoorStateAutoCloseDurationInMS,
 	CalcBusActionDoorStateChangeDurationInMS,
 	CalcBusActionWallMoveStateChangeDurationInMS,
+	CalcBusOutputDataActionSwitch,
 	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
 
@@ -53,6 +54,9 @@ self.onmessage = (event: MessageEvent) => {
 	switch (payload.cmd) {
 		case VideoMainBusInputCmd.ACTION_DOOR:
 			VideoMainEngine.inputActionDoor(<CalcBusActionDoorState>payload.data);
+			break;
+		case VideoMainBusInputCmd.ACTION_SWITCH:
+			VideoMainEngine.inputActionSwitch(<CalcBusOutputDataActionSwitch>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
 			VideoMainEngine.inputActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
@@ -236,6 +240,10 @@ class VideoMainEngine {
 				}, CalcBusActionDoorStateAutoCloseDurationInMS);
 			}
 		}, durationEff);
+	}
+
+	public static inputActionSwitch(data: CalcBusOutputDataActionSwitch): void {
+		VideoMainEngine.gameMap.grid.data[data.gridIndex] = data.cellValue;
 	}
 
 	public static inputActionWallMove(data: CalcBusOutputDataActionWallMove): void {

@@ -147,57 +147,134 @@ class Blockenstein {
 		 */
 		DOM.initialize();
 
-		/**
-		 * Assets: Initialize
-		 */
-		await initializeAssetManager();
-		await Assets.initializeAssets();
+		DOM.spinner(true);
 
-		/**
-		 * DOM: part 2
-		 */
-		DOM.initializeDomEditMenu();
-		Game.initializeDomInteractive();
+		setTimeout(async () => {
+			/**
+			 * Assets: Initialize Menu
+			 */
+			await initializeAssetManager();
+			await Assets.initializeAssetsMenu();
+			DOM.initializeScreens();
 
-		/**
-		 * Settings: Intialize
-		 */
-		Settings.initialize();
+			/**
+			 * Assets: Initialize
+			 */
+			await Assets.initializeAssets();
 
-		/**
-		 * GamingCanvas
-		 */
-		Blockenstein.initializeGamingCanvas();
+			/**
+			 * DOM: part 2
+			 */
+			DOM.initializeDomEditMenu();
+			Game.initializeDomInteractive();
 
-		/**
-		 * Game
-		 */
-		Game.initialize();
+			/**
+			 * Settings: Intialize
+			 */
+			Settings.initialize();
 
-		/**
-		 * WebWorkers
-		 */
-		Blockenstein.initializeWorkerCallbacks();
-		await Blockenstein.initializeWorkers();
+			/**
+			 * GamingCanvas
+			 */
+			Blockenstein.initializeGamingCanvas();
 
-		/**
-		 * Settings: Apply
-		 */
-		Blockenstein.settingsApply();
+			/**
+			 * Game
+			 */
+			Game.initialize();
 
-		// Done
-		// Game.viewEditor();
-		Game.viewGame();
-		console.log('System Loaded in', performance.now() - then, 'ms');
+			/**
+			 * WebWorkers
+			 */
+			Blockenstein.initializeWorkerCallbacks();
+			await Blockenstein.initializeWorkers();
 
-		// Start the music!!
-		// let instance: number | null = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_LVL1, false, true, -1, 0, 0);
-		// if (instance !== null) {
-		// 	GamingCanvas.audioControlPan(instance, 1, 5000, (instance: number) => {
-		// 		GamingCanvas.audioControlPan(instance, 0, 5000);
-		// 	});
-		// 	GamingCanvas.audioControlVolume(instance, (<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume || 1, 5000);
-		// }
+			/**
+			 * Settings: Apply
+			 */
+			Blockenstein.settingsApply();
+
+			// Loading complete
+			console.log('System Loaded in', performance.now() - then, 'ms');
+
+			// Start the game!
+			DOM.screenControl(DOM.elScreenStats);
+			Game.viewGame();
+
+			if (Game.settingIntro === true) {
+				// Menu click through
+				let suspend: boolean = false,
+					state: number = 0;
+				let click = async () => {
+					if (suspend === true) {
+						return;
+					}
+					suspend = true;
+
+					switch (state) {
+						case 0:
+							DOM.screenControl(DOM.elScreenRating);
+
+							// play music
+							Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
+							if (Game.musicInstance !== null) {
+								GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
+									GamingCanvas.audioControlPan(instance, 0, 5000);
+								});
+								GamingCanvas.audioControlVolume(
+									Game.musicInstance,
+									(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1,
+									5000,
+								);
+							}
+							break;
+						case 1:
+							DOM.screenControl(DOM.elScreenTitle);
+							break;
+						case 2:
+							DOM.elScreenActive.style.display = 'none';
+							Game.inputSuspend = false;
+							document.removeEventListener('click', click, true);
+
+							if (Game.musicInstance !== null) {
+								GamingCanvas.audioControlStop(Game.musicInstance);
+							}
+							Game.musicInstance = await GamingCanvas.audioControlPlay(
+								AssetIdAudio.AUDIO_MUSIC_LVL1,
+								false,
+								true,
+								0,
+								0,
+								(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
+							);
+							return;
+					}
+					state++;
+
+					setTimeout(() => {
+						suspend = false;
+					}, 2500);
+				};
+				document.addEventListener('click', click);
+			} else {
+				DOM.elScreenActive.style.display = 'none';
+				Game.inputSuspend = false;
+
+				Game.musicInstance = await GamingCanvas.audioControlPlay(
+					AssetIdAudio.AUDIO_MUSIC_LVL1,
+					false,
+					true,
+					0,
+					0,
+					(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
+				);
+			}
+
+			// Done
+			setTimeout(() => {
+				DOM.spinner(false);
+			});
+		});
 	}
 
 	private static settingsApply(): void {
