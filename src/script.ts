@@ -199,7 +199,6 @@ class Blockenstein {
 
 			// Start the game!
 			DOM.screenControl(DOM.elScreenStats);
-			Game.viewGame();
 
 			if (Game.settingIntro === true) {
 				// Menu click through
@@ -272,6 +271,7 @@ class Blockenstein {
 
 			// Done
 			setTimeout(() => {
+				Game.viewGame();
 				DOM.spinner(false);
 			});
 		});

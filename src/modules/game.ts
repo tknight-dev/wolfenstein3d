@@ -1410,8 +1410,13 @@ export class Game {
 			DOM.elButtonPlay.classList.remove('active');
 			DOM.elCanvases[2].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
+			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.remove('hide');
+			DOM.elEditorProperties.style.display = 'flex';
+			DOM.elEditorPropertiesExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.remove('hide');
+			DOM.elIconsBottom.style.display = 'flex';
+			DOM.elIconsTop.style.display = 'flex';
 
 			DOM.elVideoInteractive.classList.add('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
@@ -1435,8 +1440,13 @@ export class Game {
 			DOM.elButtonPlay.classList.add('active');
 			DOM.elCanvases[2].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
+			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.add('hide');
+			DOM.elEditorProperties.style.display = 'flex';
+			DOM.elEditorPropertiesExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.add('hide');
+			DOM.elIconsBottom.style.display = 'flex';
+			DOM.elIconsTop.style.display = 'flex';
 
 			// DOM: Editor
 			if (DOM.elEditorItemActive !== undefined) {

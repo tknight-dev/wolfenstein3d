@@ -502,16 +502,20 @@ export class DOM {
 			DOM.elScreenBlack.classList.remove('fadein');
 			DOM.elScreenBlack.style.display = 'flex';
 
-			setTimeout(() => {
+			DOM.timeoutScreen = setTimeout(() => {
 				DOM.elScreenBlack.classList.add('fadein');
 
 				// Now black
-				setTimeout(() => {
+				DOM.timeoutScreen = setTimeout(() => {
 					DOM.elScreenActive.style.display = 'none';
 					screen.style.display = 'flex';
 
 					DOM.elScreenActive = screen;
 					DOM.elScreenBlack.classList.remove('fadein');
+
+					DOM.timeoutScreen = setTimeout(() => {
+						DOM.elScreenBlack.style.display = 'none';
+					}, 1000);
 				}, 1000);
 			}, 1000);
 		}

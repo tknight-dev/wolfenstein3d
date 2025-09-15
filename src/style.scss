@@ -212,6 +212,7 @@ $main-z-index-video-interactive: 50;
 		.editor {
 			background: black;
 			border: 2px solid white;
+			display: none;
 			height: calc(100% - 120px);
 			opacity: 1;
 			position: absolute;
@@ -567,7 +568,7 @@ $main-z-index-video-interactive: 50;
 			background-color: rgba(0, 0, 0, 0.75);
 			border-top-left-radius: 5px;
 			border-top-right-radius: 5px;
-			display: flex;
+			display: none;
 			height: 60px;
 			justify-content: center;
 			left: 0;
