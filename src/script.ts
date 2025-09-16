@@ -5,7 +5,7 @@ import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasResolutionScaleType, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasRenderStyle, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
@@ -37,8 +37,8 @@ class Blockenstein {
 			inputKeyboardEnable: true,
 			inputMouseEnable: true,
 			orientationCanvasRotateEnable: false,
+			renderStyle: GamingCanvasRenderStyle.PIXELATED,
 			resolutionWidthPx: Game.settingGraphicsResolution,
-			resolutionScaleType: GamingCanvasResolutionScaleType.PIXELATED,
 		});
 
 		GamingCanvas.audioLoad(Assets.dataAudio);
@@ -156,6 +156,7 @@ class Blockenstein {
 			await initializeAssetManager();
 			await Assets.initializeAssetsMenu();
 			DOM.initializeScreens();
+			DOM.screenControl(DOM.elScreenStats);
 
 			/**
 			 * Assets: Initialize
@@ -198,8 +199,6 @@ class Blockenstein {
 			console.log('System Loaded in', performance.now() - then, 'ms');
 
 			// Start the game!
-			DOM.screenControl(DOM.elScreenStats);
-
 			if (Game.settingIntro === true) {
 				// Menu click through
 				let suspend: boolean = false,
@@ -231,9 +230,11 @@ class Blockenstein {
 							DOM.screenControl(DOM.elScreenTitle);
 							break;
 						case 2:
+							Game.viewGame();
 							DOM.elScreenActive.style.display = 'none';
 							Game.inputSuspend = false;
 							document.removeEventListener('click', click, true);
+							document.removeEventListener('keydown', click, true);
 
 							if (Game.musicInstance !== null) {
 								GamingCanvas.audioControlStop(Game.musicInstance);
@@ -255,7 +256,9 @@ class Blockenstein {
 					}, 2500);
 				};
 				document.addEventListener('click', click);
+				document.addEventListener('keydown', click);
 			} else {
+				Game.viewGame();
 				DOM.elScreenActive.style.display = 'none';
 				Game.inputSuspend = false;
 
@@ -271,7 +274,6 @@ class Blockenstein {
 
 			// Done
 			setTimeout(() => {
-				Game.viewGame();
 				DOM.spinner(false);
 			});
 		});

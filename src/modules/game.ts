@@ -1095,15 +1095,15 @@ export class Game {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
 				}
 
-				if (input.propriatary.axes) {
+				if (input.propriatary.axes !== undefined) {
 					characterPlayerInputPlayer.x = input.propriatary.axes[0];
 					characterPlayerInputPlayer.y = input.propriatary.axes[1];
 					characterPlayerInputPlayer.r = input.propriatary.axes[2];
 				}
 
-				if (input.propriatary.buttons) {
-					characterPlayerInputPlayer.action === input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__LEFT];
-					characterPlayerInputPlayer.fire === input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT];
+				if (input.propriatary.buttons !== undefined) {
+					characterPlayerInputPlayer.action = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__LEFT] || false;
+					characterPlayerInputPlayer.fire = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] || false;
 				}
 
 				updated = true;
@@ -1458,6 +1458,7 @@ export class Game {
 				Game.editorCellHighlightEnable = false;
 			}
 			DOM.elEdit.style.display = 'none';
+
 			DOM.elVideoInteractive.classList.remove('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
 			Game.modeEditType = EditType.PAN_ZOOM;

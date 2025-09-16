@@ -395,20 +395,21 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_MENU_OPEN = 15,
 	AUDIO_EFFECT_MENU_SELECT = 16,
 	AUDIO_EFFECT_MENU_SELECT_DOUBLE = 17,
-	AUDIO_EFFECT_PISTOL = 18,
-	AUDIO_EFFECT_SUB_MACHINE_GUN = 19,
-	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP = 20,
-	AUDIO_EFFECT_SWITCH = 21,
-	AUDIO_EFFECT_TREASURE_CHEST = 22,
-	AUDIO_EFFECT_TREASURE_CROSS = 23,
-	AUDIO_EFFECT_TREASURE_CROWN = 24,
-	AUDIO_EFFECT_TREASURE_CUP = 25,
-	AUDIO_EFFECT_WALL_HIT = 26,
-	AUDIO_EFFECT_WALL_MOVE = 27,
-	AUDIO_MUSIC_END_OF_LEVEL = 28,
-	AUDIO_MUSIC_LVL1 = 29,
-	AUDIO_MUSIC_MENU = 30,
-	AUDIO_MUSIC_MENU_INTRO = 31,
+	AUDIO_EFFECT_NOTHING_TO_DO = 18,
+	AUDIO_EFFECT_PISTOL = 19,
+	AUDIO_EFFECT_SUB_MACHINE_GUN = 20,
+	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP = 21,
+	AUDIO_EFFECT_SWITCH = 22,
+	AUDIO_EFFECT_TREASURE_CHEST = 23,
+	AUDIO_EFFECT_TREASURE_CROSS = 24,
+	AUDIO_EFFECT_TREASURE_CROWN = 25,
+	AUDIO_EFFECT_TREASURE_CUP = 26,
+	AUDIO_EFFECT_WALL_HIT = 27,
+	AUDIO_EFFECT_WALL_MOVE = 28,
+	AUDIO_MUSIC_END_OF_LEVEL = 29,
+	AUDIO_MUSIC_LVL1 = 30,
+	AUDIO_MUSIC_MENU = 31,
+	AUDIO_MUSIC_MENU_INTRO = 32,
 }
 
 export enum AssetIdImg {
@@ -1027,6 +1028,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.4,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/action_nothing_to_do.mp3',
+		title: 'Nothing To Do',
+		volume: 0.4,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL, {
 		author: 'Robert Prince',
 		effect: true,
@@ -1078,7 +1088,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cross.mp3',
 		title: 'Treasure Cross',
-		volume: 0.4,
+		volume: 0.6,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN, {
@@ -1105,7 +1115,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_hit.mp3',
 		title: 'Wall Hit',
-		volume: 0.4,
+		volume: 0.2,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, {
@@ -1114,7 +1124,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_move.mp3',
 		title: 'Wall Move',
-		volume: 0.4,
+		volume: 0.8,
 	});
 
 	/**

@@ -1,10 +1,12 @@
 import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
 import {
+	GamingCanvas,
 	GamingCanvasConstPI,
 	GamingCanvasConstPIDouble,
 	GamingCanvasConstPIHalf,
 	GamingCanvasFIFOQueue,
 	GamingCanvasReport,
+	GamingCanvasRenderStyle,
 	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
 import {
@@ -487,10 +489,11 @@ class VideoMainEngine {
 					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
-					offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
-					setTimeout(() => {
-						offscreenCanvasContext.imageSmoothingEnabled = VideoMainEngine.settings.antialias === true;
-					}, 100);
+					if (VideoMainEngine.settings.antialias === true) {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+					} else {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+					}
 
 					renderEnable = player1 === true || settingsPlayer2Enable === true;
 					renderGammaFilter = `brightness(${renderGamma})`;
@@ -605,8 +608,8 @@ class VideoMainEngine {
 					/**
 					 * Draw: Ray
 					 */
-					if (renderRayDistanceMapInstance.ray !== undefined) {
-						renderRayIndex = renderRayDistanceMapInstance.ray;
+					if (renderRayDistanceMapInstance.rayIndex !== undefined) {
+						renderRayIndex = renderRayDistanceMapInstance.rayIndex;
 						gameMapGridIndex = calculationsRays[renderRayIndex + 4];
 
 						// Render: Modification based on cell sidedness
@@ -689,8 +692,8 @@ class VideoMainEngine {
 					/**
 					 * Draw: Sprites
 					 */
-					if (renderRayDistanceMapInstance.cell !== undefined) {
-						gameMapGridIndex = renderRayDistanceMapInstance.cell;
+					if (renderRayDistanceMapInstance.cellIndex !== undefined) {
+						gameMapGridIndex = renderRayDistanceMapInstance.cellIndex;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 						renderGlobalShadow = false;
 

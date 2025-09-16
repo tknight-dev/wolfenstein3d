@@ -133,6 +133,7 @@ export class DOM {
 	public static elSettingsValueAudioVolume: HTMLInputElement;
 	public static elSettingsValueAudioVolumeEffect: HTMLInputElement;
 	public static elSettingsValueAudioVolumeMusic: HTMLInputElement;
+	public static elSettingsValueAudioNoAction: HTMLInputElement;
 	public static elSettingsValueAudioWallCollisions: HTMLInputElement;
 	public static elSettingsValueEditorDrawGrid: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
@@ -367,6 +368,7 @@ export class DOM {
 		DOM.elSettingsValueAudioVolume = <HTMLInputElement>document.getElementById('settings-value-audio-volume');
 		DOM.elSettingsValueAudioVolumeEffect = <HTMLInputElement>document.getElementById('settings-value-audio-volume-effect');
 		DOM.elSettingsValueAudioVolumeMusic = <HTMLInputElement>document.getElementById('settings-value-audio-volume-music');
+		DOM.elSettingsValueAudioNoAction = <HTMLInputElement>document.getElementById('settings-value-audio-no-action');
 		DOM.elSettingsValueAudioWallCollisions = <HTMLInputElement>document.getElementById('settings-value-audio-wall-collision');
 		DOM.elSettingsValueEditorDrawGrid = <HTMLInputElement>document.getElementById('settings-value-editor-draw-grid');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');

@@ -55,6 +55,7 @@ export interface CalcBusInputDataPlayerInput {
 }
 
 export interface CalcBusInputDataSettings {
+	audioNoAction: boolean;
 	audioWallCollisions: boolean;
 	fov: number;
 	fps: FPS;

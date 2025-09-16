@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI, GamingCanvasResolutionScaleType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
@@ -30,6 +30,7 @@ export class Settings {
 		 * Worker specific
 		 */
 		Game.settingsCalc = {
+			audioNoAction: false,
 			audioWallCollisions: false,
 			fov: (60 * GamingCanvasConstPI) / 180, // 60 deg
 			fps: FPS._60,
@@ -77,6 +78,11 @@ export class Settings {
 				case 'intro':
 					Game.settingIntro = String(value).toLowerCase() === 'true';
 					break;
+				case 'multiplayer':
+					Game.settingsCalc.player2Enable = String(value).toLowerCase() === 'true';
+					Game.settingsVideoEditor.player2Enable = Game.settingsCalc.player2Enable;
+					Game.settingsVideoMain.player2Enable = Game.settingsCalc.player2Enable;
+					break;
 				case 'music':
 					Game.settingAudioVolumeMusic = Math.max(0, Math.min(1, Number(value)));
 					break;
@@ -114,9 +120,8 @@ export class Settings {
 			inputKeyboardEnable: true,
 			inputMouseEnable: true,
 			orientationCanvasRotateEnable: false,
+			renderStyle: Game.settingsVideoEditor.antialias === true ? GamingCanvasRenderStyle.ANTIALIAS : GamingCanvasRenderStyle.PIXELATED,
 			resolutionWidthPx: Game.settingGraphicsResolution,
-			resolutionScaleType:
-				Game.settingsVideoEditor.antialias === true ? GamingCanvasResolutionScaleType.ANTIALIAS : GamingCanvasResolutionScaleType.PIXELATED,
 		};
 
 		// Overlay
@@ -172,6 +177,7 @@ export class Settings {
 				Game.settingGraphicsResolution = <Resolution>Number(DOM.elSettingsValueGraphicsResolution.value);
 			}
 
+			Game.settingsCalc.audioNoAction = DOM.elSettingsValueAudioNoAction.checked;
 			Game.settingsCalc.audioWallCollisions = DOM.elSettingsValueAudioWallCollisions.checked;
 			Game.settingsCalc.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI) / 180;
 			Game.settingsCalc.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
@@ -205,6 +211,7 @@ export class Settings {
 			DOM.elSettingsValueAudioVolume.value = String(Game.settingAudioVolume);
 			DOM.elSettingsValueAudioVolumeEffect.value = String(Game.settingAudioVolumeEffect);
 			DOM.elSettingsValueAudioVolumeMusic.value = String(Game.settingAudioVolumeMusic);
+			DOM.elSettingsValueAudioNoAction.checked = Game.settingsCalc.audioNoAction;
 			DOM.elSettingsValueAudioWallCollisions.checked = Game.settingsCalc.audioWallCollisions;
 			DOM.elSettingsValueEditorDrawGrid.checked = Game.settingsVideoEditor.gridDraw;
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settingsCalc.player2Enable;

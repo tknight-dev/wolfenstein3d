@@ -1,4 +1,4 @@
-import { GamingCanvasConstPIDouble, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasConstPIDouble, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
@@ -354,10 +354,11 @@ class VideoEditorEngine {
 					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
 					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
 
-					offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
-					setTimeout(() => {
-						offscreenCanvasContext.imageSmoothingEnabled = VideoEditorEngine.settings.antialias === true;
-					}, 100);
+					if (VideoEditorEngine.settings.antialias === true) {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+					} else {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+					}
 
 					// Cache
 					if (cacheCellSizePx !== calculationsViewportCellSizePx) {

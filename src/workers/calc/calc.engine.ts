@@ -220,6 +220,8 @@ class CalcEngine {
 		let actionDoors: Map<number, CalcBusActionDoorState> = new Map(),
 			actionDoorState: CalcBusActionDoorState,
 			audio: Map<number, AudioInstance> = CalcEngine.audio,
+			audioEnableNoAction: boolean = CalcEngine.settings.audioNoAction,
+			audioEnableWallCollisions: boolean = CalcEngine.settings.audioWallCollisions,
 			audioDistanceMax: number = 25,
 			audioInstance: AudioInstance,
 			audioPostStack: CalcBusOutputPayload[],
@@ -259,7 +261,7 @@ class CalcEngine {
 			characterPlayer1MetaEncoded: Uint16Array | undefined,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer1RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
-			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array,
+			characterPlayer1RaycastDistanceMapKeysSorted: Float64Array | undefined,
 			characterPlayer1RaycastRays: Float64Array | undefined,
 			characterPlayer2Input: CharacterInput = {
 				action: false,
@@ -277,9 +279,10 @@ class CalcEngine {
 			characterPlayer2GridIndex: number,
 			characterPlayer2MetaEncoded: Uint16Array | undefined,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
-			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array,
+			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array | undefined,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer2RaycastRays: Float64Array | undefined,
+			cycleCount: number = 0,
 			cycleMinMs: number = 10,
 			distance: number,
 			distance2: number,
@@ -309,6 +312,10 @@ class CalcEngine {
 			timestampThen: number = 0,
 			x: number,
 			y: number;
+
+		setTimeout(() => {
+			reportOrientationForce = false;
+		}, 1000);
 
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			let state: CalcBusActionDoorState = <CalcBusActionDoorState>actionDoors.get(gridIndex),
@@ -579,12 +586,13 @@ class CalcEngine {
 				/**
 				 * Calc: Environment
 				 */
+				cycleCount++;
 				cameraUpdated = false;
 				characterPlayer1.timestamp = timestampNow;
 				characterPlayer1Changed = false;
 
 				characterPlayer2.timestamp = timestampNow;
-				characterPlayer2ChangedMetaPickup = false;
+				characterPlayer2Changed = false;
 
 				if (CalcEngine.cameraNew) {
 					CalcEngine.cameraNew = false;
@@ -613,6 +621,8 @@ class CalcEngine {
 					CalcEngine.settingsNew = false;
 
 					// Settings
+					audioEnableNoAction = CalcEngine.settings.audioNoAction;
+					audioEnableWallCollisions = CalcEngine.settings.audioWallCollisions;
 					cameraUpdated = true; // This or position works
 					raycastOptions.rayFOV = CalcEngine.settings.fov;
 					settingsFPMS = 1000 / CalcEngine.settings.fps;
@@ -656,15 +666,13 @@ class CalcEngine {
 					 */
 
 					// Player 1: Position
-					characterPlayer1Changed =
-						characterPlayer1Changed ||
-						GamingCanvasGridCharacterControl(
-							characterPlayer1,
-							characterPlayer1Input,
-							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
-							characterControlOptions,
-						);
+					characterPlayer1Changed = GamingCanvasGridCharacterControl(
+						characterPlayer1,
+						characterPlayer1Input,
+						gameMapGrid,
+						GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
+						characterControlOptions,
+					);
 
 					// Player 1: Raycast
 					if (characterPlayer1Changed === true || reportOrientationForce === true) {
@@ -679,19 +687,23 @@ class CalcEngine {
 						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					} else {
 						characterPlayer1Raycast = undefined;
+
+						if (audioEnableWallCollisions === true) {
+							if (characterPlayer1Input.x !== 0 || characterPlayer1Input.y !== 0) {
+								cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
+							}
+						}
 					}
 
 					if (settingsPlayer2Enable === true) {
 						// Player 2: Position
-						characterPlayer2Changed =
-							characterPlayer2Changed ||
-							GamingCanvasGridCharacterControl(
-								characterPlayer2,
-								characterPlayer2Input,
-								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
-								characterControlOptions,
-							);
+						characterPlayer2Changed = GamingCanvasGridCharacterControl(
+							characterPlayer2,
+							characterPlayer2Input,
+							gameMapGrid,
+							GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
+							characterControlOptions,
+						);
 
 						// Player 2: Raycast
 						if (characterPlayer2Changed === true || reportOrientationForce === true) {
@@ -708,6 +720,12 @@ class CalcEngine {
 							characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
 						} else {
 							characterPlayer2Raycast = undefined;
+
+							if (audioEnableWallCollisions === true) {
+								if (characterPlayer2Input.x !== 0 || characterPlayer2Input.y !== 0) {
+									cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
+								}
+							}
 						}
 					} else {
 						characterPlayer2Raycast = undefined;
@@ -745,12 +763,20 @@ class CalcEngine {
 								actionDoor(cellSide, gameMapIndexEff);
 							} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
 								actionSwitch(gameMapIndexEff);
+							} else {
+								audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 							}
 						} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 							actionWallMovable(cellSide, gameMapIndexEff);
+						} else {
+							audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 						}
-					} else if (characterPlayer1Action === true && characterPlayer1Input.action === false) {
-						characterPlayer1Action = false;
+					} else if (characterPlayer1Action === true) {
+						if (characterPlayer1Input.action === false) {
+							characterPlayer1Action = false;
+						} else {
+							audioEnableNoAction === true && cycleCount % 6 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+						}
 					}
 
 					if (settingsPlayer2Enable === true) {
@@ -783,12 +809,22 @@ class CalcEngine {
 									actionDoor(cellSide, gameMapIndexEff);
 								} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
 									actionSwitch(gameMapIndexEff);
+								} else {
+									audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 								}
 							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 								actionWallMovable(cellSide, gameMapIndexEff);
+							} else {
+								audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 							}
 						} else if (characterPlayer2Action === true && characterPlayer2Input.action === false) {
 							characterPlayer2Action = false;
+						} else if (characterPlayer2Action === true) {
+							if (characterPlayer2Input.action === false) {
+								characterPlayer2Action = false;
+							} else {
+								audioEnableNoAction === true && cycleCount % 6 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+							}
 						}
 					}
 
@@ -1043,7 +1079,7 @@ class CalcEngine {
 
 				// Cameras
 				if (cameraMode === true) {
-					if (characterPlayer1RaycastRays !== undefined) {
+					if (characterPlayer1RaycastRays !== undefined && characterPlayer1RaycastDistanceMapKeysSorted !== undefined) {
 						cameraEncoded = camera.encode();
 						characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
 						characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
@@ -1077,7 +1113,7 @@ class CalcEngine {
 					if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {
 						buffers.length = 0;
 
-						if (characterPlayer1RaycastRays !== undefined) {
+						if (characterPlayer1RaycastRays !== undefined && characterPlayer1RaycastDistanceMapKeysSorted !== undefined) {
 							buffers.push(characterPlayer1RaycastRays.buffer);
 							buffers.push(characterPlayer1RaycastDistanceMapKeysSorted.buffer);
 
@@ -1087,7 +1123,7 @@ class CalcEngine {
 							characterPlayer1CameraEncoded = undefined;
 						}
 
-						if (characterPlayer2RaycastRays !== undefined) {
+						if (characterPlayer2RaycastRays !== undefined && characterPlayer2RaycastDistanceMapKeysSorted !== undefined) {
 							buffers.push(characterPlayer2RaycastRays.buffer);
 							buffers.push(characterPlayer2RaycastDistanceMapKeysSorted.buffer);
 
@@ -1117,7 +1153,9 @@ class CalcEngine {
 						);
 
 						characterPlayer1RaycastRays = undefined;
+						characterPlayer1RaycastDistanceMapKeysSorted = undefined;
 						characterPlayer2RaycastRays = undefined;
+						characterPlayer2RaycastDistanceMapKeysSorted = undefined;
 					}
 				}
 
