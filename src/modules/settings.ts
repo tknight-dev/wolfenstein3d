@@ -68,11 +68,17 @@ export class Settings {
 				case 'dpi':
 					Game.settingGraphicsDPISupport = String(value).toLowerCase() === 'true';
 					break;
+				case 'effects':
+					Game.settingAudioVolumeEffect = Math.max(0, Math.min(1, Number(value)));
+					break;
 				case 'fps':
 					Game.settingGraphicsFPSDisplay = String(value).toLowerCase() === 'true';
 					break;
 				case 'intro':
 					Game.settingIntro = String(value).toLowerCase() === 'true';
+					break;
+				case 'music':
+					Game.settingAudioVolumeMusic = Math.max(0, Math.min(1, Number(value)));
 					break;
 				case 'res':
 					if (String(value).toLowerCase() === 'null') {

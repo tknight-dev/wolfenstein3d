@@ -631,12 +631,14 @@ export class Game {
 			Settings.set(true);
 
 			DOM.elSettings.style.display = 'none';
+			Game.inputSuspend = false;
 		};
 
 		DOM.elSettingsCancel.onclick = () => {
 			Settings.set(false);
 
 			DOM.elSettings.style.display = 'none';
+			Game.inputSuspend = false;
 		};
 	}
 

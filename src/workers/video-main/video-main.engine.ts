@@ -377,6 +377,7 @@ class VideoMainEngine {
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
+			renderAngle: number,
 			renderAssetId: number,
 			renderBrightness: number,
 			renderCellSide: GamingCanvasGridRaycastCellSide,
@@ -606,10 +607,10 @@ class VideoMainEngine {
 					 */
 					if (renderRayDistanceMapInstance.ray !== undefined) {
 						renderRayIndex = renderRayDistanceMapInstance.ray;
-						gameMapGridIndex = calculationsRays[renderRayIndex + 3];
+						gameMapGridIndex = calculationsRays[renderRayIndex + 4];
 
 						// Render: Modification based on cell sidedness
-						switch (calculationsRays[renderRayIndex + 5]) {
+						switch (calculationsRays[renderRayIndex + 6]) {
 							case GamingCanvasGridRaycastCellSide.EAST:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + gameMapGridSideLength];
 								renderAssets = assetsInvertHorizontal;
@@ -646,7 +647,7 @@ class VideoMainEngine {
 						}
 
 						// Calc
-						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 2]) * renderWallHeightFactor;
+						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 3]) * renderWallHeightFactor;
 						renderWallHeightFactored = renderWallHeight / renderHeightFactor;
 						renderWallHeightHalf = renderWallHeight / 2;
 
@@ -674,11 +675,11 @@ class VideoMainEngine {
 						// Render: 3D Projection
 						offscreenCanvasContext.drawImage(
 							asset, // (image) Draw from our test image
-							calculationsRays[renderRayIndex + 4] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
+							calculationsRays[renderRayIndex + 5] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
 							0, // (y-source) Start at the bottom of the image (y pixel)
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
-							((renderRayIndex + 5) * settingsRaycastQuality) / 6, // (x-destination) Draw sliced image at pixel (6 elements per ray)
+							((renderRayIndex + 6) * settingsRaycastQuality) / 7, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
 							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
@@ -790,14 +791,17 @@ class VideoMainEngine {
 							x += renderSpriteFixedNS === true ? 0.5 : 0; // 0.5 is center
 							y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
 
+							// Calc: Angle (fisheye correction)
+							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
+
 							// Calc: Distance
-							renderDistance = (x * x + y * y) ** 0.5;
+							renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 							// Calc: Height
 							renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
 
 							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 							// Corrections for rotations between 0 and 2pi
 							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
@@ -815,14 +819,17 @@ class VideoMainEngine {
 							x += renderSpriteFixedNS === true ? 0 : 1;
 							y += renderSpriteFixedNS === true ? 1 : 0;
 
+							// Calc: Angle (fisheye correction)
+							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
+
 							// Calc: Distance
-							renderDistance2 = (x * x + y * y) ** 0.5;
+							renderDistance2 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 							// Calc: Height
 							renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance2) * renderWallHeightFactor;
 
 							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 							// Corrections for rotations between 0 and 2pi
 							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
@@ -866,6 +873,9 @@ class VideoMainEngine {
 							 */
 							x = renderSpriteFixedCoordinates[0] - renderSpriteFixedCoordinates[2];
 							y = renderSpriteFixedCoordinates[1] - renderSpriteFixedCoordinates[3];
+
+							// Calc: Angle (fisheye correction)
+							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
 
 							// Calc: Width of sprite in pixels
 							renderDistance = ((x * x + y * y) ** 0.5) | 0;
@@ -912,6 +922,9 @@ class VideoMainEngine {
 							y = gameMapGridIndex % gameMapGridSideLength;
 							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
 							y -= calculationsCamera.y - 0.5; // 0.5 is center
+
+							// Calc: Angle (fisheye correction)
+							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
 
 							// Calc: Distance
 							renderDistance = (x * x + y * y) ** 0.5;
