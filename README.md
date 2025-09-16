@@ -6,7 +6,7 @@ It features:
 
 - A 2d raycast engine (no 3d / webgl here!)
 - Multiplayer (supports upto 2 players)
-- Mutlithreaded support (WebWorkers)
+- Multithreaded (WebWorkers)
 - Powered by the [GamingCanvas](https://gaming-canvas.org) library
 
 ## Build
