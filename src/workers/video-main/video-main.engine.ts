@@ -206,7 +206,12 @@ class VideoMainEngine {
 
 		if (statePrevious !== undefined) {
 			clearTimeout(statePrevious.timeout);
+
+			if (statePrevious.closing === true) {
+				data.timestampUnix -= CalcBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
+			}
 		}
+
 		durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
 		VideoMainEngine.actionDoors.set(data.gridIndex, data);
 
