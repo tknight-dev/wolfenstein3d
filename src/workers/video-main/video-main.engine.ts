@@ -762,6 +762,11 @@ class VideoMainEngine {
 								asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 							}
 
+							// The door is wide open
+							if (renderSpriteFixedDoorOffset === 1) {
+								continue;
+							}
+
 							/**
 							 * Action: Wall Move
 							 */
@@ -796,6 +801,7 @@ class VideoMainEngine {
 							/**
 							 * Position 1
 							 */
+
 							x += renderSpriteFixedNS === true ? 0.5 : 0; // 0.5 is center
 							y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
 
@@ -879,18 +885,12 @@ class VideoMainEngine {
 							/**
 							 * Render images between coordinates
 							 */
-							x = renderSpriteFixedCoordinates[0] - renderSpriteFixedCoordinates[2];
-							y = renderSpriteFixedCoordinates[1] - renderSpriteFixedCoordinates[3];
-
-							// Calc: Angle (fisheye correction)
-							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
-
-							// Calc: Width of sprite in pixels
-							renderDistance = ((x * x + y * y) ** 0.5) | 0;
-
 							// Calc: Height/Width changes between cooridnates
 							x = renderSpriteFixedCoordinates[2] - renderSpriteFixedCoordinates[0];
 							y = renderSpriteFixedCoordinates[3] - renderSpriteFixedCoordinates[1];
+
+							// Calc: Width of sprite in pixels
+							renderDistance = ((x * x + y * y) ** 0.5) | 0;
 
 							for (i = 1; i < renderDistance; i++) {
 								renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
