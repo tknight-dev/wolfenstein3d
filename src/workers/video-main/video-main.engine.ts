@@ -830,6 +830,18 @@ class VideoMainEngine {
 							/**
 							 * Position 2
 							 */
+
+							if (actionDoorState !== undefined) {
+								if (
+									actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.NORTH ||
+									actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.SOUTH
+								) {
+									x -= renderSpriteFixedDoorOffset;
+								} else {
+									y -= renderSpriteFixedDoorOffset;
+								}
+							}
+
 							x += renderSpriteFixedNS === true ? 0 : 1;
 							y += renderSpriteFixedNS === true ? 1 : 0;
 
@@ -895,17 +907,13 @@ class VideoMainEngine {
 							for (i = 1; i < renderDistance; i++) {
 								renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
 
-								if (renderSpriteXFactor > 1 - renderSpriteFixedDoorOffset) {
-									continue;
-								}
-
 								// Calc: Height
 								renderWallHeight = renderSpriteFixedCoordinates[1] + y * renderSpriteXFactor;
 
 								// Render: 3D Projection
 								offscreenCanvasContext.drawImage(
 									asset, // (image) Draw from our test image
-									renderSpriteXFactor * asset.width, // (x-source) Specific how far from the left to draw from the test image
+									renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
 									0, // (y-source) Start at the bottom of the image (y pixel)
 									1, // (width-source) Slice 1 pixel wide
 									asset.height, // (height-source) height of our test image
