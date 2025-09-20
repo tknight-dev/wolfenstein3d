@@ -977,7 +977,7 @@ class VideoMainEngine {
 								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
 
 								// Calc: Distance
-								renderDistance = (x * x + y * y) ** 0.5;
+								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 								// Calc: Height
 								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
@@ -985,7 +985,7 @@ class VideoMainEngine {
 								renderWallHeightHalf = renderWallHeight / 2;
 
 								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 								// Corrections for rotations between 0 and 2pi
 								if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
@@ -1041,20 +1041,16 @@ class VideoMainEngine {
 						renderCharacterNPC = gameMapNPC.get(gameMapGridIndex);
 						if (renderCharacterNPC !== undefined && renderCharacterNPC.difficulty <= settingsDifficulty) {
 							assetImageCharacterInstance = <any>assetImageCharacters.get(renderCharacterNPC.type);
-							asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
 
 							// Calc: Position
-							// x = renderCharacterNPC.camera.x;
-							// y = renderCharacterNPC.camera.y;
-							y = gameMapGridIndex % gameMapGridSideLength;
-							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
-							y -= calculationsCamera.y - 0.5; // 0.5 is center
+							x = renderCharacterNPC.camera.x - calculationsCamera.x;
+							y = renderCharacterNPC.camera.y - calculationsCamera.y;
 
 							// Calc: Angle (fisheye correction)
 							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
 
 							// Calc: Distance
-							renderDistance = (x * x + y * y) ** 0.5;
+							renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 							// Calc: Height
 							renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
@@ -1062,7 +1058,7 @@ class VideoMainEngine {
 							renderWallHeightHalf = renderWallHeight / 2;
 
 							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 							// Corrections for rotations between 0 and 2pi
 							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
@@ -1073,6 +1069,38 @@ class VideoMainEngine {
 							}
 
 							renderSpriteXFactor /= settingsFOV;
+
+							// Calc: Asset by rotation
+							if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
+								// Facing camera
+								asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
+							} else {
+								// Angled away from camera
+								renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPIHalf * 1.25;
+								if (renderAngle < 0) {
+									renderAngle += GamingCanvasConstPIDouble;
+								} else if (renderAngle > GamingCanvasConstPIDouble) {
+									renderAngle -= GamingCanvasConstPIDouble;
+								}
+
+								if (renderAngle < 0.7855) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_E) || renderImageTest;
+								} else if (renderAngle < 1.5708) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_NE) || renderImageTest;
+								} else if (renderAngle < 2.3562) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_N) || renderImageTest;
+								} else if (renderAngle < 3.1416) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_NW) || renderImageTest;
+								} else if (renderAngle < 3.927) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_W) || renderImageTest;
+								} else if (renderAngle < 4.7124) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_SW) || renderImageTest;
+								} else if (renderAngle < 5.4978) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_S) || renderImageTest;
+								} else {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_SE) || renderImageTest;
+								}
+							}
 
 							// Render: Lighting
 							if (

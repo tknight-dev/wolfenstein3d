@@ -544,7 +544,7 @@ export enum AssetIdImgCharacter {
 	STAND_SE = 46,
 	STAND_SW = 47,
 	STAND_W = 48,
-	SUPRISE = 49,
+	SUPRISE = -1,
 }
 
 export enum AssetIdImgMenu {
