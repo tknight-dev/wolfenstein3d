@@ -10,6 +10,7 @@ import {
 	GamingCanvasUtilScale,
 } from '@tknight-dev/gaming-canvas';
 import {
+	GameDifficulty,
 	gameGridCellMaskExtendedDoor,
 	GameGridCellMasksAndValues,
 	GameGridCellMasksAndValuesExtended,
@@ -42,6 +43,7 @@ import {
 	CalcBusOutputDataActionSwitch,
 	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
+import { CharacterNPC } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -345,7 +347,6 @@ class VideoMainEngine {
 			actionWallState: CalcBusOutputDataActionWallMove,
 			asset: OffscreenCanvas,
 			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
-			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
@@ -363,13 +364,16 @@ class VideoMainEngine {
 			gameMapGridIndex: number,
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
+			gameMapNPC: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npc,
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
 			renderAngle: number,
 			renderAssetId: number,
+			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			renderBrightness: number,
 			renderCellSide: GamingCanvasGridRaycastCellSide,
+			renderCharacterNPC: CharacterNPC | undefined,
 			renderDistance: number,
 			renderDistance1: number,
 			renderDistance2: number,
@@ -401,6 +405,7 @@ class VideoMainEngine {
 			renderWallHeightFactored: number,
 			renderWallHeightHalf: number,
 			renderWallHeightFactor: number,
+			settingsDifficulty: GameDifficulty = VideoMainEngine.settings.difficulty,
 			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
@@ -456,6 +461,7 @@ class VideoMainEngine {
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
+					gameMapNPC = VideoMainEngine.gameMap.npc;
 				}
 
 				if (VideoMainEngine.gameMapUpdateNew === true) {
@@ -469,7 +475,9 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {
 					// Settings
-					((settingsFOV = VideoMainEngine.settings.fov), (settingsFPMS = 1000 / VideoMainEngine.settings.fps));
+					settingsDifficulty = VideoMainEngine.settings.difficulty;
+					settingsFOV = VideoMainEngine.settings.fov;
+					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
 					renderGamma = VideoMainEngine.settings.gamma;
 					renderGrayscale = VideoMainEngine.settings.grayscale;
 					renderLightingQuality = VideoMainEngine.settings.lightingQuality;
@@ -987,6 +995,20 @@ class VideoMainEngine {
 								renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
 								renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 							);
+						}
+
+						/**
+						 * Draw: Sprites - Characters
+						 */
+						renderCharacterNPC = gameMapNPC.get(gameMapGridIndex);
+						if (renderCharacterNPC !== undefined && renderCharacterNPC.difficulty <= settingsDifficulty) {
+							// console.log('CHARACTER!!', gameMapGridIndex, GameDifficulty[renderCharacterNPC.difficulty]);
+							asset =
+								assets.get(
+									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
+										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
+										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
+								) || renderImageTest;
 						}
 					}
 				}
