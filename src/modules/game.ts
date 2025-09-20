@@ -1004,6 +1004,7 @@ export class Game {
 						size: 0.25,
 						timestamp: 0,
 						timestampPrevious: 0,
+						timestampUnixState: 0,
 						type: Game.editorAssetCharacterType,
 					});
 				} else {

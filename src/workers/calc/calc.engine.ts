@@ -132,6 +132,7 @@ class CalcEngine {
 			weapons: [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL],
 			timestamp: 0,
 			timestampPrevious: 0,
+			timestampUnixState: 0,
 			type: AssetIdImgCharacterType.GUARD,
 		};
 
@@ -152,6 +153,7 @@ class CalcEngine {
 			weapons: [...CalcEngine.characterPlayer1.weapons],
 			timestamp: CalcEngine.characterPlayer1.timestamp,
 			timestampPrevious: CalcEngine.characterPlayer1.timestampPrevious,
+			timestampUnixState: 0,
 			type: CalcEngine.characterPlayer1.type,
 		};
 
