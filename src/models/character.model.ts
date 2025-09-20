@@ -44,6 +44,7 @@ export interface CharacterNPC extends GamingCanvasGridCharacter {
 	difficulty: GameDifficulty; // int16
 	health: number; // int16
 	id: number; // int16
+	timestampUnixState: number; //int32
 	type: AssetIdImgCharacterType;
 }
 

@@ -1,4 +1,14 @@
-import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
+import {
+	assetsImages,
+	assetsImageCharacters,
+	AssetIdImg,
+	assetLoaderImage,
+	assetLoaderImageCharacter,
+	AssetPropertiesImage,
+	initializeAssetManager,
+	AssetIdImgCharacterType,
+	AssetIdImgCharacter,
+} from '../../asset-manager.js';
 import {
 	GamingCanvas,
 	GamingCanvasConstPI,
@@ -44,6 +54,7 @@ import {
 	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
 import { CharacterNPC } from '../../models/character.model.js';
+import { Assets } from '../../modules/assets.js';
 
 /**
  * @author tknight-dev
@@ -89,8 +100,9 @@ self.onmessage = (event: MessageEvent) => {
 class VideoMainEngine {
 	private static actionDoors: Map<number, CalcBusActionDoorState> = new Map();
 	private static actionWall: Map<number, CalcBusOutputDataActionWallMove> = new Map();
-	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
-	private static assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
+	private static assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = new Map();
+	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
+	private static assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static gameMap: GameMap;
@@ -112,11 +124,15 @@ class VideoMainEngine {
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,
+			assetCharacter: AssetIdImgCharacter,
+			assetCharacterType: AssetIdImgCharacterType,
 			assetId: AssetIdImg,
-			assetProperties: AssetPropertiesImage,
-			assetsLoaded: Map<AssetIdImg, ImageBitmap> = <Map<AssetIdImg, ImageBitmap>>await assetLoaderImage();
+			assetImagesLoaded: Map<AssetIdImg, ImageBitmap> = <any>await assetLoaderImage(),
+			assetImageCharactersLoaded: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, ImageBitmap>> = <any>await assetLoaderImageCharacter(),
+			assetImageCharactersLoadedInstance: Map<AssetIdImgCharacter, ImageBitmap>,
+			assetProperties: AssetPropertiesImage;
 
-		for ([assetId, assetData] of assetsLoaded) {
+		for ([assetId, assetData] of assetImagesLoaded) {
 			// Get properties
 			assetProperties = <AssetPropertiesImage>assetsImages.get(assetId);
 
@@ -130,7 +146,7 @@ class VideoMainEngine {
 				powerPreference: 'high-performance',
 			}) as OffscreenCanvasRenderingContext2D;
 			assetContext.drawImage(assetData, 0, 0);
-			VideoMainEngine.assets.set(assetId, assetCanvas);
+			VideoMainEngine.assetImages.set(assetId, assetCanvas);
 
 			// Canvas: Invert Horizontal
 			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
@@ -143,7 +159,30 @@ class VideoMainEngine {
 			}) as OffscreenCanvasRenderingContext2D;
 			assetContext.scale(-1, 1);
 			assetContext.drawImage(assetData, 0, 0, assetData.width * -1, assetData.height);
-			VideoMainEngine.assetsInvertHorizontal.set(assetId, assetCanvas);
+			VideoMainEngine.assetImagesInvertHorizontal.set(assetId, assetCanvas);
+		}
+
+		for ([assetCharacterType, assetImageCharactersLoadedInstance] of assetImageCharactersLoaded) {
+			for ([assetCharacter, assetData] of assetImageCharactersLoadedInstance) {
+				// Get properties
+				assetProperties = <AssetPropertiesImage>(<any>assetsImageCharacters.get(assetCharacterType)).get(assetCharacter);
+
+				// Canvas: Regular
+				assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+				assetContext = assetCanvas.getContext('2d', {
+					alpha: assetProperties.alpha,
+					antialias: false,
+					depth: true,
+					desynchronized: true,
+					powerPreference: 'high-performance',
+				}) as OffscreenCanvasRenderingContext2D;
+				assetContext.drawImage(assetData, 0, 0);
+
+				if (VideoMainEngine.assetImageCharacters.has(assetCharacterType) !== true) {
+					VideoMainEngine.assetImageCharacters.set(assetCharacterType, new Map());
+				}
+				(<any>VideoMainEngine.assetImageCharacters.get(assetCharacterType)).set(assetCharacter, assetCanvas);
+			}
 		}
 
 		// Config: Canvas
@@ -157,8 +196,7 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		// Config
-		VideoMainEngine.gameMap = data.gameMap;
-		VideoMainEngine.gameMap.grid = GamingCanvasGridUint16Array.from(<Uint16Array>data.gameMap.grid.data);
+		VideoMainEngine.gameMap = Assets.parseMap(data.gameMap);
 		VideoMainEngine.player1 = data.player1;
 
 		// Config: Report
@@ -302,9 +340,7 @@ class VideoMainEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
-
-		VideoMainEngine.gameMap = data;
+		VideoMainEngine.gameMap = Assets.parseMap(data);
 		VideoMainEngine.gameMapNew = true;
 	}
 
@@ -346,8 +382,10 @@ class VideoMainEngine {
 			actionWall: Map<number, CalcBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
 			actionWallState: CalcBusOutputDataActionWallMove,
 			asset: OffscreenCanvas,
-			assets: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assets,
-			assetsInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetsInvertHorizontal,
+			assetImageCharacterInstance: Map<AssetIdImgCharacter, OffscreenCanvas>,
+			assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = VideoMainEngine.assetImageCharacters,
+			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImages,
+			assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImagesInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
 			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
@@ -611,22 +649,22 @@ class VideoMainEngine {
 						switch (calculationsRays[renderRayIndex + 6]) {
 							case GamingCanvasGridRaycastCellSide.EAST:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + gameMapGridSideLength];
-								renderAssets = assetsInvertHorizontal;
+								renderAssets = assetImagesInvertHorizontal;
 								renderGlobalShadow = true;
 								break;
 							case GamingCanvasGridRaycastCellSide.NORTH:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex - 1];
-								renderAssets = assetsInvertHorizontal;
+								renderAssets = assetImagesInvertHorizontal;
 								renderGlobalShadow = false;
 								break;
 							case GamingCanvasGridRaycastCellSide.SOUTH:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + 1];
-								renderAssets = assets;
+								renderAssets = assetImages;
 								renderGlobalShadow = false;
 								break;
 							case GamingCanvasGridRaycastCellSide.WEST:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex - gameMapGridSideLength];
-								renderAssets = assets;
+								renderAssets = assetImages;
 								renderGlobalShadow = true;
 								break;
 						}
@@ -692,246 +730,322 @@ class VideoMainEngine {
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 						renderGlobalShadow = false;
 
-						// Not sprites
-						if (gameMapGridCell === GameGridCellMasksAndValues.NULL || gameMapGridCell === GameGridCellMasksAndValues.FLOOR) {
-							continue;
-						}
-
-						/**
-						 * Draw: Sprites - Fixed
-						 */
-						if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
-							offscreenCanvasContext.filter = 'none';
-							renderSpriteFixedNS = (gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
-
-							// Calc: Position
-							y = gameMapGridIndex % gameMapGridSideLength;
-							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x;
-							y -= calculationsCamera.y;
-
+						// Environment
+						if (gameMapGridCell !== GameGridCellMasksAndValues.NULL && gameMapGridCell !== GameGridCellMasksAndValues.FLOOR) {
 							/**
-							 * Action: Door
+							 * Draw: Sprites - Fixed
 							 */
-							asset = <any>undefined;
-							renderSpriteFixedDoorOffset = 0;
-							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
-								actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
-								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
+							if ((gameMapGridCell & gameGridCellMaskSpriteFixed) !== 0) {
+								offscreenCanvasContext.filter = 'none';
+								renderSpriteFixedNS = (gameMapGridCell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
 
-								// Door in a non-closed state
-								if (
-									actionDoorState !== undefined &&
-									(actionDoorState.closing === true || actionDoorState.open === true || actionDoorState.opening === true)
-								) {
-									if (actionDoorState.open === true && actionDoorState.closing === false) {
-										renderSpriteFixedDoorOffset = 1;
-										// console.log('DOOR OPEN', renderSpriteFixedDoorOffset);
-									} else if (actionDoorState.closing === true) {
-										renderSpriteFixedDoorOffset = Math.max(
-											0,
-											1 - (timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
-										);
-										// console.log('DOOR CLOSING', renderSpriteFixedDoorOffset);
-									} else {
-										renderSpriteFixedDoorOffset = Math.min(
-											1,
-											(timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
-										);
-										// console.log('DOOR OPENING', renderSpriteFixedDoorOffset);
+								// Calc: Position
+								y = gameMapGridIndex % gameMapGridSideLength;
+								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x;
+								y -= calculationsCamera.y;
+
+								/**
+								 * Action: Door
+								 */
+								asset = <any>undefined;
+								renderSpriteFixedDoorOffset = 0;
+								if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
+									actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
+									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
+
+									// Door in a non-closed state
+									if (
+										actionDoorState !== undefined &&
+										(actionDoorState.closing === true || actionDoorState.open === true || actionDoorState.opening === true)
+									) {
+										if (actionDoorState.open === true && actionDoorState.closing === false) {
+											renderSpriteFixedDoorOffset = 1;
+											// console.log('DOOR OPEN', renderSpriteFixedDoorOffset);
+										} else if (actionDoorState.closing === true) {
+											renderSpriteFixedDoorOffset = Math.max(
+												0,
+												1 - (timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+											);
+											// console.log('DOOR CLOSING', renderSpriteFixedDoorOffset);
+										} else {
+											renderSpriteFixedDoorOffset = Math.min(
+												1,
+												(timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+											);
+											// console.log('DOOR OPENING', renderSpriteFixedDoorOffset);
+										}
+
+										if (
+											actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.NORTH ||
+											actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.SOUTH
+										) {
+											x += renderSpriteFixedDoorOffset;
+										} else {
+											y += renderSpriteFixedDoorOffset;
+										}
 									}
+								}
 
+								// The door is wide open
+								if (renderSpriteFixedDoorOffset === 1) {
+									continue;
+								}
+
+								/**
+								 * Action: Wall Move
+								 */
+								renderSpriteFixedWallMovableOffset = 0;
+								if ((gameMapGridCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0 && actionWall.has(gameMapGridIndex) === true) {
+									actionWallState = <CalcBusOutputDataActionWallMove>actionWall.get(gameMapGridIndex);
+
+									if (actionWallState !== undefined) {
+										renderSpriteFixedWallMovableOffset =
+											2 * Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcBusActionWallMoveStateChangeDurationInMS);
+
+										// Render: Modification based on cell sidedness
+										switch (actionWallState.cellSide) {
+											case GamingCanvasGridRaycastCellSide.EAST: // inv
+												asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+												x += renderSpriteFixedWallMovableOffset - 0.5;
+												break;
+											case GamingCanvasGridRaycastCellSide.NORTH:
+												asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+												y -= renderSpriteFixedWallMovableOffset - 0.5; // inv
+												break;
+											case GamingCanvasGridRaycastCellSide.SOUTH:
+												asset =
+													assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+												y += renderSpriteFixedWallMovableOffset - 0.5; // good
+												renderGlobalShadow = true;
+												break;
+											case GamingCanvasGridRaycastCellSide.WEST: // good
+												asset =
+													assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+												x -= renderSpriteFixedWallMovableOffset - 0.5;
+												renderGlobalShadow = true;
+												break;
+										}
+									}
+								}
+
+								/**
+								 * Position 1
+								 */
+
+								x += renderSpriteFixedNS === true ? 0.5 : 0; // 0.5 is center
+								y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
+
+								// Calc: Angle (fisheye correction)
+								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
+
+								// Calc: Distance
+								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
+
+								// Calc: Height
+								renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+
+								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
+
+								// Corrections for rotations between 0 and 2pi
+								if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+								if (renderSpriteXFactor > GamingCanvasConstPI) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+
+								renderSpriteFixedCoordinates[0] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
+
+								/**
+								 * Position 2
+								 */
+
+								if (actionDoorState !== undefined) {
 									if (
 										actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.NORTH ||
 										actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.SOUTH
 									) {
-										x += renderSpriteFixedDoorOffset;
+										x -= renderSpriteFixedDoorOffset;
 									} else {
-										y += renderSpriteFixedDoorOffset;
-									}
-								}
-							}
-
-							// The door is wide open
-							if (renderSpriteFixedDoorOffset === 1) {
-								continue;
-							}
-
-							/**
-							 * Action: Wall Move
-							 */
-							renderSpriteFixedWallMovableOffset = 0;
-							if ((gameMapGridCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0 && actionWall.has(gameMapGridIndex) === true) {
-								actionWallState = <CalcBusOutputDataActionWallMove>actionWall.get(gameMapGridIndex);
-
-								if (actionWallState !== undefined) {
-									renderSpriteFixedWallMovableOffset =
-										2 * Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcBusActionWallMoveStateChangeDurationInMS);
-
-									// Render: Modification based on cell sidedness
-									switch (actionWallState.cellSide) {
-										case GamingCanvasGridRaycastCellSide.EAST: // inv
-											asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-											x += renderSpriteFixedWallMovableOffset - 0.5;
-											break;
-										case GamingCanvasGridRaycastCellSide.NORTH:
-											asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-											y -= renderSpriteFixedWallMovableOffset - 0.5; // inv
-											break;
-										case GamingCanvasGridRaycastCellSide.SOUTH:
-											asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-											y += renderSpriteFixedWallMovableOffset - 0.5; // good
-											renderGlobalShadow = true;
-											break;
-										case GamingCanvasGridRaycastCellSide.WEST: // good
-											asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-											x -= renderSpriteFixedWallMovableOffset - 0.5;
-											renderGlobalShadow = true;
-											break;
-									}
-								}
-							}
-
-							/**
-							 * Position 1
-							 */
-
-							x += renderSpriteFixedNS === true ? 0.5 : 0; // 0.5 is center
-							y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
-
-							// Calc: Angle (fisheye correction)
-							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
-
-							// Calc: Distance
-							renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
-
-							// Calc: Height
-							renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
-
-							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
-
-							// Corrections for rotations between 0 and 2pi
-							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
-								renderSpriteXFactor -= GamingCanvasConstPIDouble;
-							}
-							if (renderSpriteXFactor > GamingCanvasConstPI) {
-								renderSpriteXFactor -= GamingCanvasConstPIDouble;
-							}
-
-							renderSpriteFixedCoordinates[0] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
-
-							/**
-							 * Position 2
-							 */
-
-							if (actionDoorState !== undefined) {
-								if (
-									actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.NORTH ||
-									actionDoorState.cellSide === GamingCanvasGridRaycastCellSide.SOUTH
-								) {
-									x -= renderSpriteFixedDoorOffset;
-								} else {
-									y -= renderSpriteFixedDoorOffset;
-								}
-							}
-
-							x += renderSpriteFixedNS === true ? 0 : 1;
-							y += renderSpriteFixedNS === true ? 1 : 0;
-
-							// Calc: Angle (fisheye correction)
-							renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
-
-							// Calc: Distance
-							renderDistance2 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
-
-							// Calc: Height
-							renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance2) * renderWallHeightFactor;
-
-							// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
-							renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
-
-							// Corrections for rotations between 0 and 2pi
-							if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
-								renderSpriteXFactor -= GamingCanvasConstPIDouble;
-							}
-							if (renderSpriteXFactor > GamingCanvasConstPI) {
-								renderSpriteXFactor -= GamingCanvasConstPIDouble;
-							}
-
-							renderSpriteFixedCoordinates[2] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
-
-							/**
-							 * Render: Lighting
-							 */
-							renderDistance = (renderDistance + renderDistance2) / 2;
-
-							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
-								offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
-							} else if (renderLightingQuality !== LightingQuality.NONE) {
-								renderBrightness = 0;
-
-								// Filter: Start
-								if (renderLightingQuality === LightingQuality.FULL) {
-									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
-
-									if (renderGlobalShadow === true) {
-										renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
-									}
-								} else if (renderLightingQuality === LightingQuality.BASIC) {
-									if (renderGlobalShadow === true) {
-										renderBrightness -= 0.3;
+										y -= renderSpriteFixedDoorOffset;
 									}
 								}
 
-								// Filter: End
-								offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
-							}
+								x += renderSpriteFixedNS === true ? 0 : 1;
+								y += renderSpriteFixedNS === true ? 1 : 0;
 
-							/**
-							 * Render images between coordinates
-							 */
-							// Calc: Height/Width changes between cooridnates
-							x = renderSpriteFixedCoordinates[2] - renderSpriteFixedCoordinates[0];
-							y = renderSpriteFixedCoordinates[3] - renderSpriteFixedCoordinates[1];
+								// Calc: Angle (fisheye correction)
+								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
 
-							// Calc: Width of sprite in pixels
-							renderDistance = ((x * x + y * y) ** 0.5) | 0;
-
-							if (asset === undefined) {
-								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-							}
-
-							for (i = 1; i < renderDistance; i++) {
-								renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
+								// Calc: Distance
+								renderDistance2 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 								// Calc: Height
-								renderWallHeight = renderSpriteFixedCoordinates[1] + y * renderSpriteXFactor;
+								renderSpriteFixedCoordinates[3] = (offscreenCanvasHeightPx / renderDistance2) * renderWallHeightFactor;
+
+								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
+
+								// Corrections for rotations between 0 and 2pi
+								if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+								if (renderSpriteXFactor > GamingCanvasConstPI) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+
+								renderSpriteFixedCoordinates[2] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
+
+								/**
+								 * Render: Lighting
+								 */
+								renderDistance = (renderDistance + renderDistance2) / 2;
+
+								if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
+									offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
+								} else if (renderLightingQuality !== LightingQuality.NONE) {
+									renderBrightness = 0;
+
+									// Filter: Start
+									if (renderLightingQuality === LightingQuality.FULL) {
+										renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+
+										if (renderGlobalShadow === true) {
+											renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
+										}
+									} else if (renderLightingQuality === LightingQuality.BASIC) {
+										if (renderGlobalShadow === true) {
+											renderBrightness -= 0.3;
+										}
+									}
+
+									// Filter: End
+									offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+								}
+
+								/**
+								 * Render images between coordinates
+								 */
+								// Calc: Height/Width changes between cooridnates
+								x = renderSpriteFixedCoordinates[2] - renderSpriteFixedCoordinates[0];
+								y = renderSpriteFixedCoordinates[3] - renderSpriteFixedCoordinates[1];
+
+								// Calc: Width of sprite in pixels
+								renderDistance = ((x * x + y * y) ** 0.5) | 0;
+
+								if (asset === undefined) {
+									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+								}
+
+								for (i = 1; i < renderDistance; i++) {
+									renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
+
+									// Calc: Height
+									renderWallHeight = renderSpriteFixedCoordinates[1] + y * renderSpriteXFactor;
+
+									// Render: 3D Projection
+									offscreenCanvasContext.drawImage(
+										asset, // (image) Draw from our test image
+										renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
+										0, // (y-source) Start at the bottom of the image (y pixel)
+										1, // (width-source) Slice 1 pixel wide
+										asset.height, // (height-source) height of our test image
+										renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
+										(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+										2, // (width-destination) Draw the sliced image as 1 pixel wide
+										renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+									);
+								}
+							} else {
+								/**
+								 * Draw: Sprites - Rotating
+								 */
+								asset =
+									assetImagesInvertHorizontal.get(
+										(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
+											? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
+											: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
+									) || renderImageTest;
+
+								// Calc: Position
+								y = gameMapGridIndex % gameMapGridSideLength;
+								x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
+								y -= calculationsCamera.y - 0.5; // 0.5 is center
+
+								// Calc: Angle (fisheye correction)
+								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPIHalf;
+
+								// Calc: Distance
+								renderDistance = (x * x + y * y) ** 0.5;
+
+								// Calc: Height
+								renderWallHeight = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+								renderWallHeightFactored = renderWallHeight / renderHeightFactor;
+								renderWallHeightHalf = renderWallHeight / 2;
+
+								// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
+								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - (Math.atan2(-y, x) + GamingCanvasConstPIHalf);
+
+								// Corrections for rotations between 0 and 2pi
+								if (renderSpriteXFactor > GamingCanvasConstPIDouble) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+								if (renderSpriteXFactor > GamingCanvasConstPI) {
+									renderSpriteXFactor -= GamingCanvasConstPIDouble;
+								}
+
+								renderSpriteXFactor /= settingsFOV;
+
+								// Render: Lighting
+								if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
+									offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
+								} else if (renderLightingQuality !== LightingQuality.NONE) {
+									renderBrightness = 0;
+
+									// Filter: Start
+									if (renderLightingQuality === LightingQuality.FULL) {
+										renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+
+										// if (renderGlobalShadow === true) {
+										// 	renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
+										// }
+									} else if (renderLightingQuality === LightingQuality.BASIC) {
+										// if (renderGlobalShadow === true) {
+										// 	renderBrightness -= 0.3;
+										// }
+									}
+
+									// Filter: End
+									offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+								}
 
 								// Render: 3D Projection
 								offscreenCanvasContext.drawImage(
 									asset, // (image) Draw from our test image
-									renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
+									0, // (x-source) Specific how far from the left to draw from the test image
 									0, // (y-source) Start at the bottom of the image (y pixel)
-									1, // (width-source) Slice 1 pixel wide
-									asset.height, // (height-source) height of our test image
-									renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
-									(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-									2, // (width-destination) Draw the sliced image as 1 pixel wide
-									renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
+									asset.width, // (width-source) width of our image
+									asset.height, // (height-source) height of our image
+									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
+									(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+									renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
+									renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 								);
 							}
-						} else {
-							/**
-							 * Draw: Sprites - Rotating
-							 */
-							asset =
-								assetsInvertHorizontal.get(
-									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-								) || renderImageTest;
+						}
+
+						/**
+						 * Draw: Sprites - Characters
+						 */
+						renderCharacterNPC = gameMapNPC.get(gameMapGridIndex);
+						if (renderCharacterNPC !== undefined && renderCharacterNPC.difficulty <= settingsDifficulty) {
+							assetImageCharacterInstance = <any>assetImageCharacters.get(renderCharacterNPC.type);
+							asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
 
 							// Calc: Position
+							// x = renderCharacterNPC.camera.x;
+							// y = renderCharacterNPC.camera.y;
 							y = gameMapGridIndex % gameMapGridSideLength;
 							x = (gameMapGridIndex - y) / gameMapGridSideLength - calculationsCamera.x + 0.5; // 0.5 is center
 							y -= calculationsCamera.y - 0.5; // 0.5 is center
@@ -961,22 +1075,16 @@ class VideoMainEngine {
 							renderSpriteXFactor /= settingsFOV;
 
 							// Render: Lighting
-							if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
-								offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
-							} else if (renderLightingQuality !== LightingQuality.NONE) {
+							if (
+								renderLightingQuality !== LightingQuality.NONE &&
+								renderCharacterNPC.assetId !== AssetIdImgCharacter.FIRE &&
+								(gameMapGridCell & GameGridCellMasksAndValues.LIGHT) === 0
+							) {
 								renderBrightness = 0;
 
 								// Filter: Start
 								if (renderLightingQuality === LightingQuality.FULL) {
 									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
-
-									// if (renderGlobalShadow === true) {
-									// 	renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
-									// }
-								} else if (renderLightingQuality === LightingQuality.BASIC) {
-									// if (renderGlobalShadow === true) {
-									// 	renderBrightness -= 0.3;
-									// }
 								}
 
 								// Filter: End
@@ -995,20 +1103,6 @@ class VideoMainEngine {
 								renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
 								renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 							);
-						}
-
-						/**
-						 * Draw: Sprites - Characters
-						 */
-						renderCharacterNPC = gameMapNPC.get(gameMapGridIndex);
-						if (renderCharacterNPC !== undefined && renderCharacterNPC.difficulty <= settingsDifficulty) {
-							// console.log('CHARACTER!!', gameMapGridIndex, GameDifficulty[renderCharacterNPC.difficulty]);
-							asset =
-								assets.get(
-									(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-										? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-										: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-								) || renderImageTest;
 						}
 					}
 				}

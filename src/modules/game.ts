@@ -329,8 +329,7 @@ export class Game {
 
 					fileReader.onloadend = () => {
 						try {
-							const parsed: GameMap = JSON.parse(atob(<string>fileReader.result));
-							Assets.parseMap(parsed);
+							const parsed: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result)));
 
 							// Adjust
 							Game.camera.r = parsed.position.r;

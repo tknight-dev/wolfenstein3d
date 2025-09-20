@@ -45,20 +45,25 @@ export class Assets {
 		Assets.dataImageMenus = <any>await assetLoaderImageMenu();
 	}
 
-	public static parseMap(map: GameMap): void {
-		let key: string,
-			npc: Map<number, CharacterNPC> = new Map(),
-			value: CharacterNPC;
+	public static parseMap(map: GameMap): GameMap {
+		let key: string, npc: Map<number, CharacterNPC>, value: any;
 
 		map.grid = GamingCanvasGridUint16Array.from(<Uint16Array>map.grid.data);
 
 		if (map.npc !== undefined) {
-			for ([key, value] of Object.entries(map.npc)) {
-				value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
+			if (map.npc instanceof Map !== true) {
+				npc = new Map();
 
-				npc.set(Number(key), value);
+				for ([key, value] of Object.entries(map.npc)) {
+					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
+
+					npc.set(Number(key), value);
+				}
+
+				map.npc = npc;
 			}
 		}
-		map.npc = npc;
+
+		return map;
 	}
 }

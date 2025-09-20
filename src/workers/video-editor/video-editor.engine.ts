@@ -28,6 +28,7 @@ import {
 	assetsImages,
 	initializeAssetManager,
 } from '../../asset-manager.js';
+import { Assets } from '../../modules/assets.js';
 
 /**
  * @author tknight-dev
@@ -134,8 +135,7 @@ class VideoEditorEngine {
 		}
 
 		// Config
-		VideoEditorEngine.gameMap = data.gameMap;
-		VideoEditorEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
+		VideoEditorEngine.gameMap = Assets.parseMap(data.gameMap);
 
 		// Config: Canvas
 		VideoEditorEngine.offscreenCanvas = data.offscreenCanvas;
@@ -209,9 +209,7 @@ class VideoEditorEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
-
-		VideoEditorEngine.gameMap = data;
+		VideoEditorEngine.gameMap = Assets.parseMap(data);
 		VideoEditorEngine.gameMapNew = true;
 	}
 
