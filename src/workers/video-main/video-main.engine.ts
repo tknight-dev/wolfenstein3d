@@ -8,6 +8,14 @@ import {
 	initializeAssetManager,
 	AssetIdImgCharacterType,
 	AssetIdImgCharacter,
+	assetIdImgCharacterMovementS,
+	assetIdImgCharacterMovementSE,
+	assetIdImgCharacterMovementSW,
+	assetIdImgCharacterMovementW,
+	assetIdImgCharacterMovementNW,
+	assetIdImgCharacterMovementN,
+	assetIdImgCharacterMovementNE,
+	assetIdImgCharacterMovementE,
 } from '../../asset-manager.js';
 import {
 	GamingCanvas,
@@ -412,6 +420,7 @@ class VideoMainEngine {
 			renderBrightness: number,
 			renderCellSide: GamingCanvasGridRaycastCellSide,
 			renderCharacterNPC: CharacterNPC | undefined,
+			renderCharacterNPCState: number,
 			renderDistance: number,
 			renderDistance1: number,
 			renderDistance2: number,
@@ -1072,10 +1081,10 @@ class VideoMainEngine {
 
 							// Calc: Asset by rotation
 							if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
-								// Facing camera
+								// Calc: Angle (always facing camera)
 								asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
 							} else {
-								// Angled away from camera
+								// Calc: Angle
 								renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPIHalf * 1.25;
 								if (renderAngle < 0) {
 									renderAngle += GamingCanvasConstPIDouble;
@@ -1083,22 +1092,42 @@ class VideoMainEngine {
 									renderAngle -= GamingCanvasConstPIDouble;
 								}
 
-								if (renderAngle < 0.7855) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_E) || renderImageTest;
-								} else if (renderAngle < 1.5708) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_NE) || renderImageTest;
-								} else if (renderAngle < 2.3562) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_N) || renderImageTest;
-								} else if (renderAngle < 3.1416) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_NW) || renderImageTest;
-								} else if (renderAngle < 3.927) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_W) || renderImageTest;
-								} else if (renderAngle < 4.7124) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_SW) || renderImageTest;
-								} else if (renderAngle < 5.4978) {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_S) || renderImageTest;
+								// Calc: Movement
+								if (renderCharacterNPC.moving === true) {
+									renderCharacterNPCState = 0;
 								} else {
-									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_SE) || renderImageTest;
+									if (renderCharacterNPC.movingRunning === true) {
+										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+									} else {
+										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+									}
+								}
+
+								// Calc: Asset
+								if (renderAngle < 0.7855) {
+									// 0 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 1.5708) {
+									// 45 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 2.3562) {
+									// 90 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 3.1416) {
+									// 135 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 3.927) {
+									// 180 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 4.7124) {
+									// 225 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderImageTest;
+								} else if (renderAngle < 5.4978) {
+									// 270 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderImageTest;
+								} else {
+									// 315 deg
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderImageTest;
 								}
 							}
 
