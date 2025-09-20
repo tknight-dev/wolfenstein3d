@@ -10,6 +10,7 @@
 
 .input {
 	align-items: center;
+	background-color: rgba(0, 0, 0, 0.25);
 	box-sizing: border-box;
 	color: var(--global-color-font-bright);
 	display: flex;
@@ -17,6 +18,10 @@
 	height: var(--global-input-height);
 	padding-left: 12px;
 	width: 100%;
+}
+
+input {
+	cursor: text;
 }
 
 input,
@@ -35,7 +40,8 @@ textarea {
 	max-width: 400px;
 
 	&:disabled {
-		color: var(--global-color-gray-33);
+		color: var(--global-color-gray-66);
+		cursor: default !important;
 	}
 
 	&:focus {
@@ -74,6 +80,7 @@ button {
 
 input[type='checkbox'],
 input[type='radio'] {
+	cursor: pointer;
 	height: calc(var(--global-input-height) / 1.5);
 	width: calc(var(--global-input-height) / 1.5);
 }
@@ -117,7 +124,11 @@ input[type='radio'] {
 	}
 }
 
-select > option {
-	background: var(--global-color-app-background);
+select {
 	cursor: pointer;
+
+	option {
+		background: var(--global-color-app-background);
+		cursor: pointer;
+	}
 }

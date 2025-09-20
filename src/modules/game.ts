@@ -2,11 +2,15 @@ import { Assets } from './assets.js';
 import {
 	AssetIdAudio,
 	AssetIdImg,
+	AssetIdImgCharacter,
+	AssetIdImgCharacterType,
 	AssetIdMap,
 	AssetImgCategory,
 	AssetPropertiesAudio,
+	AssetPropertiesCharacter,
 	AssetPropertiesImage,
 	assetsAudio,
+	assetsImageCharacters,
 	assetsImages,
 } from '../asset-manager.js';
 import { Settings } from './settings.js';
@@ -22,7 +26,7 @@ import {
 	CalcBusOutputDataActionSwitch,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
-import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -55,8 +59,9 @@ import {
 	GamingCanvasGridViewport,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridInputToCoordinate,
+	GamingCanvasGridICamera,
 } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput } from '../models/character.model.js';
+import { CharacterInput, CharacterNPC } from '../models/character.model.js';
 
 /**
  * Guards are 100 points
@@ -77,7 +82,10 @@ enum EditType {
 export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static editorAssetIdImg: number = 0;
+	public static editorAssetCharacterId: number = 0;
+	public static editorAssetCharacterType: number = 0;
 	public static editorAssetProperties: AssetPropertiesImage;
+	public static editorAssetPropertiesCharacter: AssetPropertiesCharacter;
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
@@ -113,35 +121,35 @@ export class Game {
 
 		Game.editorCellValue = Game.editorAssetIdImg;
 
-		DOM.elEditorPropertiesInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);
+		DOM.elEditorPropertiesCellInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);
 
-		if (DOM.elEditorPropertiesInputExtended.checked) {
-			DOM.elEditorPropertiesExtendedInputDoor.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR);
-			DOM.elEditorPropertiesExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
-			DOM.elEditorPropertiesExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
-			DOM.elEditorPropertiesExtendedInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH);
-			// DOM.elEditorPropertiesExtendedInputTeleport.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.TELEPORT);
+		if (DOM.elEditorPropertiesCellInputExtended.checked) {
+			DOM.elEditorPropertiesCellExtendedInputDoor.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR);
+			DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
+			DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
+			DOM.elEditorPropertiesCellExtendedInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH);
+			// DOM.elEditorPropertiesCellExtendedInputTeleport.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.TELEPORT);
 		}
 
-		DOM.elEditorPropertiesInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
-		DOM.elEditorPropertiesInputLight.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
-		DOM.elEditorPropertiesInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
+		DOM.elEditorPropertiesCellInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
+		DOM.elEditorPropertiesCellInputLight.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
+		DOM.elEditorPropertiesCellInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
 
-		if (DOM.elEditorPropertiesInputSpriteFixedH.checked !== true && DOM.elEditorPropertiesInputSpriteFixedV.checked === true) {
-			DOM.elEditorPropertiesInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
+		if (DOM.elEditorPropertiesCellInputSpriteFixedH.checked !== true && DOM.elEditorPropertiesCellInputSpriteFixedV.checked === true) {
+			DOM.elEditorPropertiesCellInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
 			Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_EW;
 		}
 
-		DOM.elEditorPropertiesInputWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
-		DOM.elEditorPropertiesInputWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
-		DOM.elEditorPropertiesInputWallMovable.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_MOVABLE);
+		DOM.elEditorPropertiesCellInputWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
+		DOM.elEditorPropertiesCellInputWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
+		DOM.elEditorPropertiesCellInputWallMovable.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_MOVABLE);
 
-		DOM.elEditorPropertiesOutputAssetId.innerText = Game.editorAssetIdImg.toString(16).toUpperCase().padStart(2, '0');
-		DOM.elEditorPropertiesOutputProperties.innerText = (Game.editorCellValue & ~GameGridCellMasksAndValues.ID_MASK)
+		DOM.elEditorPropertiesCellOutputAssetId.innerText = Game.editorAssetIdImg.toString(16).toUpperCase().padStart(2, '0');
+		DOM.elEditorPropertiesCellOutputProperties.innerText = (Game.editorCellValue & ~GameGridCellMasksAndValues.ID_MASK)
 			.toString(16)
 			.toUpperCase()
 			.padStart(2, '0');
-		DOM.elEditorPropertiesOutputValue.innerText = Game.editorCellValue.toString(16).toUpperCase().padStart(4, '0');
+		DOM.elEditorPropertiesCellOutputValue.innerText = Game.editorCellValue.toString(16).toUpperCase().padStart(4, '0');
 	}
 
 	private static cellClear(): void {
@@ -149,16 +157,16 @@ export class Game {
 		Game.editorCellValue = 0;
 
 		let element: HTMLInputElement;
-		for (element of DOM.elEditorPropertiesExtendedInputs) {
+		for (element of DOM.elEditorPropertiesCellExtendedInputs) {
 			element.checked = false;
 		}
-		for (element of DOM.elEditorPropertiesInputs) {
+		for (element of DOM.elEditorPropertiesCellInputs) {
 			element.checked = false;
 		}
 
-		DOM.elEditorPropertiesOutputAssetId.innerText = '0000';
-		DOM.elEditorPropertiesOutputProperties.innerText = '0000';
-		DOM.elEditorPropertiesOutputValue.innerText = '0000';
+		DOM.elEditorPropertiesCellOutputAssetId.innerText = '0000';
+		DOM.elEditorPropertiesCellOutputProperties.innerText = '0000';
+		DOM.elEditorPropertiesCellOutputValue.innerText = '0000';
 	}
 
 	public static initializeDomInteractive(): void {
@@ -197,8 +205,18 @@ export class Game {
 			DOM.spinner(true);
 
 			setTimeout(() => {
+				// Convert map
+				let npc: Map<number, CharacterNPC> = Game.map.npc;
+				Game.map.npc = <any>{};
+				for (let [i, value] of npc.entries()) {
+					(<any>Game.map.npc)[String(i)] = value;
+				}
+
 				const a: HTMLAnchorElement = document.createElement('a'),
 					downloadData = 'data:text/json;charset=utf-8,' + btoa(JSON.stringify(Game.map));
+
+				// Restore map
+				Game.map.npc = npc;
 
 				a.classList.add('hidden');
 				a.download = 'blockenstein.map';
@@ -312,7 +330,7 @@ export class Game {
 					fileReader.onloadend = () => {
 						try {
 							const parsed: GameMap = JSON.parse(atob(<string>fileReader.result));
-							parsed.grid = GamingCanvasGridUint16Array.from(<Uint16Array>parsed.grid.data);
+							Assets.parseMap(parsed);
 
 							// Adjust
 							Game.camera.r = parsed.position.r;
@@ -350,6 +368,7 @@ export class Game {
 			DOM.elEditorFindAndReplaceValueFind.value = '';
 			DOM.elEditorFindAndReplaceValueReplace.value = '';
 			DOM.elEditorFindAndReplace.style.display = 'flex';
+			Game.inputSuspend = true;
 		};
 
 		DOM.elEditorFindAndReplaceApply.onclick = () => {
@@ -370,6 +389,12 @@ export class Game {
 			VideoMainBus.outputMap(Game.map);
 
 			DOM.elEditorFindAndReplace.style.display = 'none';
+			Game.inputSuspend = false;
+		};
+
+		DOM.elEditorFindAndReplaceCancel.onclick = () => {
+			DOM.elEditorFindAndReplace.style.display = 'none';
+			Game.inputSuspend = false;
 		};
 
 		DOM.elEditorCommandMetaMenu.onclick = () => {
@@ -379,18 +404,54 @@ export class Game {
 		};
 
 		// Editor items
-		DOM.elEditorPropertiesExtendedInputs.forEach((element: HTMLInputElement) => {
+		DOM.elEditorPropertiesCellExtendedInputs.forEach((element: HTMLInputElement) => {
 			element.onchange = () => {
 				Game.cellApply();
 			};
 		});
-		DOM.elEditorPropertiesInputs.forEach((element: HTMLInputElement) => {
+		DOM.elEditorPropertiesCellInputs.forEach((element: HTMLInputElement) => {
 			element.onchange = () => {
 				Game.cellApply();
 			};
 		});
 
-		// Editor items
+		// Editor items: Characters
+		DOM.elEditorItemsCharacters.forEach((element: HTMLElement) => {
+			element.onclick = () => {
+				if (DOM.elEditorItemActive !== element) {
+					DOM.elEditorItemActive && DOM.elEditorItemActive.classList.remove('active');
+
+					DOM.elEditorItemActive = element;
+
+					DOM.elButtonApply.click();
+					element.classList.add('active');
+
+					// Containers
+					DOM.elEditorProperties.classList.add('character');
+					DOM.elEditorPropertiesCellContainer.style.display = 'none';
+					DOM.elEditorPropertiesCellExtended.style.display = 'none';
+					DOM.elEditorPropertiesCharacterContainer.style.display = 'block';
+					DOM.elEditorPropertiesCommandsCell.style.display = 'none';
+
+					// Asset configuraiton
+					Game.editorAssetCharacterId = Number(element.id.split('__')[1]);
+					Game.editorAssetCharacterType = Number(element.id.split('__')[0]);
+					Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
+
+					DOM.elEditorPropertiesCharacterInputAngle.value = String(
+						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
+					);
+					// DOM.elEditorPropertiesCharacterInputDifficulty.value = String(GameDifficulty.EASY);
+
+					// Highlighter based on asset
+					Game.editorCellHighlightEnable = true;
+					DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
+					DOM.elEdit.style.backgroundColor = '#980066';
+				}
+			};
+		});
+
+		// Editor items: Objects (+Extended)
 		DOM.elEditorItemsObjects.forEach((element: HTMLElement) => {
 			element.onclick = () => {
 				if (DOM.elEditorItemActive !== element) {
@@ -401,48 +462,55 @@ export class Game {
 					DOM.elButtonApply.click();
 					element.classList.add('active');
 
+					// Containers
+					DOM.elEditorProperties.classList.remove('character');
+					DOM.elEditorPropertiesCellContainer.style.display = 'block';
+					DOM.elEditorPropertiesCellExtended.style.display = 'block';
+					DOM.elEditorPropertiesCharacterContainer.style.display = 'none';
+					DOM.elEditorPropertiesCommandsCell.style.display = 'block';
+
 					// Asset configuraiton
 					Game.cellClear();
 					Game.editorAssetIdImg = Number(element.id);
 					Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
 
 					if (Game.editorAssetProperties.blocking === true) {
-						DOM.elEditorPropertiesInputWallInvisible.checked = true;
+						DOM.elEditorPropertiesCellInputWallInvisible.checked = true;
 					}
 
 					switch (Game.editorAssetProperties.category) {
 						case AssetImgCategory.EXTENDED:
-							DOM.elEditorPropertiesInputExtended.checked = true;
-							DOM.elEditorPropertiesExtended.classList.add('show');
+							DOM.elEditorPropertiesCellInputExtended.checked = true;
+							DOM.elEditorPropertiesCellExtended.classList.add('show');
 
 							switch (Game.editorAssetIdImg) {
 								case AssetIdImg.SPRITE_ELEVATOR_DOOR:
 								case AssetIdImg.SPRITE_METAL_DOOR:
-									DOM.elEditorPropertiesExtendedInputDoor.checked = true;
-									DOM.elEditorPropertiesInputSpriteFixedH.checked = true;
+									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
+									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
 									break;
 								case AssetIdImg.SPRITE_METAL_DOOR_LOCKED:
-									DOM.elEditorPropertiesExtendedInputDoor.checked = true;
-									DOM.elEditorPropertiesInputSpriteFixedH.checked = true;
+									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
+									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
 									break;
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN:
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_UP:
-									DOM.elEditorPropertiesExtendedInputSwitch.checked = true;
-									DOM.elEditorPropertiesInputWall.checked = true;
+									DOM.elEditorPropertiesCellExtendedInputSwitch.checked = true;
+									DOM.elEditorPropertiesCellInputWall.checked = true;
 									break;
 							}
 							break;
 						case AssetImgCategory.LIGHT:
-							DOM.elEditorPropertiesInputLight.checked = true;
-							DOM.elEditorPropertiesExtended.classList.remove('show');
+							DOM.elEditorPropertiesCellInputLight.checked = true;
+							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.SPRITE:
 						case AssetImgCategory.SPRITE_PICKUP:
-							DOM.elEditorPropertiesExtended.classList.remove('show');
+							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.WALL:
-							DOM.elEditorPropertiesInputWall.checked = true;
-							DOM.elEditorPropertiesExtended.classList.remove('show');
+							DOM.elEditorPropertiesCellInputWall.checked = true;
+							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 					}
 					Game.cellApply();
@@ -687,34 +755,6 @@ export class Game {
 		Game.inputRequest = requestAnimationFrame(Game.processor);
 	}
 
-	public static start(): void {
-		// Integrations
-		Game.report = GamingCanvas.getReport();
-
-		// GameMap
-		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-
-		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
-
-		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-		Game.viewport.apply(Game.camera, false);
-
-		// Report
-		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
-			Game.report = report;
-			Game.reportNew = true;
-
-			CalcBus.outputReport(report);
-			VideoEditorBus.outputReport(report);
-			VideoMainBus.outputReport(report);
-		});
-
-		// Start inputs
-		Game.processorBinder();
-		Game.inputRequest = requestAnimationFrame(Game.processor);
-	}
-
 	private static processor(_: number): void {}
 
 	private static processorBinder(): void {
@@ -943,82 +983,154 @@ export class Game {
 		}, 100);
 
 		const constDataApply = (position: GamingCanvasInputPosition, erase?: boolean) => {
-			map.grid.setBasic(GamingCanvasGridInputToCoordinate(position, viewport), erase === true ? 0 : Game.editorCellValue);
+			const cooridnate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
+
+			if (erase === true) {
+				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
+					map.npc.delete(cooridnate.x * map.grid.sideLength + cooridnate.y);
+				} else {
+					map.grid.setBasic(cooridnate, 0);
+				}
+			} else {
+				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
+					// Character
+					map.npc.set(cooridnate.x * map.grid.sideLength + cooridnate.y, {
+						assetId: Game.editorAssetCharacterId,
+						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
+						cameraPrevious: <GamingCanvasGridICamera>{},
+						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
+						health: 100,
+						id: 0,
+						size: 0.25,
+						timestamp: 0,
+						timestampPrevious: 0,
+						type: Game.editorAssetCharacterType,
+					});
+				} else {
+					// Cell
+					map.grid.setBasic(cooridnate, Game.editorCellValue);
+				}
+			}
+
 			dataUpdated = true;
 		};
 
 		const inspect = (position: GamingCanvasInputPosition) => {
-			const cell: number | undefined = map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
+			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
+				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
-			if (cell === undefined) {
-				return;
-			}
-			const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
-			const assetIdStr: String = String(assetId);
-			let clicked: boolean = false,
-				element: HTMLElement;
+				const characterNPC: CharacterNPC | undefined = map.npc.get(coordinate.x * map.grid.sideLength + coordinate.y);
 
-			// Values
-			Game.editorAssetIdImg = assetId;
-			Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
-
-			// Click associated asset
-			for (element of DOM.elEditorItemsObjects) {
-				if (element.id === assetIdStr) {
-					clicked = true;
-					DOM.elEditorItemActive = undefined;
-					element.click();
-					element.scrollIntoView({ behavior: 'smooth' });
-					break;
+				if (characterNPC === undefined) {
+					return;
 				}
-			}
 
-			if (clicked === false) {
-				// Special
+				// Containers
+				DOM.elEditorProperties.classList.add('character');
+				DOM.elEditorPropertiesCellContainer.style.display = 'none';
+				DOM.elEditorPropertiesCellExtended.style.display = 'none';
+				DOM.elEditorPropertiesCharacterContainer.style.display = 'block';
+				DOM.elEditorPropertiesCommandsCell.style.display = 'none';
+
 				DOM.elButtonApply.click();
+
+				// Asset configuraiton
+				Game.editorAssetCharacterId = characterNPC.assetId;
+				Game.editorAssetCharacterType = characterNPC.type;
+				Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
+
+				DOM.elEditorPropertiesCharacterInputAngle.value = String(
+					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
+				);
+				DOM.elEditorPropertiesCharacterInputDifficulty.value = String(characterNPC.difficulty);
+
+				// Highlighter based on asset
 				Game.editorCellHighlightEnable = true;
-				DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetIdImg)})`;
+				DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
 				DOM.elEdit.style.backgroundColor = '#980066';
-			}
-
-			// Apply
-			DOM.elEditorPropertiesInputExtended.checked = (cell & GameGridCellMasksAndValues.EXTENDED) !== 0;
-
-			if (DOM.elEditorPropertiesInputExtended.checked === true) {
-				DOM.elEditorPropertiesExtended.classList.add('show');
-
-				DOM.elEditorPropertiesExtendedInputDoor.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0;
-				DOM.elEditorPropertiesExtendedInputDoorLocked1.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0;
-				DOM.elEditorPropertiesExtendedInputDoorLocked2.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0;
-				DOM.elEditorPropertiesExtendedInputSwitch.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0;
-				// DOM.elEditorPropertiesExtendedInputTeleport.checked = (cell & GameGridCellMasksAndValuesExtended.TELEPORT) !== 0;
 			} else {
-				DOM.elEditorPropertiesExtended.classList.remove('show');
+				const cell: number | undefined = map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
 
-				for (element of DOM.elEditorPropertiesExtendedInputs) {
-					(<HTMLInputElement>element).checked = false;
+				if (cell === undefined) {
+					return;
 				}
-			}
 
-			DOM.elEditorPropertiesInputFloor.checked = (cell & GameGridCellMasksAndValues.FLOOR) !== 0;
-			DOM.elEditorPropertiesInputLight.checked = (cell & GameGridCellMasksAndValues.LIGHT) !== 0;
-			DOM.elEditorPropertiesInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
+				const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
+				const assetIdStr: String = String(assetId);
+				let clicked: boolean = false,
+					element: HTMLElement;
 
-			if (DOM.elEditorPropertiesInputSpriteFixedH.checked === true) {
-				DOM.elEditorPropertiesInputSpriteFixedV.checked = false;
-			} else {
-				DOM.elEditorPropertiesInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
+				// Values
+				Game.editorAssetIdImg = assetId;
+				Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
+
+				if (cell === GameGridCellMasksAndValues.FLOOR) {
+					// Containers
+					DOM.elEditorProperties.classList.remove('character');
+					DOM.elEditorPropertiesCellContainer.style.display = 'block';
+					DOM.elEditorPropertiesCellExtended.style.display = 'block';
+					DOM.elEditorPropertiesCharacterContainer.style.display = 'none';
+					DOM.elEditorPropertiesCommandsCell.style.display = 'block';
+				} else {
+					// Click associated asset
+					for (element of DOM.elEditorItemsObjects) {
+						if (element.id === assetIdStr) {
+							clicked = true;
+							DOM.elEditorItemActive = undefined;
+							element.click();
+							element.scrollIntoView({ behavior: 'smooth' });
+							break;
+						}
+					}
+				}
+
+				if (clicked === false) {
+					// Special
+					DOM.elButtonApply.click();
+					Game.editorCellHighlightEnable = true;
+					DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetIdImg)})`;
+					DOM.elEdit.style.backgroundColor = '#980066';
+				}
+
+				// Apply
+				DOM.elEditorPropertiesCellInputExtended.checked = (cell & GameGridCellMasksAndValues.EXTENDED) !== 0;
+
+				if (DOM.elEditorPropertiesCellInputExtended.checked === true) {
+					DOM.elEditorPropertiesCellExtended.classList.add('show');
+
+					DOM.elEditorPropertiesCellExtendedInputDoor.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0;
+					DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0;
+					DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0;
+					DOM.elEditorPropertiesCellExtendedInputSwitch.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0;
+					// DOM.elEditorPropertiesCellExtendedInputTeleport.checked = (cell & GameGridCellMasksAndValuesExtended.TELEPORT) !== 0;
+				} else {
+					DOM.elEditorPropertiesCellExtended.classList.remove('show');
+
+					for (element of DOM.elEditorPropertiesCellExtendedInputs) {
+						(<HTMLInputElement>element).checked = false;
+					}
+				}
+
+				DOM.elEditorPropertiesCellInputFloor.checked = (cell & GameGridCellMasksAndValues.FLOOR) !== 0;
+				DOM.elEditorPropertiesCellInputLight.checked = (cell & GameGridCellMasksAndValues.LIGHT) !== 0;
+				DOM.elEditorPropertiesCellInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
+
+				if (DOM.elEditorPropertiesCellInputSpriteFixedH.checked === true) {
+					DOM.elEditorPropertiesCellInputSpriteFixedV.checked = false;
+				} else {
+					DOM.elEditorPropertiesCellInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
+				}
+				DOM.elEditorPropertiesCellInputWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
+				DOM.elEditorPropertiesCellInputWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
+				DOM.elEditorPropertiesCellInputWallMovable.checked = (cell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0;
+				Game.cellApply();
 			}
-			DOM.elEditorPropertiesInputWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
-			DOM.elEditorPropertiesInputWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
-			DOM.elEditorPropertiesInputWallMovable.checked = (cell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0;
-			Game.cellApply();
 		};
 
 		const position = (position: GamingCanvasInputPosition) => {
 			Game.position = GamingCanvasGridInputToCoordinate(position, viewport, Game.position);
-			DOM.elEditorPropertiesOutputIndex.innerText = String((Game.position.x | 0) * Game.map.grid.sideLength + (Game.position.y | 0)).padStart(4, '0');
-			DOM.elEditorPropertiesOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI) | 0}°`;
+			DOM.elEditorPropertiesCellOutputIndex.innerText = String((Game.position.x | 0) * Game.map.grid.sideLength + (Game.position.y | 0)).padStart(4, '0');
+			DOM.elEditorPropertiesCellOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI) | 0}°`;
 		};
 
 		const processor = (timestampNow: number) => {
@@ -1415,7 +1527,7 @@ export class Game {
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.remove('hide');
 			DOM.elEditorProperties.style.display = 'flex';
-			DOM.elEditorPropertiesExtended.classList.remove('show');
+			DOM.elEditorPropertiesCellExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.remove('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
@@ -1430,6 +1542,7 @@ export class Game {
 
 			// Video
 			Settings.singleVideoFeedOverride(true);
+			VideoEditorBus.outputEnable(true);
 		}
 	}
 
@@ -1445,7 +1558,7 @@ export class Game {
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.add('hide');
 			DOM.elEditorProperties.style.display = 'flex';
-			DOM.elEditorPropertiesExtended.classList.remove('show');
+			DOM.elEditorPropertiesCellExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.add('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
@@ -1464,10 +1577,10 @@ export class Game {
 			Game.modeEditType = EditType.PAN_ZOOM;
 
 			let element: HTMLInputElement;
-			for (element of DOM.elEditorPropertiesExtendedInputs) {
+			for (element of DOM.elEditorPropertiesCellExtendedInputs) {
 				element.checked = false;
 			}
-			for (element of DOM.elEditorPropertiesInputs) {
+			for (element of DOM.elEditorPropertiesCellInputs) {
 				element.checked = false;
 			}
 
@@ -1485,6 +1598,7 @@ export class Game {
 				Game.reportNew = true;
 			});
 			Settings.singleVideoFeedOverride(false);
+			VideoEditorBus.outputEnable(false);
 		}
 	}
 }

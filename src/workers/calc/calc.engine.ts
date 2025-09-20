@@ -13,7 +13,13 @@ import {
 	CalcBusOutputCmd,
 	CalcBusOutputPayload,
 } from './calc.model.js';
-import { gameGridCellMaskExtendedDoor, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import {
+	GameDifficulty,
+	gameGridCellMaskExtendedDoor,
+	GameGridCellMasksAndValues,
+	GameGridCellMasksAndValuesExtended,
+	GameMap,
+} from '../../models/game.model.js';
 import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 import {
 	GamingCanvasGridCharacterControl,
@@ -33,7 +39,15 @@ import {
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
-import { AssetIdAudio, AssetIdImg, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from '../../asset-manager.js';
+import {
+	AssetIdAudio,
+	AssetIdImg,
+	AssetIdImgCharacter,
+	AssetIdImgCharacterType,
+	AssetPropertiesAudio,
+	assetsAudio,
+	initializeAssetManager,
+} from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -103,8 +117,10 @@ class CalcEngine {
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
 			ammo: 8,
+			assetId: AssetIdImgCharacter.SUPRISE,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
+			difficulty: GameDifficulty.EASY,
 			health: 100,
 			id: 0,
 			lives: 3,
@@ -115,11 +131,15 @@ class CalcEngine {
 			weapons: [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL],
 			timestamp: 0,
 			timestampPrevious: 0,
+			type: AssetIdImgCharacterType.GUARD,
 		};
+
 		CalcEngine.characterPlayer2 = {
 			ammo: CalcEngine.characterPlayer1.ammo,
+			assetId: CalcEngine.characterPlayer1.assetId,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
+			difficulty: CalcEngine.characterPlayer1.difficulty,
 			health: CalcEngine.characterPlayer1.health,
 			id: 1,
 			lives: 3,
@@ -130,6 +150,7 @@ class CalcEngine {
 			weapons: [...CalcEngine.characterPlayer1.weapons],
 			timestamp: CalcEngine.characterPlayer1.timestamp,
 			timestampPrevious: CalcEngine.characterPlayer1.timestampPrevious,
+			type: CalcEngine.characterPlayer1.type,
 		};
 
 		// Config: Game Map

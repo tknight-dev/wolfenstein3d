@@ -123,7 +123,7 @@ $main-z-index-video-interactive: 50;
 
 		.editor,
 		.error,
-		.editor-find-and-replace,
+		.editor-cell-find-and-replace,
 		.fps,
 		.icons,
 		.meta,
@@ -294,12 +294,15 @@ $main-z-index-video-interactive: 50;
 
 							.image,
 							.input {
+								height: 40px;
+								margin-left: 5px;
+							}
+
+							.image {
 								background-color: rgb(98, 00, 88);
 								border: 1px solid black;
 								box-shadow: 2px 2px 1px 1px rgba(0, 0, 0, 0.25);
 								cursor: pointer;
-								height: 40px;
-								margin-left: 5px;
 								width: 40px;
 							}
 
@@ -318,6 +321,15 @@ $main-z-index-video-interactive: 50;
 
 								.image {
 									box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.25);
+								}
+							}
+
+							&.no-hover {
+								box-shadow: none;
+								cursor: default;
+
+								.image {
+									box-shadow: none;
 								}
 							}
 
@@ -461,16 +473,20 @@ $main-z-index-video-interactive: 50;
 			}
 
 			&.properties {
-				max-height: 550px;
+				max-height: 555px;
 
 				.commands {
-					bottom: 85px;
-					height: 70px;
+					bottom: 90px;
 					height: 40px;
+
+					&.position {
+						bottom: 35px;
+						height: 20px;
+					}
 				}
 
 				.container {
-					bottom: 125px;
+					bottom: 130px;
 
 					.item {
 						height: 40px;
@@ -478,6 +494,29 @@ $main-z-index-video-interactive: 50;
 						.input {
 							height: 30px !important;
 							width: 30px !important;
+						}
+					}
+
+					&.character {
+						display: none;
+					}
+				}
+
+				&.character {
+					max-height: 180px;
+
+					.commands {
+						bottom: 35px;
+					}
+
+					.container {
+						bottom: 55px;
+
+						.item {
+							.input {
+								height: 40px !important;
+								width: 100px !important;
+							}
 						}
 					}
 				}
@@ -497,7 +536,7 @@ $main-z-index-video-interactive: 50;
 			}
 		}
 
-		.editor-find-and-replace {
+		.editor-cell-find-and-replace {
 			align-items: center;
 			background-color: rgba(0, 0, 0, 0.35);
 			bottom: 0;

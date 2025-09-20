@@ -52,69 +52,69 @@
 					<div class="editor hide offset" id="editor">
 						<div class="wrapper">
 							<div class="handle">
-								<div class="arrow" id="editor-handle-arrow">🡠</div>
-								<div class="hide" id="editor-handle-hide">_</div>
+								<div class="arrow" id="editor-cell-handle-arrow">🡠</div>
+								<div class="hide" id="editor-cell-handle-hide">_</div>
 							</div>
-							<div class="container" id="editor-container-characters" style="display:none">
-								<div class="group" id="editor-container-characters-group">
-									<div class="name">Characters</div>
-									<div class="content" id="editor-container-characters-content"></div>
+							<div class="container" id="editor-cell-container-characters" style="display:none">
+								<div class="group" id="editor-cell-container-characters-group">
+									<div class="name">Guard</div>
+									<div class="content" id="editor-cell-container-characters-guard-content"></div>
 								</div>
 							</div>
-							<div class="container" id="editor-container-extended" style="display:none">
-								<div class="group" id="editor-container-extended-group">
+							<div class="container" id="editor-cell-container-extended" style="display:none">
+								<div class="group" id="editor-cell-container-extended-group">
 									<div class="name">Extended</div>
-									<div class="content" id="editor-container-extended-content"></div>
+									<div class="content" id="editor-cell-container-extended-content"></div>
 								</div>
 							</div>
-							<div class="container" id="editor-container-objects">
-								<div class="group" id="editor-container-pickups">
+							<div class="container" id="editor-cell-container-objects">
+								<div class="group" id="editor-cell-container-pickups">
 									<div class="name">Pickups</div>
-									<div class="content" id="editor-container-pickups-content"></div>
+									<div class="content" id="editor-cell-container-pickups-content"></div>
 								</div>
-								<div class="group" id="editor-container-sprites">
+								<div class="group" id="editor-cell-container-sprites">
 									<div class="name">Sprites</div>
-									<div class="content" id="editor-container-sprites-content"></div>
+									<div class="content" id="editor-cell-container-sprites-content"></div>
 								</div>
-								<div class="group" id="editor-container-walls">
+								<div class="group" id="editor-cell-container-walls">
 									<div class="name">Walls</div>
-									<div class="content" id="editor-container-walls-content"></div>
+									<div class="content" id="editor-cell-container-walls-content"></div>
 								</div>
 							</div>
 							<div class="sections">
-								<div class="command clickable" id="editor-section-characters">Characters</div>
-								<div class="command clickable" id="editor-section-extended">Extended</div>
-								<div class="command clickable active" id="editor-section-objects">Obj</div>
+								<div class="command clickable" id="editor-cell-section-characters">Characters</div>
+								<div class="command clickable" id="editor-cell-section-extended">Extended</div>
+								<div class="command clickable active" id="editor-cell-section-objects">Obj</div>
 							</div>
 							<div class="commands">
-								<div class="command clickable" id="editor-command-toggle-find-and-replace">F = Find & Replace</div>
-								<div class="command clickable" id="editor-command-toggle-meta">M = Meta Menu</div>
+								<div class="command clickable" id="editor-cell-command-toggle-find-and-replace">F = Find & Replace</div>
+								<div class="command clickable" id="editor-cell-command-toggle-meta">M = Meta Menu</div>
 							</div>
 						</div>
 					</div>
 					<div class="editor hide left properties" id="editor-properties">
 						<div class="wrapper">
-							<div class="container extended" id="editor-properties-extended">
+							<div class="container extended" id="editor-properties-cell-extended">
 								<div class="group">
 									<div class="content">
-										<label class="item" for="editor-extended-door">
-											<input autocomplete="off" class="input" id="editor-extended-door" name="editor-extended-door" type="checkbox" />
+										<label class="item" for="editor-cell-cell-extended-door">
+											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door" name="editor-cell-cell-extended-door" type="checkbox" />
 											<div class="title">Door</div>
 										</label>
-										<label class="item" for="editor-extended-door-locked1">
-											<input autocomplete="off" class="input" id="editor-extended-door-locked1" name="editor-extended-door-locked1" type="checkbox" />
+										<label class="item" for="editor-cell-cell-extended-door-locked1">
+											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door-locked1" name="editor-cell-cell-extended-door-locked1" type="checkbox" />
 											<div class="title">Door Locked 1</div>
 										</label>
-										<label class="item" for="editor-extended-door-locked2">
-											<input autocomplete="off" class="input" id="editor-extended-door-locked2" name="editor-extended-door-locked2" type="checkbox" />
+										<label class="item" for="editor-cell-cell-extended-door-locked2">
+											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door-locked2" name="editor-cell-cell-extended-door-locked2" type="checkbox" />
 											<div class="title">Door Locked 1</div>
 										</label>
-										<label class="item" for="editor-extended-switch">
-											<input autocomplete="off" class="input" id="editor-extended-switch" name="editor-extended-switch" type="checkbox" />
+										<label class="item" for="editor-cell-extended-switch">
+											<input autocomplete="off" class="input" id="editor-cell-extended-switch" name="editor-cell-extended-switch" type="checkbox" />
 											<div class="title">Switch</div>
 										</label>
-								<!-- 		<label class="item" for="editor-extended-teleport">
-											<input autocomplete="off" class="input" id="editor-extended-teleport" name="editor-extended-teleport" type="checkbox" />
+								<!-- 		<label class="item" for="editor-cell-extended-teleport">
+											<input autocomplete="off" class="input" id="editor-cell-extended-teleport" name="editor-cell-extended-teleport" type="checkbox" />
 											<div class="title">Teleport</div>
 										</label> -->
 									</div>
@@ -124,67 +124,88 @@
 								<div class="arrow" id="editor-properties-handle-arrow">🡢</div>
 								<div class="hide" id="editor-properties-handle-hide">_</div>
 							</div>
-							<div class="container">
+							<div class="container" id="editor-properties-cell-container">
 								<div class="group">
 									<div class="content">
-										<label class="item" for="editor-extended">
-											<input autocomplete="off" class="input" id="editor-extended" name="editor-extended" type="checkbox" />
+										<label class="item" for="editor-cell-extended">
+											<input autocomplete="off" class="input" id="editor-cell-extended" name="editor-cell-extended" type="checkbox" />
 											<div class="title">Extended</div>
 										</label>
-										<label class="item" for="editor-floor">
-											<input autocomplete="off" class="input" id="editor-floor" name="editor-floor" type="checkbox" />
+										<label class="item" for="editor-cell-floor">
+											<input autocomplete="off" class="input" id="editor-cell-floor" name="editor-cell-floor" type="checkbox" />
 											<div class="title">Floor</div>
 										</label>
-										<label class="item" for="editor-light">
-											<input autocomplete="off" class="input" id="editor-light" name="editor-light" type="checkbox" />
+										<label class="item" for="editor-cell-light">
+											<input autocomplete="off" class="input" id="editor-cell-light" name="editor-cell-light" type="checkbox" />
 											<div class="title">Light</div>
 										</label>
-										<label class="item" for="editor-sprite-fixed-ew">
-											<input autocomplete="off" class="input" id="editor-sprite-fixed-ew" name="editor-sprite-fixed-ew" type="checkbox" />
+										<label class="item" for="editor-cell-sprite-fixed-ew">
+											<input autocomplete="off" class="input" id="editor-cell-sprite-fixed-ew" name="editor-cell-sprite-fixed-ew" type="checkbox" />
 											<div class="title">Sprite Fixed East/West</div>
 										</label>
-										<label class="item" for="editor-sprite-fixed-ns">
-											<input autocomplete="off" class="input" id="editor-sprite-fixed-ns" name="editor-sprite-fixed-ns" type="checkbox" />
+										<label class="item" for="editor-cell-sprite-fixed-ns">
+											<input autocomplete="off" class="input" id="editor-cell-sprite-fixed-ns" name="editor-cell-sprite-fixed-ns" type="checkbox" />
 											<div class="title">Sprite Fixed North/South</div>
 										</label>
-										<label class="item" for="editor-wall">
-											<input autocomplete="off" class="input" id="editor-wall" name="editor-wall" type="checkbox" />
+										<label class="item" for="editor-cell-wall">
+											<input autocomplete="off" class="input" id="editor-cell-wall" name="editor-cell-wall" type="checkbox" />
 											<div class="title">Wall</div>
 										</label>
-										<label class="item" for="editor-wall-invisible">
-											<input autocomplete="off" class="input" id="editor-wall-invisible" name="editor-wall-invisible" type="checkbox" />
+										<label class="item" for="editor-cell-wall-invisible">
+											<input autocomplete="off" class="input" id="editor-cell-wall-invisible" name="editor-cell-wall-invisible" type="checkbox" />
 											<div class="title">Wall Invisible</div>
 										</label>
-										<label class="item" for="editor-wall-movable">
-											<input autocomplete="off" class="input" id="editor-wall-movable" name="editor-wall-movable" type="checkbox" />
+										<label class="item" for="editor-cell-wall-movable">
+											<input autocomplete="off" class="input" id="editor-cell-wall-movable" name="editor-cell-wall-movable" type="checkbox" />
 											<div class="title">Wall Movable</div>
 										</label>
 									</div>
 								</div>
 							</div>
-							<div class="commands">
+							<div class="container character" id="editor-properties-character-container">
+								<div class="group">
+									<div class="content">
+										<label class="item no-hover" for="editor-character-angle">
+											<input autocomplete="off" class="input" disabled id="editor-character-angle" name="editor-character-angle" readonly type="text" />
+											<div class="title">Angle</div>
+										</label>
+										<label class="item no-hover" for="editor-character-difficulty">
+											<select autocomplete="off" class="input" id="editor-character-difficulty" name="editor-character-difficulty">
+												<option value="0">Easy</option>
+												<option value="1">Normal</option>
+												<option value="2">Hard</option>
+												<option value="3">Insane</option>
+											</select>
+											<div class="title">Difficulty</div>
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="commands" id="editor-properties-commands-cell">
 								<div class="command">&nbsp;&nbsp;&nbsp;AssetId: 0x<span id="editor-properties-output-assetid">?</span></div>
 								<div class="command">Properties: 0x<span id="editor-properties-output-properties">?</span></div>
 								<div class="command">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Value: 0x<span id="editor-properties-output-value">?</span></div>
-								<div class="command bar-top">Grid Index: <span id="editor-properties-output-index">?</span></div>
+							</div>
+							<div class="commands position">
+								<div class="command">Grid Index: <span id="editor-properties-output-index">?</span></div>
 								<div class="command">&nbsp;&nbsp;Position: <span id="editor-properties-output-position">?</span></div>
 							</div>
 						</div>
 					</div>
-					<div class="editor-find-and-replace" id="editor-find-and-replace">
+					<div class="editor-cell-find-and-replace" id="editor-cell-find-and-replace">
 						<div class="foreground">
 							<table>
 								<tr>
 									<td>Find: 0x</td>
-									<td><input id="editor-find-and-replace-value-find"/></td>
+									<td><input id="editor-cell-find-and-replace-value-find"/></td>
 								</tr>
 								<tr>
 									<td>Replace: 0x</td>
-									<td><input id="editor-find-and-replace-value-replace" /></td>
+									<td><input id="editor-cell-find-and-replace-value-replace" /></td>
 								</tr>
 								<tr>
-									<td><button id="editor-find-and-replace-cancel">Cancel</button></td>
-									<td><button id="editor-find-and-replace-apply">Apply</button></td>
+									<td><button id="editor-cell-find-and-replace-cancel">Cancel</button></td>
+									<td><button id="editor-cell-find-and-replace-apply">Apply</button></td>
 								</tr>
 							</table>
 						</div>
@@ -315,7 +336,7 @@
 									<tbody>
 										<tr>
 											<td>Draw: Grid</td>
-											<td><input autocomplete="off" id="settings-value-editor-draw-grid" type="checkbox" /></td>
+											<td><input autocomplete="off" id="settings-value-editor-cell-draw-grid" type="checkbox" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -323,6 +344,17 @@
 							<div class="body" id="settings-body-game">
 								<table>
 									<tbody>
+										<tr>
+											<td>Difficulty</td>
+											<td>
+												<select autocomplete="off" id="settings-value-game-difficulty">
+													<option value="0">Easy</option>
+													<option value="1">Normal</option>
+													<option value="2">Hard</option>
+													<option value="3">Insane</option>
+												</select>
+											</td>
+										</tr>
 										<tr>
 											<td>Multiplayer</td>
 											<td><input autocomplete="off" id="settings-value-game-multiplayer" type="checkbox" /></td>

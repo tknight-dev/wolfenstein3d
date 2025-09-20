@@ -9,7 +9,7 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
-import { Character, CharacterWeapon } from '../../models/character.model.js';
+import { Character, CharacterNPC, CharacterWeapon } from '../../models/character.model.js';
 import {
 	GamingCanvasGridCamera,
 	GamingCanvasGridICamera,
@@ -17,7 +17,17 @@ import {
 	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
 } from '@tknight-dev/gaming-canvas/grid';
-import { assetsImages, AssetIdImg, assetLoaderImage, AssetPropertiesImage, initializeAssetManager } from '../../asset-manager.js';
+import {
+	AssetIdImg,
+	AssetIdImgCharacter,
+	AssetIdImgCharacterType,
+	assetLoaderImage,
+	assetLoaderImageCharacter,
+	AssetPropertiesImage,
+	assetsImageCharacters,
+	assetsImages,
+	initializeAssetManager,
+} from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -32,6 +42,9 @@ self.onmessage = (event: MessageEvent) => {
 	switch (payload.cmd) {
 		case VideoEditorBusInputCmd.CALCULATIONS:
 			VideoEditorEngine.inputCalculations(<VideoEditorBusInputDataCalculations>payload.data);
+			break;
+		case VideoEditorBusInputCmd.ENABLE:
+			VideoEditorEngine.inputEnable(<boolean>payload.data);
 			break;
 		case VideoEditorBusInputCmd.INIT:
 			VideoEditorEngine.initialize(<VideoEditorBusInputDataInit>payload.data);
@@ -49,11 +62,13 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoEditorEngine {
-	private static assets: Map<AssetIdImg, OffscreenCanvas> = new Map();
+	private static assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = new Map();
+	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoEditorBusInputDataCalculations;
 	private static calculationsNew: boolean;
 	private static characterPlayer1Camera: GamingCanvasGridCamera;
 	private static characterPlayer2Camera: GamingCanvasGridCamera;
+	private static enable: boolean = false;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
@@ -70,11 +85,15 @@ class VideoEditorEngine {
 		let assetCanvas: OffscreenCanvas,
 			assetContext: OffscreenCanvasRenderingContext2D,
 			assetData: ImageBitmap,
+			assetCharacter: AssetIdImgCharacter,
+			assetCharacterType: AssetIdImgCharacterType,
 			assetId: AssetIdImg,
-			assetProperties: AssetPropertiesImage,
-			assetsLoaded: Map<AssetIdImg, ImageBitmap> = <Map<AssetIdImg, ImageBitmap>>await assetLoaderImage();
+			assetImagesLoaded: Map<AssetIdImg, ImageBitmap> = <any>await assetLoaderImage(),
+			assetImageCharactersLoaded: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, ImageBitmap>> = <any>await assetLoaderImageCharacter(),
+			assetImageCharactersLoadedInstance: Map<AssetIdImgCharacter, ImageBitmap>,
+			assetProperties: AssetPropertiesImage;
 
-		for ([assetId, assetData] of assetsLoaded) {
+		for ([assetId, assetData] of assetImagesLoaded) {
 			// Get properties
 			assetProperties = <AssetPropertiesImage>assetsImages.get(assetId);
 
@@ -88,7 +107,30 @@ class VideoEditorEngine {
 				powerPreference: 'high-performance',
 			}) as OffscreenCanvasRenderingContext2D;
 			assetContext.drawImage(assetData, 0, 0);
-			VideoEditorEngine.assets.set(assetId, assetCanvas);
+			VideoEditorEngine.assetImages.set(assetId, assetCanvas);
+		}
+
+		for ([assetCharacterType, assetImageCharactersLoadedInstance] of assetImageCharactersLoaded) {
+			for ([assetCharacter, assetData] of assetImageCharactersLoadedInstance) {
+				// Get properties
+				assetProperties = <AssetPropertiesImage>(<any>assetsImageCharacters.get(assetCharacterType)).get(assetCharacter);
+
+				// Canvas: Regular
+				assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+				assetContext = assetCanvas.getContext('2d', {
+					alpha: assetProperties.alpha,
+					antialias: false,
+					depth: true,
+					desynchronized: true,
+					powerPreference: 'high-performance',
+				}) as OffscreenCanvasRenderingContext2D;
+				assetContext.drawImage(assetData, 0, 0);
+
+				if (VideoEditorEngine.assetImageCharacters.has(assetCharacterType) !== true) {
+					VideoEditorEngine.assetImageCharacters.set(assetCharacterType, new Map());
+				}
+				(<any>VideoEditorEngine.assetImageCharacters.get(assetCharacterType)).set(assetCharacter, assetCanvas);
+			}
 		}
 
 		// Config
@@ -162,6 +204,10 @@ class VideoEditorEngine {
 		VideoEditorEngine.calculationsNew = true;
 	}
 
+	public static inputEnable(enable: boolean): void {
+		VideoEditorEngine.enable = enable;
+	}
+
 	public static inputMap(data: GameMap): void {
 		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
 
@@ -197,8 +243,12 @@ class VideoEditorEngine {
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
 		let assetId: AssetIdImg,
+			assetChracter: AssetIdImgCharacter,
+			assetChracterType: AssetIdImgCharacterType,
+			assetImageCharacterInstance: Map<AssetIdImgCharacter, OffscreenCanvas>,
+			assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = VideoEditorEngine.assetImageCharacters,
+			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoEditorEngine.assetImages,
 			assetInstance: OffscreenCanvas,
-			assets: Map<AssetIdImg, OffscreenCanvas> = VideoEditorEngine.assets,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoEditorEngine.calculations.camera),
 			calculationsGameMode: boolean,
 			calculationsViewport: GamingCanvasGridViewport = GamingCanvasGridViewport.from(VideoEditorEngine.calculations.viewport),
@@ -212,14 +262,19 @@ class VideoEditorEngine {
 			calculationsViewportWidthStartEff: number,
 			calculationsViewportWidthStartPx: number,
 			calculationsViewportWidthStopEff: number,
-			cacheCanvas: Map<number, OffscreenCanvas> = new Map(),
-			cacheCanvasContextOptionsNoAlpha = {
-				alpha: false,
+			cacheCanvasImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = new Map(),
+			cacheCanvasImages: Map<AssetIdImg, OffscreenCanvas> = new Map(),
+			cacheCanvasContextOptionsAlpha = {
+				alpha: true,
 				antialias: false,
 				depth: true,
 				desynchronized: true,
 				powerPreference: 'high-performance',
-				preserveDrawingBuffer: true,
+				preserveDrawingBuffer: false,
+			},
+			cacheCanvasContextOptionsNoAlpha = {
+				...cacheCanvasContextOptionsAlpha,
+				alpha: false,
 			},
 			cacheCanvasGrid: OffscreenCanvas = new OffscreenCanvas(1, 1),
 			cacheCanvasGridContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>cacheCanvasGrid.getContext('2d', {
@@ -234,9 +289,12 @@ class VideoEditorEngine {
 			cacheCanvasGridVContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>(
 				cacheCanvasGridV.getContext('2d', cacheCanvasContextOptionsNoAlpha)
 			),
-			cacheCanvasContext: Map<number, OffscreenCanvasRenderingContext2D> = new Map(),
+			cacheCanvasImageCharactersContext: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvasRenderingContext2D>> = new Map(),
+			cacheCanvasImageCharactersContextInstance: Map<AssetIdImgCharacter, OffscreenCanvasRenderingContext2D> = new Map(),
+			cacheCanvasImagesContext: Map<AssetIdImg, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheCellSizePx: number = -1,
+			characterNPC: CharacterNPC | undefined,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
@@ -245,8 +303,10 @@ class VideoEditorEngine {
 			characterPlayer2YEff: number,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
+			gameMapNPCs: Map<number, CharacterNPC> = VideoEditorEngine.gameMap.npc,
 			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
+			offscreenCanvasInstance: OffscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoEditorEngine.offscreenCanvasContext,
 			offscreenCanvasHeightPx: number = 0,
 			offscreenCanvasHeightPxEff: number = 0,
@@ -268,17 +328,31 @@ class VideoEditorEngine {
 			y: number;
 
 		// Warm cache
-		for (assetId of assets.keys()) {
-			cacheCanvas.set(assetId, new OffscreenCanvas(1, 1));
-			cacheCanvasContextInstance = (<OffscreenCanvas>cacheCanvas.get(assetId)).getContext('2d', {
-				alpha: false,
-				antialias: false,
-				depth: true,
-				desynchronized: true,
-				powerPreference: 'high-performance',
-			}) as OffscreenCanvasRenderingContext2D;
+		for (assetId of assetImages.keys()) {
+			offscreenCanvasInstance = new OffscreenCanvas(1, 1);
 
-			cacheCanvasContext.set(assetId, cacheCanvasContextInstance);
+			cacheCanvasImages.set(assetId, offscreenCanvasInstance);
+			cacheCanvasContextInstance = offscreenCanvasInstance.getContext('2d', cacheCanvasContextOptionsAlpha) as OffscreenCanvasRenderingContext2D;
+
+			cacheCanvasImagesContext.set(assetId, cacheCanvasContextInstance);
+		}
+		for ([assetChracterType, assetImageCharacterInstance] of assetImageCharacters.entries()) {
+			for (assetChracter of assetImageCharacterInstance.keys()) {
+				offscreenCanvasInstance = new OffscreenCanvas(1, 1);
+
+				// Canvas
+				if (cacheCanvasImageCharacters.has(assetChracterType) !== true) {
+					cacheCanvasImageCharacters.set(assetChracterType, new Map());
+				}
+				(<any>cacheCanvasImageCharacters.get(assetChracterType)).set(assetChracter, offscreenCanvasInstance);
+
+				// Context
+				cacheCanvasContextInstance = offscreenCanvasInstance.getContext('2d', cacheCanvasContextOptionsAlpha) as OffscreenCanvasRenderingContext2D;
+				if (cacheCanvasImageCharactersContext.has(assetChracterType) !== true) {
+					cacheCanvasImageCharactersContext.set(assetChracterType, new Map());
+				}
+				(<any>cacheCanvasImageCharactersContext.get(assetChracterType)).set(assetChracter, cacheCanvasContextInstance);
+			}
 		}
 
 		const go = (timestampNow: number) => {
@@ -292,159 +366,180 @@ class VideoEditorEngine {
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
 				frameCount++;
 
-				if (VideoEditorEngine.gameMapNew === true) {
-					VideoEditorEngine.gameMapNew = false;
+				if (VideoEditorEngine.enable === true || true) {
+					if (VideoEditorEngine.gameMapNew === true) {
+						VideoEditorEngine.gameMapNew = false;
 
-					gameMapGridData = VideoEditorEngine.gameMap.grid.data;
-					gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
-				}
-
-				if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
-					VideoEditorEngine.reportNew = false;
-					VideoEditorEngine.settingsNew = false;
-
-					// Calculations
-					if (VideoEditorEngine.calculationsNew === true) {
-						VideoEditorEngine.calculationsNew = false;
-
-						calculationsCamera.decode(VideoEditorEngine.calculations.camera);
-						calculationsGameMode = VideoEditorEngine.calculations.gameMode;
-						calculationsViewport.decode(VideoEditorEngine.calculations.viewport);
-
-						if (VideoEditorEngine.calculations.player1Camera !== undefined) {
-							characterPlayer1.decode(VideoEditorEngine.calculations.player1Camera);
-						}
-						if (VideoEditorEngine.calculations.player2Camera !== undefined) {
-							characterPlayer2.decode(VideoEditorEngine.calculations.player2Camera);
-						}
-
-						// if (calculationsGameMode === true) {
-						// 	characterPlayer1.camera.r = calculationsCamera.r;
-						// 	characterPlayer1.camera.x = calculationsCamera.x;
-						// 	characterPlayer1.camera.y = calculationsCamera.y;
-						// }
-
-						calculationsViewportCellSizePx = calculationsViewport.cellSizePx;
-						calculationsViewportHeightStart = calculationsViewport.heightStart;
-						calculationsViewportHeightStartPx = calculationsViewport.heightStartPx;
-						calculationsViewportWidthStart = calculationsViewport.widthStart;
-						calculationsViewportWidthStartPx = calculationsViewport.widthStartPx;
-
-						renderCellOutlineWidth = Math.max(3, calculationsViewport.cellSizePx / 8);
-						renderCellOutlineOffset = renderCellOutlineWidth / 2;
-
-						characterPlayer1XEff = characterPlayer1.x - calculationsViewportWidthStart;
-						characterPlayer1YEff = characterPlayer1.y - calculationsViewportHeightStart;
-						characterPlayer2XEff = characterPlayer2.x - calculationsViewportWidthStart;
-						characterPlayer2YEff = characterPlayer2.y - calculationsViewportHeightStart;
+						gameMapGridData = VideoEditorEngine.gameMap.grid.data;
+						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
+						gameMapNPCs = VideoEditorEngine.gameMap.npc;
 					}
 
-					// Report
-					report = VideoEditorEngine.report;
-					if (offscreenCanvasHeightPx !== report.canvasHeight || offscreenCanvasWidthPx !== report.canvasWidth) {
-						offscreenCanvasHeightPx = report.canvasHeight;
-						offscreenCanvasWidthPx = report.canvasWidth;
+					if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
+						VideoEditorEngine.reportNew = false;
+						VideoEditorEngine.settingsNew = false;
 
-						offscreenCanvas.height = offscreenCanvasHeightPx;
-						offscreenCanvas.width = offscreenCanvasWidthPx;
-					}
+						// Calculations
+						if (VideoEditorEngine.calculationsNew === true) {
+							VideoEditorEngine.calculationsNew = false;
 
-					// Settings
-					settingsGridDraw = VideoEditorEngine.settings.gridDraw;
-					settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
-					settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
+							calculationsCamera.decode(VideoEditorEngine.calculations.camera);
+							calculationsGameMode = VideoEditorEngine.calculations.gameMode;
+							calculationsViewport.decode(VideoEditorEngine.calculations.viewport);
 
-					if (VideoEditorEngine.settings.antialias === true) {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
-					} else {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
-					}
-
-					// Cache
-					if (cacheCellSizePx !== calculationsViewportCellSizePx) {
-						cacheCellSizePx = calculationsViewportCellSizePx;
-
-						// Assets
-						calculationsViewportCellSizePxEff = calculationsViewportCellSizePx + 1;
-						for ([assetId, cacheCanvasContextInstance] of cacheCanvasContext) {
-							cacheCanvasContextInstance.canvas.height = calculationsViewportCellSizePxEff;
-							cacheCanvasContextInstance.canvas.width = calculationsViewportCellSizePxEff;
-
-							assetInstance = <OffscreenCanvas>assets.get(assetId);
-							cacheCanvasContextInstance.drawImage(
-								assetInstance,
-								0,
-								0,
-								assetInstance.width,
-								assetInstance.height,
-								0,
-								0,
-								calculationsViewportCellSizePxEff,
-								calculationsViewportCellSizePxEff,
-							);
-						}
-
-						// Grid: Cache
-						if (settingsGridDraw === true) {
-							offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
-							offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
-
-							cacheCanvasGridH.height = 1;
-							cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
-							cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
-							cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
-
-							cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
-							cacheCanvasGridV.width = 1;
-							cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
-							cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
-
-							cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
-							cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
-
-							// Grid: Horizontal
-							for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
-								cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
+							if (VideoEditorEngine.calculations.player1Camera !== undefined) {
+								characterPlayer1.decode(VideoEditorEngine.calculations.player1Camera);
 							}
-							// Grid: Vertical
-							for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
-								cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+							if (VideoEditorEngine.calculations.player2Camera !== undefined) {
+								characterPlayer2.decode(VideoEditorEngine.calculations.player2Camera);
 							}
-						}
-					}
-				}
 
-				// Draw: Config
-				// statDrawAvg.watchStart();
-				calculationsViewportHeightStartEff = calculationsViewportHeightStart - 1;
-				calculationsViewportHeightStopEff = calculationsViewport.heightStop + 1;
-				calculationsViewportWidthStartEff = calculationsViewportWidthStart - 1;
-				calculationsViewportWidthStopEff = calculationsViewport.widthStop;
-
-				// console.log(calculationsViewportWidthStartEff, calculationsViewportWidthStopEff);
-
-				// Draw: Clear
-				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-
-				// Draw: Cells
-				for ([i, value] of gameMapGridData.entries()) {
-					x = (i / gameMapGridSideLength) | 0;
-
-					// if (i === 0) {
-					// 	console.log(i, x, calculationsViewportWidthStartEff, calculationsViewportWidthStopEff, value, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
-					// }
-					// console.log(i, x, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
-
-					if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
-						y = i % gameMapGridSideLength;
-
-						if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
-							// if (i === 0) {
-							// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
+							// if (calculationsGameMode === true) {
+							// 	characterPlayer1.camera.r = calculationsCamera.r;
+							// 	characterPlayer1.camera.x = calculationsCamera.x;
+							// 	characterPlayer1.camera.y = calculationsCamera.y;
 							// }
 
-							if (value !== GameGridCellMasksAndValues.NULL) {
-								if (value === GameGridCellMasksAndValues.FLOOR) {
+							calculationsViewportCellSizePx = calculationsViewport.cellSizePx;
+							calculationsViewportHeightStart = calculationsViewport.heightStart;
+							calculationsViewportHeightStartPx = calculationsViewport.heightStartPx;
+							calculationsViewportWidthStart = calculationsViewport.widthStart;
+							calculationsViewportWidthStartPx = calculationsViewport.widthStartPx;
+
+							renderCellOutlineWidth = Math.max(3, calculationsViewport.cellSizePx / 8);
+							renderCellOutlineOffset = renderCellOutlineWidth / 2;
+
+							characterPlayer1XEff = characterPlayer1.x - calculationsViewportWidthStart;
+							characterPlayer1YEff = characterPlayer1.y - calculationsViewportHeightStart;
+							characterPlayer2XEff = characterPlayer2.x - calculationsViewportWidthStart;
+							characterPlayer2YEff = characterPlayer2.y - calculationsViewportHeightStart;
+						}
+
+						// Report
+						report = VideoEditorEngine.report;
+						if (offscreenCanvasHeightPx !== report.canvasHeight || offscreenCanvasWidthPx !== report.canvasWidth) {
+							offscreenCanvasHeightPx = report.canvasHeight;
+							offscreenCanvasWidthPx = report.canvasWidth;
+
+							offscreenCanvas.height = offscreenCanvasHeightPx;
+							offscreenCanvas.width = offscreenCanvasWidthPx;
+						}
+
+						// Settings
+						settingsGridDraw = VideoEditorEngine.settings.gridDraw;
+						settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
+						settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
+
+						if (VideoEditorEngine.settings.antialias === true) {
+							GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+						} else {
+							GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+						}
+
+						// Cache
+						if (cacheCellSizePx !== calculationsViewportCellSizePx) {
+							cacheCellSizePx = calculationsViewportCellSizePx;
+
+							// Assets
+							calculationsViewportCellSizePxEff = calculationsViewportCellSizePx + 1;
+							for ([assetId, cacheCanvasContextInstance] of cacheCanvasImagesContext) {
+								cacheCanvasContextInstance.canvas.height = calculationsViewportCellSizePxEff;
+								cacheCanvasContextInstance.canvas.width = calculationsViewportCellSizePxEff;
+
+								assetInstance = <OffscreenCanvas>assetImages.get(assetId);
+								cacheCanvasContextInstance.drawImage(
+									assetInstance,
+									0,
+									0,
+									assetInstance.width,
+									assetInstance.height,
+									0,
+									0,
+									calculationsViewportCellSizePxEff,
+									calculationsViewportCellSizePxEff,
+								);
+							}
+							for ([assetChracterType, cacheCanvasImageCharactersContextInstance] of cacheCanvasImageCharactersContext) {
+								for ([assetChracter, cacheCanvasContextInstance] of cacheCanvasImageCharactersContextInstance) {
+									cacheCanvasContextInstance.canvas.height = calculationsViewportCellSizePxEff;
+									cacheCanvasContextInstance.canvas.width = calculationsViewportCellSizePxEff;
+
+									assetInstance = <OffscreenCanvas>(<any>assetImageCharacters.get(assetChracterType)).get(assetChracter);
+									cacheCanvasContextInstance.drawImage(
+										assetInstance,
+										0,
+										0,
+										assetInstance.width,
+										assetInstance.height,
+										0,
+										0,
+										calculationsViewportCellSizePxEff,
+										calculationsViewportCellSizePxEff,
+									);
+								}
+							}
+
+							// Grid: Cache
+							if (settingsGridDraw === true) {
+								offscreenCanvasHeightPxEff = offscreenCanvasHeightPx + calculationsViewportCellSizePx * 2;
+								offscreenCanvasWidthPxEff = offscreenCanvasWidthPx + calculationsViewportCellSizePx * 2;
+
+								cacheCanvasGridH.height = 1;
+								cacheCanvasGridH.width = offscreenCanvasWidthPxEff;
+								cacheCanvasGridHContext.fillStyle = 'rgba(255,255,255,0.25)';
+								cacheCanvasGridHContext.fillRect(0, 0, offscreenCanvasWidthPxEff, 1);
+
+								cacheCanvasGridV.height = offscreenCanvasHeightPxEff;
+								cacheCanvasGridV.width = 1;
+								cacheCanvasGridVContext.fillStyle = cacheCanvasGridHContext.fillStyle;
+								cacheCanvasGridVContext.fillRect(0, 0, 1, offscreenCanvasHeightPxEff);
+
+								cacheCanvasGrid.height = offscreenCanvasHeightPxEff;
+								cacheCanvasGrid.width = offscreenCanvasWidthPxEff;
+
+								// Grid: Horizontal
+								for (y = 0; y < offscreenCanvasHeightPxEff; y += calculationsViewportCellSizePx) {
+									cacheCanvasGridContext.drawImage(cacheCanvasGridH, 0, y);
+								}
+								// Grid: Vertical
+								for (x = 0; x < offscreenCanvasWidthPxEff; x += calculationsViewportCellSizePx) {
+									cacheCanvasGridContext.drawImage(cacheCanvasGridV, x, 0);
+								}
+							}
+						}
+					}
+
+					// Draw: Config
+					// statDrawAvg.watchStart();
+					calculationsViewportHeightStartEff = calculationsViewportHeightStart - 1;
+					calculationsViewportHeightStopEff = calculationsViewport.heightStop + 1;
+					calculationsViewportWidthStartEff = calculationsViewportWidthStart - 1;
+					calculationsViewportWidthStopEff = calculationsViewport.widthStop;
+
+					// console.log(calculationsViewportWidthStartEff, calculationsViewportWidthStopEff);
+
+					// Draw: Clear
+					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+					// Draw: Cells
+					for ([i, value] of gameMapGridData.entries()) {
+						x = (i / gameMapGridSideLength) | 0;
+
+						// if (i === 0) {
+						// 	console.log(i, x, calculationsViewportWidthStartEff, calculationsViewportWidthStopEff, value, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
+						// }
+						// console.log(i, x, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
+
+						if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
+							y = i % gameMapGridSideLength;
+
+							if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
+								// if (i === 0) {
+								// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
+								// }
+
+								// Floor
+								if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
 									offscreenCanvasContext.fillStyle = 'black';
 									offscreenCanvasContext.fillRect(
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
@@ -452,104 +547,100 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff,
 										calculationsViewportCellSizePxEff,
 									);
-								} else {
-									if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-										assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
-									} else {
-										assetId = value & GameGridCellMasksAndValues.ID_MASK;
-									}
+								}
 
+								// Character
+								characterNPC = gameMapNPCs.get(i);
+								if (characterNPC !== undefined) {
+									offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
 									offscreenCanvasContext.drawImage(
-										<OffscreenCanvas>cacheCanvas.get(assetId) || testImage,
+										offscreenCanvasInstance,
+										0,
+										0,
+										offscreenCanvasInstance.width,
+										offscreenCanvasInstance.height,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										calculationsViewportCellSizePxEff,
+										calculationsViewportCellSizePxEff,
 									);
 								}
 
-								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
-									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
-									offscreenCanvasContext.strokeStyle = 'white';
-									offscreenCanvasContext.strokeRect(
-										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-									);
+								if (value !== GameGridCellMasksAndValues.NULL) {
+									// Sprite/Wall
+									if (value !== GameGridCellMasksAndValues.FLOOR) {
+										if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+											assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
+										} else {
+											assetId = value & GameGridCellMasksAndValues.ID_MASK;
+										}
+
+										offscreenCanvasContext.drawImage(
+											<OffscreenCanvas>cacheCanvasImages.get(assetId) || testImage,
+											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										);
+									}
+
+									// Extended
+									if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+										offscreenCanvasContext.strokeStyle = 'white';
+										offscreenCanvasContext.strokeRect(
+											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										);
+									}
 								}
 							}
 						}
 					}
-				}
 
-				// Draw: Map - Grid
-				if (settingsGridDraw === true) {
-					offscreenCanvasContext.drawImage(
-						cacheCanvasGrid,
-						-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
-						-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+					// Draw: Map - Grid
+					if (settingsGridDraw === true) {
+						offscreenCanvasContext.drawImage(
+							cacheCanvasGrid,
+							-(calculationsViewportWidthStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+							-(calculationsViewportHeightStartPx % calculationsViewportCellSizePx) - calculationsViewportCellSizePx,
+						);
+					}
+
+					// Draw: Map - Remove Grid Outide of Border
+					offscreenCanvasContext.clearRect(
+						0,
+						(gameMapGridSideLength - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+						offscreenCanvas.width,
+						offscreenCanvas.height,
+					); // Bottom
+					offscreenCanvasContext.clearRect(0, 0, -calculationsViewportWidthStart * calculationsViewportCellSizePx, offscreenCanvas.height); // Left
+					offscreenCanvasContext.clearRect(
+						(gameMapGridSideLength - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+						0,
+						offscreenCanvas.width,
+						offscreenCanvas.height,
+					); // Right
+					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, -calculationsViewportHeightStart * calculationsViewportCellSizePx); // Top
+
+					// Draw: Map - Border
+					offscreenCanvasContext.lineWidth = 5;
+					offscreenCanvasContext.strokeStyle = 'black';
+					offscreenCanvasContext.strokeRect(
+						-calculationsViewportWidthStart * calculationsViewportCellSizePx,
+						-calculationsViewportHeightStart * calculationsViewportCellSizePx,
+						gameMapGridSideLength * calculationsViewportCellSizePx,
+						gameMapGridSideLength * calculationsViewportCellSizePx,
 					);
-				}
 
-				// Draw: Map - Remove Grid Outide of Border
-				offscreenCanvasContext.clearRect(
-					0,
-					(gameMapGridSideLength - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-					offscreenCanvas.width,
-					offscreenCanvas.height,
-				); // Bottom
-				offscreenCanvasContext.clearRect(0, 0, -calculationsViewportWidthStart * calculationsViewportCellSizePx, offscreenCanvas.height); // Left
-				offscreenCanvasContext.clearRect(
-					(gameMapGridSideLength - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-					0,
-					offscreenCanvas.width,
-					offscreenCanvas.height,
-				); // Right
-				offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, -calculationsViewportHeightStart * calculationsViewportCellSizePx); // Top
-
-				// Draw: Map - Border
-				offscreenCanvasContext.lineWidth = 5;
-				offscreenCanvasContext.strokeStyle = 'black';
-				offscreenCanvasContext.strokeRect(
-					-calculationsViewportWidthStart * calculationsViewportCellSizePx,
-					-calculationsViewportHeightStart * calculationsViewportCellSizePx,
-					gameMapGridSideLength * calculationsViewportCellSizePx,
-					gameMapGridSideLength * calculationsViewportCellSizePx,
-				);
-
-				// Draw: Player1 Direction
-				offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
-				offscreenCanvasContext.strokeStyle = 'blue';
-				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.moveTo(characterPlayer1XEff * calculationsViewportCellSizePx, characterPlayer1YEff * calculationsViewportCellSizePx); // Center
-				offscreenCanvasContext.lineTo(
-					calculationsViewportCellSizePx * (Math.sin(characterPlayer1.r) + characterPlayer1XEff),
-					calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1YEff),
-				);
-				offscreenCanvasContext.closePath();
-				offscreenCanvasContext.stroke();
-
-				// Draw: Player2 Position
-				offscreenCanvasContext.fillStyle = 'red';
-				offscreenCanvasContext.beginPath();
-				offscreenCanvasContext.arc(
-					characterPlayer1XEff * calculationsViewportCellSizePx,
-					characterPlayer1YEff * calculationsViewportCellSizePx,
-					calculationsViewportCellSizePx / 4,
-					0,
-					GamingCanvasConstPIDouble,
-				);
-				offscreenCanvasContext.closePath();
-				offscreenCanvasContext.fill();
-
-				if (settingsPlayer2Enabled === true) {
-					// Draw: Player2 Direction
+					// Draw: Player1 Direction
 					offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
-					offscreenCanvasContext.strokeStyle = 'green';
+					offscreenCanvasContext.strokeStyle = 'blue';
 					offscreenCanvasContext.beginPath();
-					offscreenCanvasContext.moveTo(characterPlayer2XEff * calculationsViewportCellSizePx, characterPlayer2YEff * calculationsViewportCellSizePx); // Center
+					offscreenCanvasContext.moveTo(characterPlayer1XEff * calculationsViewportCellSizePx, characterPlayer1YEff * calculationsViewportCellSizePx); // Center
 					offscreenCanvasContext.lineTo(
-						calculationsViewportCellSizePx * (Math.sin(characterPlayer2.r) + characterPlayer2XEff),
-						calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2YEff),
+						calculationsViewportCellSizePx * (Math.sin(characterPlayer1.r) + characterPlayer1XEff),
+						calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1YEff),
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.stroke();
@@ -558,48 +649,78 @@ class VideoEditorEngine {
 					offscreenCanvasContext.fillStyle = 'red';
 					offscreenCanvasContext.beginPath();
 					offscreenCanvasContext.arc(
-						characterPlayer2XEff * calculationsViewportCellSizePx,
-						characterPlayer2YEff * calculationsViewportCellSizePx,
+						characterPlayer1XEff * calculationsViewportCellSizePx,
+						characterPlayer1YEff * calculationsViewportCellSizePx,
 						calculationsViewportCellSizePx / 4,
 						0,
 						GamingCanvasConstPIDouble,
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();
+
+					if (settingsPlayer2Enabled === true) {
+						// Draw: Player2 Direction
+						offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 3;
+						offscreenCanvasContext.strokeStyle = 'green';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(
+							characterPlayer2XEff * calculationsViewportCellSizePx,
+							characterPlayer2YEff * calculationsViewportCellSizePx,
+						); // Center
+						offscreenCanvasContext.lineTo(
+							calculationsViewportCellSizePx * (Math.sin(characterPlayer2.r) + characterPlayer2XEff),
+							calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2YEff),
+						);
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.stroke();
+
+						// Draw: Player2 Position
+						offscreenCanvasContext.fillStyle = 'red';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.arc(
+							characterPlayer2XEff * calculationsViewportCellSizePx,
+							characterPlayer2YEff * calculationsViewportCellSizePx,
+							calculationsViewportCellSizePx / 4,
+							0,
+							GamingCanvasConstPIDouble,
+						);
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.fill();
+					}
+
+					// Draw camera dot
+					if (calculationsGameMode !== true) {
+						// Direction
+						offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
+						offscreenCanvasContext.strokeStyle = 'magenta';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(
+							(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+							(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+						); // Center
+						offscreenCanvasContext.lineTo(
+							calculationsViewportCellSizePx * (Math.sin(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
+							calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
+						);
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.stroke();
+
+						// Position
+						offscreenCanvasContext.fillStyle = 'magenta';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.arc(
+							(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+							(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+							calculationsViewportCellSizePx / 4,
+							0,
+							GamingCanvasConstPIDouble,
+						);
+						offscreenCanvasContext.closePath();
+						offscreenCanvasContext.fill();
+					}
+
+					// statDrawAvg.watchStop();
 				}
-
-				// Draw camera dot
-				if (calculationsGameMode !== true) {
-					// Direction
-					offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
-					offscreenCanvasContext.strokeStyle = 'magenta';
-					offscreenCanvasContext.beginPath();
-					offscreenCanvasContext.moveTo(
-						(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-						(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-					); // Center
-					offscreenCanvasContext.lineTo(
-						calculationsViewportCellSizePx * (Math.sin(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
-						calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
-					);
-					offscreenCanvasContext.closePath();
-					offscreenCanvasContext.stroke();
-
-					// Position
-					offscreenCanvasContext.fillStyle = 'magenta';
-					offscreenCanvasContext.beginPath();
-					offscreenCanvasContext.arc(
-						(calculationsCamera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-						(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-						calculationsViewportCellSizePx / 4,
-						0,
-						GamingCanvasConstPIDouble,
-					);
-					offscreenCanvasContext.closePath();
-					offscreenCanvasContext.fill();
-				}
-
-				// statDrawAvg.watchStop();
 			}
 
 			// Stats: sent once per second

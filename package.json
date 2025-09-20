@@ -1,7 +1,7 @@
 {
     "author": "tknight-dev",
-    "description": "A multithreaded raycast game",
-    "name": "blockenstein",
+    "description": "A multithreaded raycast game in a 2d canvas context",
+    "name": "wolfenstein3d",
     "scripts": {
         "assets:build": "node assets.cjs",
         "assets:watch": "nodemon --ext \"*\" --exec \"node assets.cjs\" --watch assets",

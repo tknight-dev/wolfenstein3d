@@ -1,4 +1,5 @@
 import { GamingCanvasGridUint16Array, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
+import { CharacterNPC } from './character.model.js';
 
 /**
  * @author tknight-dev
@@ -36,13 +37,18 @@ export const gameGridCellMaskExtendedDoor: number =
 
 export const gameGridCellMaskSpriteFixed: number = GameGridCellMasksAndValues.SPRITE_FIXED_EW | GameGridCellMasksAndValues.SPRITE_FIXED_NS;
 
-export interface GameGridExtended {}
-
 /**
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
 	grid: GamingCanvasGridUint16Array;
-	gridExtended: Map<number, GameGridExtended>;
+	npc: Map<number, CharacterNPC>; // number is gridIndex
 	position: GamingCanvasGridICamera;
+}
+
+export enum GameDifficulty {
+	EASY = 0,
+	NORMAL = 1,
+	HARD = 2,
+	INSANE = 3,
 }

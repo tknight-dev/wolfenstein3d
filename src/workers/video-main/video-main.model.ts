@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CalcBusActionDoorState, CalcBusOutputDataActionSwitch, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
@@ -40,6 +40,7 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 
 export interface VideoMainBusInputDataSettings {
 	antialias: boolean;
+	difficulty: GameDifficulty;
 	fov: number;
 	fps: FPS;
 	gamma: number; // 0 - 1 - 2

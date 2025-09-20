@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput } from '../../models/character.model.js';
@@ -57,6 +57,7 @@ export interface CalcBusInputDataPlayerInput {
 export interface CalcBusInputDataSettings {
 	audioNoAction: boolean;
 	audioWallCollisions: boolean;
+	difficulty: GameDifficulty;
 	fov: number;
 	fps: FPS;
 	player2Enable: boolean;

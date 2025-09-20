@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 
@@ -12,6 +12,7 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
  */
 export enum VideoEditorBusInputCmd {
 	CALCULATIONS,
+	ENABLE,
 	INIT,
 	MAP,
 	REPORT,
@@ -37,6 +38,7 @@ export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalc
 
 export interface VideoEditorBusInputDataSettings {
 	antialias: boolean;
+	difficulty: GameDifficulty;
 	gridDraw: boolean;
 	fov: number;
 	fps: FPS;
@@ -45,7 +47,14 @@ export interface VideoEditorBusInputDataSettings {
 
 export interface VideoEditorBusInputPayload {
 	cmd: VideoEditorBusInputCmd;
-	data: GamingCanvasReport | Float64Array | GameMap | VideoEditorBusInputDataCalculations | VideoEditorBusInputDataInit | VideoEditorBusInputDataSettings;
+	data:
+		| boolean
+		| GamingCanvasReport
+		| Float64Array
+		| GameMap
+		| VideoEditorBusInputDataCalculations
+		| VideoEditorBusInputDataInit
+		| VideoEditorBusInputDataSettings;
 }
 
 /*

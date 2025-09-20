@@ -686,7 +686,9 @@ export interface AssetPropertiesAudio extends AssetProperties {
 	volume: number; // 0-1 range for default volume
 }
 
-export interface AssetPropertiesCharacter extends AssetPropertiesImage {}
+export interface AssetPropertiesCharacter extends AssetPropertiesImage {
+	angle?: number;
+}
 
 export interface AssetPropertiesImage extends AssetProperties {
 	alpha: boolean;
@@ -708,7 +710,8 @@ export const assetsImageMenus: Map<AssetIdImgMenu, AssetPropertiesImage> = new M
 export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
 
 export const initializeAssetManager = async (audioOnly?: boolean) => {
-	let cAssetIdImgCharacter: AssetIdImgCharacter,
+	let cAngle: number,
+		cAssetIdImgCharacter: AssetIdImgCharacter,
 		cDir: string,
 		cFilePrefix: string,
 		cHide: boolean,
@@ -834,9 +837,40 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
 				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
 
+				switch (cFilePrefix) {
+					case 'e':
+						cAngle = 0; // 0 deg
+						break;
+					case 'n':
+						cAngle = 1.5708; // 90 deg
+						break;
+					case 'ne':
+						cAngle = 0.7855; // 45 deg
+						break;
+					case 'nw':
+						cAngle = 2.3562; // 135 deg
+						break;
+					case 's':
+						cAngle = 4.7124; // 270 deg
+						break;
+					case 'se':
+						cAngle = 5.4978; // 315 deg
+						break;
+					case 'sw':
+						cAngle = 3.927; // 225 deg
+						break;
+					case 'w':
+						cAngle = 3.1416; // 180 deg
+						break;
+					default:
+						cAngle = -1;
+						break;
+				}
+
 				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
 					cInstance.set(cAssetIdImgCharacter, {
 						alpha: true,
+						angle: cAngle,
 						author: 'Id Software',
 						category: AssetImgCategory.CHARACTER,
 						ext: AssetExtImg.PNG,

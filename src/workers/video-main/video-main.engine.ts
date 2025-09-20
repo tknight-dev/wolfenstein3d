@@ -722,6 +722,7 @@ class VideoMainEngine {
 							/**
 							 * Action: Door
 							 */
+							asset = <any>undefined;
 							renderSpriteFixedDoorOffset = 0;
 							if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
 								actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
@@ -758,8 +759,6 @@ class VideoMainEngine {
 										y += renderSpriteFixedDoorOffset;
 									}
 								}
-							} else {
-								asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 							}
 
 							// The door is wide open
@@ -780,17 +779,21 @@ class VideoMainEngine {
 
 									// Render: Modification based on cell sidedness
 									switch (actionWallState.cellSide) {
-										case GamingCanvasGridRaycastCellSide.EAST:
-											renderGlobalShadow = true;
-											x += renderSpriteFixedWallMovableOffset + 0.5;
+										case GamingCanvasGridRaycastCellSide.EAST: // inv
+											asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+											x += renderSpriteFixedWallMovableOffset - 0.5;
 											break;
 										case GamingCanvasGridRaycastCellSide.NORTH:
-											y -= renderSpriteFixedWallMovableOffset + 0.5;
+											asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+											y -= renderSpriteFixedWallMovableOffset - 0.5; // inv
 											break;
 										case GamingCanvasGridRaycastCellSide.SOUTH:
-											y += renderSpriteFixedWallMovableOffset - 0.5;
+											asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+											y += renderSpriteFixedWallMovableOffset - 0.5; // good
+											renderGlobalShadow = true;
 											break;
-										case GamingCanvasGridRaycastCellSide.WEST:
+										case GamingCanvasGridRaycastCellSide.WEST: // good
+											asset = assetsInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 											x -= renderSpriteFixedWallMovableOffset - 0.5;
 											renderGlobalShadow = true;
 											break;
@@ -903,6 +906,10 @@ class VideoMainEngine {
 
 							// Calc: Width of sprite in pixels
 							renderDistance = ((x * x + y * y) ** 0.5) | 0;
+
+							if (asset === undefined) {
+								asset = assets.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+							}
 
 							for (i = 1; i < renderDistance; i++) {
 								renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right

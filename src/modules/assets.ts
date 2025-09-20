@@ -1,3 +1,4 @@
+import { GamingCanvasGridCamera, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 import {
 	AssetIdAudio,
 	AssetIdImg,
@@ -11,6 +12,7 @@ import {
 	assetLoaderImageMenu,
 	assetLoaderMap,
 } from '../asset-manager.js';
+import { CharacterNPC } from '../models/character.model.js';
 import { GameMap } from '../models/game.model.js';
 
 /**
@@ -28,7 +30,11 @@ export class Assets {
 		Assets.dataAudio = await assetLoaderAudio();
 		Assets.dataImage = <any>await assetLoaderImage(true);
 		Assets.dataImageCharacters = <any>await assetLoaderImageCharacter(true);
+
 		Assets.dataMap = await assetLoaderMap();
+		for (let map of Assets.dataMap.values()) {
+			Assets.parseMap(map);
+		}
 
 		if (Assets.dataImageMenus === undefined) {
 			Assets.dataImageMenus = <any>await assetLoaderImageMenu();
@@ -37,5 +43,22 @@ export class Assets {
 
 	public static async initializeAssetsMenu(): Promise<void> {
 		Assets.dataImageMenus = <any>await assetLoaderImageMenu();
+	}
+
+	public static parseMap(map: GameMap): void {
+		let key: string,
+			npc: Map<number, CharacterNPC> = new Map(),
+			value: CharacterNPC;
+
+		map.grid = GamingCanvasGridUint16Array.from(<Uint16Array>map.grid.data);
+
+		if (map.npc !== undefined) {
+			for ([key, value] of Object.entries(map.npc)) {
+				value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
+
+				npc.set(Number(key), value);
+			}
+		}
+		map.npc = npc;
 	}
 }

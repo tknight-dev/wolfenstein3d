@@ -113,6 +113,13 @@ export class VideoEditorBus {
 		}
 	}
 
+	public static outputEnable(enable: boolean): void {
+		VideoEditorBus.worker.postMessage({
+			cmd: VideoEditorBusInputCmd.ENABLE,
+			data: enable,
+		});
+	}
+
 	public static outputMap(data: GameMap): void {
 		VideoEditorBus.worker.postMessage({
 			cmd: VideoEditorBusInputCmd.MAP,
