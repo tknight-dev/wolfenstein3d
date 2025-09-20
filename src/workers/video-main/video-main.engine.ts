@@ -204,7 +204,7 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		// Config
-		VideoMainEngine.gameMap = Assets.parseMap(data.gameMap);
+		VideoMainEngine.inputMap(data.gameMap);
 		VideoMainEngine.player1 = data.player1;
 
 		// Config: Report
@@ -1093,7 +1093,7 @@ class VideoMainEngine {
 								}
 
 								// Calc: Movement
-								if (renderCharacterNPC.moving === true) {
+								if (renderCharacterNPC.moving !== true) {
 									renderCharacterNPCState = 0;
 								} else {
 									if (renderCharacterNPC.movingRunning === true) {

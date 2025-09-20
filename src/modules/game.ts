@@ -441,6 +441,7 @@ export class Game {
 						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
 					);
 					// DOM.elEditorPropertiesCharacterInputDifficulty.value = String(GameDifficulty.EASY);
+					// DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 					// Highlighter based on asset
 					Game.editorCellHighlightEnable = true;
@@ -791,6 +792,7 @@ export class Game {
 			downMode: boolean,
 			downModeWheel: boolean,
 			elEditStyle: CSSStyleDeclaration = DOM.elEdit.style,
+			id: number,
 			map: GameMap = Game.map,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			modeEdit: boolean = Game.modeEdit,
@@ -981,7 +983,7 @@ export class Game {
 			}
 		}, 100);
 
-		const constDataApply = (position: GamingCanvasInputPosition, erase?: boolean) => {
+		const dataApply = (position: GamingCanvasInputPosition, erase?: boolean) => {
 			const cooridnate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
 			if (erase === true) {
@@ -993,6 +995,11 @@ export class Game {
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					// Character
+					id = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
+					while (idUnique(id) === false) {
+						id = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
+					}
+
 					map.npc.set(cooridnate.x * map.grid.sideLength + cooridnate.y, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
@@ -1000,13 +1007,15 @@ export class Game {
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
 						gridIndex: cooridnate.x * map.grid.sideLength + cooridnate.y,
 						health: 100,
-						id: 0,
+						id: id,
 						size: 0.25,
 						timestamp: 0,
 						timestampPrevious: 0,
 						timestampUnixState: 0,
 						type: Game.editorAssetCharacterType,
 					});
+
+					DOM.elEditorPropertiesCharacterInputId.value = String(id);
 				} else {
 					// Cell
 					map.grid.setBasic(cooridnate, Game.editorCellValue);
@@ -1014,6 +1023,16 @@ export class Game {
 			}
 
 			dataUpdated = true;
+		};
+
+		const idUnique = (id: number): boolean => {
+			let npc: CharacterNPC;
+			for (npc of Game.map.npc.values()) {
+				if (npc.id === id) {
+					return false;
+				}
+			}
+			return true;
 		};
 
 		const inspect = (position: GamingCanvasInputPosition) => {
@@ -1036,7 +1055,7 @@ export class Game {
 				DOM.elButtonApply.click();
 
 				// Asset configuraiton
-				Game.editorAssetCharacterId = characterNPC.assetId;
+				Game.editorAssetCharacterId = <any>characterNPC.assetId;
 				Game.editorAssetCharacterType = characterNPC.type;
 				Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
 
@@ -1044,6 +1063,7 @@ export class Game {
 					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
 				);
 				DOM.elEditorPropertiesCharacterInputDifficulty.value = String(characterNPC.difficulty);
+				DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 				// Highlighter based on asset
 				Game.editorCellHighlightEnable = true;
@@ -1340,10 +1360,10 @@ export class Game {
 							if (down === true) {
 								switch (modeEditType) {
 									case EditType.APPLY:
-										constDataApply(position1);
+										dataApply(position1);
 										break;
 									case EditType.ERASE:
-										constDataApply(position1, true);
+										dataApply(position1, true);
 										break;
 									case EditType.INSPECT:
 										inspect(position1);
@@ -1394,10 +1414,10 @@ export class Game {
 							if (downMode === true) {
 								switch (modeEditType) {
 									case EditType.APPLY:
-										constDataApply(position1);
+										dataApply(position1);
 										break;
 									case EditType.ERASE:
-										constDataApply(position1, true);
+										dataApply(position1, true);
 										break;
 									case EditType.INSPECT:
 										inspect(position1);

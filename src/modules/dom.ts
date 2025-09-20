@@ -85,6 +85,7 @@ export class DOM {
 	public static elEditorPropertiesCharacterContainer: HTMLElement;
 	public static elEditorPropertiesCharacterInputAngle: HTMLInputElement;
 	public static elEditorPropertiesCharacterInputDifficulty: HTMLInputElement;
+	public static elEditorPropertiesCharacterInputId: HTMLInputElement;
 	public static elEditorPropertiesCommandsCell: HTMLElement;
 	public static elEditorPropertiesHandleArrow: HTMLElement;
 	public static elEditorPropertiesHandleHide: HTMLElement;
@@ -284,6 +285,7 @@ export class DOM {
 		DOM.elEditorPropertiesCharacterContainer = <HTMLElement>document.getElementById('editor-properties-character-container');
 		DOM.elEditorPropertiesCharacterInputAngle = <HTMLInputElement>document.getElementById('editor-character-angle');
 		DOM.elEditorPropertiesCharacterInputDifficulty = <HTMLInputElement>document.getElementById('editor-character-difficulty');
+		DOM.elEditorPropertiesCharacterInputId = <HTMLInputElement>document.getElementById('editor-character-id');
 
 		DOM.elEditorPropertiesCommandsCell = <HTMLElement>document.getElementById('editor-properties-commands-cell');
 

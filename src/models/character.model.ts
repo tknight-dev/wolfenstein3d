@@ -1,4 +1,4 @@
-import { GamingCanvasGridCharacter, GamingCanvasGridCharacterInput } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCharacter, GamingCanvasGridCharacterInput, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
 import { GameDifficulty } from './game.model.js';
 import { AssetIdImgCharacter, AssetIdImgCharacterType } from '../asset-manager.js';
 
@@ -41,13 +41,23 @@ export const CharacterMetaEncode = (character: Character): Uint16Array => {
 
 export interface CharacterNPC extends GamingCanvasGridCharacter {
 	assetId: AssetIdImgCharacter;
-	difficulty: GameDifficulty; // int16
-	health: number; // int16
-	id: number; // int16
+	difficulty: GameDifficulty;
+	health: number;
+	id: number;
 	moving?: boolean;
 	movingRunning?: boolean;
-	timestampUnixState: number; //int32
+	timestampUnixState: number;
 	type: AssetIdImgCharacterType;
+}
+
+export interface CharacterNPCUpdate {
+	assetId: AssetIdImgCharacter;
+	camera: GamingCanvasGridICamera;
+	gridIndex: number;
+	id: number;
+	moving?: boolean;
+	movingRunning?: boolean;
+	timestampUnixState: number;
 }
 
 export interface CharacterInput extends GamingCanvasGridCharacterInput {

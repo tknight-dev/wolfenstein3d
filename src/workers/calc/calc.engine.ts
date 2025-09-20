@@ -1,4 +1,4 @@
-import { Character, CharacterInput, CharacterMetaEncode, CharacterWeapon } from '../../models/character.model.js';
+import { Character, CharacterInput, CharacterMetaEncode, CharacterNPC, CharacterWeapon } from '../../models/character.model.js';
 import {
 	CalcBusActionDoorState,
 	CalcBusActionDoorStateAutoCloseDurationInMS,
@@ -158,8 +158,7 @@ class CalcEngine {
 		};
 
 		// Config: Game Map
-		CalcEngine.gameMap = data.gameMap;
-		CalcEngine.gameMap.grid = GamingCanvasGridUint16Array.from(data.gameMap.grid.data);
+		CalcEngine.inputMap(data.gameMap);
 
 		// Config: Report
 		CalcEngine.inputReport(data.report);
@@ -269,6 +268,8 @@ class CalcEngine {
 				factorRotation: 0.00225,
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},
+			characterNPC: CharacterNPC,
+			characterNPCGridIndex: number,
 			characterPlayer1Input: CharacterInput = {
 				action: false,
 				fire: false,
@@ -315,6 +316,8 @@ class CalcEngine {
 			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
 			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
+			gameMapNPC: Map<number, CharacterNPC> = CalcEngine.gameMap.npc,
+			gameMapNPCById: Map<number, CharacterNPC> = new Map(),
 			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
@@ -380,7 +383,7 @@ class CalcEngine {
 			} else if (
 				CalcEngine.characterPlayer1.gridIndex === gridIndex ||
 				CalcEngine.characterPlayer2.gridIndex === gridIndex ||
-				CalcEngine.gameMap.npc.has(gridIndex) === true
+				gameMapNPC.has(gridIndex) === true
 			) {
 				// Someone/something is in the way
 				return;
@@ -665,7 +668,14 @@ class CalcEngine {
 					actionDoors.clear();
 
 					gameMapGrid = CalcEngine.gameMap.grid;
-					((gameMapGridData = CalcEngine.gameMap.grid.data), (gameMapSideLength = CalcEngine.gameMap.grid.sideLength));
+					gameMapGridData = CalcEngine.gameMap.grid.data;
+					gameMapNPC = CalcEngine.gameMap.npc;
+					gameMapSideLength = CalcEngine.gameMap.grid.sideLength;
+
+					gameMapNPCById.clear();
+					for (characterNPC of CalcEngine.gameMap.npc.values()) {
+						gameMapNPCById.set(characterNPC.id, characterNPC);
+					}
 
 					cameraUpdated = true;
 				}
@@ -712,11 +722,11 @@ class CalcEngine {
 				}
 
 				/**
-				 * Calc: Position
+				 * Calc: Game Mode
 				 */
 				if (cameraMode === false) {
 					/**
-					 * Position
+					 * Human - Position
 					 */
 
 					// Player 1: Position
@@ -786,7 +796,7 @@ class CalcEngine {
 					}
 
 					/**
-					 * Action
+					 * Human - Action
 					 */
 					if (characterPlayer1Action === false && characterPlayer1Input.action === true) {
 						cameraInstance = characterPlayer1.camera;
@@ -883,7 +893,7 @@ class CalcEngine {
 					}
 
 					/**
-					 * Pickup
+					 * Human - Pickup
 					 */
 					if (characterPlayer1Changed === true) {
 						characterPlayer1GridIndex = (characterPlayer1.camera.x | 0) * gameMapSideLength + (characterPlayer1.camera.y | 0);
@@ -1044,6 +1054,18 @@ class CalcEngine {
 								gameMapUpdate[gameMapUpdateIndex++] = characterPlayer1GridIndex;
 								gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
 							}
+						}
+					}
+
+					/**
+					 * NPC - Position
+					 */
+					for ([characterNPCGridIndex, characterNPC] of gameMapNPC) {
+						if (characterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
+							// Non-moving state
+						} else {
+							// Moving
+							characterNPC.moving = true;
 						}
 					}
 				} else if (cameraUpdated) {

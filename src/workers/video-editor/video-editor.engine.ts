@@ -135,7 +135,7 @@ class VideoEditorEngine {
 		}
 
 		// Config
-		VideoEditorEngine.gameMap = Assets.parseMap(data.gameMap);
+		VideoEditorEngine.inputMap(data.gameMap);
 
 		// Config: Canvas
 		VideoEditorEngine.offscreenCanvas = data.offscreenCanvas;
