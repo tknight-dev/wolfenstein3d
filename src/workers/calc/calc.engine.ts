@@ -121,6 +121,7 @@ class CalcEngine {
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			difficulty: GameDifficulty.EASY,
+			gridIndex: data.gameMap.position.x * data.gameMap.grid.sideLength + data.gameMap.position.y,
 			health: 100,
 			id: 0,
 			lives: 3,
@@ -140,6 +141,7 @@ class CalcEngine {
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			difficulty: CalcEngine.characterPlayer1.difficulty,
+			gridIndex: CalcEngine.characterPlayer1.gridIndex,
 			health: CalcEngine.characterPlayer1.health,
 			id: 1,
 			lives: 3,
@@ -340,7 +342,8 @@ class CalcEngine {
 
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			let state: CalcBusActionDoorState = <CalcBusActionDoorState>actionDoors.get(gridIndex),
-				durationEff: number;
+				durationEff: number,
+				wait: boolean;
 
 			if (state === undefined) {
 				state = {
@@ -372,6 +375,13 @@ class CalcEngine {
 				state.open = false;
 				state.opening = true;
 				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, gridIndex);
+			} else if (
+				CalcEngine.characterPlayer1.gridIndex === gridIndex ||
+				CalcEngine.characterPlayer2.gridIndex === gridIndex ||
+				CalcEngine.gameMap.npc.has(gridIndex) === true
+			) {
+				// Someone/something is in the way
+				return;
 			} else {
 				// Close Door
 				durationEff = CalcBusActionDoorStateChangeDurationInMS;
@@ -409,27 +419,48 @@ class CalcEngine {
 					state.opening = false;
 					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
 
-					state.timeout = setTimeout(() => {
-						// Auto close
-						state.closing = true;
-						state.open = false;
-						state.opening = false;
-						gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
-
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
-						state.timestampUnix = Date.now();
-
-						state.timeout = setTimeout(() => {
-							// Auto close complete
-							state.closing = false;
-							state.open = false;
-							state.opening = false;
-							state.timestampUnix = Date.now();
-						}, CalcBusActionDoorStateChangeDurationInMS);
-					}, CalcBusActionDoorStateAutoCloseDurationInMS);
+					// Auto close the door
+					actionDoorAutoClose(gridIndex, state);
 				}
 				state.timestampUnix = Date.now();
 			}, durationEff);
+		};
+
+		const actionDoorAutoClose = (gridIndex: number, state: CalcBusActionDoorState) => {
+			state.timeout = setTimeout(() => {
+				if (
+					CalcEngine.characterPlayer1.gridIndex === gridIndex ||
+					CalcEngine.characterPlayer2.gridIndex === gridIndex ||
+					CalcEngine.gameMap.npc.has(gridIndex) === true
+				) {
+					// Someone/something is in the way
+					actionDoorAutoClose(gridIndex, state);
+				} else {
+					state.closing = true;
+					state.open = false;
+					state.opening = false;
+					gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+
+					audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
+					state.timestampUnix = Date.now();
+
+					// Post to other threads
+					CalcEngine.post([
+						{
+							cmd: CalcBusOutputCmd.ACTION_DOOR,
+							data: state,
+						},
+					]);
+
+					state.timeout = setTimeout(() => {
+						// Auto close complete
+						state.closing = false;
+						state.open = false;
+						state.opening = false;
+						state.timestampUnix = Date.now();
+					}, CalcBusActionDoorStateChangeDurationInMS);
+				}
+			}, CalcBusActionDoorStateAutoCloseDurationInMS);
 		};
 
 		const actionSwitch = (gridIndex: number) => {

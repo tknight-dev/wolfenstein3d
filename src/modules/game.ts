@@ -999,6 +999,7 @@ export class Game {
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
+						gridIndex: cooridnate.x * map.grid.sideLength + cooridnate.y,
 						health: 100,
 						id: 0,
 						size: 0.25,

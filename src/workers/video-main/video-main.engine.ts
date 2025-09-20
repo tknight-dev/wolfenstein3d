@@ -227,24 +227,6 @@ class VideoMainEngine {
 				data.open = true;
 				data.opening = false;
 				VideoMainEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
-
-				data.timeout = setTimeout(() => {
-					// Auto close
-					data.closing = true;
-					data.open = false;
-					data.opening = false;
-					VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
-
-					data.timestampUnix = Date.now();
-
-					data.timeout = setTimeout(() => {
-						// Auto close complete
-						data.closing = false;
-						data.open = false;
-						data.opening = false;
-						data.timestampUnix = Date.now();
-					}, CalcBusActionDoorStateChangeDurationInMS);
-				}, CalcBusActionDoorStateAutoCloseDurationInMS);
 			}
 		}, durationEff);
 	}
