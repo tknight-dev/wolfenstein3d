@@ -255,10 +255,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@tknight-dev/gaming-canvas@1.10.2":
-  version "1.10.2"
-  resolved "https://registry.yarnpkg.com/@tknight-dev/gaming-canvas/-/gaming-canvas-1.10.2.tgz#f26cde31a62ba278b2cd00193306e26825200fce"
-  integrity sha512-Y5qQqyKQw5tdTHgHg7D8ICiFfoO2E98A/sNxfibbEXZgAj5ufI9dPp+ZbtyzEoXAlBBi6ZkwW54v0+Xz5LvlNQ==
+"@tknight-dev/gaming-canvas@1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@tknight-dev/gaming-canvas/-/gaming-canvas-1.11.0.tgz#b023d4faa1332456d58c315b2572714bf5fe207b"
+  integrity sha512-UE0278tVfrGbIywSCVngm+fw1ok1wOGvoFnStWNKIENFI30mRe+L5LoZzdzUhHpP0Z4ncwwdTcSMvBVdzipmyw==
 
 abort-controller@^3.0.0:
   version "3.0.0"
