@@ -9,6 +9,7 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { CalcBusOutputDataNPCUpdate } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -123,6 +124,13 @@ export class VideoEditorBus {
 	public static outputMap(data: GameMap): void {
 		VideoEditorBus.worker.postMessage({
 			cmd: VideoEditorBusInputCmd.MAP,
+			data: data,
+		});
+	}
+
+	public static outputNPCUpdate(data: CalcBusOutputDataNPCUpdate): void {
+		VideoEditorBus.worker.postMessage({
+			cmd: VideoEditorBusInputCmd.NPC_UPDATE,
 			data: data,
 		});
 	}

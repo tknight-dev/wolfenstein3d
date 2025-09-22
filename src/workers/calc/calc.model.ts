@@ -2,7 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput } from '../../models/character.model.js';
+import { CharacterInput, CharacterNPC } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -90,6 +90,7 @@ export enum CalcBusOutputCmd {
 	CHARACTER_META,
 	INIT_COMPLETE,
 	MAP_UPDATE,
+	NPC_UPDATE,
 	STATS,
 }
 
@@ -137,6 +138,10 @@ export interface CalcBusOutputDataCalculations {
 	characterPlayer2RaysMapKeysSorted?: Float64Array;
 }
 
+export interface CalcBusOutputDataNPCUpdate {
+	npc: Map<number, CharacterNPC>;
+}
+
 export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
@@ -150,6 +155,7 @@ export interface CalcBusOutputPayload {
 		| CalcBusOutputDataCamera
 		| CalcBusOutputDataCalculations
 		| CalcBusOutputDataCharacterMeta
+		| CalcBusOutputDataNPCUpdate
 		| CalcBusOutputDataStats
 		| Uint16Array;
 }

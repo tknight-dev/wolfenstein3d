@@ -503,7 +503,7 @@ $main-z-index-video-interactive: 50;
 				}
 
 				&.character {
-					max-height: 230px;
+					max-height: 280px;
 
 					.commands {
 						bottom: 35px;
@@ -515,7 +515,7 @@ $main-z-index-video-interactive: 50;
 						.item {
 							.input {
 								height: 40px !important;
-								width: 100px !important;
+								width: 50% !important;
 							}
 						}
 					}

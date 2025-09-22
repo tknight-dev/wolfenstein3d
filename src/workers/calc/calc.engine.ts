@@ -29,6 +29,7 @@ import {
 	GamingCanvasGridRaycastCellSide,
 	GamingCanvasConstPIDouble,
 	GamingCanvasConstPI,
+	GamingCanvasGridCharacterSeen,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
 	GamingCanvasGridCamera,
@@ -117,13 +118,10 @@ class CalcEngine {
 		// Config: Character
 		CalcEngine.characterPlayer1 = {
 			ammo: 8,
-			assetId: AssetIdImgCharacter.SUPRISE,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			difficulty: GameDifficulty.EASY,
 			gridIndex: data.gameMap.position.x * data.gameMap.grid.sideLength + data.gameMap.position.y,
 			health: 100,
-			id: 0,
 			lives: 3,
 			player1: true,
 			score: 0,
@@ -138,13 +136,10 @@ class CalcEngine {
 
 		CalcEngine.characterPlayer2 = {
 			ammo: CalcEngine.characterPlayer1.ammo,
-			assetId: CalcEngine.characterPlayer1.assetId,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			difficulty: CalcEngine.characterPlayer1.difficulty,
 			gridIndex: CalcEngine.characterPlayer1.gridIndex,
 			health: CalcEngine.characterPlayer1.health,
-			id: 1,
 			lives: 3,
 			player1: true,
 			score: CalcEngine.characterPlayer1.score,
@@ -317,7 +312,7 @@ class CalcEngine {
 			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
 			gameMapNPC: Map<number, CharacterNPC> = CalcEngine.gameMap.npc,
-			gameMapNPCById: Map<number, CharacterNPC> = new Map(),
+			gameMapNPCByIdChanged: Map<number, CharacterNPC> = new Map(),
 			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
@@ -671,11 +666,6 @@ class CalcEngine {
 					gameMapGridData = CalcEngine.gameMap.grid.data;
 					gameMapNPC = CalcEngine.gameMap.npc;
 					gameMapSideLength = CalcEngine.gameMap.grid.sideLength;
-
-					gameMapNPCById.clear();
-					for (characterNPC of CalcEngine.gameMap.npc.values()) {
-						gameMapNPCById.set(characterNPC.id, characterNPC);
-					}
 
 					cameraUpdated = true;
 				}
@@ -1060,12 +1050,21 @@ class CalcEngine {
 					/**
 					 * NPC - Position
 					 */
-					for ([characterNPCGridIndex, characterNPC] of gameMapNPC) {
-						if (characterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
-							// Non-moving state
+					if (gameMapNPC.size !== 0) {
+						if (settingsPlayer2Enable === true) {
+							GamingCanvasGridCharacterSeen(
+								[characterPlayer1, characterPlayer2],
+								gameMapNPC.values(),
+								gameMapGrid,
+								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+							);
 						} else {
-							// Moving
-							characterNPC.moving = true;
+							GamingCanvasGridCharacterSeen(
+								[characterPlayer1],
+								gameMapNPC.values(),
+								gameMapGrid,
+								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+							);
 						}
 					}
 				} else if (cameraUpdated) {
@@ -1092,6 +1091,16 @@ class CalcEngine {
 			if (timestampNow - timestampAudio > 20) {
 				audioPostStack = new Array();
 				timestampAudio = timestampNow;
+
+				// TODO DELETE ME DEBUG STUFF
+				CalcEngine.post([
+					{
+						cmd: CalcBusOutputCmd.NPC_UPDATE,
+						data: {
+							npc: gameMapNPC,
+						},
+					},
+				]);
 
 				// Don't update if the players haven't moved
 				if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {

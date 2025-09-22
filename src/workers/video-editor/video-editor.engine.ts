@@ -29,6 +29,7 @@ import {
 	initializeAssetManager,
 } from '../../asset-manager.js';
 import { Assets } from '../../modules/assets.js';
+import { CalcBusOutputDataNPCUpdate } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -53,6 +54,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoEditorBusInputCmd.MAP:
 			VideoEditorEngine.inputMap(<GameMap>payload.data);
 			break;
+		case VideoEditorBusInputCmd.NPC_UPDATE:
+			VideoEditorEngine.inputNPCUpdate(<CalcBusOutputDataNPCUpdate>payload.data);
+			break;
 		case VideoEditorBusInputCmd.REPORT:
 			VideoEditorEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -72,6 +76,8 @@ class VideoEditorEngine {
 	private static enable: boolean = false;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static npcUpdate: CalcBusOutputDataNPCUpdate;
+	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static report: GamingCanvasReport;
@@ -213,6 +219,11 @@ class VideoEditorEngine {
 		VideoEditorEngine.gameMapNew = true;
 	}
 
+	public static inputNPCUpdate(data: CalcBusOutputDataNPCUpdate): void {
+		VideoEditorEngine.npcUpdate = data;
+		VideoEditorEngine.npcUpdateNew = true;
+	}
+
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoEditorEngine.report = report;
 
@@ -292,7 +303,9 @@ class VideoEditorEngine {
 			cacheCanvasImagesContext: Map<AssetIdImg, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheCellSizePx: number = -1,
+			camera: GamingCanvasGridCamera,
 			characterNPC: CharacterNPC | undefined,
+			characterNPCGridIndex: number,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
@@ -302,6 +315,7 @@ class VideoEditorEngine {
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
 			gameMapNPCs: Map<number, CharacterNPC> = VideoEditorEngine.gameMap.npc,
+			gameMapNPCsById: Map<number, CharacterNPC> = new Map(),
 			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
 			offscreenCanvasInstance: OffscreenCanvas,
@@ -324,6 +338,10 @@ class VideoEditorEngine {
 			value: number,
 			x: number,
 			y: number;
+
+		for (characterNPC of gameMapNPCs.values()) {
+			gameMapNPCsById.set(characterNPC.id, characterNPC);
+		}
 
 		// Warm cache
 		for (assetId of assetImages.keys()) {
@@ -371,6 +389,22 @@ class VideoEditorEngine {
 						gameMapGridData = VideoEditorEngine.gameMap.grid.data;
 						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
 						gameMapNPCs = VideoEditorEngine.gameMap.npc;
+
+						gameMapNPCsById.clear();
+						for (characterNPC of gameMapNPCs.values()) {
+							gameMapNPCsById.set(characterNPC.id, characterNPC);
+						}
+					}
+
+					if (VideoEditorEngine.npcUpdateNew === true) {
+						VideoEditorEngine.npcUpdateNew = false;
+
+						for (characterNPC of VideoEditorEngine.npcUpdate.npc.values()) {
+							gameMapNPCs.delete((<any>gameMapNPCsById.get(characterNPC.id)).gridIndex);
+							gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
+
+							gameMapNPCsById.set(characterNPC.id, characterNPC);
+						}
 					}
 
 					if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
@@ -685,6 +719,37 @@ class VideoEditorEngine {
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.fill();
 					}
+
+					// Draw NPC LOS on players
+					// for (characterNPC of gameMapNPCs.values()) {
+					// 	if (characterNPC.playerLOS === undefined) {
+					// 		// console.log('undefined', characterNPC);
+					// 		continue;
+					// 	}
+
+					// 	offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
+					// 	for (i = 0; i < (settingsPlayer2Enabled === true ? 2 : 1); i++) {
+					// 		if (characterNPC.playerLOS[i] === true) {
+					// 			offscreenCanvasContext.strokeStyle = 'green';
+					// 		} else {
+					// 			offscreenCanvasContext.strokeStyle = 'red';
+					// 		}
+
+					// 		offscreenCanvasContext.beginPath();
+					// 		offscreenCanvasContext.moveTo(
+					// 			(characterNPC.camera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+					// 			(characterNPC.camera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+					// 		);
+					// 		offscreenCanvasContext.lineTo(
+					// 			calculationsViewportCellSizePx *
+					// 				(Math.sin(characterNPC.playerAngle[i]) + (characterNPC.camera.x - calculationsViewportWidthStart)),
+					// 			calculationsViewportCellSizePx *
+					// 				(Math.cos(characterNPC.playerAngle[i]) + (characterNPC.camera.y - calculationsViewportHeightStart)),
+					// 		);
+					// 		offscreenCanvasContext.closePath();
+					// 		offscreenCanvasContext.stroke();
+					// 	}
+					// }
 
 					// Draw camera dot
 					if (calculationsGameMode !== true) {

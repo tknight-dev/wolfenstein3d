@@ -24,6 +24,7 @@ import {
 	CalcBusOutputDataAudio,
 	CalcBusOutputDataActionWallMove,
 	CalcBusOutputDataActionSwitch,
+	CalcBusOutputDataNPCUpdate,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -441,6 +442,7 @@ export class Game {
 						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
 					);
 					// DOM.elEditorPropertiesCharacterInputDifficulty.value = String(GameDifficulty.EASY);
+					// DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round(characterNPC.fov * 180 / GamingCanvasConstPI)) + '°';
 					// DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 					// Highlighter based on asset
@@ -943,6 +945,11 @@ export class Game {
 			}
 		});
 
+		// Calc: NPCs
+		CalcBus.setCallbackNPCUpdate((data: CalcBusOutputDataNPCUpdate) => {
+			VideoEditorBus.outputNPCUpdate(data);
+		});
+
 		// Camera
 		setInterval(() => {
 			if (updated === true || updatedR === true || Game.reportNew === true) {
@@ -995,20 +1002,22 @@ export class Game {
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					// Character
-					id = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
-					while (idUnique(id) === false) {
-						id = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
-					}
+					id = cooridnate.x * map.grid.sideLength + cooridnate.y;
 
-					map.npc.set(cooridnate.x * map.grid.sideLength + cooridnate.y, {
+					map.npc.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
 						gridIndex: cooridnate.x * map.grid.sideLength + cooridnate.y,
+						fov: (120 * GamingCanvasConstPI) / 180,
 						health: 100,
 						id: id,
+						playerAngle: [],
+						playerDistance: [],
+						playerLOS: [],
 						size: 0.25,
+						sightDistanceMax: 20,
 						timestamp: 0,
 						timestampPrevious: 0,
 						timestampUnixState: 0,
@@ -1016,6 +1025,7 @@ export class Game {
 					});
 
 					DOM.elEditorPropertiesCharacterInputId.value = String(id);
+					DOM.elEditorPropertiesCharacterInputFOV.value = String(120) + '°';
 				} else {
 					// Cell
 					map.grid.setBasic(cooridnate, Game.editorCellValue);
@@ -1063,6 +1073,7 @@ export class Game {
 					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
 				);
 				DOM.elEditorPropertiesCharacterInputDifficulty.value = String(characterNPC.difficulty);
+				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI)) + '°';
 				DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 				// Highlighter based on asset

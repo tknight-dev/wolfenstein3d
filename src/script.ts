@@ -230,8 +230,8 @@ class Blockenstein {
 							DOM.screenControl(DOM.elScreenTitle);
 							break;
 						case 2:
-							Game.viewEditor();
-							// Game.viewGame();
+							// Game.viewEditor();
+							Game.viewGame();
 							DOM.elScreenActive.style.display = 'none';
 							Game.inputSuspend = false;
 							document.removeEventListener('click', click, true);
