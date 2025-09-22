@@ -9,7 +9,6 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusOutputDataNPCUpdate } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -128,11 +127,14 @@ export class VideoEditorBus {
 		});
 	}
 
-	public static outputNPCUpdate(data: CalcBusOutputDataNPCUpdate): void {
-		VideoEditorBus.worker.postMessage({
-			cmd: VideoEditorBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
+	public static outputNPCUpdate(data: Float32Array[]): void {
+		VideoEditorBus.worker.postMessage(
+			{
+				cmd: VideoEditorBusInputCmd.NPC_UPDATE,
+				data: data,
+			},
+			data.map((array: Float32Array) => array.buffer),
+		);
 	}
 
 	// Non-fixed resolution canvas has changed in size

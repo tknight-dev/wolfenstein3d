@@ -32,12 +32,11 @@ export const CharacterMetaDecode = (data: Uint16Array, character?: Character): C
 	(<Character>character).health = data[1];
 	(<Character>character).lives = data[2];
 	(<Character>character).score = data[3];
-	(<Character>character).timestampUnixState = data[4];
-	(<Character>character).type = data[5];
-	(<Character>character).weapon = data[6];
+	(<Character>character).type = data[4];
+	(<Character>character).weapon = data[5];
 
 	(<Character>character).weapons = [];
-	for (let i = 7; i < data.length; i++) {
+	for (let i = 6; i < data.length; i++) {
 		(<Character>character).weapons.push(data[i]);
 	}
 
@@ -45,16 +44,7 @@ export const CharacterMetaDecode = (data: Uint16Array, character?: Character): C
 };
 
 export const CharacterMetaEncode = (character: Character): Uint16Array => {
-	return Uint16Array.from([
-		character.ammo,
-		character.health,
-		character.lives,
-		character.score,
-		character.timestampUnixState,
-		character.type,
-		character.weapon,
-		...character.weapons,
-	]);
+	return Uint16Array.from([character.ammo, character.health, character.lives, character.score, character.type, character.weapon, ...character.weapons]);
 };
 
 export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
@@ -63,7 +53,18 @@ export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
 	health: number;
 	id: number;
 	moving?: boolean;
-	movingRunning?: boolean;
+	running?: boolean;
+	timestampUnixState: number;
+	type: AssetIdImgCharacterType;
+}
+
+export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
+	assetId: AssetIdImgCharacter;
+	difficulty: GameDifficulty;
+	health: number;
+	id: number;
+	moving?: boolean;
+	running?: boolean;
 	timestampUnixState: number;
 	type: AssetIdImgCharacterType;
 }
@@ -73,9 +74,42 @@ export interface CharacterNPCUpdate {
 	camera: GamingCanvasGridICamera;
 	gridIndex: number;
 	id: number;
+	moving?: boolean;
 	running?: boolean;
 	timestampUnixState: number;
 }
+
+export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: CharacterNPC, timestampUnix: number = Date.now()): void => {
+	character.assetId = data[0] | 0;
+	character.camera.r = data[1];
+	character.camera.x = data[2];
+	character.camera.y = data[3];
+	character.camera.z = data[4];
+	character.gridIndex = data[5] | 0;
+	character.id = data[6] | 0;
+	character.moving = data[7] === 1;
+	character.running = data[8] === 1;
+	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[9];
+};
+
+export const CharacterNPCUpdateDecodeId = (data: Float32Array): number => {
+	return data[6] | 0;
+};
+
+export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate): Float32Array => {
+	return Float32Array.from([
+		update.assetId,
+		update.camera.r,
+		update.camera.x,
+		update.camera.y,
+		update.camera.z,
+		update.gridIndex,
+		update.id,
+		update.moving === true ? 1 : 0,
+		update.running === true ? 1 : 0,
+		update.timestampUnixState & 0xffffff,
+	]);
+};
 
 export interface CharacterInput extends GamingCanvasGridCharacterInput {
 	action: boolean;

@@ -14,7 +14,6 @@ import {
 	CalcBusOutputDataActionWallMove,
 	CalcBusOutputDataCharacterMeta,
 	CalcBusOutputDataActionSwitch,
-	CalcBusOutputDataNPCUpdate,
 } from './calc.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -32,7 +31,7 @@ export class CalcBus {
 	private static callbackCalculations: (data: CalcBusOutputDataCalculations) => void;
 	private static callbackCharacterMeta: (data: CalcBusOutputDataCharacterMeta) => void;
 	private static callbackInitComplete: (status: boolean) => void;
-	private static callbackNPCUpdate: (data: CalcBusOutputDataNPCUpdate) => void;
+	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackStats: (data: CalcBusOutputDataStats) => void;
 	private static worker: Worker;
 
@@ -102,7 +101,7 @@ export class CalcBus {
 						VideoMainBus.outputMapUpdate(<Uint16Array>payload.data);
 						break;
 					case CalcBusOutputCmd.NPC_UPDATE:
-						CalcBus.callbackNPCUpdate(<CalcBusOutputDataNPCUpdate>payload.data);
+						CalcBus.callbackNPCUpdate(<Float32Array[]>payload.data);
 						break;
 					case CalcBusOutputCmd.STATS:
 						CalcBus.callbackStats(<CalcBusOutputDataStats>payload.data);
@@ -198,7 +197,7 @@ export class CalcBus {
 		CalcBus.callbackCharacterMeta = callbackCharacterMeta;
 	}
 
-	public static setCallbackNPCUpdate(callbackNPCUpdate: (data: CalcBusOutputDataNPCUpdate) => void): void {
+	public static setCallbackNPCUpdate(callbackNPCUpdate: (data: Float32Array[]) => void): void {
 		CalcBus.callbackNPCUpdate = callbackNPCUpdate;
 	}
 

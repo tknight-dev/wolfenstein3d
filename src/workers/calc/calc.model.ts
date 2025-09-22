@@ -138,10 +138,6 @@ export interface CalcBusOutputDataCalculations {
 	characterPlayer2RaysMapKeysSorted?: Float64Array;
 }
 
-export interface CalcBusOutputDataNPCUpdate {
-	npc: Map<number, CharacterNPC>;
-}
-
 export interface CalcBusOutputDataStats {}
 
 export interface CalcBusOutputPayload {
@@ -155,7 +151,7 @@ export interface CalcBusOutputPayload {
 		| CalcBusOutputDataCamera
 		| CalcBusOutputDataCalculations
 		| CalcBusOutputDataCharacterMeta
-		| CalcBusOutputDataNPCUpdate
 		| CalcBusOutputDataStats
+		| Float32Array[]
 		| Uint16Array;
 }

@@ -24,7 +24,6 @@ import {
 	CalcBusOutputDataAudio,
 	CalcBusOutputDataActionWallMove,
 	CalcBusOutputDataActionSwitch,
-	CalcBusOutputDataNPCUpdate,
 } from '../workers/calc/calc.model.js';
 import { CalcBus } from '../workers/calc/calc.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -946,7 +945,8 @@ export class Game {
 		});
 
 		// Calc: NPCs
-		CalcBus.setCallbackNPCUpdate((data: CalcBusOutputDataNPCUpdate) => {
+		CalcBus.setCallbackNPCUpdate((data: Float32Array[]) => {
+			VideoMainBus.outputNPCUpdate(data); // Clones
 			VideoEditorBus.outputNPCUpdate(data);
 		});
 

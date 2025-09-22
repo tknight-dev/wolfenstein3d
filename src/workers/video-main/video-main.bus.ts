@@ -189,6 +189,22 @@ export class VideoMainBus {
 		});
 	}
 
+	public static outputNPCUpdate(data: Float32Array[]): void {
+		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
+			return;
+		}
+
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.NPC_UPDATE,
+			data: data,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.NPC_UPDATE,
+			data: data,
+		});
+	}
+
 	public static outputMapUpdate(data: Uint16Array): void {
 		let dataClone: Uint16Array = Uint16Array.from(data);
 

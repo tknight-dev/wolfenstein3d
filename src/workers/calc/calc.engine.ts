@@ -1,4 +1,12 @@
-import { Character, CharacterInput, CharacterMetaEncode, CharacterNPC, CharacterWeapon } from '../../models/character.model.js';
+import {
+	Character,
+	CharacterInput,
+	CharacterMetaEncode,
+	CharacterNPC,
+	CharacterNPCUpdate,
+	CharacterNPCUpdateEncode,
+	CharacterWeapon,
+} from '../../models/character.model.js';
 import {
 	CalcBusActionDoorState,
 	CalcBusActionDoorStateAutoCloseDurationInMS,
@@ -264,7 +272,13 @@ class CalcEngine {
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},
 			characterNPC: CharacterNPC,
+			characterNPCDistance: number,
+			characterNPCId: number,
+			characterNPCPlayerIndex: number,
 			characterNPCGridIndex: number,
+			characterNPCUpdate: Float32Array,
+			characterNPCUpdates: Float32Array[] = [],
+			characterNPCUpdated: Set<number> = new Set(),
 			characterPlayer1Input: CharacterInput = {
 				action: false,
 				fire: false,
@@ -303,6 +317,9 @@ class CalcEngine {
 			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array | undefined,
 			characterPlayer2Raycast: GamingCanvasGridRaycastResult | undefined,
 			characterPlayer2RaycastRays: Float64Array | undefined,
+			characterPlayerMulti: Character[] = [characterPlayer1, characterPlayer2],
+			characterPlayers: Character[],
+			characterPlayerSingle: Character[] = [characterPlayer1],
 			cycleCount: number = 0,
 			cycleMinMs: number = 10,
 			distance: number,
@@ -312,11 +329,12 @@ class CalcEngine {
 			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
 			gameMapNPC: Map<number, CharacterNPC> = CalcEngine.gameMap.npc,
-			gameMapNPCByIdChanged: Map<number, CharacterNPC> = new Map(),
+			gameMapNPCById: Map<number, CharacterNPC> = new Map(),
 			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
+			i: number,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
 				distanceMapEnable: true,
@@ -326,6 +344,8 @@ class CalcEngine {
 			report: GamingCanvasReport = CalcEngine.report,
 			reportOrientation: GamingCanvasOrientation = CalcEngine.report.orientation,
 			reportOrientationForce: boolean = true,
+			scratchMap: Map<number, number> = new Map(),
+			settingsDifficulty: GameDifficulty = CalcEngine.settings.difficulty,
 			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
 			timestampAudio: number = 0,
@@ -333,6 +353,7 @@ class CalcEngine {
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
 			timestampThen: number = 0,
+			timestampUnix: number = Date.now(),
 			x: number,
 			y: number;
 
@@ -367,7 +388,7 @@ class CalcEngine {
 				// Open Door
 
 				if (state.closing === true) {
-					durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - state.timestampUnix);
+					durationEff = CalcBusActionDoorStateChangeDurationInMS - (timestampUnix - state.timestampUnix);
 				} else {
 					durationEff = CalcBusActionDoorStateChangeDurationInMS;
 				}
@@ -395,7 +416,7 @@ class CalcEngine {
 			// Calc: Meta
 			state.cellSide = cellSide;
 			state.gridIndex = gridIndex;
-			state.timestampUnix = Date.now();
+			state.timestampUnix = timestampUnix;
 
 			// Post to other threads
 			CalcEngine.post([
@@ -422,7 +443,7 @@ class CalcEngine {
 					// Auto close the door
 					actionDoorAutoClose(gridIndex, state);
 				}
-				state.timestampUnix = Date.now();
+				state.timestampUnix = timestampUnix;
 			}, durationEff);
 		};
 
@@ -442,7 +463,7 @@ class CalcEngine {
 					gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 
 					audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
-					state.timestampUnix = Date.now();
+					state.timestampUnix = timestampUnix;
 
 					// Post to other threads
 					CalcEngine.post([
@@ -457,7 +478,7 @@ class CalcEngine {
 						state.closing = false;
 						state.open = false;
 						state.opening = false;
-						state.timestampUnix = Date.now();
+						state.timestampUnix = timestampUnix;
 					}, CalcBusActionDoorStateChangeDurationInMS);
 				}
 			}, CalcBusActionDoorStateAutoCloseDurationInMS);
@@ -631,6 +652,11 @@ class CalcEngine {
 			 * Calc
 			 */
 			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta !== 0) {
+				timestampUnix = Date.now();
+			}
+
 			if (timestampDelta > cycleMinMs) {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
@@ -666,6 +692,11 @@ class CalcEngine {
 					gameMapGridData = CalcEngine.gameMap.grid.data;
 					gameMapNPC = CalcEngine.gameMap.npc;
 					gameMapSideLength = CalcEngine.gameMap.grid.sideLength;
+
+					gameMapNPCById.clear();
+					for (characterNPC of gameMapNPC.values()) {
+						gameMapNPCById.set(characterNPC.id, characterNPC);
+					}
 
 					cameraUpdated = true;
 				}
@@ -1052,19 +1083,66 @@ class CalcEngine {
 					 */
 					if (gameMapNPC.size !== 0) {
 						if (settingsPlayer2Enable === true) {
-							GamingCanvasGridCharacterSeen(
-								[characterPlayer1, characterPlayer2],
-								gameMapNPC.values(),
-								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
-							);
+							characterPlayers = characterPlayerMulti;
 						} else {
-							GamingCanvasGridCharacterSeen(
-								[characterPlayer1],
-								gameMapNPC.values(),
-								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
-							);
+							characterPlayers = characterPlayerSingle;
+						}
+
+						// Calc: Angle, Distance, and Line-of-Sight state
+						GamingCanvasGridCharacterSeen(characterPlayers, gameMapNPC.values(), gameMapGrid, GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE);
+
+						for (characterNPC of gameMapNPC.values()) {
+							// characterNPC.difficulty > settingsDifficulty ?
+							if (characterNPC.health === 0) {
+								// Dead men tell no tales
+								continue;
+							}
+
+							// Closest player
+							characterNPCDistance = 999999;
+							for (i = 0; i < characterPlayers.length; i++) {
+								if (characterNPC.playerLOS[i] === true) {
+									if (characterNPC.playerDistance[i] < characterNPCDistance) {
+										characterNPCDistance = characterNPC.playerDistance[i];
+										characterNPCPlayerIndex = i.valueOf();
+									}
+								}
+							}
+
+							if (characterNPC.running === true) {
+								// Enemy contacted
+								switch (characterNPC.assetId) {
+									case AssetIdImgCharacter.AIM:
+										break;
+									case AssetIdImgCharacter.FIRE:
+										break;
+									case AssetIdImgCharacter.HIT:
+										break;
+									case AssetIdImgCharacter.SUPRISE:
+										break;
+								}
+
+								if (characterNPCDistance === 999999) {
+									// Character lost
+									// tmp code here
+									characterNPC.assetId = AssetIdImgCharacter.STAND_E;
+									characterNPC.moving = false;
+									characterNPC.running = false;
+									characterNPC.timestampUnixState = timestampUnix;
+
+									characterNPCUpdated.add(characterNPC.id);
+								}
+							} else if (characterNPC.moving === true) {
+								// Patrol
+							} else if (characterNPCDistance !== 999999) {
+								// Enemy contact!
+								characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
+								characterNPC.moving = true;
+								characterNPC.running = true;
+								characterNPC.timestampUnixState = timestampUnix;
+
+								characterNPCUpdated.add(characterNPC.id);
+							}
 						}
 					}
 				} else if (cameraUpdated) {
@@ -1091,16 +1169,6 @@ class CalcEngine {
 			if (timestampNow - timestampAudio > 20) {
 				audioPostStack = new Array();
 				timestampAudio = timestampNow;
-
-				// TODO DELETE ME DEBUG STUFF
-				CalcEngine.post([
-					{
-						cmd: CalcBusOutputCmd.NPC_UPDATE,
-						data: {
-							npc: gameMapNPC,
-						},
-					},
-				]);
 
 				// Don't update if the players haven't moved
 				if (characterPlayer1RaycastRays !== undefined || characterPlayer2RaycastRays !== undefined) {
@@ -1289,6 +1357,44 @@ class CalcEngine {
 							},
 						],
 						[gameMapUpdateEncoded.buffer],
+					);
+				}
+
+				// NPC
+				if (characterNPCUpdated.size !== 0) {
+					buffers.length = 0;
+					characterNPCUpdates.length = 0;
+
+					for (characterNPCId of characterNPCUpdated) {
+						characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
+
+						characterNPCUpdate = CharacterNPCUpdateEncode({
+							assetId: characterNPC.assetId,
+							camera: {
+								r: characterNPC.camera.r,
+								x: characterNPC.camera.x,
+								y: characterNPC.camera.y,
+								z: characterNPC.camera.z,
+							},
+							gridIndex: characterNPC.gridIndex,
+							id: characterNPC.id,
+							moving: characterNPC.moving === true ? true : undefined,
+							running: characterNPC.running === true ? true : undefined,
+							timestampUnixState: characterNPC.timestampUnixState,
+						});
+						characterNPCUpdates.push(characterNPCUpdate);
+
+						buffers.push(characterNPCUpdate.buffer);
+					}
+
+					CalcEngine.post(
+						[
+							{
+								cmd: CalcBusOutputCmd.NPC_UPDATE,
+								data: characterNPCUpdates,
+							},
+						],
+						buffers,
 					);
 				}
 			}

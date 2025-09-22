@@ -61,7 +61,7 @@ import {
 	CalcBusOutputDataActionSwitch,
 	CalcBusOutputDataActionWallMove,
 } from '../calc/calc.model.js';
-import { CharacterNPC } from '../../models/character.model.js';
+import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
 import { Assets } from '../../modules/assets.js';
 
 /**
@@ -96,6 +96,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.MAP_UPDATE:
 			VideoMainEngine.inputMapUpdate(<Uint16Array>payload.data);
 			break;
+		case VideoMainBusInputCmd.NPC_UPDATE:
+			VideoMainEngine.inputNPCUpdate(<Float32Array[]>payload.data);
+			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -117,6 +120,8 @@ class VideoMainEngine {
 	private static gameMapNew: boolean;
 	private static gameMapUpdate: Uint16Array;
 	private static gameMapUpdateNew: boolean;
+	private static npcUpdate: Float32Array[];
+	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
@@ -357,6 +362,11 @@ class VideoMainEngine {
 		VideoMainEngine.gameMapUpdateNew = true;
 	}
 
+	public static inputNPCUpdate(data: Float32Array[]): void {
+		VideoMainEngine.npcUpdate = data;
+		VideoMainEngine.npcUpdateNew = true;
+	}
+
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
 
@@ -398,6 +408,9 @@ class VideoMainEngine {
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
 			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
 			calculationsRaysMapKeysSorted: Float64Array = VideoMainEngine.calculations.raysMapKeysSorted,
+			characterNPC: CharacterNPC,
+			characterNPCId: number,
+			characterNPCUpdateEncoded: Float32Array,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeightSplit,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
@@ -411,6 +424,7 @@ class VideoMainEngine {
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
 			gameMapNPC: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npc,
+			gameMapNPCsById: Map<number, CharacterNPC> = new Map(),
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
@@ -509,6 +523,11 @@ class VideoMainEngine {
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
 					gameMapNPC = VideoMainEngine.gameMap.npc;
+
+					gameMapNPCsById.clear();
+					for (characterNPC of gameMapNPC.values()) {
+						gameMapNPCsById.set(characterNPC.id, characterNPC);
+					}
 				}
 
 				if (VideoMainEngine.gameMapUpdateNew === true) {
@@ -517,6 +536,25 @@ class VideoMainEngine {
 					gameMapUpdate = VideoMainEngine.gameMapUpdate;
 					for (i = 0; i < gameMapUpdate.length; i += 2) {
 						gameMapGridData[gameMapUpdate[i]] = gameMapUpdate[i + 1];
+					}
+				}
+
+				if (VideoMainEngine.npcUpdateNew === true) {
+					VideoMainEngine.npcUpdateNew = false;
+
+					for (characterNPCUpdateEncoded of VideoMainEngine.npcUpdate) {
+						// Reference
+						characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
+						characterNPC = <CharacterNPC>gameMapNPCsById.get(characterNPCId);
+
+						// Prepare
+						gameMapNPC.delete(characterNPC.gridIndex);
+
+						// Update
+						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
+
+						// Apply
+						gameMapNPC.set(characterNPC.gridIndex, characterNPC);
 					}
 				}
 
@@ -1096,7 +1134,7 @@ class VideoMainEngine {
 								if (renderCharacterNPC.moving !== true) {
 									renderCharacterNPCState = 0;
 								} else {
-									if (renderCharacterNPC.movingRunning === true) {
+									if (renderCharacterNPC.running === true) {
 										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
 									} else {
 										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;

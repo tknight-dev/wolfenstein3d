@@ -9,7 +9,14 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
-import { Character, CharacterNPC, CharacterWeapon } from '../../models/character.model.js';
+import {
+	Character,
+	CharacterNPC,
+	CharacterNPCUpdate,
+	CharacterNPCUpdateDecodeAndApply,
+	CharacterNPCUpdateDecodeId,
+	CharacterWeapon,
+} from '../../models/character.model.js';
 import {
 	GamingCanvasGridCamera,
 	GamingCanvasGridICamera,
@@ -29,7 +36,6 @@ import {
 	initializeAssetManager,
 } from '../../asset-manager.js';
 import { Assets } from '../../modules/assets.js';
-import { CalcBusOutputDataNPCUpdate } from '../calc/calc.model.js';
 
 /**
  * @author tknight-dev
@@ -55,7 +61,7 @@ self.onmessage = (event: MessageEvent) => {
 			VideoEditorEngine.inputMap(<GameMap>payload.data);
 			break;
 		case VideoEditorBusInputCmd.NPC_UPDATE:
-			VideoEditorEngine.inputNPCUpdate(<CalcBusOutputDataNPCUpdate>payload.data);
+			VideoEditorEngine.inputNPCUpdate(<Float32Array[]>payload.data);
 			break;
 		case VideoEditorBusInputCmd.REPORT:
 			VideoEditorEngine.inputReport(<GamingCanvasReport>payload.data);
@@ -76,7 +82,7 @@ class VideoEditorEngine {
 	private static enable: boolean = false;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
-	private static npcUpdate: CalcBusOutputDataNPCUpdate;
+	private static npcUpdate: Float32Array[];
 	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
@@ -219,7 +225,7 @@ class VideoEditorEngine {
 		VideoEditorEngine.gameMapNew = true;
 	}
 
-	public static inputNPCUpdate(data: CalcBusOutputDataNPCUpdate): void {
+	public static inputNPCUpdate(data: Float32Array[]): void {
 		VideoEditorEngine.npcUpdate = data;
 		VideoEditorEngine.npcUpdateNew = true;
 	}
@@ -306,6 +312,9 @@ class VideoEditorEngine {
 			camera: GamingCanvasGridCamera,
 			characterNPC: CharacterNPC | undefined,
 			characterNPCGridIndex: number,
+			characterNPCId: number,
+			characterNPCUpdate: CharacterNPCUpdate = <any>{},
+			characterNPCUpdateEncoded: Float32Array,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
@@ -335,6 +344,7 @@ class VideoEditorEngine {
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
+			timestampUnix: number = Date.now(),
 			value: number,
 			x: number,
 			y: number;
@@ -377,6 +387,11 @@ class VideoEditorEngine {
 
 			// Main code
 			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta !== 0) {
+				timestampUnix = Date.now();
+			}
+
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
@@ -399,11 +414,19 @@ class VideoEditorEngine {
 					if (VideoEditorEngine.npcUpdateNew === true) {
 						VideoEditorEngine.npcUpdateNew = false;
 
-						for (characterNPC of VideoEditorEngine.npcUpdate.npc.values()) {
-							gameMapNPCs.delete((<any>gameMapNPCsById.get(characterNPC.id)).gridIndex);
-							gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
+						for (characterNPCUpdateEncoded of VideoEditorEngine.npcUpdate) {
+							// Reference
+							characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
+							characterNPC = <CharacterNPC>gameMapNPCsById.get(characterNPCId);
 
-							gameMapNPCsById.set(characterNPC.id, characterNPC);
+							// Prepare
+							gameMapNPCs.delete(characterNPC.gridIndex);
+
+							// Update
+							CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
+
+							// Apply
+							gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
 						}
 					}
 
