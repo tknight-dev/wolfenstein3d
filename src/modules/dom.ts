@@ -41,12 +41,11 @@ export class DOM {
 	public static elEditorContainerObjects: HTMLElement;
 	public static elEditorContainerObjectsPickups: HTMLElement;
 	public static elEditorContainerObjectsPickupsContent: HTMLElement;
-	public static elEditorContainerObjectsExtended: HTMLElement;
-	public static elEditorContainerObjectsExtendedContent: HTMLElement;
 	public static elEditorContainerObjectsSprites: HTMLElement;
 	public static elEditorContainerObjectsSpritesContent: HTMLElement;
 	public static elEditorContainerObjectsWalls: HTMLElement;
 	public static elEditorContainerObjectsWallsContent: HTMLElement;
+	public static elEditorContainerObjectsWaypointsContent: HTMLElement;
 	public static elEditorContainerExtended: HTMLElement;
 	public static elEditorContainerExtendedContent: HTMLElement;
 	public static elEditorFindAndReplace: HTMLElement;
@@ -92,7 +91,7 @@ export class DOM {
 	public static elEditorPropertiesHandleHide: HTMLElement;
 	public static elEditorSectionCharacters: HTMLElement;
 	public static elEditorSectionObjects: HTMLElement;
-	public static elEditorSectionSpecial: HTMLElement;
+	public static elEditorSectionExtended: HTMLElement;
 	public static elError: HTMLElement;
 	public static elFile: HTMLElement;
 	public static elGame: HTMLElement;
@@ -189,14 +188,13 @@ export class DOM {
 		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-cell-container-objects');
 		DOM.elEditorContainerObjectsPickups = <HTMLElement>document.getElementById('editor-cell-container-pickups');
 		DOM.elEditorContainerObjectsPickupsContent = <HTMLElement>document.getElementById('editor-cell-container-pickups-content');
-		DOM.elEditorContainerObjectsExtended = <HTMLElement>document.getElementById('editor-cell-container-extended');
-		DOM.elEditorContainerObjectsExtendedContent = <HTMLElement>document.getElementById('editor-cell-container-extended-content');
 		DOM.elEditorContainerObjectsSprites = <HTMLElement>document.getElementById('editor-cell-container-sprites');
 		DOM.elEditorContainerObjectsSpritesContent = <HTMLElement>document.getElementById('editor-cell-container-sprites-content');
 		DOM.elEditorContainerObjectsWalls = <HTMLElement>document.getElementById('editor-cell-container-walls');
 		DOM.elEditorContainerObjectsWallsContent = <HTMLElement>document.getElementById('editor-cell-container-walls-content');
+		DOM.elEditorContainerObjectsWaypointsContent = <HTMLElement>document.getElementById('editor-cell-container-waypoints-content');
 		DOM.elEditorContainerExtended = <HTMLElement>document.getElementById('editor-cell-container-extended');
-		DOM.elEditorContainerExtendedContent = <HTMLElement>document.getElementById('editor-cell-container-extended-content');
+		DOM.elEditorContainerExtendedContent = <HTMLElement>document.getElementById('editor-cell-container-interactive-content');
 
 		DOM.elEditorHandleArrow = <HTMLElement>document.getElementById('editor-cell-handle-arrow');
 		DOM.elEditorHandleArrow.onclick = () => {
@@ -329,7 +327,7 @@ export class DOM {
 
 		DOM.elEditorSectionCharacters = <HTMLElement>document.getElementById('editor-cell-section-characters');
 		DOM.elEditorSectionObjects = <HTMLElement>document.getElementById('editor-cell-section-objects');
-		DOM.elEditorSectionSpecial = <HTMLElement>document.getElementById('editor-cell-section-extended');
+		DOM.elEditorSectionExtended = <HTMLElement>document.getElementById('editor-cell-section-extended');
 
 		DOM.elError = <HTMLElement>document.getElementById('error');
 		DOM.elFile = <HTMLElement>document.getElementById('file');
@@ -437,6 +435,7 @@ export class DOM {
 				switch (characterType) {
 					case AssetIdImgCharacterType.GUARD:
 						elementContainer = DOM.elEditorContainerCharactersGuardContent;
+						break;
 				}
 
 				elementContent = document.createElement('div');
@@ -470,6 +469,9 @@ export class DOM {
 					continue;
 				case AssetImgCategory.EXTENDED:
 					elementContainer = DOM.elEditorContainerExtendedContent;
+					break;
+				case AssetImgCategory.WAYPOINT:
+					elementContainer = DOM.elEditorContainerObjectsWaypointsContent;
 					break;
 				case AssetImgCategory.LIGHT:
 				case AssetImgCategory.SPRITE:

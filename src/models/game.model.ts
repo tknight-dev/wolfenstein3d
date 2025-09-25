@@ -10,7 +10,7 @@ import { CharacterNPC } from './character.model.js';
  */
 export enum GameGridCellMasksAndValues {
 	BLOCKING_MASK_ALL = 0x2000 | 0x4000 | 0x8000,
-	BLOCKING_MASK_VISIBLE = 0x2000,
+	BLOCKING_MASK_VISIBLE = 0x2000 | 0x8000,
 	FLOOR = 0x0100,
 	EXTENDED = 0x0200, // asset id is now also a reference to an object
 	ID_MASK = 0x00ff, // 255 possible
@@ -42,7 +42,7 @@ export const gameGridCellMaskSpriteFixed: number = GameGridCellMasksAndValues.SP
  */
 export interface GameMap {
 	grid: GamingCanvasGridUint16Array;
-	npc: Map<number, CharacterNPC>; // number is gridIndex
+	npc: Map<number, CharacterNPC>; // number is id
 	position: GamingCanvasGridICamera;
 }
 

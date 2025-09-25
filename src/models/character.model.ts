@@ -52,21 +52,24 @@ export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
 	difficulty: GameDifficulty;
 	health: number;
 	id: number;
-	moving?: boolean;
 	running?: boolean;
+	runningSpeed: number;
 	timestampUnixState: number;
 	type: AssetIdImgCharacterType;
+	walking?: boolean;
+	walkingSpeed: number;
 }
 
-export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
-	assetId: AssetIdImgCharacter;
-	difficulty: GameDifficulty;
-	health: number;
-	id: number;
-	moving?: boolean;
-	running?: boolean;
-	timestampUnixState: number;
-	type: AssetIdImgCharacterType;
+export enum CharacterNPCState {
+	AIM,
+	HIT,
+	RUNNING,
+	RUNNING_DOOR,
+	FIRE,
+	STANDING,
+	SURPRISE,
+	WALKING,
+	WALKING_DOOR,
 }
 
 export interface CharacterNPCUpdate {
@@ -74,9 +77,9 @@ export interface CharacterNPCUpdate {
 	camera: GamingCanvasGridICamera;
 	gridIndex: number;
 	id: number;
-	moving?: boolean;
 	running?: boolean;
 	timestampUnixState: number;
+	walking?: boolean;
 }
 
 export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: CharacterNPC, timestampUnix: number = Date.now()): void => {
@@ -87,9 +90,9 @@ export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: 
 	character.camera.z = data[4];
 	character.gridIndex = data[5] | 0;
 	character.id = data[6] | 0;
-	character.moving = data[7] === 1;
-	character.running = data[8] === 1;
-	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[9];
+	character.running = data[7] === 1;
+	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[8];
+	character.walking = data[9] === 1;
 };
 
 export const CharacterNPCUpdateDecodeId = (data: Float32Array): number => {
@@ -105,9 +108,9 @@ export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate): Float32Arr
 		update.camera.z,
 		update.gridIndex,
 		update.id,
-		update.moving === true ? 1 : 0,
 		update.running === true ? 1 : 0,
 		update.timestampUnixState & 0xffffff,
+		update.walking === true ? 1 : 0,
 	]);
 };
 

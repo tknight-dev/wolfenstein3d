@@ -414,6 +414,14 @@ export enum AssetIdAudio {
 
 export enum AssetIdImg {
 	NULL = 0,
+	MISC_ARROW_EAST = 64,
+	MISC_ARROW_NORTH = 65,
+	MISC_ARROW_NORTH_EAST = 66,
+	MISC_ARROW_NORTH_WEST = 67,
+	MISC_ARROW_SOUTH = 68,
+	MISC_ARROW_SOUTH_EAST = 69,
+	MISC_ARROW_SOUTH_WEST = 70,
+	MISC_ARROW_WEST = 71,
 	SPRITE_ELEVATOR_DOOR = 1, // Extended AssetId
 	SPRITE_METAL_DOOR = 2, // Extended AssetId
 	SPRITE_METAL_DOOR_LOCKED = 3, // Extended AssetId
@@ -670,6 +678,7 @@ export enum AssetImgCategory {
 	SPRITE_PICKUP,
 	WALL,
 	WEAPON,
+	WAYPOINT,
 }
 
 interface AssetProperties {
@@ -1193,6 +1202,66 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	if (audioOnly !== true) {
+		/**
+		 * Waypoints
+		 */
+		assetsImages.set(AssetIdImg.MISC_ARROW_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_e.png',
+			title: 'Arrow (East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_n.png',
+			title: 'Arrow (North)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_ne.png',
+			title: 'Arrow (North East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_nw.png',
+			title: 'Arrow (North West)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_s.png',
+			title: 'Arrow (South)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_se.png',
+			title: 'Arrow (South East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_sw.png',
+			title: 'Arrow (South West)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_w.png',
+			title: 'Arrow (West)',
+		});
+
 		/**
 		 * Assets: Images - Sprites
 		 */

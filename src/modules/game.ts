@@ -35,7 +35,7 @@ import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import {
 	GamingCanvas,
 	GamingCanvasAudioType,
-	GamingCanvasConstPI,
+	GamingCanvasConstPI_1_00,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
 	GamingCanvasInputGamepad,
@@ -82,8 +82,8 @@ enum EditType {
 export class Game {
 	public static camera: GamingCanvasGridCamera;
 	public static editorAssetIdImg: number = 0;
-	public static editorAssetCharacterId: number = 0;
-	public static editorAssetCharacterType: number = 0;
+	public static editorAssetCharacterId: AssetIdImgCharacter = 0;
+	public static editorAssetCharacterType: AssetIdImgCharacterType = 0;
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorAssetPropertiesCharacter: AssetPropertiesCharacter;
 	public static editorCellHighlightEnable: boolean;
@@ -438,10 +438,10 @@ export class Game {
 					Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
 
 					DOM.elEditorPropertiesCharacterInputAngle.value = String(
-						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
+						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_00),
 					);
 					// DOM.elEditorPropertiesCharacterInputDifficulty.value = String(GameDifficulty.EASY);
-					// DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round(characterNPC.fov * 180 / GamingCanvasConstPI)) + '°';
+					// DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round(characterNPC.fov * 180 / GamingCanvasConstPI_1_00)) + '°';
 					// DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 					// Highlighter based on asset
@@ -502,15 +502,21 @@ export class Game {
 							}
 							break;
 						case AssetImgCategory.LIGHT:
+							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							DOM.elEditorPropertiesCellInputLight.checked = true;
 							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.SPRITE:
 						case AssetImgCategory.SPRITE_PICKUP:
+							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.WALL:
 							DOM.elEditorPropertiesCellInputWall.checked = true;
+							DOM.elEditorPropertiesCellExtended.classList.remove('show');
+							break;
+						case AssetImgCategory.WAYPOINT:
+							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 					}
@@ -529,33 +535,33 @@ export class Game {
 			if (DOM.elEditorSectionCharacters.classList.contains('active') !== true) {
 				DOM.elEditorSectionCharacters.classList.add('active');
 				DOM.elEditorSectionObjects.classList.remove('active');
-				DOM.elEditorSectionSpecial.classList.remove('active');
+				DOM.elEditorSectionExtended.classList.remove('active');
 
 				DOM.elEditorContainerCharacters.style.display = 'block';
 				DOM.elEditorContainerObjects.style.display = 'none';
 				DOM.elEditorContainerExtended.style.display = 'none';
 			}
 		};
-		DOM.elEditorSectionObjects.onclick = () => {
-			if (DOM.elEditorSectionObjects.classList.contains('active') !== true) {
+		DOM.elEditorSectionExtended.onclick = () => {
+			if (DOM.elEditorSectionExtended.classList.contains('active') !== true) {
 				DOM.elEditorSectionCharacters.classList.remove('active');
-				DOM.elEditorSectionObjects.classList.add('active');
-				DOM.elEditorSectionSpecial.classList.remove('active');
-
-				DOM.elEditorContainerCharacters.style.display = 'none';
-				DOM.elEditorContainerObjects.style.display = 'block';
-				DOM.elEditorContainerExtended.style.display = 'none';
-			}
-		};
-		DOM.elEditorSectionSpecial.onclick = () => {
-			if (DOM.elEditorSectionSpecial.classList.contains('active') !== true) {
-				DOM.elEditorSectionCharacters.classList.remove('active');
+				DOM.elEditorSectionExtended.classList.add('active');
 				DOM.elEditorSectionObjects.classList.remove('active');
-				DOM.elEditorSectionSpecial.classList.add('active');
 
 				DOM.elEditorContainerCharacters.style.display = 'none';
 				DOM.elEditorContainerObjects.style.display = 'none';
 				DOM.elEditorContainerExtended.style.display = 'block';
+			}
+		};
+		DOM.elEditorSectionObjects.onclick = () => {
+			if (DOM.elEditorSectionObjects.classList.contains('active') !== true) {
+				DOM.elEditorSectionCharacters.classList.remove('active');
+				DOM.elEditorSectionExtended.classList.remove('active');
+				DOM.elEditorSectionObjects.classList.add('active');
+
+				DOM.elEditorContainerCharacters.style.display = 'none';
+				DOM.elEditorContainerObjects.style.display = 'block';
+				DOM.elEditorContainerExtended.style.display = 'none';
 			}
 		};
 
@@ -616,7 +622,7 @@ export class Game {
 		};
 
 		DOM.elMetaMapLocation.onclick = () => {
-			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI) | 0);
+			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI_1_00) | 0);
 			DOM.elMetaMapValueStartingPositionX.value = String(Game.camera.x | 0);
 			DOM.elMetaMapValueStartingPositionY.value = String(Game.camera.y | 0);
 		};
@@ -788,6 +794,7 @@ export class Game {
 				},
 			},
 			characterPlayerInputPlayer: CharacterInput,
+			characterWalking: boolean | undefined,
 			dataUpdated: boolean,
 			down: boolean,
 			downMode: boolean,
@@ -1004,24 +1011,45 @@ export class Game {
 					// Character
 					id = cooridnate.x * map.grid.sideLength + cooridnate.y;
 
+					switch (Game.editorAssetCharacterId) {
+						case AssetIdImgCharacter.STAND_E:
+						case AssetIdImgCharacter.STAND_N:
+						case AssetIdImgCharacter.STAND_NE:
+						case AssetIdImgCharacter.STAND_NW:
+						case AssetIdImgCharacter.STAND_S:
+						case AssetIdImgCharacter.STAND_SE:
+						case AssetIdImgCharacter.STAND_SW:
+						case AssetIdImgCharacter.STAND_W:
+							characterWalking = undefined;
+							break;
+						default:
+							characterWalking = true;
+							break;
+					}
+
+					console.log('Game.editorAssetPropertiesCharacter.angle', Game.editorAssetPropertiesCharacter.angle);
+
 					map.npc.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
 						gridIndex: cooridnate.x * map.grid.sideLength + cooridnate.y,
-						fov: (120 * GamingCanvasConstPI) / 180,
+						fov: (120 * GamingCanvasConstPI_1_00) / 180,
 						fovDistanceMax: 20,
 						health: 100,
 						id: id,
 						playerAngle: [],
 						playerDistance: [],
 						playerLOS: [],
+						runningSpeed: 0.00055,
 						size: 0.25,
 						timestamp: 0,
 						timestampPrevious: 0,
 						timestampUnixState: 0,
 						type: Game.editorAssetCharacterType,
+						walking: characterWalking,
+						walkingSpeed: 0.000275,
 					});
 
 					DOM.elEditorPropertiesCharacterInputId.value = String(id);
@@ -1070,10 +1098,10 @@ export class Game {
 				Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
 
 				DOM.elEditorPropertiesCharacterInputAngle.value = String(
-					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI),
+					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_00),
 				);
 				DOM.elEditorPropertiesCharacterInputDifficulty.value = String(characterNPC.difficulty);
-				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI)) + '°';
+				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI_1_00)) + '°';
 				DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 				// Highlighter based on asset
@@ -1162,7 +1190,7 @@ export class Game {
 		const position = (position: GamingCanvasInputPosition) => {
 			Game.position = GamingCanvasGridInputToCoordinate(position, viewport, Game.position);
 			DOM.elEditorPropertiesCellOutputIndex.innerText = String((Game.position.x | 0) * Game.map.grid.sideLength + (Game.position.y | 0)).padStart(4, '0');
-			DOM.elEditorPropertiesCellOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI) | 0}°`;
+			DOM.elEditorPropertiesCellOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI_1_00) | 0}°`;
 		};
 
 		const processor = (timestampNow: number) => {
@@ -1410,7 +1438,7 @@ export class Game {
 								cameraMoveY = 1 - position1.yRelative;
 								updated = true;
 							} else if (downModeWheel === true) {
-								camera.r = position1.xRelative * 2 * GamingCanvasConstPI;
+								camera.r = position1.xRelative * 2 * GamingCanvasConstPI_1_00;
 								updatedR = true;
 							}
 						} else {

@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasConstPIDouble, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasConstPI_2_00, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
@@ -419,6 +419,10 @@ class VideoEditorEngine {
 							characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
 							characterNPC = <CharacterNPC>gameMapNPCsById.get(characterNPCId);
 
+							if (characterNPC === undefined) {
+								continue;
+							}
+
 							// Prepare
 							gameMapNPCs.delete(characterNPC.gridIndex);
 
@@ -578,17 +582,17 @@ class VideoEditorEngine {
 
 					// Draw: Cells
 					for ([i, value] of gameMapGridData.entries()) {
-						x = (i / gameMapGridSideLength) | 0;
+						y = i % gameMapGridSideLength;
 
 						// if (i === 0) {
 						// 	console.log(i, x, calculationsViewportWidthStartEff, calculationsViewportWidthStopEff, value, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
 						// }
 						// console.log(i, x, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
 
-						if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
-							y = i % gameMapGridSideLength;
+						if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
+							x = (i / gameMapGridSideLength) | 0;
 
-							if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
+							if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
 								// if (i === 0) {
 								// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
 								// }
@@ -597,23 +601,6 @@ class VideoEditorEngine {
 								if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
 									offscreenCanvasContext.fillStyle = 'black';
 									offscreenCanvasContext.fillRect(
-										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-										calculationsViewportCellSizePxEff,
-										calculationsViewportCellSizePxEff,
-									);
-								}
-
-								// Character
-								characterNPC = gameMapNPCs.get(i);
-								if (characterNPC !== undefined) {
-									offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
-									offscreenCanvasContext.drawImage(
-										offscreenCanvasInstance,
-										0,
-										0,
-										offscreenCanvasInstance.width,
-										offscreenCanvasInstance.height,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 										calculationsViewportCellSizePxEff,
@@ -648,6 +635,23 @@ class VideoEditorEngine {
 											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 										);
 									}
+								}
+
+								// Character
+								characterNPC = gameMapNPCs.get(i);
+								if (characterNPC !== undefined) {
+									offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
+									offscreenCanvasContext.drawImage(
+										offscreenCanvasInstance,
+										0,
+										0,
+										offscreenCanvasInstance.width,
+										offscreenCanvasInstance.height,
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										calculationsViewportCellSizePxEff,
+										calculationsViewportCellSizePxEff,
+									);
 								}
 							}
 						}
@@ -708,7 +712,7 @@ class VideoEditorEngine {
 						characterPlayer1YEff * calculationsViewportCellSizePx,
 						calculationsViewportCellSizePx / 4,
 						0,
-						GamingCanvasConstPIDouble,
+						GamingCanvasConstPI_2_00,
 					);
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();
@@ -737,7 +741,7 @@ class VideoEditorEngine {
 							characterPlayer2YEff * calculationsViewportCellSizePx,
 							calculationsViewportCellSizePx / 4,
 							0,
-							GamingCanvasConstPIDouble,
+							GamingCanvasConstPI_2_00,
 						);
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.fill();
@@ -799,7 +803,7 @@ class VideoEditorEngine {
 							(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 							calculationsViewportCellSizePx / 4,
 							0,
-							GamingCanvasConstPIDouble,
+							GamingCanvasConstPI_2_00,
 						);
 						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.fill();
