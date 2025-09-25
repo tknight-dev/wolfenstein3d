@@ -1178,6 +1178,8 @@ class CalcEngine {
 							switch (characterNPCState) {
 								case CharacterNPCState.AIM:
 									if (timestampUnix - characterNPC.timestampUnixState > 500) {
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, characterNPC.gridIndex);
+
 										characterNPC.assetId = AssetIdImgCharacter.FIRE;
 										characterNPC.timestampUnixState = timestampUnix;
 
@@ -1186,7 +1188,7 @@ class CalcEngine {
 									}
 									break;
 								case CharacterNPCState.FIRE:
-									if (timestampUnix - characterNPC.timestampUnixState > 500) {
+									if (timestampUnix - characterNPC.timestampUnixState > 250) {
 										characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
 										characterNPC.timestampUnixState = timestampUnix;
 
@@ -1204,6 +1206,7 @@ class CalcEngine {
 									}
 									break;
 								case CharacterNPCState.RUNNING:
+									// A* algorithim here
 									break;
 								case CharacterNPCState.RUNNING_DOOR:
 									break;
@@ -1319,6 +1322,7 @@ class CalcEngine {
 												if (characterNPCWaypoint === true) {
 													characterNPC.camera.x = (characterNPC.camera.x | 0) + 0.5;
 													characterNPC.camera.y = (characterNPC.camera.y | 0) + 0.5;
+													characterNPC.timestampUnixState = timestampUnix;
 												}
 											}
 										}
@@ -1379,10 +1383,11 @@ class CalcEngine {
 														break;
 												}
 
+												actionDoor(cellSide, characterNPCGridIndex);
+
 												characterNPC.timestampUnixState = timestampUnix;
 												characterNPC.walking = false;
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING_DOOR);
-												actionDoor(cellSide, characterNPCGridIndex);
 											}
 										} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0) {
 											// Wall, turn around!
@@ -1420,6 +1425,7 @@ class CalcEngine {
 													characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
 													break;
 											}
+											characterNPC.timestampUnixState = timestampUnix;
 										}
 									}
 
@@ -1429,26 +1435,32 @@ class CalcEngine {
 									if (timestampUnix - characterNPC.timestampUnixState > CalcBusActionDoorStateChangeDurationInMS) {
 										characterNPC.timestampUnixState = timestampUnix;
 										characterNPC.walking = true;
+
 										characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
 									}
 									break;
 							}
 
-							// if (
-							// 	characterNPCDistance !== 999999 &&
-							// 	(characterNPCState === CharacterNPCState.STANDING ||
-							// 		characterNPCState === CharacterNPCState.WALKING ||
-							// 		characterNPCState === CharacterNPCState.WALKING_DOOR)
-							// ) {
-							// 	// Enemy contact!
-							// 	characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
-							// 	characterNPC.running = true;
-							// 	characterNPC.timestampUnixState = timestampUnix;
-							// 	characterNPC.walking = false;
+							if (
+								characterNPCDistance !== 999999 &&
+								(characterNPCState === CharacterNPCState.STANDING ||
+									characterNPCState === CharacterNPCState.WALKING ||
+									characterNPCState === CharacterNPCState.WALKING_DOOR)
+							) {
+								// Wait for "reflex" time (guard turns, relex delay, spot!)
+								if (timestampUnix - characterNPC.timestampUnixState > 200) {
+									// Enemy contact!
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex);
 
-							// 	characterNPCUpdated.add(characterNPC.id);
-							// 	characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
-							// }
+									characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
+									characterNPC.running = true;
+									characterNPC.timestampUnixState = timestampUnix;
+									characterNPC.walking = false;
+
+									characterNPCUpdated.add(characterNPC.id);
+									characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+								}
+							}
 
 							characterNPC.timestampPrevious = timestampNow;
 						}

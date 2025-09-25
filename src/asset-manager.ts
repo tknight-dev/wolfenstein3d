@@ -1005,14 +1005,14 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_fire.mp3',
 		title: 'Guard Fire',
-		volume: 0.75,
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, {
 		author: 'Robert Prince',
 		effect: true,
 		ext: AssetExtAudio.MP3,
-		file: 'audio/effect/guard_suprise.mp3',
+		file: 'audio/effect/guard_surprise.mp3',
 		title: 'Guard Surprise',
 		volume: 0.75,
 	});
