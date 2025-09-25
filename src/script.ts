@@ -277,6 +277,10 @@ class Blockenstein {
 			// Done
 			setTimeout(() => {
 				DOM.spinner(false);
+
+				setTimeout(() => {
+					DOM.spinner(false);
+				}, 100);
 			});
 		});
 	}
