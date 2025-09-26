@@ -57,6 +57,7 @@ export class Assets {
 				for ([key, value] of Object.entries(map.npc)) {
 					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
 
+					// value.gridIndex = value.id;
 					// value.runningSpeed = 0.00055;
 					// value.walkingSpeed = 0.000275;
 

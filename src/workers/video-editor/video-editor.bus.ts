@@ -89,6 +89,10 @@ export class VideoEditorBus {
 	 */
 
 	public static outputCalculations(data: VideoEditorBusInputDataCalculations): void {
+		if (VideoEditorBus.worker === undefined) {
+			return;
+		}
+
 		let buffers: ArrayBufferLike[] = [];
 
 		data.player1Camera !== undefined && buffers.push(data.player1Camera.buffer);
@@ -128,6 +132,10 @@ export class VideoEditorBus {
 	}
 
 	public static outputNPCUpdate(data: Float32Array[]): void {
+		if (VideoEditorBus.worker === undefined) {
+			return;
+		}
+
 		VideoEditorBus.worker.postMessage(
 			{
 				cmd: VideoEditorBusInputCmd.NPC_UPDATE,
@@ -135,6 +143,13 @@ export class VideoEditorBus {
 			},
 			data.map((array: Float32Array) => array.buffer),
 		);
+	}
+
+	public static outputPathUpdate(data: Map<number, number[]>): void {
+		VideoEditorBus.worker.postMessage({
+			cmd: VideoEditorBusInputCmd.PATH_UPDATE,
+			data: data,
+		});
 	}
 
 	// Non-fixed resolution canvas has changed in size

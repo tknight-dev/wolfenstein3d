@@ -16,6 +16,7 @@ export enum VideoEditorBusInputCmd {
 	INIT,
 	MAP,
 	NPC_UPDATE,
+	PATH_UPDATE,
 	REPORT,
 	SETTINGS,
 }
@@ -39,6 +40,7 @@ export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalc
 
 export interface VideoEditorBusInputDataSettings {
 	antialias: boolean;
+	debug: boolean;
 	difficulty: GameDifficulty;
 	gridDraw: boolean;
 	fov: number;
@@ -54,6 +56,7 @@ export interface VideoEditorBusInputPayload {
 		| Float32Array[]
 		| Float64Array
 		| GameMap
+		| Map<number, number[]>
 		| VideoEditorBusInputDataCalculations
 		| VideoEditorBusInputDataInit
 		| VideoEditorBusInputDataSettings;

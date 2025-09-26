@@ -9,19 +9,19 @@ import {
 	CharacterWeapon,
 } from '../../models/character.model.js';
 import {
-	CalcBusActionDoorState,
-	CalcBusActionDoorStateAutoCloseDurationInMS,
-	CalcBusActionDoorStateChangeDurationInMS,
-	CalcBusActionWallMoveStateChangeDurationInMS,
-	CalcBusInputCmd,
-	CalcBusInputDataAudio,
-	CalcBusInputDataInit,
-	CalcBusInputDataPlayerInput,
-	CalcBusInputDataSettings,
-	CalcBusInputPayload,
-	CalcBusOutputCmd,
-	CalcBusOutputPayload,
-} from './calc.model.js';
+	CalcMainBusActionDoorState,
+	CalcMainBusActionDoorStateAutoCloseDurationInMS,
+	CalcMainBusActionDoorStateChangeDurationInMS,
+	CalcMainBusActionWallMoveStateChangeDurationInMS,
+	CalcMainBusInputCmd,
+	CalcMainBusInputDataAudio,
+	CalcMainBusInputDataInit,
+	CalcMainBusInputDataPlayerInput,
+	CalcMainBusInputDataSettings,
+	CalcMainBusInputPayload,
+	CalcMainBusOutputCmd,
+	CalcMainBusOutputPayload,
+} from './calc-main.model.js';
 import {
 	GameDifficulty,
 	gameGridCellMaskExtendedDoor,
@@ -46,8 +46,13 @@ import {
 	GamingCanvasConstPI_0_75,
 	GamingCanvasConstPI_1_25,
 	GamingCanvasConstPI_1_75,
+	GamingCanvasGridPathAStarResult,
+	GamingCanvasGridPathAStarMemory,
+	GamingCanvasGridPathAStarOptions,
+	GamingCanvasGridPathAStarOptionsPathHeuristic,
 } from '@tknight-dev/gaming-canvas/grid';
 import {
+	GamingCanvasGridPathAStar,
 	GamingCanvasGridCamera,
 	GamingCanvasGridICamera,
 	GamingCanvasGridRaycast,
@@ -65,6 +70,7 @@ import {
 	assetsAudio,
 	initializeAssetManager,
 } from '../../asset-manager.js';
+import { Assets } from '../../modules/assets.js';
 
 /**
  * @author tknight-dev
@@ -74,32 +80,35 @@ import {
  * Input: from Main Thread
  */
 self.onmessage = (event: MessageEvent) => {
-	const payload: CalcBusInputPayload = event.data;
+	const payload: CalcMainBusInputPayload = event.data;
 
 	switch (payload.cmd) {
-		case CalcBusInputCmd.AUDIO_START:
-			CalcEngine.inputAudio(true, <CalcBusInputDataAudio>payload.data);
+		case CalcMainBusInputCmd.AUDIO_START:
+			CalcMainEngine.inputAudio(true, <CalcMainBusInputDataAudio>payload.data);
 			break;
-		case CalcBusInputCmd.AUDIO_STOP:
-			CalcEngine.inputAudio(false, <CalcBusInputDataAudio>payload.data);
+		case CalcMainBusInputCmd.AUDIO_STOP:
+			CalcMainEngine.inputAudio(false, <CalcMainBusInputDataAudio>payload.data);
 			break;
-		case CalcBusInputCmd.CAMERA:
-			CalcEngine.inputCamera(<Float64Array>payload.data);
+		case CalcMainBusInputCmd.CAMERA:
+			CalcMainEngine.inputCamera(<Float64Array>payload.data);
 			break;
-		case CalcBusInputCmd.CHARACTER_INPUT:
-			CalcEngine.inputCharacterInput(<CalcBusInputDataPlayerInput>payload.data);
+		case CalcMainBusInputCmd.CHARACTER_INPUT:
+			CalcMainEngine.inputCharacterInput(<CalcMainBusInputDataPlayerInput>payload.data);
 			break;
-		case CalcBusInputCmd.MAP:
-			CalcEngine.inputMap(<GameMap>payload.data);
+		case CalcMainBusInputCmd.MAP:
+			CalcMainEngine.inputMap(<GameMap>payload.data);
 			break;
-		case CalcBusInputCmd.INIT:
-			CalcEngine.initialize(<CalcBusInputDataInit>payload.data);
+		case CalcMainBusInputCmd.INIT:
+			CalcMainEngine.initialize(<CalcMainBusInputDataInit>payload.data);
 			break;
-		case CalcBusInputCmd.REPORT:
-			CalcEngine.inputReport(<GamingCanvasReport>payload.data);
+		case CalcMainBusInputCmd.PATH_UPDATE:
+			CalcMainEngine.inputPath(<Map<number, number[]>>payload.data);
 			break;
-		case CalcBusInputCmd.SETTINGS:
-			CalcEngine.inputSettings(<CalcBusInputDataSettings>payload.data);
+		case CalcMainBusInputCmd.REPORT:
+			CalcMainEngine.inputReport(<GamingCanvasReport>payload.data);
+			break;
+		case CalcMainBusInputCmd.SETTINGS:
+			CalcMainEngine.inputSettings(<CalcMainBusInputDataSettings>payload.data);
 			break;
 	}
 };
@@ -111,28 +120,30 @@ interface AudioInstance {
 	y: number;
 }
 
-class CalcEngine {
+class CalcMainEngine {
 	private static audio: Map<number, AudioInstance> = new Map();
 	private static camera: Float64Array;
 	private static cameraNew: boolean;
-	private static characterPlayerInput: CalcBusInputDataPlayerInput;
+	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
 	private static characterPlayer1: Character;
 	private static characterPlayer2: Character;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static paths: Map<number, number[]>;
+	private static pathsNew: boolean;
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static settings: CalcBusInputDataSettings;
+	private static settings: CalcMainBusInputDataSettings;
 	private static settingsNew: boolean;
 
-	public static async initialize(data: CalcBusInputDataInit): Promise<void> {
+	public static async initialize(data: CalcMainBusInputDataInit): Promise<void> {
 		// Asset
 		await initializeAssetManager(true);
 
 		// Config: Character
-		CalcEngine.characterPlayer1 = {
+		CalcMainEngine.characterPlayer1 = {
 			ammo: 8,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
@@ -150,99 +161,104 @@ class CalcEngine {
 			type: AssetIdImgCharacterType.GUARD,
 		};
 
-		CalcEngine.characterPlayer2 = {
-			ammo: CalcEngine.characterPlayer1.ammo,
+		CalcMainEngine.characterPlayer2 = {
+			ammo: CalcMainEngine.characterPlayer1.ammo,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			gridIndex: CalcEngine.characterPlayer1.gridIndex,
-			health: CalcEngine.characterPlayer1.health,
+			gridIndex: CalcMainEngine.characterPlayer1.gridIndex,
+			health: CalcMainEngine.characterPlayer1.health,
 			lives: 3,
 			player1: true,
-			score: CalcEngine.characterPlayer1.score,
-			size: CalcEngine.characterPlayer1.size,
-			weapon: CalcEngine.characterPlayer1.weapon,
-			weapons: [...CalcEngine.characterPlayer1.weapons],
-			timestamp: CalcEngine.characterPlayer1.timestamp,
-			timestampPrevious: CalcEngine.characterPlayer1.timestampPrevious,
+			score: CalcMainEngine.characterPlayer1.score,
+			size: CalcMainEngine.characterPlayer1.size,
+			weapon: CalcMainEngine.characterPlayer1.weapon,
+			weapons: [...CalcMainEngine.characterPlayer1.weapons],
+			timestamp: CalcMainEngine.characterPlayer1.timestamp,
+			timestampPrevious: CalcMainEngine.characterPlayer1.timestampPrevious,
 			timestampUnixState: 0,
-			type: CalcEngine.characterPlayer1.type,
+			type: CalcMainEngine.characterPlayer1.type,
 		};
 
 		// Config: Game Map
-		CalcEngine.inputMap(data.gameMap);
+		CalcMainEngine.inputMap(data.gameMap);
 
 		// Config: Report
-		CalcEngine.inputReport(data.report);
+		CalcMainEngine.inputReport(data.report);
 
 		// Config: Settings
-		CalcEngine.inputSettings(data as CalcBusInputDataSettings);
+		CalcMainEngine.inputSettings(data as CalcMainBusInputDataSettings);
 
 		// Start
-		CalcEngine.post([
+		CalcMainEngine.post([
 			{
-				cmd: CalcBusOutputCmd.INIT_COMPLETE,
+				cmd: CalcMainBusOutputCmd.INIT_COMPLETE,
 				data: true,
 			},
 		]);
 
 		// Start rendering thread
-		CalcEngine.go__funcForward();
-		CalcEngine.request = requestAnimationFrame(CalcEngine.go);
+		CalcMainEngine.go__funcForward();
+		CalcMainEngine.request = requestAnimationFrame(CalcMainEngine.go);
 	}
 
 	/*
 	 * Input
 	 */
 
-	public static inputAudio(start: boolean, data: CalcBusInputDataAudio): void {
+	public static inputAudio(start: boolean, data: CalcMainBusInputDataAudio): void {
 		if (data.instance !== null && data.request !== undefined) {
 			if (start === true) {
-				const audioInstance: AudioInstance = <AudioInstance>CalcEngine.audio.get(data.request);
+				const audioInstance: AudioInstance = <AudioInstance>CalcMainEngine.audio.get(data.request);
 
 				if (audioInstance !== undefined) {
 					audioInstance.instance = data.instance;
 				}
 			} else {
-				CalcEngine.audio.delete(data.request);
+				CalcMainEngine.audio.delete(data.request);
 			}
 		}
 	}
 
 	public static inputCamera(data: Float64Array): void {
-		CalcEngine.camera = data;
-		CalcEngine.cameraNew = true;
+		CalcMainEngine.camera = data;
+		CalcMainEngine.cameraNew = true;
 	}
 
-	public static inputCharacterInput(data: CalcBusInputDataPlayerInput): void {
-		CalcEngine.characterPlayerInput = data;
-		CalcEngine.characterPlayerInputNew = true;
+	public static inputCharacterInput(data: CalcMainBusInputDataPlayerInput): void {
+		CalcMainEngine.characterPlayerInput = data;
+		CalcMainEngine.characterPlayerInputNew = true;
 	}
 
 	public static inputMap(data: GameMap): void {
-		data.grid = GamingCanvasGridUint16Array.from(data.grid.data);
+		CalcMainEngine.gameMap = Assets.parseMap(data);
+		CalcMainEngine.gameMapNew = true;
+	}
 
-		CalcEngine.gameMap = data;
-		CalcEngine.gameMapNew = true;
+	public static inputPath(data: Map<number, number[]>): void {
+		CalcMainEngine.paths = data;
+
+		// Last
+		CalcMainEngine.pathsNew = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
-		CalcEngine.report = report;
+		CalcMainEngine.report = report;
 
 		// Last
-		CalcEngine.reportNew = true;
+		CalcMainEngine.reportNew = true;
 	}
 
-	public static inputSettings(data: CalcBusInputDataSettings): void {
-		CalcEngine.settings = data;
+	public static inputSettings(data: CalcMainBusInputDataSettings): void {
+		CalcMainEngine.settings = data;
 
 		// Last
-		CalcEngine.settingsNew = true;
+		CalcMainEngine.settingsNew = true;
 	}
 
 	/*
 	 * Output: to Main Thread
 	 */
-	private static post(payloads: CalcBusOutputPayload[], data?: Transferable[]): void {
+	private static post(payloads: CalcMainBusOutputPayload[], data?: Transferable[]): void {
 		self.postMessage(payloads, (data || []) as any);
 	}
 
@@ -252,22 +268,22 @@ class CalcEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let actionDoors: Map<number, CalcBusActionDoorState> = new Map(),
-			actionDoorState: CalcBusActionDoorState,
+		let actionDoors: Map<number, CalcMainBusActionDoorState> = new Map(),
+			actionDoorState: CalcMainBusActionDoorState,
 			assetId: number,
-			audio: Map<number, AudioInstance> = CalcEngine.audio,
-			audioEnableNoAction: boolean = CalcEngine.settings.audioNoAction,
-			audioEnableWallCollisions: boolean = CalcEngine.settings.audioWallCollisions,
+			audio: Map<number, AudioInstance> = CalcMainEngine.audio,
+			audioEnableNoAction: boolean = CalcMainEngine.settings.audioNoAction,
+			audioEnableWallCollisions: boolean = CalcMainEngine.settings.audioWallCollisions,
 			audioDistanceMax: number = 25,
 			audioInstance: AudioInstance,
-			audioPostStack: CalcBusOutputPayload[],
+			audioPostStack: CalcMainBusOutputPayload[],
 			audioRequestCounter: number = 0,
 			buffers: ArrayBufferLike[] = [],
 			camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
-				CalcEngine.characterPlayer1.camera.r,
-				CalcEngine.characterPlayer1.camera.x,
-				CalcEngine.characterPlayer1.camera.y,
-				CalcEngine.characterPlayer1.camera.z,
+				CalcMainEngine.characterPlayer1.camera.r,
+				CalcMainEngine.characterPlayer1.camera.x,
+				CalcMainEngine.characterPlayer1.camera.y,
+				CalcMainEngine.characterPlayer1.camera.z,
 			),
 			cameraEncoded: Float64Array,
 			cameraInstance: GamingCanvasGridICamera,
@@ -288,6 +304,7 @@ class CalcEngine {
 			characterNPCInputs: Map<AssetIdImgCharacter, GamingCanvasGridCharacterInput> = new Map(),
 			characterNPCPlayerIndex: number,
 			characterNPCGridIndex: number,
+			characterNPCPathById: Map<number, number[]> = new Map(),
 			characterNPCState: CharacterNPCState | undefined,
 			characterNPCStates: Map<number, CharacterNPCState> = new Map(),
 			characterNPCUpdate: Float32Array,
@@ -301,7 +318,7 @@ class CalcEngine {
 				x: 0,
 				y: 0,
 			},
-			characterPlayer1: Character = CalcEngine.characterPlayer1,
+			characterPlayer1: Character = CalcMainEngine.characterPlayer1,
 			characterPlayer1Action: boolean = false,
 			characterPlayer1CameraEncoded: Float64Array | undefined,
 			characterPlayer1Changed: boolean,
@@ -320,7 +337,7 @@ class CalcEngine {
 				x: 0,
 				y: 0,
 			},
-			characterPlayer2: Character = CalcEngine.characterPlayer2,
+			characterPlayer2: Character = CalcMainEngine.characterPlayer2,
 			characterPlayer2Action: boolean = false,
 			characterPlayer2CameraEncoded: Float64Array | undefined,
 			characterPlayer2Changed: boolean,
@@ -339,13 +356,20 @@ class CalcEngine {
 			cycleMinMs: number = 10,
 			distance: number,
 			distance2: number,
-			gameMapGrid: GamingCanvasGridUint16Array = CalcEngine.gameMap.grid,
-			gameMapGridData: Uint16Array = CalcEngine.gameMap.grid.data,
+			gameMap: GameMap = CalcMainEngine.gameMap,
+			gameMapGrid: GamingCanvasGridUint16Array = CalcMainEngine.gameMap.grid,
+			gameMapGridData: Uint16Array = CalcMainEngine.gameMap.grid.data,
 			gameMapGridDataCell: number,
+			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
+				pathDiagonalsDisable: false,
+				pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN,
+			},
+			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapIndexEff: number,
-			gameMapNPC: Map<number, CharacterNPC> = CalcEngine.gameMap.npc,
+			gameMapNPC: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npc,
 			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
-			gameMapSideLength: number = CalcEngine.gameMap.grid.sideLength,
+			gameMapNPCPaths: Map<number, number[]>,
+			gameMapSideLength: number = CalcMainEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
@@ -353,16 +377,17 @@ class CalcEngine {
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
 				distanceMapEnable: true,
-				rayCount: CalcEngine.report.canvasWidth,
-				rayFOV: CalcEngine.settings.fov,
+				rayCount: CalcMainEngine.report.canvasWidth,
+				rayFOV: CalcMainEngine.settings.fov,
 			},
-			report: GamingCanvasReport = CalcEngine.report,
-			reportOrientation: GamingCanvasOrientation = CalcEngine.report.orientation,
+			report: GamingCanvasReport = CalcMainEngine.report,
+			reportOrientation: GamingCanvasOrientation = CalcMainEngine.report.orientation,
 			reportOrientationForce: boolean = true,
 			scratchMap: Map<number, number> = new Map(),
-			settingsDifficulty: GameDifficulty = CalcEngine.settings.difficulty,
-			settingsFPMS: number = 1000 / CalcEngine.settings.fps,
-			settingsPlayer2Enable: boolean = CalcEngine.settings.player2Enable,
+			settingsDebug: boolean = CalcMainEngine.settings.debug,
+			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
+			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
+			settingsPlayer2Enable: boolean = CalcMainEngine.settings.player2Enable,
 			timestampAudio: number = 0,
 			timestampDelta: number,
 			timestampFPSDelta: number,
@@ -419,7 +444,7 @@ class CalcEngine {
 		}, 1000);
 
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
-			let state: CalcBusActionDoorState = <CalcBusActionDoorState>actionDoors.get(gridIndex),
+			let state: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex),
 				durationEff: number,
 				wait: boolean;
 
@@ -445,24 +470,24 @@ class CalcEngine {
 				// Open Door
 
 				if (state.closing === true) {
-					durationEff = CalcBusActionDoorStateChangeDurationInMS - (timestampUnix - state.timestampUnix);
+					durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (timestampUnix - state.timestampUnix);
 				} else {
-					durationEff = CalcBusActionDoorStateChangeDurationInMS;
+					durationEff = CalcMainBusActionDoorStateChangeDurationInMS;
 				}
 				state.closing = false;
 				state.open = false;
 				state.opening = true;
 				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, gridIndex);
 			} else if (
-				CalcEngine.characterPlayer1.gridIndex === gridIndex ||
-				CalcEngine.characterPlayer2.gridIndex === gridIndex ||
+				CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
+				CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
 				gameMapNPCIdByGridIndex.has(gridIndex) === true
 			) {
 				// Someone/something is in the way
 				return;
 			} else {
 				// Close Door
-				durationEff = CalcBusActionDoorStateChangeDurationInMS;
+				durationEff = CalcMainBusActionDoorStateChangeDurationInMS;
 
 				state.closing = true;
 				state.open = false;
@@ -476,9 +501,9 @@ class CalcEngine {
 			state.timestampUnix = timestampUnix;
 
 			// Post to other threads
-			CalcEngine.post([
+			CalcMainEngine.post([
 				{
-					cmd: CalcBusOutputCmd.ACTION_DOOR,
+					cmd: CalcMainBusOutputCmd.ACTION_DOOR,
 					data: state,
 				},
 			]);
@@ -504,11 +529,11 @@ class CalcEngine {
 			}, durationEff);
 		};
 
-		const actionDoorAutoClose = (gridIndex: number, state: CalcBusActionDoorState) => {
+		const actionDoorAutoClose = (gridIndex: number, state: CalcMainBusActionDoorState) => {
 			state.timeout = setTimeout(() => {
 				if (
-					CalcEngine.characterPlayer1.gridIndex === gridIndex ||
-					CalcEngine.characterPlayer2.gridIndex === gridIndex ||
+					CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
+					CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
 					gameMapNPCIdByGridIndex.has(gridIndex) === true
 				) {
 					// Someone/something is in the way
@@ -523,9 +548,9 @@ class CalcEngine {
 					state.timestampUnix = timestampUnix;
 
 					// Post to other threads
-					CalcEngine.post([
+					CalcMainEngine.post([
 						{
-							cmd: CalcBusOutputCmd.ACTION_DOOR,
+							cmd: CalcMainBusOutputCmd.ACTION_DOOR,
 							data: state,
 						},
 					]);
@@ -536,9 +561,9 @@ class CalcEngine {
 						state.open = false;
 						state.opening = false;
 						state.timestampUnix = timestampUnix;
-					}, CalcBusActionDoorStateChangeDurationInMS);
+					}, CalcMainBusActionDoorStateChangeDurationInMS);
 				}
-			}, CalcBusActionDoorStateAutoCloseDurationInMS);
+			}, CalcMainBusActionDoorStateAutoCloseDurationInMS);
 		};
 
 		const actionSwitch = (gridIndex: number) => {
@@ -557,9 +582,9 @@ class CalcEngine {
 
 			// Post to other threads
 			audioPlay(AssetIdAudio.AUDIO_EFFECT_SWITCH, gridIndex);
-			CalcEngine.post([
+			CalcMainEngine.post([
 				{
-					cmd: CalcBusOutputCmd.ACTION_SWITCH,
+					cmd: CalcMainBusOutputCmd.ACTION_SWITCH,
 					data: {
 						cellValue: gameMapGridData[gridIndex],
 						gridIndex: gridIndex,
@@ -569,9 +594,9 @@ class CalcEngine {
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
-			CalcEngine.post([
+			CalcMainEngine.post([
 				{
-					cmd: CalcBusOutputCmd.ACTION_WALL_MOVE,
+					cmd: CalcMainBusOutputCmd.ACTION_WALL_MOVE,
 					data: {
 						cellSide: cellSide,
 						gridIndex: gridIndex,
@@ -610,13 +635,13 @@ class CalcEngine {
 				() => {
 					gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR;
 				},
-				(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 			);
 
 			// Calc: Move 2nd Block
 			setTimeout(() => {
 				gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
-			}, CalcBusActionWallMoveStateChangeDurationInMS);
+			}, CalcMainBusActionWallMoveStateChangeDurationInMS);
 		};
 
 		/**
@@ -672,9 +697,9 @@ class CalcEngine {
 				audio.set(request, audioInstance);
 
 				// Post to audio engine thread
-				CalcEngine.post([
+				CalcMainEngine.post([
 					{
-						cmd: CalcBusOutputCmd.AUDIO,
+						cmd: CalcMainBusOutputCmd.AUDIO,
 						data: {
 							assetId: assetId,
 							pan: Math.max(-1, Math.min(1, x)),
@@ -686,9 +711,9 @@ class CalcEngine {
 
 				return request;
 			} else {
-				CalcEngine.post([
+				CalcMainEngine.post([
 					{
-						cmd: CalcBusOutputCmd.AUDIO,
+						cmd: CalcMainBusOutputCmd.AUDIO,
 						data: {
 							assetId: assetId,
 							pan: 0,
@@ -703,7 +728,7 @@ class CalcEngine {
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
-			CalcEngine.request = requestAnimationFrame(CalcEngine.go);
+			CalcMainEngine.request = requestAnimationFrame(CalcMainEngine.go);
 
 			/**
 			 * Calc
@@ -729,27 +754,38 @@ class CalcEngine {
 				characterPlayer2.timestamp = timestampNow;
 				characterPlayer2Changed = false;
 
-				if (CalcEngine.cameraNew) {
-					CalcEngine.cameraNew = false;
+				if (CalcMainEngine.cameraNew) {
+					CalcMainEngine.cameraNew = false;
 
-					camera = GamingCanvasGridCamera.from(CalcEngine.camera);
+					camera = GamingCanvasGridCamera.from(CalcMainEngine.camera);
 					cameraMode = true; // Snap back to camera
 					cameraUpdated = true;
 				}
 
-				if (CalcEngine.gameMapNew === true) {
-					CalcEngine.gameMapNew = false;
+				if (CalcMainEngine.gameMapNew === true) {
+					CalcMainEngine.gameMapNew = false;
 
 					for (actionDoorState of actionDoors.values()) {
 						clearTimeout(actionDoorState.timeout);
 					}
 					actionDoors.clear();
 
-					gameMapGrid = CalcEngine.gameMap.grid;
-					gameMapGridData = CalcEngine.gameMap.grid.data;
-					gameMapNPC = CalcEngine.gameMap.npc;
-					gameMapSideLength = CalcEngine.gameMap.grid.sideLength;
+					gameMap = CalcMainEngine.gameMap;
+					gameMapGrid = CalcMainEngine.gameMap.grid;
+					gameMapGridData = CalcMainEngine.gameMap.grid.data;
+					gameMapNPC = CalcMainEngine.gameMap.npc;
+					gameMapSideLength = CalcMainEngine.gameMap.grid.sideLength;
 
+					characterPlayer1.camera.r = gameMap.position.r;
+					characterPlayer1.camera.x = gameMap.position.x;
+					characterPlayer1.camera.y = gameMap.position.y;
+					characterPlayer1.camera.z = gameMap.position.z;
+					characterPlayer2.camera.r = gameMap.position.r;
+					characterPlayer2.camera.x = gameMap.position.x;
+					characterPlayer2.camera.y = gameMap.position.y;
+					characterPlayer2.camera.z = gameMap.position.z;
+
+					characterNPCPathById.clear();
 					characterNPCStates.clear();
 					gameMapNPCIdByGridIndex.clear();
 					for (characterNPC of gameMapNPC.values()) {
@@ -765,20 +801,28 @@ class CalcEngine {
 					cameraUpdated = true;
 				}
 
-				if (CalcEngine.reportNew === true || CalcEngine.settingsNew === true) {
-					CalcEngine.reportNew = false;
-					CalcEngine.settingsNew = false;
+				if (CalcMainEngine.pathsNew === true) {
+					CalcMainEngine.pathsNew = false;
+
+					gameMapNPCPaths = CalcMainEngine.paths;
+				}
+
+				if (CalcMainEngine.reportNew === true || CalcMainEngine.settingsNew === true) {
+					CalcMainEngine.reportNew = false;
+					CalcMainEngine.settingsNew = false;
 
 					// Settings
-					audioEnableNoAction = CalcEngine.settings.audioNoAction;
-					audioEnableWallCollisions = CalcEngine.settings.audioWallCollisions;
+					audioEnableNoAction = CalcMainEngine.settings.audioNoAction;
+					audioEnableWallCollisions = CalcMainEngine.settings.audioWallCollisions;
 					cameraUpdated = true; // This or position works
-					raycastOptions.rayFOV = CalcEngine.settings.fov;
-					settingsFPMS = 1000 / CalcEngine.settings.fps;
-					settingsPlayer2Enable = CalcEngine.settings.player2Enable;
+					raycastOptions.rayFOV = CalcMainEngine.settings.fov;
+					settingsDebug = CalcMainEngine.settings.debug;
+					settingsDifficulty = CalcMainEngine.settings.difficulty;
+					settingsFPMS = 1000 / CalcMainEngine.settings.fps;
+					settingsPlayer2Enable = CalcMainEngine.settings.player2Enable;
 
 					// Report
-					report = CalcEngine.report;
+					report = CalcMainEngine.report;
 					raycastOptions.rayCount = report.canvasWidth;
 
 					if (reportOrientation !== report.orientation) {
@@ -786,24 +830,24 @@ class CalcEngine {
 						reportOrientationForce = true;
 					}
 
-					if (CalcEngine.settings.player2Enable === true) {
+					if (CalcMainEngine.settings.player2Enable === true) {
 						if (report.orientation === GamingCanvasOrientation.LANDSCAPE) {
 							raycastOptions.rayCount = (report.canvasWidth / 2) | 0;
 						}
 					}
 
-					if (CalcEngine.settings.raycastQuality !== RaycastQuality.FULL) {
-						raycastOptions.rayCount = (raycastOptions.rayCount / CalcEngine.settings.raycastQuality) | 0;
+					if (CalcMainEngine.settings.raycastQuality !== RaycastQuality.FULL) {
+						raycastOptions.rayCount = (raycastOptions.rayCount / CalcMainEngine.settings.raycastQuality) | 0;
 					}
 				}
 
 				// Character Control: Update
-				if (CalcEngine.characterPlayerInputNew === true) {
-					CalcEngine.characterPlayerInputNew = false;
+				if (CalcMainEngine.characterPlayerInputNew === true) {
+					CalcMainEngine.characterPlayerInputNew = false;
 
 					cameraMode = false; // Snap back to player
-					characterPlayer1Input = CalcEngine.characterPlayerInput.player1;
-					characterPlayer2Input = CalcEngine.characterPlayerInput.player2;
+					characterPlayer1Input = CalcMainEngine.characterPlayerInput.player1;
+					characterPlayer2Input = CalcMainEngine.characterPlayerInput.player2;
 				}
 
 				/**
@@ -1164,14 +1208,12 @@ class CalcEngine {
 							characterNPCState = characterNPCStates.get(characterNPC.id);
 							characterNPC.timestamp = timestampNow;
 
-							// Closest player
+							// Closest visible player
 							characterNPCDistance = 999999;
 							for (i = 0; i < characterPlayers.length; i++) {
-								if (characterNPC.playerLOS[i] === true) {
-									if (characterNPC.playerDistance[i] < characterNPCDistance) {
-										characterNPCDistance = characterNPC.playerDistance[i];
-										characterNPCPlayerIndex = i.valueOf();
-									}
+								if (characterNPC.playerLOS[i] === true && characterNPC.playerDistance[i] < characterNPCDistance) {
+									characterNPCDistance = characterNPC.playerDistance[i];
+									characterNPCPlayerIndex = i.valueOf();
 								}
 							}
 
@@ -1338,7 +1380,7 @@ class CalcEngine {
 											(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR) !== 0
 										) {
 											// Open door
-											actionDoorState = <CalcBusActionDoorState>actionDoors.get(characterNPCGridIndex);
+											actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
 											if (actionDoorState === undefined || actionDoorState.open !== true) {
 												switch (characterNPC.assetId) {
 													case AssetIdImgCharacter.MOVE1_E:
@@ -1432,7 +1474,7 @@ class CalcEngine {
 									characterNPCUpdated.add(characterNPC.id);
 									break;
 								case CharacterNPCState.WALKING_DOOR:
-									if (timestampUnix - characterNPC.timestampUnixState > CalcBusActionDoorStateChangeDurationInMS) {
+									if (timestampUnix - characterNPC.timestampUnixState > CalcMainBusActionDoorStateChangeDurationInMS) {
 										characterNPC.timestampUnixState = timestampUnix;
 										characterNPC.walking = true;
 
@@ -1526,7 +1568,7 @@ class CalcEngine {
 
 						// Buffer for audio engine thread push
 						audioPostStack.push({
-							cmd: CalcBusOutputCmd.AUDIO,
+							cmd: CalcMainBusOutputCmd.AUDIO,
 							data: {
 								instance: audioInstance.instance,
 								pan: x,
@@ -1538,7 +1580,7 @@ class CalcEngine {
 					}
 
 					// Push to audio engine thread
-					CalcEngine.post(audioPostStack);
+					CalcMainEngine.post(audioPostStack);
 				}
 			}
 
@@ -1557,10 +1599,10 @@ class CalcEngine {
 						characterPlayer1CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer1.camera);
 						characterPlayer2CameraEncoded = GamingCanvasGridCamera.encodeSingle(characterPlayer2.camera);
 
-						CalcEngine.post(
+						CalcMainEngine.post(
 							[
 								{
-									cmd: CalcBusOutputCmd.CAMERA,
+									cmd: CalcMainBusOutputCmd.CAMERA,
 									data: {
 										camera: cameraEncoded,
 										player1Camera: characterPlayer1CameraEncoded,
@@ -1606,10 +1648,10 @@ class CalcEngine {
 							characterPlayer2CameraEncoded = undefined;
 						}
 
-						CalcEngine.post(
+						CalcMainEngine.post(
 							[
 								{
-									cmd: CalcBusOutputCmd.CALCULATIONS,
+									cmd: CalcMainBusOutputCmd.CALCULATIONS,
 									data: {
 										characterPlayer1Camera: characterPlayer1CameraEncoded,
 										characterPlayer1Rays: characterPlayer1RaycastRays,
@@ -1645,10 +1687,10 @@ class CalcEngine {
 						buffers.push(characterPlayer2MetaEncoded.buffer);
 					}
 
-					CalcEngine.post(
+					CalcMainEngine.post(
 						[
 							{
-								cmd: CalcBusOutputCmd.CHARACTER_META,
+								cmd: CalcMainBusOutputCmd.CHARACTER_META,
 								data: {
 									player1: characterPlayer1MetaEncoded,
 									player2: characterPlayer2MetaEncoded,
@@ -1669,10 +1711,10 @@ class CalcEngine {
 					gameMapUpdateEncoded = Uint16Array.from(gameMapUpdate.slice(0, gameMapUpdateIndex));
 					gameMapUpdateIndex = 0;
 
-					CalcEngine.post(
+					CalcMainEngine.post(
 						[
 							{
-								cmd: CalcBusOutputCmd.MAP_UPDATE,
+								cmd: CalcMainBusOutputCmd.MAP_UPDATE,
 								data: gameMapUpdateEncoded,
 							},
 						],
@@ -1711,10 +1753,10 @@ class CalcEngine {
 						buffers.push(characterNPCUpdate.buffer);
 					}
 
-					CalcEngine.post(
+					CalcMainEngine.post(
 						[
 							{
-								cmd: CalcBusOutputCmd.NPC_UPDATE,
+								cmd: CalcMainBusOutputCmd.NPC_UPDATE,
 								data: characterNPCUpdates,
 							},
 						],
@@ -1723,6 +1765,6 @@ class CalcEngine {
 				}
 			}
 		};
-		CalcEngine.go = go;
+		CalcMainEngine.go = go;
 	}
 }

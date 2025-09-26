@@ -1,5 +1,6 @@
-import { CalcBus } from './workers/calc/calc.bus.js';
-import { CalcBusOutputDataCharacterMeta, CalcBusOutputDataStats } from './workers/calc/calc.model.js';
+import { CalcMainBus } from './workers/calc-main/calc-main.bus.js';
+import { CalcMainBusOutputDataCharacterMeta, CalcMainBusOutputDataStats } from './workers/calc-main/calc-main.model.js';
+import { CalcPathBus } from './workers/calc-path/calc-path.bus.js';
 import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
@@ -25,21 +26,7 @@ class Blockenstein {
 	private static statFPS: { [key: string]: number } = {};
 
 	private static initializeGamingCanvas(): void {
-		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, {
-			audioEnable: true,
-			canvasCount: 2,
-			canvasSplit: [1],
-			canvasSplitLandscapeVertical: true,
-			dpiSupportEnable: Game.settingGraphicsDPISupport,
-			elementInteractive: DOM.elVideoInteractive,
-			elementInjectAsOverlay: [DOM.elEdit],
-			inputGamepadEnable: true,
-			inputKeyboardEnable: true,
-			inputMouseEnable: true,
-			orientationCanvasRotateEnable: false,
-			renderStyle: GamingCanvasRenderStyle.PIXELATED,
-			resolutionWidthPx: Game.settingGraphicsResolution,
-		});
+		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, Game.settingsGamingCanvas);
 
 		GamingCanvas.audioLoad(Assets.dataAudio);
 		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolume, GamingCanvasAudioType.ALL);
@@ -51,7 +38,7 @@ class Blockenstein {
 		/**
 		 * Calc
 		 */
-		CalcBus.setCallbackCharacterMeta((data: CalcBusOutputDataCharacterMeta) => {
+		CalcMainBus.setCallbackCharacterMeta((data: CalcMainBusOutputDataCharacterMeta) => {
 			let character: Character;
 
 			if (data.player1 !== undefined) {
@@ -115,24 +102,31 @@ class Blockenstein {
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		return new Promise<void>((resolve: any) => {
-			CalcBus.initialize(Game.settingsCalc, gameMap, () => {
+			CalcMainBus.initialize(Game.settingsCalcMain, gameMap, () => {
 				// Done
-				console.log('CalcEngine Loaded in', performance.now() - then, 'ms');
+				console.log('CalcMainEngine Loaded in', performance.now() - then, 'ms');
 
 				// Load video-editor
 				then = performance.now();
-				VideoEditorBus.initialize(GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
+				CalcPathBus.initialize(Game.settingsCalcPath, gameMap, () => {
 					// Done
-					console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
+					console.log('CalcPathEngine Loaded in', performance.now() - then, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
+					VideoEditorBus.initialize(GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
 						// Done
-						console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+						console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
 
-						// Resolve initial promise
-						resolve();
+						// Load video-main
+						then = performance.now();
+						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
+							// Done
+							console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+
+							// Resolve initial promise
+							resolve();
+						});
 					});
 				});
 			});
@@ -277,10 +271,6 @@ class Blockenstein {
 			// Done
 			setTimeout(() => {
 				DOM.spinner(false);
-
-				setTimeout(() => {
-					DOM.spinner(false);
-				}, 100);
 			});
 		});
 	}
@@ -289,11 +279,9 @@ class Blockenstein {
 		/**
 		 * DOM
 		 */
-
 		/**
 		 * Algos
 		 */
-		GamingCanvas.setDebug(Game.settingDebug);
 	}
 }
 Blockenstein.main();

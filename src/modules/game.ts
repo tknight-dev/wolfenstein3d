@@ -16,16 +16,16 @@ import {
 import { Settings } from './settings.js';
 import { DOM } from './dom.js';
 import {
-	CalcBusOutputDataCalculations,
-	CalcBusInputDataPlayerInput,
-	CalcBusInputDataSettings,
-	CalcBusOutputDataCamera,
-	CalcBusActionDoorState,
-	CalcBusOutputDataAudio,
-	CalcBusOutputDataActionWallMove,
-	CalcBusOutputDataActionSwitch,
-} from '../workers/calc/calc.model.js';
-import { CalcBus } from '../workers/calc/calc.bus.js';
+	CalcMainBusOutputDataCalculations,
+	CalcMainBusInputDataPlayerInput,
+	CalcMainBusInputDataSettings,
+	CalcMainBusOutputDataCamera,
+	CalcMainBusActionDoorState,
+	CalcMainBusOutputDataAudio,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataActionSwitch,
+} from '../workers/calc-main/calc-main.model.js';
+import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
@@ -62,6 +62,8 @@ import {
 	GamingCanvasGridICamera,
 } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput, CharacterNPC } from '../models/character.model.js';
+import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
+import { CalcPathBusInputDataSettings } from '../workers/calc-path/calc-path.model.js';
 
 /**
  * Guards are 100 points
@@ -110,7 +112,8 @@ export class Game {
 	public static settingGamePlayer2InputDevice: InputDevice;
 	public static settingGraphicsResolution: Resolution;
 	public static settingIntro: boolean;
-	public static settingsCalc: CalcBusInputDataSettings;
+	public static settingsCalcMain: CalcMainBusInputDataSettings;
+	public static settingsCalcPath: CalcPathBusInputDataSettings;
 	public static settingsGamingCanvas: GamingCanvasOptions;
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
 	public static settingsVideoMain: VideoMainBusInputDataSettings;
@@ -341,7 +344,7 @@ export class Game {
 							// Done
 							Game.mapNew = true;
 
-							CalcBus.outputMap(parsed);
+							CalcMainBus.outputMap(parsed);
 							VideoEditorBus.outputMap(parsed);
 							VideoMainBus.outputMap(parsed);
 						} catch (error) {
@@ -383,7 +386,7 @@ export class Game {
 				}
 			}
 
-			CalcBus.outputMap(Game.map);
+			CalcMainBus.outputMap(Game.map);
 			VideoEditorBus.outputMap(Game.map);
 			VideoMainBus.outputMap(Game.map);
 
@@ -752,7 +755,7 @@ export class Game {
 				DOM.elPlayerOverlay2.classList.remove('portrait');
 			}
 
-			CalcBus.outputReport(report);
+			CalcMainBus.outputReport(report);
 			VideoEditorBus.outputReport(report);
 			VideoMainBus.outputReport(report);
 		});
@@ -770,6 +773,7 @@ export class Game {
 			cameraMoveXOriginal: number = 0,
 			cameraMoveY: number = 0,
 			cameraMoveYOriginal: number = 0,
+			cameraScratch: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			cameraXOriginal: number = 0,
 			cameraYOriginal: number = 0,
 			cameraZoom: number = Game.camera.z,
@@ -777,7 +781,7 @@ export class Game {
 			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 0.3,
-			characterPlayerInput: CalcBusInputDataPlayerInput = {
+			characterPlayerInput: CalcMainBusInputDataPlayerInput = {
 				player1: {
 					action: false,
 					fire: false,
@@ -800,6 +804,8 @@ export class Game {
 			downMode: boolean,
 			downModeWheel: boolean,
 			elEditStyle: CSSStyleDeclaration = DOM.elEdit.style,
+			gridIndexPlayer1: number | undefined,
+			gridIndexPlayer2: number | undefined,
 			id: number,
 			map: GameMap = Game.map,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
@@ -816,12 +822,12 @@ export class Game {
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Action Door Open
-		CalcBus.setCallbackActionDoor((data: CalcBusActionDoorState) => {
+		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
 			VideoMainBus.outputActionDoor(data);
 		});
 
 		// Calc: Action Switch
-		CalcBus.setCallbackActionSwitch((data: CalcBusOutputDataActionSwitch) => {
+		CalcMainBus.setCallbackActionSwitch((data: CalcMainBusOutputDataActionSwitch) => {
 			VideoMainBus.outputActionSwitch(data);
 
 			Game.inputSuspend = true;
@@ -850,20 +856,20 @@ export class Game {
 		});
 
 		// Calc: Action Wall Move
-		CalcBus.setCallbackActionWallMove((data: CalcBusOutputDataActionWallMove) => {
+		CalcMainBus.setCallbackActionWallMove((data: CalcMainBusOutputDataActionWallMove) => {
 			VideoMainBus.outputActionWallMove(data);
 		});
 
 		// Calc: Audio
-		CalcBus.setCallbackAudio(async (data: CalcBusOutputDataAudio) => {
+		CalcMainBus.setCallbackAudio(async (data: CalcMainBusOutputDataAudio) => {
 			if (data.assetId !== undefined) {
 				const instance: number | null = await GamingCanvas.audioControlPlay(data.assetId, true, false, data.pan, 0, data.volume, (instance: number) => {
-					CalcBus.outputAudioStop({
+					CalcMainBus.outputAudioStop({
 						instance: instance,
 						request: data.request,
 					});
 				});
-				CalcBus.outputAudioStart({
+				CalcMainBus.outputAudioStart({
 					instance: instance,
 					request: data.request,
 				});
@@ -878,7 +884,7 @@ export class Game {
 		});
 
 		// Calc: Camera Mode
-		CalcBus.setCallbackCamera((data: CalcBusOutputDataCamera) => {
+		CalcMainBus.setCallbackCamera((data: CalcMainBusOutputDataCamera) => {
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
@@ -904,8 +910,8 @@ export class Game {
 		});
 
 		// Calc: Game Mode
-		CalcBus.setCallbackCalculations((data: CalcBusOutputDataCalculations) => {
-			if (data.characterPlayer1Camera) {
+		CalcMainBus.setCallbackCalculations((data: CalcMainBusOutputDataCalculations) => {
+			if (data.characterPlayer1Camera !== undefined) {
 				camera.decode(data.characterPlayer1Camera);
 				camera.z = map.position.z;
 
@@ -914,6 +920,8 @@ export class Game {
 					viewport.applyZ(camera, report);
 				}
 				viewport.apply(camera);
+
+				gridIndexPlayer1 = (camera.x | 0) * map.grid.sideLength + (camera.y | 0);
 
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
@@ -932,6 +940,8 @@ export class Game {
 					viewport: viewport.encode(),
 				});
 			} else {
+				gridIndexPlayer1 = undefined;
+
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
@@ -941,20 +951,38 @@ export class Game {
 				});
 			}
 
-			if (data.characterPlayer2Camera) {
+			if (data.characterPlayer2Camera !== undefined) {
+				cameraScratch.decode(data.characterPlayer2Camera);
+
+				gridIndexPlayer2 = (cameraScratch.x | 0) * map.grid.sideLength + (cameraScratch.y | 0);
+
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
 					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
 				});
+			} else {
+				gridIndexPlayer2 = undefined;
 			}
+
+			CalcPathBus.outputPlayerUpdate({
+				player1GridIndex: gridIndexPlayer1,
+				player2GridIndex: gridIndexPlayer2,
+			});
 		});
 
 		// Calc: NPCs
-		CalcBus.setCallbackNPCUpdate((data: Float32Array[]) => {
+		CalcMainBus.setCallbackNPCUpdate((data: Float32Array[]) => {
+			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
 			VideoEditorBus.outputNPCUpdate(data);
+		});
+
+		// Calc: Paths
+		CalcPathBus.setCallbackPathUpdate((data: Map<number, number[]>) => {
+			CalcMainBus.outputPathUpdate(data);
+			VideoEditorBus.outputPathUpdate(data);
 		});
 
 		// Camera
@@ -974,10 +1002,10 @@ export class Game {
 					viewport.apply(camera);
 
 					// Calc: Camera Mode
-					CalcBus.outputCamera(camera.encode());
+					CalcMainBus.outputCamera(camera.encode());
 				} else {
 					// Calc: Game Mode
-					CalcBus.outputCharacterInput(characterPlayerInput);
+					CalcMainBus.outputCharacterInput(characterPlayerInput);
 				}
 
 				updated = false;
@@ -991,7 +1019,7 @@ export class Game {
 			if (dataUpdated === true) {
 				dataUpdated = false;
 
-				CalcBus.outputMap(map);
+				CalcMainBus.outputMap(map);
 				VideoEditorBus.outputMap(map);
 				VideoMainBus.outputMap(map);
 			}
@@ -1027,14 +1055,12 @@ export class Game {
 							break;
 					}
 
-					console.log('Game.editorAssetPropertiesCharacter.angle', Game.editorAssetPropertiesCharacter.angle);
-
 					map.npc.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
-						gridIndex: cooridnate.x * map.grid.sideLength + cooridnate.y,
+						gridIndex: id,
 						fov: (120 * GamingCanvasConstPI_1_00) / 180,
 						fovDistanceMax: 20,
 						health: 100,
@@ -1257,7 +1283,7 @@ export class Game {
 
 		const processorGamepad = (input: GamingCanvasInputGamepad) => {
 			if (modeEdit !== true) {
-				if (Game.settingsCalc.player2Enable === true) {
+				if (Game.settingsCalcMain.player2Enable === true) {
 					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 					} else {
@@ -1286,7 +1312,7 @@ export class Game {
 			down = input.propriatary.down;
 
 			if (modeEdit !== true) {
-				if (Game.settingsCalc.player2Enable === true) {
+				if (Game.settingsCalcMain.player2Enable === true) {
 					if (Game.settingGamePlayer2InputDevice === InputDevice.KEYBOARD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 					} else {
@@ -1647,7 +1673,7 @@ export class Game {
 			// Overlay
 			DOM.elPlayerOverlay1.style.display = 'flex';
 
-			if (Game.settingsCalc.player2Enable === true) {
+			if (Game.settingsCalcMain.player2Enable === true) {
 				DOM.elPlayerOverlay2.style.display = 'flex';
 			} else {
 				DOM.elPlayerOverlay2.style.display = 'none';

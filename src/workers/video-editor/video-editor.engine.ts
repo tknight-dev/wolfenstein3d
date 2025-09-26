@@ -63,6 +63,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoEditorBusInputCmd.NPC_UPDATE:
 			VideoEditorEngine.inputNPCUpdate(<Float32Array[]>payload.data);
 			break;
+		case VideoEditorBusInputCmd.PATH_UPDATE:
+			VideoEditorEngine.inputPathUpdate(<Map<number, number[]>>payload.data);
+			break;
 		case VideoEditorBusInputCmd.REPORT:
 			VideoEditorEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -86,6 +89,8 @@ class VideoEditorEngine {
 	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
+	private static pathUpdate: Map<number, number[]>;
+	private static pathUpdateNew: boolean;
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
@@ -230,6 +235,11 @@ class VideoEditorEngine {
 		VideoEditorEngine.npcUpdateNew = true;
 	}
 
+	public static inputPathUpdate(data: Map<number, number[]>): void {
+		VideoEditorEngine.pathUpdate = data;
+		VideoEditorEngine.pathUpdateNew = true;
+	}
+
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoEditorEngine.report = report;
 
@@ -333,6 +343,8 @@ class VideoEditorEngine {
 			offscreenCanvasHeightPxEff: number = 0,
 			offscreenCanvasWidthPx: number = 0,
 			offscreenCanvasWidthPxEff: number = 0,
+			path: number[],
+			pathByNPCId: Map<number, number[]>,
 			frameCount: number = 0,
 			renderCellOutlineOffset: number,
 			renderCellOutlineWidth: number,
@@ -432,6 +444,11 @@ class VideoEditorEngine {
 							// Apply
 							gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
 						}
+					}
+
+					if (VideoEditorEngine.pathUpdateNew === true) {
+						VideoEditorEngine.pathUpdateNew = false;
+						pathByNPCId = VideoEditorEngine.pathUpdate;
 					}
 
 					if (VideoEditorEngine.calculationsNew === true || VideoEditorEngine.reportNew === true || VideoEditorEngine.settingsNew === true) {
@@ -701,7 +718,6 @@ class VideoEditorEngine {
 						calculationsViewportCellSizePx * (Math.sin(characterPlayer1.r) + characterPlayer1XEff),
 						calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1YEff),
 					);
-					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.stroke();
 
 					// Draw: Player2 Position
@@ -714,7 +730,6 @@ class VideoEditorEngine {
 						0,
 						GamingCanvasConstPI_2_00,
 					);
-					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();
 
 					if (settingsPlayer2Enabled === true) {
@@ -730,7 +745,6 @@ class VideoEditorEngine {
 							calculationsViewportCellSizePx * (Math.sin(characterPlayer2.r) + characterPlayer2XEff),
 							calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2YEff),
 						);
-						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
 
 						// Draw: Player2 Position
@@ -743,7 +757,6 @@ class VideoEditorEngine {
 							0,
 							GamingCanvasConstPI_2_00,
 						);
-						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.fill();
 					}
 
@@ -773,10 +786,42 @@ class VideoEditorEngine {
 					// 			calculationsViewportCellSizePx *
 					// 				(Math.cos(characterNPC.playerAngle[i]) + (characterNPC.camera.y - calculationsViewportHeightStart)),
 					// 		);
-					// 		offscreenCanvasContext.closePath();
 					// 		offscreenCanvasContext.stroke();
 					// 	}
 					// }
+
+					// Draw NPC Path
+					if (pathByNPCId !== undefined) {
+						for (path of pathByNPCId.values()) {
+							if (path.length === 0) {
+								continue;
+							}
+
+							offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
+							offscreenCanvasContext.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+							offscreenCanvasContext.beginPath();
+
+							for (i = 0; i < path.length; i++) {
+								characterNPCGridIndex = path[i];
+								y = characterNPCGridIndex % gameMapGridSideLength;
+								x = (characterNPCGridIndex - y) / gameMapGridSideLength;
+
+								if (i === 0) {
+									offscreenCanvasContext.moveTo(
+										(x - calculationsViewportWidthStart + 0.5) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart + 0.5) * calculationsViewportCellSizePx,
+									);
+								} else {
+									offscreenCanvasContext.lineTo(
+										(x - calculationsViewportWidthStart + 0.5) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart + 0.5) * calculationsViewportCellSizePx,
+									);
+								}
+							}
+
+							offscreenCanvasContext.stroke();
+						}
+					}
 
 					// Draw camera dot
 					if (calculationsGameMode !== true) {
@@ -792,7 +837,6 @@ class VideoEditorEngine {
 							calculationsViewportCellSizePx * (Math.sin(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
 							calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
 						);
-						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.stroke();
 
 						// Position
@@ -805,7 +849,6 @@ class VideoEditorEngine {
 							0,
 							GamingCanvasConstPI_2_00,
 						);
-						offscreenCanvasContext.closePath();
 						offscreenCanvasContext.fill();
 					}
 

@@ -12,7 +12,7 @@ import { CharacterInput, CharacterNPC } from '../../models/character.model.js';
  * Actions
  */
 
-export interface CalcBusActionDoorState {
+export interface CalcMainBusActionDoorState {
 	cellSide: GamingCanvasGridRaycastCellSide;
 	closing: boolean;
 	gridIndex: number;
@@ -21,42 +21,44 @@ export interface CalcBusActionDoorState {
 	timestampUnix: number; // Unix Timestamp for syncing between threads (WebWorkers)
 	timeout?: ReturnType<typeof setTimeout>;
 }
-export const CalcBusActionDoorStateAutoCloseDurationInMS: number = 5000;
-export const CalcBusActionDoorStateChangeDurationInMS: number = 1000;
-export const CalcBusActionWallMoveStateChangeDurationInMS: number = 5000;
+export const CalcMainBusActionDoorStateAutoCloseDurationInMS: number = 5000;
+export const CalcMainBusActionDoorStateChangeDurationInMS: number = 1000;
+export const CalcMainBusActionWallMoveStateChangeDurationInMS: number = 5000;
 
 /*
  * Input
  */
-export enum CalcBusInputCmd {
+export enum CalcMainBusInputCmd {
 	AUDIO_START,
 	AUDIO_STOP,
 	CAMERA,
 	CHARACTER_INPUT,
 	INIT,
 	MAP,
+	PATH_UPDATE,
 	REPORT,
 	SETTINGS,
 }
 
-export interface CalcBusInputDataAudio {
+export interface CalcMainBusInputDataAudio {
 	instance: number | null; // null on failure
 	request?: number; // unique to calc engine
 }
 
-export interface CalcBusInputDataInit extends CalcBusInputDataSettings {
+export interface CalcMainBusInputDataInit extends CalcMainBusInputDataSettings {
 	gameMap: GameMap;
 	report: GamingCanvasReport;
 }
 
-export interface CalcBusInputDataPlayerInput {
+export interface CalcMainBusInputDataPlayerInput {
 	player1: CharacterInput;
 	player2: CharacterInput;
 }
 
-export interface CalcBusInputDataSettings {
+export interface CalcMainBusInputDataSettings {
 	audioNoAction: boolean;
 	audioWallCollisions: boolean;
+	debug: boolean;
 	difficulty: GameDifficulty;
 	fov: number;
 	fps: FPS;
@@ -64,23 +66,24 @@ export interface CalcBusInputDataSettings {
 	raycastQuality: RaycastQuality;
 }
 
-export interface CalcBusInputPayload {
-	cmd: CalcBusInputCmd;
+export interface CalcMainBusInputPayload {
+	cmd: CalcMainBusInputCmd;
 	data:
-		| CalcBusInputDataAudio
-		| CalcBusInputDataInit
-		| CalcBusInputDataPlayerInput
-		| CalcBusInputDataSettings
+		| CalcMainBusInputDataAudio
+		| CalcMainBusInputDataInit
+		| CalcMainBusInputDataPlayerInput
+		| CalcMainBusInputDataSettings
 		| CharacterInput
 		| Float64Array
 		| GameMap
-		| GamingCanvasReport;
+		| GamingCanvasReport
+		| Map<number, number[]>;
 }
 
 /*
  * Output
  */
-export enum CalcBusOutputCmd {
+export enum CalcMainBusOutputCmd {
 	ACTION_DOOR,
 	ACTION_SWITCH,
 	ACTION_WALL_MOVE,
@@ -91,21 +94,22 @@ export enum CalcBusOutputCmd {
 	INIT_COMPLETE,
 	MAP_UPDATE,
 	NPC_UPDATE,
+	PATH_UPDATE,
 	STATS,
 }
 
-export interface CalcBusOutputDataActionSwitch {
+export interface CalcMainBusOutputDataActionSwitch {
 	cellValue: number;
 	gridIndex: number;
 }
 
-export interface CalcBusOutputDataActionWallMove {
+export interface CalcMainBusOutputDataActionWallMove {
 	cellSide: GamingCanvasGridRaycastCellSide;
 	gridIndex: number;
 	timestampUnix: number;
 }
 
-export interface CalcBusOutputDataAudio {
+export interface CalcMainBusOutputDataAudio {
 	assetId?: number; // no assetId is modify existing instance
 	instance?: number; // assetId and instance is stop old instance; assetId and no instance is play new asset
 	pan?: number;
@@ -113,7 +117,7 @@ export interface CalcBusOutputDataAudio {
 	request?: number; // unique to calc engine
 }
 
-export interface CalcBusOutputDataCamera {
+export interface CalcMainBusOutputDataCamera {
 	camera: Float64Array;
 	player1Camera: Float64Array;
 	player2Camera: Float64Array;
@@ -122,12 +126,12 @@ export interface CalcBusOutputDataCamera {
 	raysMapKeysSorted: Float64Array;
 }
 
-export interface CalcBusOutputDataCharacterMeta {
+export interface CalcMainBusOutputDataCharacterMeta {
 	player1?: Uint16Array;
 	player2?: Uint16Array;
 }
 
-export interface CalcBusOutputDataCalculations {
+export interface CalcMainBusOutputDataCalculations {
 	characterPlayer1Camera?: Float64Array;
 	characterPlayer1Rays?: Float64Array;
 	characterPlayer1RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
@@ -138,20 +142,21 @@ export interface CalcBusOutputDataCalculations {
 	characterPlayer2RaysMapKeysSorted?: Float64Array;
 }
 
-export interface CalcBusOutputDataStats {}
+export interface CalcMainBusOutputDataStats {}
 
-export interface CalcBusOutputPayload {
-	cmd: CalcBusOutputCmd;
+export interface CalcMainBusOutputPayload {
+	cmd: CalcMainBusOutputCmd;
 	data:
 		| boolean
-		| CalcBusOutputDataActionSwitch
-		| CalcBusOutputDataActionWallMove
-		| CalcBusActionDoorState
-		| CalcBusOutputDataAudio
-		| CalcBusOutputDataCamera
-		| CalcBusOutputDataCalculations
-		| CalcBusOutputDataCharacterMeta
-		| CalcBusOutputDataStats
+		| CalcMainBusOutputDataActionSwitch
+		| CalcMainBusOutputDataActionWallMove
+		| CalcMainBusActionDoorState
+		| CalcMainBusOutputDataAudio
+		| CalcMainBusOutputDataCamera
+		| CalcMainBusOutputDataCalculations
+		| CalcMainBusOutputDataCharacterMeta
+		| CalcMainBusOutputDataStats
 		| Float32Array[]
+		| Map<number, number[]>
 		| Uint16Array;
 }

@@ -10,7 +10,7 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
-import { CalcBusActionDoorState, CalcBusOutputDataActionSwitch, CalcBusOutputDataActionWallMove } from '../calc/calc.model.js';
+import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionSwitch, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -127,7 +127,7 @@ export class VideoMainBus {
 	 * Output
 	 */
 
-	public static outputActionDoor(data: CalcBusActionDoorState): void {
+	public static outputActionDoor(data: CalcMainBusActionDoorState): void {
 		VideoMainBus.workerPlayer1.postMessage({
 			cmd: VideoMainBusInputCmd.ACTION_DOOR,
 			data: data,
@@ -139,7 +139,7 @@ export class VideoMainBus {
 		});
 	}
 
-	public static outputActionSwitch(data: CalcBusOutputDataActionSwitch): void {
+	public static outputActionSwitch(data: CalcMainBusOutputDataActionSwitch): void {
 		VideoMainBus.workerPlayer1.postMessage({
 			cmd: VideoMainBusInputCmd.ACTION_SWITCH,
 			data: data,
@@ -151,7 +151,7 @@ export class VideoMainBus {
 		});
 	}
 
-	public static outputActionWallMove(data: CalcBusOutputDataActionWallMove): void {
+	public static outputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
 		VideoMainBus.workerPlayer1.postMessage({
 			cmd: VideoMainBusInputCmd.ACTION_WALL_MOVE,
 			data: data,
@@ -189,22 +189,6 @@ export class VideoMainBus {
 		});
 	}
 
-	public static outputNPCUpdate(data: Float32Array[]): void {
-		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
-			return;
-		}
-
-		VideoMainBus.workerPlayer1.postMessage({
-			cmd: VideoMainBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
-
-		VideoMainBus.workerPlayer2.postMessage({
-			cmd: VideoMainBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
-	}
-
 	public static outputMapUpdate(data: Uint16Array): void {
 		let dataClone: Uint16Array = Uint16Array.from(data);
 
@@ -223,6 +207,22 @@ export class VideoMainBus {
 			},
 			[data.buffer],
 		);
+	}
+
+	public static outputNPCUpdate(data: Float32Array[]): void {
+		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
+			return;
+		}
+
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.NPC_UPDATE,
+			data: data,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.NPC_UPDATE,
+			data: data,
+		});
 	}
 
 	// Non-fixed resolution canvas has changed in size

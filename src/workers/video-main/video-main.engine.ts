@@ -54,13 +54,13 @@ import {
 } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import {
-	CalcBusActionDoorState,
-	CalcBusActionDoorStateAutoCloseDurationInMS,
-	CalcBusActionDoorStateChangeDurationInMS,
-	CalcBusActionWallMoveStateChangeDurationInMS,
-	CalcBusOutputDataActionSwitch,
-	CalcBusOutputDataActionWallMove,
-} from '../calc/calc.model.js';
+	CalcMainBusActionDoorState,
+	CalcMainBusActionDoorStateAutoCloseDurationInMS,
+	CalcMainBusActionDoorStateChangeDurationInMS,
+	CalcMainBusActionWallMoveStateChangeDurationInMS,
+	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionWallMove,
+} from '../calc-main/calc-main.model.js';
 import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
 import { Assets } from '../../modules/assets.js';
 
@@ -76,13 +76,13 @@ self.onmessage = (event: MessageEvent) => {
 
 	switch (payload.cmd) {
 		case VideoMainBusInputCmd.ACTION_DOOR:
-			VideoMainEngine.inputActionDoor(<CalcBusActionDoorState>payload.data);
+			VideoMainEngine.inputActionDoor(<CalcMainBusActionDoorState>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_SWITCH:
-			VideoMainEngine.inputActionSwitch(<CalcBusOutputDataActionSwitch>payload.data);
+			VideoMainEngine.inputActionSwitch(<CalcMainBusOutputDataActionSwitch>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
-			VideoMainEngine.inputActionWallMove(<CalcBusOutputDataActionWallMove>payload.data);
+			VideoMainEngine.inputActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
 			break;
 		case VideoMainBusInputCmd.CALCULATIONS:
 			VideoMainEngine.inputCalculations(<VideoMainBusInputDataCalculations>payload.data);
@@ -109,8 +109,8 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoMainEngine {
-	private static actionDoors: Map<number, CalcBusActionDoorState> = new Map();
-	private static actionWall: Map<number, CalcBusOutputDataActionWallMove> = new Map();
+	private static actionDoors: Map<number, CalcMainBusActionDoorState> = new Map();
+	private static actionWall: Map<number, CalcMainBusOutputDataActionWallMove> = new Map();
 	private static assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = new Map();
 	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
@@ -253,19 +253,19 @@ class VideoMainEngine {
 	 * Input
 	 */
 
-	public static inputActionDoor(data: CalcBusActionDoorState): void {
+	public static inputActionDoor(data: CalcMainBusActionDoorState): void {
 		let durationEff: number,
-			statePrevious: CalcBusActionDoorState = <CalcBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
+			statePrevious: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
 
 		if (statePrevious !== undefined) {
 			clearTimeout(statePrevious.timeout);
 
 			if (statePrevious.closing === true) {
-				data.timestampUnix -= CalcBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
+				data.timestampUnix -= CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
 			}
 		}
 
-		durationEff = CalcBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
+		durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
 		VideoMainEngine.actionDoors.set(data.gridIndex, data);
 
 		data.timeout = setTimeout(() => {
@@ -284,11 +284,11 @@ class VideoMainEngine {
 		}, durationEff);
 	}
 
-	public static inputActionSwitch(data: CalcBusOutputDataActionSwitch): void {
+	public static inputActionSwitch(data: CalcMainBusOutputDataActionSwitch): void {
 		VideoMainEngine.gameMap.grid.data[data.gridIndex] = data.cellValue;
 	}
 
-	public static inputActionWallMove(data: CalcBusOutputDataActionWallMove): void {
+	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
 		const gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data;
 
 		// Cache: store the timestamp for animation
@@ -327,14 +327,14 @@ class VideoMainEngine {
 				// 2nd block
 				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
 
-				data.timestampUnix += (CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0;
+				data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
 				VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
 
 				// 1st block
 				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
 				VideoMainEngine.actionWall.delete(data.gridIndex);
 			},
-			(CalcBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+			(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 		);
 
 		// Calc: Move 2nd Block
@@ -342,7 +342,7 @@ class VideoMainEngine {
 			gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
 
 			VideoMainEngine.actionWall.delete(data.gridIndex + offset);
-		}, CalcBusActionWallMoveStateChangeDurationInMS);
+		}, CalcMainBusActionWallMoveStateChangeDurationInMS);
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
@@ -394,11 +394,11 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let actionDoorRequest: CalcBusActionDoorState,
-			actionDoors: Map<number, CalcBusActionDoorState> = VideoMainEngine.actionDoors,
-			actionDoorState: CalcBusActionDoorState,
-			actionWall: Map<number, CalcBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
-			actionWallState: CalcBusOutputDataActionWallMove,
+		let actionDoorRequest: CalcMainBusActionDoorState,
+			actionDoors: Map<number, CalcMainBusActionDoorState> = VideoMainEngine.actionDoors,
+			actionDoorState: CalcMainBusActionDoorState,
+			actionWall: Map<number, CalcMainBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
+			actionWallState: CalcMainBusOutputDataActionWallMove,
 			asset: OffscreenCanvas,
 			assetImageCharacterInstance: Map<AssetIdImgCharacter, OffscreenCanvas>,
 			assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = VideoMainEngine.assetImageCharacters,
@@ -816,7 +816,7 @@ class VideoMainEngine {
 								asset = <any>undefined;
 								renderSpriteFixedDoorOffset = 0;
 								if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
-									actionDoorState = <CalcBusActionDoorState>actionDoors.get(gameMapGridIndex);
+									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gameMapGridIndex);
 									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
 
 									// Door in a non-closed state
@@ -830,13 +830,13 @@ class VideoMainEngine {
 										} else if (actionDoorState.closing === true) {
 											renderSpriteFixedDoorOffset = Math.max(
 												0,
-												1 - (timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+												1 - (timestampUnix - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
 											);
 											// console.log('DOOR CLOSING', renderSpriteFixedDoorOffset);
 										} else {
 											renderSpriteFixedDoorOffset = Math.min(
 												1,
-												(timestampUnix - actionDoorState.timestampUnix) / CalcBusActionDoorStateChangeDurationInMS,
+												(timestampUnix - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
 											);
 											// console.log('DOOR OPENING', renderSpriteFixedDoorOffset);
 										}
@@ -859,11 +859,12 @@ class VideoMainEngine {
 									 */
 									renderSpriteFixedWallMovableOffset = 0;
 									if ((gameMapGridCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0 && actionWall.has(gameMapGridIndex) === true) {
-										actionWallState = <CalcBusOutputDataActionWallMove>actionWall.get(gameMapGridIndex);
+										actionWallState = <CalcMainBusOutputDataActionWallMove>actionWall.get(gameMapGridIndex);
 
 										if (actionWallState !== undefined) {
 											renderSpriteFixedWallMovableOffset =
-												2 * Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcBusActionWallMoveStateChangeDurationInMS);
+												2 *
+												Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcMainBusActionWallMoveStateChangeDurationInMS);
 
 											// Render: Modification based on cell sidedness
 											switch (actionWallState.cellSide) {

@@ -560,29 +560,29 @@ export class DOM {
 	}
 
 	public static spinner(enable: boolean) {
-		if (enable) {
-			clearTimeout(DOM.timeoutSpinner);
+		clearTimeout(DOM.timeoutSpinner);
 
+		if (enable === true) {
 			DOM.timeoutSpinner = setTimeout(() => {
 				if (DOM.elSpinner.style.display !== 'flex') {
 					DOM.elSpinner.classList.remove('show');
 					DOM.elSpinner.style.display = 'flex';
 
-					setTimeout(() => {
+					DOM.timeoutSpinner = setTimeout(() => {
 						DOM.elSpinner.classList.add('show');
 					}, 10);
 				} else {
 					DOM.elSpinner.classList.add('show');
 				}
-			}, 100);
+			}, 10);
 		} else {
-			clearTimeout(DOM.timeoutSpinner);
-
-			DOM.elSpinner.classList.remove('show');
-
 			DOM.timeoutSpinner = setTimeout(() => {
-				DOM.elSpinner.style.display = 'none';
-			}, 1000);
+				DOM.elSpinner.classList.remove('show');
+
+				DOM.timeoutSpinner = setTimeout(() => {
+					DOM.elSpinner.style.display = 'none';
+				}, 1000);
+			}, 10);
 		}
 	}
 }
