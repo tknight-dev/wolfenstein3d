@@ -2,7 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput, CharacterNPC } from '../../models/character.model.js';
+import { CharacterInput } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -36,6 +36,7 @@ export enum CalcMainBusInputCmd {
 	INIT,
 	MAP,
 	PATH_UPDATE,
+	PAUSE,
 	REPORT,
 	SETTINGS,
 }
@@ -69,6 +70,7 @@ export interface CalcMainBusInputDataSettings {
 export interface CalcMainBusInputPayload {
 	cmd: CalcMainBusInputCmd;
 	data:
+		| boolean
 		| CalcMainBusInputDataAudio
 		| CalcMainBusInputDataInit
 		| CalcMainBusInputDataPlayerInput

@@ -208,7 +208,14 @@ class Blockenstein {
 							DOM.screenControl(DOM.elScreenRating);
 
 							// play music
-							Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, false, true, -1, 0, 0);
+							Game.musicInstance = await GamingCanvas.audioControlPlay(
+								AssetIdAudio.AUDIO_MUSIC_MENU,
+								GamingCanvasAudioType.MUSIC,
+								true,
+								-1,
+								0,
+								0,
+							);
 							if (Game.musicInstance !== null) {
 								GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
 									GamingCanvas.audioControlPan(instance, 0, 5000);
@@ -236,7 +243,7 @@ class Blockenstein {
 							}
 							Game.musicInstance = await GamingCanvas.audioControlPlay(
 								AssetIdAudio.AUDIO_MUSIC_LVL1,
-								false,
+								GamingCanvasAudioType.MUSIC,
 								true,
 								0,
 								0,
@@ -253,14 +260,14 @@ class Blockenstein {
 				document.addEventListener('click', click);
 				document.addEventListener('keydown', click);
 			} else {
-				// Game.viewEditor();
-				Game.viewGame();
+				Game.viewEditor();
+				// Game.viewGame();
 				DOM.elScreenActive.style.display = 'none';
 				Game.inputSuspend = false;
 
 				Game.musicInstance = await GamingCanvas.audioControlPlay(
 					AssetIdAudio.AUDIO_MUSIC_LVL1,
-					false,
+					GamingCanvasAudioType.MUSIC,
 					true,
 					0,
 					0,

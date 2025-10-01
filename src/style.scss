@@ -213,7 +213,7 @@ $main-z-index-video-interactive: 50;
 			background: black;
 			border: 2px solid white;
 			display: none;
-			height: calc(100% - 120px);
+			height: calc(100% - 160px);
 			opacity: 1;
 			position: absolute;
 			right: 0;
@@ -272,13 +272,12 @@ $main-z-index-video-interactive: 50;
 				background: black;
 				border-top: 2px solid white;
 				bottom: 0;
-				height: 50px;
+				height: 70px;
 				padding-top: 5px;
 			}
 
 			.container {
 				background: rgb(32, 32, 32);
-				bottom: 90px;
 				overflow-x: hidden;
 				overflow-y: auto;
 				top: 20px;
@@ -400,7 +399,7 @@ $main-z-index-video-interactive: 50;
 			.sections {
 				align-items: center;
 				border-top: 2px solid white;
-				bottom: 50px;
+				bottom: 70px;
 				display: flex;
 				height: 40px;
 				justify-content: space-evenly;
@@ -468,7 +467,7 @@ $main-z-index-video-interactive: 50;
 
 			&.offset {
 				.container {
-					bottom: 90px;
+					bottom: 110px;
 				}
 			}
 

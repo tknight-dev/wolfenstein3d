@@ -8,7 +8,7 @@ import {
 	CalcPathBusOutputCmd,
 	CalcPathBusOutputPayload,
 } from './calc-path.model.js';
-import { GameDifficulty, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	GamingCanvasGridCharacterInput,
 	GamingCanvasGridPathAStarResult,
@@ -116,9 +116,7 @@ class CalcPathEngine {
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
 		let characterNPC: CharacterNPC,
-			characterNPCDistance: number,
 			characterNPCId: number,
-			characterNPCPlayerIndex: number,
 			characterNPCPathById: Map<number, number[]> = new Map(),
 			characterNPCUpdateEncoded: Float32Array,
 			characterPlayer1GridIndex: number = 0,
@@ -127,13 +125,28 @@ class CalcPathEngine {
 			gameMapGrid: GamingCanvasGridUint16Array = CalcPathEngine.gameMap.grid,
 			gameMapGridIndex: number,
 			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
-				pathDiagonalsDisable: false,
-				pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN,
+				// pathClosest: false,
+				// pathDiagonalsDisable: true,
+				// pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL,
 			},
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapNPCs: Map<number, CharacterNPC> = CalcPathEngine.gameMap.npc,
 			gameMapNPCsById: Map<number, CharacterNPC> = new Map(),
-			i: number,
+			pathBlocking = (cell: number, gridIndex: number) => {
+				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+					return false;
+				}
+
+				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+			},
+			pathWeight = (cell: number, gridIndex: number) => {
+				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+					// Prefer not to use doors
+					return 1;
+				}
+
+				return 0; // just use heuristic
+			},
 			settingsDebug: boolean = CalcPathEngine.settings.debug,
 			settingsPlayer2Enable: boolean = CalcPathEngine.settings.player2Enable,
 			timestampDelta: number,
@@ -230,7 +243,8 @@ class CalcPathEngine {
 						characterNPC.gridIndex,
 						gameMapGridIndex,
 						gameMapGrid,
-						GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+						pathBlocking,
+						pathWeight,
 						gameMapGridPathOptions,
 					);
 					gameMapGridPathOptions.memory = gameMapGridPathResult.memory;

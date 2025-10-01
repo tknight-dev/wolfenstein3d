@@ -58,7 +58,7 @@ export class Assets {
 					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
 
 					// value.gridIndex = value.id;
-					// value.runningSpeed = 0.00055;
+					// value.runningSpeed = 0.0011;
 					// value.walkingSpeed = 0.000275;
 
 					npc.set(Number(key), value);

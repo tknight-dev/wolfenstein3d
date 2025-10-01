@@ -36,6 +36,7 @@ export class DOM {
 	public static elEditor: HTMLElement;
 	public static elEditorCommandFindAndReplace: HTMLElement;
 	public static elEditorCommandMetaMenu: HTMLElement;
+	public static elEditorCommandResetMap: HTMLElement;
 	public static elEditorContainerCharacters: HTMLElement;
 	public static elEditorContainerCharactersGuardContent: HTMLElement;
 	public static elEditorContainerObjects: HTMLElement;
@@ -183,6 +184,7 @@ export class DOM {
 		DOM.elEditor = <HTMLElement>document.getElementById('editor');
 		DOM.elEditorCommandFindAndReplace = <HTMLElement>document.getElementById('editor-cell-command-toggle-find-and-replace');
 		DOM.elEditorCommandMetaMenu = <HTMLElement>document.getElementById('editor-cell-command-toggle-meta');
+		DOM.elEditorCommandResetMap = <HTMLElement>document.getElementById('editor-cell-command-toggle-reset');
 		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-cell-container-characters');
 		DOM.elEditorContainerCharactersGuardContent = <HTMLElement>document.getElementById('editor-cell-container-characters-guard-content');
 		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-cell-container-objects');

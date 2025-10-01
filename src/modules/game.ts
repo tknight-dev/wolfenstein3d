@@ -35,7 +35,7 @@ import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import {
 	GamingCanvas,
 	GamingCanvasAudioType,
-	GamingCanvasConstPI_1_00,
+	GamingCanvasConstPI_1_000,
 	GamingCanvasFIFOQueue,
 	GamingCanvasInput,
 	GamingCanvasInputGamepad,
@@ -94,6 +94,8 @@ export class Game {
 	public static inputRequest: number;
 	public static inputSuspend: boolean = true;
 	public static map: GameMap;
+	public static mapBackup: GameMap;
+	public static mapBackupRestored: boolean;
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
@@ -332,7 +334,8 @@ export class Game {
 
 					fileReader.onloadend = () => {
 						try {
-							const parsed: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result)));
+							const parsed: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result))),
+								parsed2: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result)));
 
 							// Adjust
 							Game.camera.r = parsed.position.r;
@@ -340,11 +343,13 @@ export class Game {
 							Game.camera.y = parsed.position.y + 0.5;
 							Game.camera.z = parsed.position.z;
 							Game.map = parsed;
+							Game.mapBackup = parsed2;
 
 							// Done
 							Game.mapNew = true;
 
 							CalcMainBus.outputMap(parsed);
+							CalcPathBus.outputMap(parsed);
 							VideoEditorBus.outputMap(parsed);
 							VideoMainBus.outputMap(parsed);
 						} catch (error) {
@@ -387,6 +392,7 @@ export class Game {
 			}
 
 			CalcMainBus.outputMap(Game.map);
+			CalcPathBus.outputMap(Game.map);
 			VideoEditorBus.outputMap(Game.map);
 			VideoMainBus.outputMap(Game.map);
 
@@ -403,6 +409,32 @@ export class Game {
 			Settings.setMetaMap(false);
 			DOM.elMetaMap.style.display = 'block';
 			Game.inputSuspend = true;
+		};
+
+		DOM.elEditorCommandResetMap.onclick = () => {
+			// Convert map
+			let npc: Map<number, CharacterNPC> = Game.mapBackup.npc;
+			Game.mapBackup.npc = <any>{};
+			for (let [i, value] of npc.entries()) {
+				(<any>Game.mapBackup.npc)[String(i)] = value;
+			}
+
+			const parsed: GameMap = Assets.parseMap(JSON.parse(JSON.stringify(Game.mapBackup)));
+
+			// Restore map
+			Game.mapBackup.npc = npc;
+
+			Game.camera.r = parsed.position.r;
+			Game.camera.x = parsed.position.x + 0.5;
+			Game.camera.y = parsed.position.y + 0.5;
+			Game.camera.z = parsed.position.z;
+			Game.map = parsed;
+			Game.mapBackupRestored = true;
+
+			CalcMainBus.outputMap(parsed);
+			CalcPathBus.outputMap(parsed);
+			VideoEditorBus.outputMap(parsed);
+			VideoMainBus.outputMap(parsed);
 		};
 
 		// Editor items
@@ -441,10 +473,10 @@ export class Game {
 					Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
 
 					DOM.elEditorPropertiesCharacterInputAngle.value = String(
-						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_00),
+						Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_000),
 					);
 					// DOM.elEditorPropertiesCharacterInputDifficulty.value = String(GameDifficulty.EASY);
-					// DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round(characterNPC.fov * 180 / GamingCanvasConstPI_1_00)) + '°';
+					// DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round(characterNPC.fov * 180 / GamingCanvasConstPI_1_000)) + '°';
 					// DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 					// Highlighter based on asset
@@ -625,7 +657,7 @@ export class Game {
 		};
 
 		DOM.elMetaMapLocation.onclick = () => {
-			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI_1_00) | 0);
+			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.value = String(Game.camera.x | 0);
 			DOM.elMetaMapValueStartingPositionY.value = String(Game.camera.y | 0);
 		};
@@ -726,6 +758,7 @@ export class Game {
 
 		// GameMap
 		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
 
 		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
 
@@ -845,7 +878,7 @@ export class Game {
 					}
 					Game.musicInstance = await GamingCanvas.audioControlPlay(
 						AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL,
-						false,
+						GamingCanvasAudioType.MUSIC,
 						false,
 						0,
 						0,
@@ -863,12 +896,20 @@ export class Game {
 		// Calc: Audio
 		CalcMainBus.setCallbackAudio(async (data: CalcMainBusOutputDataAudio) => {
 			if (data.assetId !== undefined) {
-				const instance: number | null = await GamingCanvas.audioControlPlay(data.assetId, true, false, data.pan, 0, data.volume, (instance: number) => {
-					CalcMainBus.outputAudioStop({
-						instance: instance,
-						request: data.request,
-					});
-				});
+				const instance: number | null = await GamingCanvas.audioControlPlay(
+					data.assetId,
+					GamingCanvasAudioType.EFFECT,
+					false,
+					data.pan,
+					0,
+					data.volume,
+					(instance: number) => {
+						CalcMainBus.outputAudioStop({
+							instance: instance,
+							request: data.request,
+						});
+					},
+				);
 				CalcMainBus.outputAudioStart({
 					instance: instance,
 					request: data.request,
@@ -987,7 +1028,8 @@ export class Game {
 
 		// Camera
 		setInterval(() => {
-			if (updated === true || updatedR === true || Game.reportNew === true) {
+			if (updated === true || updatedR === true || Game.reportNew === true || Game.mapBackupRestored === true) {
+				Game.mapBackupRestored = false;
 				report = Game.report;
 
 				if (modeEdit === true) {
@@ -1020,6 +1062,7 @@ export class Game {
 				dataUpdated = false;
 
 				CalcMainBus.outputMap(map);
+				CalcPathBus.outputMap(map);
 				VideoEditorBus.outputMap(map);
 				VideoMainBus.outputMap(map);
 			}
@@ -1061,7 +1104,7 @@ export class Game {
 						cameraPrevious: <GamingCanvasGridICamera>{},
 						difficulty: Number(DOM.elEditorPropertiesCharacterInputDifficulty.value),
 						gridIndex: id,
-						fov: (120 * GamingCanvasConstPI_1_00) / 180,
+						fov: (120 * GamingCanvasConstPI_1_000) / 180,
 						fovDistanceMax: 20,
 						health: 100,
 						id: id,
@@ -1089,16 +1132,6 @@ export class Game {
 			dataUpdated = true;
 		};
 
-		const idUnique = (id: number): boolean => {
-			let npc: CharacterNPC;
-			for (npc of Game.map.npc.values()) {
-				if (npc.id === id) {
-					return false;
-				}
-			}
-			return true;
-		};
-
 		const inspect = (position: GamingCanvasInputPosition) => {
 			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
@@ -1106,6 +1139,8 @@ export class Game {
 				const characterNPC: CharacterNPC | undefined = map.npc.get(coordinate.x * map.grid.sideLength + coordinate.y);
 
 				if (characterNPC === undefined) {
+					DOM.elEditorSectionObjects.click();
+					inspect(position);
 					return;
 				}
 
@@ -1124,10 +1159,10 @@ export class Game {
 				Game.editorAssetPropertiesCharacter = (<any>assetsImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId);
 
 				DOM.elEditorPropertiesCharacterInputAngle.value = String(
-					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_00),
+					Math.round(((Game.editorAssetPropertiesCharacter.angle || 0) * 180) / GamingCanvasConstPI_1_000),
 				);
 				DOM.elEditorPropertiesCharacterInputDifficulty.value = String(characterNPC.difficulty);
-				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI_1_00)) + '°';
+				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI_1_000)) + '°';
 				DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
 				// Highlighter based on asset
@@ -1171,7 +1206,7 @@ export class Game {
 				}
 
 				if (clicked === false) {
-					// Special
+					// Asset based
 					DOM.elButtonApply.click();
 					Game.editorCellHighlightEnable = true;
 					DOM.elEdit.style.background = `url(${Assets.dataImage.get(Game.editorAssetIdImg)})`;
@@ -1210,13 +1245,19 @@ export class Game {
 				DOM.elEditorPropertiesCellInputWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
 				DOM.elEditorPropertiesCellInputWallMovable.checked = (cell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0;
 				Game.cellApply();
+
+				if (DOM.elEditorPropertiesCellInputExtended.checked) {
+					DOM.elEditorSectionExtended.click();
+				} else {
+					DOM.elEditorSectionObjects.click();
+				}
 			}
 		};
 
 		const position = (position: GamingCanvasInputPosition) => {
 			Game.position = GamingCanvasGridInputToCoordinate(position, viewport, Game.position);
 			DOM.elEditorPropertiesCellOutputIndex.innerText = String((Game.position.x | 0) * Game.map.grid.sideLength + (Game.position.y | 0)).padStart(4, '0');
-			DOM.elEditorPropertiesCellOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI_1_00) | 0}°`;
+			DOM.elEditorPropertiesCellOutputPosition.innerText = `(${String(Game.position.x).padStart(3, '0')}, ${String(Game.position.y).padStart(3, '0')}) ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°`;
 		};
 
 		const processor = (timestampNow: number) => {
@@ -1396,6 +1437,9 @@ export class Game {
 					case 'KeyM':
 						DOM.elEditorCommandMetaMenu.click();
 						break;
+					case 'KeyR':
+						DOM.elEditorCommandResetMap.click();
+						break;
 				}
 			}
 		};
@@ -1464,7 +1508,7 @@ export class Game {
 								cameraMoveY = 1 - position1.yRelative;
 								updated = true;
 							} else if (downModeWheel === true) {
-								camera.r = position1.xRelative * 2 * GamingCanvasConstPI_1_00;
+								camera.r = position1.xRelative * 2 * GamingCanvasConstPI_1_000;
 								updatedR = true;
 							}
 						} else {
@@ -1601,6 +1645,9 @@ export class Game {
 		if (Game.modeEdit !== true) {
 			Game.modeEdit = true;
 
+			// Game
+			CalcMainBus.outputPause(true);
+
 			// DOM
 			DOM.elButtonApply.classList.remove('active');
 			DOM.elButtonEye.classList.add('active');
@@ -1682,6 +1729,27 @@ export class Game {
 			// Video
 			setTimeout(() => {
 				Game.reportNew = true;
+
+				setTimeout(() => {
+					// Game
+					CalcMainBus.outputPause(false);
+				}, 500);
+			});
+			CalcMainBus.outputCharacterInput({
+				player1: {
+					action: false,
+					fire: false,
+					r: 0,
+					x: 0,
+					y: 0,
+				},
+				player2: {
+					action: false,
+					fire: false,
+					r: 0,
+					x: 0,
+					y: 0,
+				},
 			});
 			Settings.singleVideoFeedOverride(false);
 			VideoEditorBus.outputEnable(false);

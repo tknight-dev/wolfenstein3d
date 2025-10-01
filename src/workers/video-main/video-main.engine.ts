@@ -19,9 +19,9 @@ import {
 } from '../../asset-manager.js';
 import {
 	GamingCanvas,
-	GamingCanvasConstPI_1_00,
-	GamingCanvasConstPI_2_00,
-	GamingCanvasConstPI_0_50,
+	GamingCanvasConstPI_1_000,
+	GamingCanvasConstPI_2_000,
+	GamingCanvasConstPI_0_500,
 	GamingCanvasFIFOQueue,
 	GamingCanvasReport,
 	GamingCanvasRenderStyle,
@@ -51,6 +51,14 @@ import {
 	GamingCanvasGridRaycastCellSide,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridUint16Array,
+	GamingCanvasConstPI_1_875,
+	GamingCanvasConstPI_0_125,
+	GamingCanvasConstPI_0_375,
+	GamingCanvasConstPI_0_625,
+	GamingCanvasConstPI_0_875,
+	GamingCanvasConstPI_1_125,
+	GamingCanvasConstPI_1_375,
+	GamingCanvasConstPI_1_625,
 } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import {
@@ -673,6 +681,8 @@ class VideoMainEngine {
 					offscreenCanvasContext.fillStyle = '#717171';
 					offscreenCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 				}
+				// offscreenCanvasContext.fillStyle = 'black';
+				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
 				// Render: No Lighting
 				if (renderLightingQuality === LightingQuality.NONE) {
@@ -734,6 +744,7 @@ class VideoMainEngine {
 
 							asset = renderAssets.get(renderAssetId) || renderImageTest;
 						}
+						// asset = renderImageTest;
 
 						// Calc
 						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 3]) * renderWallHeightFactor;
@@ -902,7 +913,7 @@ class VideoMainEngine {
 									y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
 
 									// Calc: Angle (fisheye correction)
-									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_50;
+									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 
 									// Calc: Distance
 									renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -914,11 +925,11 @@ class VideoMainEngine {
 									renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 									// Corrections for rotations between 0 and 2pi
-									if (renderSpriteXFactor > GamingCanvasConstPI_2_00) {
-										renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+									if (renderSpriteXFactor > GamingCanvasConstPI_2_000) {
+										renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 									}
-									if (renderSpriteXFactor > GamingCanvasConstPI_1_00) {
-										renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+									if (renderSpriteXFactor > GamingCanvasConstPI_1_000) {
+										renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 									}
 
 									renderSpriteFixedCoordinates[0] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
@@ -942,7 +953,7 @@ class VideoMainEngine {
 									y += renderSpriteFixedNS === true ? 1 : 0;
 
 									// Calc: Angle (fisheye correction)
-									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_50;
+									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 
 									// Calc: Distance
 									renderDistance2 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -954,11 +965,11 @@ class VideoMainEngine {
 									renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 									// Corrections for rotations between 0 and 2pi
-									if (renderSpriteXFactor > GamingCanvasConstPI_2_00) {
-										renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+									if (renderSpriteXFactor > GamingCanvasConstPI_2_000) {
+										renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 									}
-									if (renderSpriteXFactor > GamingCanvasConstPI_1_00) {
-										renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+									if (renderSpriteXFactor > GamingCanvasConstPI_1_000) {
+										renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 									}
 
 									renderSpriteFixedCoordinates[2] = (renderSpriteXFactor / settingsFOV) * offscreenCanvasWidthPx;
@@ -1043,7 +1054,7 @@ class VideoMainEngine {
 								y -= calculationsCamera.y - 0.5; // 0.5 is center
 
 								// Calc: Angle (fisheye correction)
-								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_50;
+								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 
 								// Calc: Distance
 								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1057,11 +1068,11 @@ class VideoMainEngine {
 								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 								// Corrections for rotations between 0 and 2pi
-								if (renderSpriteXFactor > GamingCanvasConstPI_2_00) {
-									renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+								if (renderSpriteXFactor > GamingCanvasConstPI_2_000) {
+									renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 								}
-								if (renderSpriteXFactor > GamingCanvasConstPI_1_00) {
-									renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+								if (renderSpriteXFactor > GamingCanvasConstPI_1_000) {
+									renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 								}
 
 								renderSpriteXFactor /= settingsFOV;
@@ -1121,7 +1132,7 @@ class VideoMainEngine {
 								y = renderCharacterNPC.camera.y - calculationsCamera.y;
 
 								// Calc: Angle (fisheye correction)
-								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_50;
+								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 
 								// Calc: Distance
 								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1135,11 +1146,11 @@ class VideoMainEngine {
 								renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
 
 								// Corrections for rotations between 0 and 2pi
-								if (renderSpriteXFactor > GamingCanvasConstPI_2_00) {
-									renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+								if (renderSpriteXFactor > GamingCanvasConstPI_2_000) {
+									renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 								}
-								if (renderSpriteXFactor > GamingCanvasConstPI_1_00) {
-									renderSpriteXFactor -= GamingCanvasConstPI_2_00;
+								if (renderSpriteXFactor > GamingCanvasConstPI_1_000) {
+									renderSpriteXFactor -= GamingCanvasConstPI_2_000;
 								}
 
 								renderSpriteXFactor /= settingsFOV;
@@ -1150,11 +1161,11 @@ class VideoMainEngine {
 									asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
 								} else {
 									// Calc: Angle
-									renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_50 * 1.25;
+									renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 									if (renderAngle < 0) {
-										renderAngle += GamingCanvasConstPI_2_00;
-									} else if (renderAngle > GamingCanvasConstPI_2_00) {
-										renderAngle -= GamingCanvasConstPI_2_00;
+										renderAngle += GamingCanvasConstPI_2_000;
+									} else if (renderAngle > GamingCanvasConstPI_2_000) {
+										renderAngle -= GamingCanvasConstPI_2_000;
 									}
 
 									// Calc: Movement
@@ -1167,30 +1178,24 @@ class VideoMainEngine {
 									}
 
 									// Calc: Asset
-									if (renderAngle < 0.7855) {
-										// 0 deg
+									if (renderAngle < GamingCanvasConstPI_0_125) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 1.5708) {
-										// 45 deg
+									} else if (renderAngle < GamingCanvasConstPI_0_375) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 2.3562) {
-										// 90 deg
+									} else if (renderAngle < GamingCanvasConstPI_0_625) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 3.1416) {
-										// 135 deg
+									} else if (renderAngle < GamingCanvasConstPI_0_875) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 3.927) {
-										// 180 deg
+									} else if (renderAngle < GamingCanvasConstPI_1_125) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 4.7124) {
-										// 225 deg
+									} else if (renderAngle < GamingCanvasConstPI_1_375) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderImageTest;
-									} else if (renderAngle < 5.4978) {
-										// 270 deg
+									} else if (renderAngle < GamingCanvasConstPI_1_625) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderImageTest;
-									} else {
-										// 315 deg
+									} else if (renderAngle < GamingCanvasConstPI_1_875) {
 										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderImageTest;
+									} else {
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
 									}
 								}
 

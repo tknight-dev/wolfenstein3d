@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasConstPI_2_00, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasConstPI_2_000, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
@@ -728,7 +728,7 @@ class VideoEditorEngine {
 						characterPlayer1YEff * calculationsViewportCellSizePx,
 						calculationsViewportCellSizePx / 4,
 						0,
-						GamingCanvasConstPI_2_00,
+						GamingCanvasConstPI_2_000,
 					);
 					offscreenCanvasContext.fill();
 
@@ -755,7 +755,7 @@ class VideoEditorEngine {
 							characterPlayer2YEff * calculationsViewportCellSizePx,
 							calculationsViewportCellSizePx / 4,
 							0,
-							GamingCanvasConstPI_2_00,
+							GamingCanvasConstPI_2_000,
 						);
 						offscreenCanvasContext.fill();
 					}
@@ -847,7 +847,7 @@ class VideoEditorEngine {
 							(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 							calculationsViewportCellSizePx / 4,
 							0,
-							GamingCanvasConstPI_2_00,
+							GamingCanvasConstPI_2_000,
 						);
 						offscreenCanvasContext.fill();
 					}

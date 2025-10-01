@@ -160,6 +160,13 @@ export class CalcMainBus {
 		});
 	}
 
+	public static outputPause(state: boolean): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.PAUSE,
+			data: state,
+		});
+	}
+
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {
 		CalcMainBus.worker.postMessage({

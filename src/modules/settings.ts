@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_00, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
@@ -36,7 +36,7 @@ export class Settings {
 			audioWallCollisions: false,
 			debug: Game.settingDebug,
 			difficulty: GameDifficulty.EASY,
-			fov: (60 * GamingCanvasConstPI_1_00) / 180, // 60 deg
+			fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,
 			raycastQuality: RaycastQuality.FULL,
@@ -202,7 +202,7 @@ export class Settings {
 			Game.settingsCalcMain.audioNoAction = DOM.elSettingsValueAudioNoAction.checked;
 			Game.settingsCalcMain.audioWallCollisions = DOM.elSettingsValueAudioWallCollisions.checked;
 			((Game.settingsCalcMain.difficulty = Number(DOM.elSettingsValueGameDifficulty.value)),
-				(Game.settingsCalcMain.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI_1_00) / 180));
+				(Game.settingsCalcMain.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI_1_000) / 180));
 			Game.settingsCalcMain.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
 			Game.settingsCalcMain.player2Enable = DOM.elSettingsValueGameMultiplayer.checked;
 			Game.settingsCalcMain.raycastQuality = Number(DOM.elSettingsValueGraphicsRaycastQuality.value);
@@ -248,7 +248,7 @@ export class Settings {
 			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settingsVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
-			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalcMain.fov * 180) / GamingCanvasConstPI_1_00);
+			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalcMain.fov * 180) / GamingCanvasConstPI_1_000);
 			DOM.elSettingsValueGraphicsFPS.value = String(Game.settingsCalcMain.fps);
 			DOM.elSettingsValueGraphicsFPSShow.checked = Game.settingGraphicsFPSDisplay;
 			DOM.elSettingsValueGraphicsGamma.value = String(Game.settingsVideoMain.gamma);
@@ -269,11 +269,11 @@ export class Settings {
 
 	public static setMetaMap(apply: boolean): void {
 		if (apply === true) {
-			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_00) / 180 + 0.0001;
+			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
 			Game.map.position.x = Number(DOM.elMetaMapValueStartingPositionX.value) | 0;
 			Game.map.position.y = Number(DOM.elMetaMapValueStartingPositionY.value) | 0;
 		} else {
-			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_00) | 0);
+			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
 			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x);
 			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
