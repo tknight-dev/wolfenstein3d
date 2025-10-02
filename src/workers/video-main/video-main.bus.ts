@@ -225,6 +225,22 @@ export class VideoMainBus {
 		});
 	}
 
+	public static outputPause(state: boolean): void {
+		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
+			return;
+		}
+
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.PAUSE,
+			data: state,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.PAUSE,
+			data: state,
+		});
+	}
+
 	// Non-fixed resolution canvas has changed in size
 	public static outputReport(report: GamingCanvasReport): void {
 		VideoMainBus.workerPlayer1.postMessage({

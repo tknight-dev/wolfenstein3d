@@ -4,7 +4,6 @@ import {
 	CharacterMetaEncode,
 	CharacterNPC,
 	CharacterNPCState,
-	CharacterNPCUpdate,
 	CharacterNPCUpdateEncode,
 	CharacterWeapon,
 } from '../../models/character.model.js';
@@ -29,43 +28,44 @@ import {
 	GameGridCellMasksAndValuesExtended,
 	GameMap,
 } from '../../models/game.model.js';
-import { GamingCanvasOrientation, GamingCanvasReport, GamingCanvasUtilScale } from '@tknight-dev/gaming-canvas';
 import {
-	GamingCanvasGridCharacterControl,
-	GamingCanvasGridCharacterControlStyle,
-	GamingCanvasGridCharacterControlOptions,
-	GamingCanvasGridRaycastResultDistanceMapInstance,
-	GamingCanvasGridRaycastCellSide,
-	GamingCanvasConstPI_2_000,
-	GamingCanvasConstPI_1_000,
-	GamingCanvasGridCharacterSeen,
-	GamingCanvasGridCharacterInput,
-	GamingCanvasConstPI_1_500,
-	GamingCanvasConstPI_0_500,
+	GamingCanvasConstPI_0_125,
 	GamingCanvasConstPI_0_250,
+	GamingCanvasConstPI_0_375,
+	GamingCanvasConstPI_0_500,
+	GamingCanvasConstPI_0_625,
 	GamingCanvasConstPI_0_750,
+	GamingCanvasConstPI_0_875,
+	GamingCanvasConstPI_1_000,
+	GamingCanvasConstPI_1_125,
 	GamingCanvasConstPI_1_250,
+	GamingCanvasConstPI_1_375,
+	GamingCanvasConstPI_1_500,
+	GamingCanvasConstPI_1_625,
 	GamingCanvasConstPI_1_750,
-	GamingCanvasGridPathAStarResult,
-	GamingCanvasGridPathAStarMemory,
+	GamingCanvasConstPI_1_875,
+	GamingCanvasConstPI_2_000,
+	GamingCanvasOrientation,
+	GamingCanvasReport,
+	GamingCanvasUtilScale,
+	GamingCanvasUtilTimers,
+} from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridCharacterControl,
+	GamingCanvasGridCharacterControlOptions,
+	GamingCanvasGridCharacterControlStyle,
+	GamingCanvasGridCharacterInput,
+	GamingCanvasGridCharacterSeen,
+	GamingCanvasGridICamera,
 	GamingCanvasGridPathAStarOptions,
 	GamingCanvasGridPathAStarOptionsPathHeuristic,
-	GamingCanvasConstPI_1_875,
-	GamingCanvasConstPI_0_125,
-	GamingCanvasConstPI_0_375,
-	GamingCanvasConstPI_0_875,
-	GamingCanvasConstPI_1_125,
-	GamingCanvasConstPI_1_625,
-	GamingCanvasConstPI_0_625,
-	GamingCanvasConstPI_1_375,
-} from '@tknight-dev/gaming-canvas/grid';
-import {
-	GamingCanvasGridPathAStar,
-	GamingCanvasGridCamera,
-	GamingCanvasGridICamera,
+	GamingCanvasGridPathAStarResult,
 	GamingCanvasGridRaycast,
+	GamingCanvasGridRaycastCellSide,
 	GamingCanvasGridRaycastOptions,
 	GamingCanvasGridRaycastResult,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridUint16Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
@@ -144,11 +144,13 @@ class CalcMainEngine {
 	private static paths: Map<number, number[]>;
 	private static pathsNew: boolean;
 	private static pause: boolean = true;
+	private static pauseTimestampUnix: number = Date.now();
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
 	private static settings: CalcMainBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcMainBusInputDataInit): Promise<void> {
 		// Asset
@@ -415,12 +417,16 @@ class CalcMainEngine {
 			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
 			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcMainEngine.settings.player2Enable,
+			timers: GamingCanvasUtilTimers = CalcMainEngine.timers,
 			timestampAudio: number = 0,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
 			timestampThen: number = 0,
 			timestampUnix: number = Date.now(),
+			timestampUnixEff: number = Date.now(),
+			timestampUnixPause: number = Date.now(),
+			timestampUnixPauseDelta: number = 0,
 			x: number,
 			y: number;
 
@@ -472,8 +478,7 @@ class CalcMainEngine {
 
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			let state: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex),
-				durationEff: number,
-				wait: boolean;
+				durationEff: number;
 
 			if (state === undefined) {
 				state = {
@@ -535,8 +540,8 @@ class CalcMainEngine {
 				},
 			]);
 
-			clearTimeout(state.timeout);
-			state.timeout = setTimeout(() => {
+			CalcMainEngine.timers.clear(state.timeout);
+			state.timeout = CalcMainEngine.timers.add(() => {
 				// Change state complete
 				if (state.closing === true) {
 					state.closing = false;
@@ -557,7 +562,7 @@ class CalcMainEngine {
 		};
 
 		const actionDoorAutoClose = (gridIndex: number, state: CalcMainBusActionDoorState) => {
-			state.timeout = setTimeout(() => {
+			state.timeout = CalcMainEngine.timers.add(() => {
 				if (
 					CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
 					CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
@@ -658,17 +663,20 @@ class CalcMainEngine {
 			gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR | GameGridCellMasksAndValues.WALL_INVISIBLE;
 
 			// Calc: Move 1st Block
-			setTimeout(
+			timers.add(
 				() => {
 					gameMapGridData[gridIndex] = GameGridCellMasksAndValues.FLOOR;
+
+					// Calc: Move 2nd Block
+					timers.add(
+						() => {
+							gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+						},
+						(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+					);
 				},
 				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 			);
-
-			// Calc: Move 2nd Block
-			setTimeout(() => {
-				gameMapGridData[gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
-			}, CalcMainBusActionWallMoveStateChangeDurationInMS);
 		};
 
 		/**
@@ -756,16 +764,43 @@ class CalcMainEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			CalcMainEngine.request = requestAnimationFrame(CalcMainEngine.go);
+			timestampNow = timestampNow | 0;
 
 			/**
 			 * Calc
 			 */
 			timestampDelta = timestampNow - timestampThen;
 
+			// Timing
 			if (timestampDelta !== 0) {
 				timestampUnix = Date.now();
 			}
 
+			if (CalcMainEngine.pause !== pause) {
+				pause = CalcMainEngine.pause;
+
+				reportOrientationForce = true;
+				timestampUnixPause = Date.now();
+				timestampUnixPauseDelta = timestampUnixPause - CalcMainEngine.pauseTimestampUnix;
+
+				if (pause !== true) {
+					timers.clockUpdate(timestampNow);
+
+					for (actionDoorState of actionDoors.values()) {
+						actionDoorState.timestampUnix += timestampUnixPauseDelta;
+					}
+				}
+
+				CalcMainEngine.pauseTimestampUnix = timestampUnixPause;
+			}
+			if (pause === true) {
+				timestampUnixEff = timestampUnixPause;
+			} else {
+				timestampUnixEff = timestampUnix;
+				timers.tick(timestampNow);
+			}
+
+			// Main code
 			if (timestampDelta > cycleMinMs) {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
@@ -792,10 +827,8 @@ class CalcMainEngine {
 				if (CalcMainEngine.gameMapNew === true) {
 					CalcMainEngine.gameMapNew = false;
 
-					for (actionDoorState of actionDoors.values()) {
-						clearTimeout(actionDoorState.timeout);
-					}
 					actionDoors.clear();
+					timers.clearAll();
 
 					gameMap = CalcMainEngine.gameMap;
 					gameMapGrid = CalcMainEngine.gameMap.grid;
@@ -832,12 +865,6 @@ class CalcMainEngine {
 					CalcMainEngine.pathsNew = false;
 
 					gameMapNPCPaths = CalcMainEngine.paths;
-				}
-
-				if (CalcMainEngine.pause !== pause) {
-					pause = CalcMainEngine.pause;
-
-					reportOrientationForce = true;
 				}
 
 				if (CalcMainEngine.reportNew === true || CalcMainEngine.settingsNew === true) {
@@ -973,17 +1000,17 @@ class CalcMainEngine {
 							characterPlayer1Action = true;
 							characterPlayer1GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
-							// 45deg = 0.7854rad (NE)
-							// 135deg = 2.3562rad (NW)
-							// 225deg = 3.9270rad (SW)
-							// 315deg = 5.4978rad (SE)
-							if (cameraInstance.r > 0.7854 && cameraInstance.r < 2.3562) {
+							// 45deg = GamingCanvasConstPI_0_250 (NE)
+							// 135deg = GamingCanvasConstPI_0_750rad (NW)
+							// 225deg = GamingCanvasConstPI_1_2500rad (SW)
+							// 315deg = GamingCanvasConstPI_1_750rad (SE)
+							if (cameraInstance.r > GamingCanvasConstPI_0_250 && cameraInstance.r < GamingCanvasConstPI_0_750) {
 								cellSide = GamingCanvasGridRaycastCellSide.EAST;
 								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
-							} else if (cameraInstance.r > 3.927 && cameraInstance.r < 5.4978) {
+							} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
 								cellSide = GamingCanvasGridRaycastCellSide.WEST;
 								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
-							} else if (cameraInstance.r > 2.3562 && cameraInstance.r < 3.927) {
+							} else if (cameraInstance.r > GamingCanvasConstPI_0_750 && cameraInstance.r < GamingCanvasConstPI_1_250) {
 								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 								gameMapIndexEff = characterPlayer1GridIndex - 1;
 							} else {
@@ -1019,17 +1046,17 @@ class CalcMainEngine {
 								characterPlayer2Action = true;
 								characterPlayer2GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
-								// 45deg = 0.7854rad (NE)
-								// 135deg = 2.3562rad (NW)
-								// 225deg = 3.9270rad (SW)
-								// 315deg = 5.4978rad (SE)
-								if (cameraInstance.r > 0.7854 && cameraInstance.r < 2.3562) {
+								// 45deg = GamingCanvasConstPI_0_250rad (NE)
+								// 135deg = GamingCanvasConstPI_0_750rad (NW)
+								// 225deg = GamingCanvasConstPI_1_2500rad (SW)
+								// 315deg = GamingCanvasConstPI_1_750rad (SE)
+								if (cameraInstance.r > GamingCanvasConstPI_0_250 && cameraInstance.r < GamingCanvasConstPI_0_750) {
 									cellSide = GamingCanvasGridRaycastCellSide.EAST;
 									gameMapIndexEff = characterPlayer2GridIndex + gameMapSideLength;
-								} else if (cameraInstance.r > 3.927 && cameraInstance.r < 5.4978) {
+								} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
 									cellSide = GamingCanvasGridRaycastCellSide.WEST;
 									gameMapIndexEff = characterPlayer2GridIndex - gameMapSideLength;
-								} else if (cameraInstance.r > 2.3562 && cameraInstance.r < 3.927) {
+								} else if (cameraInstance.r > GamingCanvasConstPI_0_750 && cameraInstance.r < GamingCanvasConstPI_1_250) {
 									cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 									gameMapIndexEff = characterPlayer2GridIndex - 1;
 								} else {
@@ -1409,6 +1436,10 @@ class CalcMainEngine {
 												x = characterNPC.camera.x % 1;
 												y = characterNPC.camera.y % 1;
 
+												// 0.5 is the center of the square
+												// this snaps the character to the center
+												// it's possible the character is moving so fast that it skips over this detection method
+												// it should know the origin point and then compare to center to force direction change if passed the center
 												if (x > 0.4 && x < 0.6 && y > 0.4 && y < 0.6) {
 													switch (assetId) {
 														case AssetIdImg.MISC_ARROW_EAST:
@@ -1598,7 +1629,7 @@ class CalcMainEngine {
 										characterNPCState === CharacterNPCState.WALKING_DOOR)
 								) {
 									// Wait for "reflex" time (guard turns, relex delay, spot!)
-									if (timestampUnix - characterNPC.timestampUnixState > 200) {
+									if (timestampUnix - characterNPC.timestampUnixState > 300) {
 										// Enemy contact!
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex);
 

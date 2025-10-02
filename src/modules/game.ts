@@ -1647,6 +1647,8 @@ export class Game {
 
 			// Game
 			CalcMainBus.outputPause(true);
+			GamingCanvas.audioControlPauseAll(true);
+			VideoMainBus.outputPause(true);
 
 			// DOM
 			DOM.elButtonApply.classList.remove('active');
@@ -1733,6 +1735,8 @@ export class Game {
 				setTimeout(() => {
 					// Game
 					CalcMainBus.outputPause(false);
+					GamingCanvas.audioControlPauseAll(false);
+					VideoMainBus.outputPause(false);
 				}, 500);
 			});
 			CalcMainBus.outputCharacterInput({

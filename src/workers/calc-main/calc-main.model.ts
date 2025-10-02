@@ -19,7 +19,7 @@ export interface CalcMainBusActionDoorState {
 	open: boolean;
 	opening: boolean;
 	timestampUnix: number; // Unix Timestamp for syncing between threads (WebWorkers)
-	timeout?: ReturnType<typeof setTimeout>;
+	timeout?: number;
 }
 export const CalcMainBusActionDoorStateAutoCloseDurationInMS: number = 5000;
 export const CalcMainBusActionDoorStateChangeDurationInMS: number = 1000;

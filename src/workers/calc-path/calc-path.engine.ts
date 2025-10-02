@@ -139,10 +139,10 @@ class CalcPathEngine {
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
 			},
-			pathWeight = (cell: number, gridIndex: number) => {
+			pathWeight = (cell: number, gridIndex: number, heuristic: (heuristic?: GamingCanvasGridPathAStarOptionsPathHeuristic) => number) => {
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					// Prefer not to use doors
-					return 1;
+					return heuristic() + 1;
 				}
 
 				return 0; // just use heuristic

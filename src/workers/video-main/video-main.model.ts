@@ -20,6 +20,7 @@ export enum VideoMainBusInputCmd {
 	MAP,
 	MAP_UPDATE,
 	NPC_UPDATE,
+	PAUSE,
 	REPORT,
 	SETTINGS,
 }
@@ -55,6 +56,7 @@ export interface VideoMainBusInputDataSettings {
 export interface VideoMainBusInputPayload {
 	cmd: VideoMainBusInputCmd;
 	data:
+		| boolean
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataActionSwitch
 		| CalcMainBusOutputDataActionWallMove

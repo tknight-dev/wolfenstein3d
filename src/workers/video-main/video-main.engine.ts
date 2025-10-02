@@ -22,10 +22,9 @@ import {
 	GamingCanvasConstPI_1_000,
 	GamingCanvasConstPI_2_000,
 	GamingCanvasConstPI_0_500,
-	GamingCanvasFIFOQueue,
 	GamingCanvasReport,
 	GamingCanvasRenderStyle,
-	GamingCanvasUtilScale,
+	GamingCanvasUtilTimers,
 } from '@tknight-dev/gaming-canvas';
 import {
 	GameDifficulty,
@@ -44,13 +43,7 @@ import {
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
-import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import {
-	GamingCanvasGridCamera,
-	GamingCanvasGridRaycastTestImageCreate,
-	GamingCanvasGridRaycastCellSide,
-	GamingCanvasGridRaycastResultDistanceMapInstance,
-	GamingCanvasGridUint16Array,
 	GamingCanvasConstPI_1_875,
 	GamingCanvasConstPI_0_125,
 	GamingCanvasConstPI_0_375,
@@ -59,11 +52,17 @@ import {
 	GamingCanvasConstPI_1_125,
 	GamingCanvasConstPI_1_375,
 	GamingCanvasConstPI_1_625,
+	GamingCanvasOrientation,
+} from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridRaycastTestImageCreate,
+	GamingCanvasGridRaycastCellSide,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
 } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import {
 	CalcMainBusActionDoorState,
-	CalcMainBusActionDoorStateAutoCloseDurationInMS,
 	CalcMainBusActionDoorStateChangeDurationInMS,
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusOutputDataActionSwitch,
@@ -107,6 +106,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.NPC_UPDATE:
 			VideoMainEngine.inputNPCUpdate(<Float32Array[]>payload.data);
 			break;
+		case VideoMainBusInputCmd.PAUSE:
+			VideoMainEngine.inputPause(<boolean>payload.data);
+			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -133,11 +135,14 @@ class VideoMainEngine {
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
+	private static pause: boolean = true;
+	private static pauseTimestampUnix: number = Date.now();
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
 		// Assets
@@ -266,7 +271,7 @@ class VideoMainEngine {
 			statePrevious: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>VideoMainEngine.actionDoors.get(data.gridIndex);
 
 		if (statePrevious !== undefined) {
-			clearTimeout(statePrevious.timeout);
+			VideoMainEngine.timers.clear(statePrevious.timeout);
 
 			if (statePrevious.closing === true) {
 				data.timestampUnix -= CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
@@ -276,7 +281,7 @@ class VideoMainEngine {
 		durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
 		VideoMainEngine.actionDoors.set(data.gridIndex, data);
 
-		data.timeout = setTimeout(() => {
+		data.timeout = VideoMainEngine.timers.add(() => {
 			// Change state complete
 			if (data.closing === true) {
 				data.closing = false;
@@ -329,28 +334,33 @@ class VideoMainEngine {
 		gameMapGridData[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL;
 		gameMapGridData[data.gridIndex] |= spriteType;
 
-		// Calc: Move 1st Block
-		setTimeout(
-			() => {
-				// 2nd block
-				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
+		if (VideoMainEngine.player1 === true) {
+			// Calc: Move 1st Block
+			VideoMainEngine.timers.add(
+				() => {
+					// 2nd block
+					gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
 
-				data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
-				VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
+					data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
+					VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
 
-				// 1st block
-				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
-				VideoMainEngine.actionWall.delete(data.gridIndex);
-			},
-			(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
-		);
+					// 1st block
+					gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+					VideoMainEngine.actionWall.delete(data.gridIndex);
 
-		// Calc: Move 2nd Block
-		setTimeout(() => {
-			gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+					// Calc: Move 2nd Block
+					VideoMainEngine.timers.add(
+						() => {
+							gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
 
-			VideoMainEngine.actionWall.delete(data.gridIndex + offset);
-		}, CalcMainBusActionWallMoveStateChangeDurationInMS);
+							VideoMainEngine.actionWall.delete(data.gridIndex + offset);
+						},
+						(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+					);
+				},
+				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+			);
+		}
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
@@ -373,6 +383,10 @@ class VideoMainEngine {
 	public static inputNPCUpdate(data: Float32Array[]): void {
 		VideoMainEngine.npcUpdate = data;
 		VideoMainEngine.npcUpdateNew = true;
+	}
+
+	public static inputPause(state: boolean): void {
+		VideoMainEngine.pause = state;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -436,6 +450,7 @@ class VideoMainEngine {
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
+			pause: boolean = VideoMainEngine.pause,
 			renderAngle: number,
 			renderAssetId: number,
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
@@ -481,10 +496,14 @@ class VideoMainEngine {
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
+			timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
 			timestampUnix: number,
+			timestampUnixEff: number,
+			timestampUnixPause: number,
+			timestampUnixPauseDelta: number = 0,
 			x: number,
 			y: number;
 
@@ -499,13 +518,45 @@ class VideoMainEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
+			timestampNow = timestampNow | 0;
+
+			// Timing
+			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta !== 0) {
+				timestampUnix = Date.now();
+			}
+			if (VideoMainEngine.pause !== pause) {
+				pause = VideoMainEngine.pause;
+
+				timestampUnixPause = Date.now();
+				timestampUnixPauseDelta = timestampUnixPause - VideoMainEngine.pauseTimestampUnix;
+
+				if (pause !== true) {
+					timers.clockUpdate(timestampNow);
+
+					for (actionDoorState of actionDoors.values()) {
+						actionDoorState.timestampUnix += timestampUnixPauseDelta;
+					}
+
+					for (actionWallState of actionWall.values()) {
+						actionWallState.timestampUnix += timestampUnixPauseDelta;
+					}
+				}
+
+				VideoMainEngine.pauseTimestampUnix = timestampUnixPause;
+			}
+			if (pause === true) {
+				timestampUnixEff = timestampUnixPause;
+			} else {
+				timestampUnixEff = timestampUnix;
+				timers.tick(timestampNow);
+			}
 
 			// Main code
-			timestampDelta = timestampNow - timestampThen;
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
-				timestampUnix = Date.now();
 				frameCount++;
 
 				/*
@@ -524,11 +575,9 @@ class VideoMainEngine {
 				if (VideoMainEngine.gameMapNew === true) {
 					VideoMainEngine.gameMapNew = false;
 
-					for (actionDoorState of actionDoors.values()) {
-						clearTimeout(actionDoorState.timeout);
-					}
 					actionDoors.clear();
 					actionWall.clear();
+					timers.clearAll();
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
@@ -841,13 +890,13 @@ class VideoMainEngine {
 										} else if (actionDoorState.closing === true) {
 											renderSpriteFixedDoorOffset = Math.max(
 												0,
-												1 - (timestampUnix - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
+												1 - (timestampUnixEff - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
 											);
 											// console.log('DOOR CLOSING', renderSpriteFixedDoorOffset);
 										} else {
 											renderSpriteFixedDoorOffset = Math.min(
 												1,
-												(timestampUnix - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
+												(timestampUnixEff - actionDoorState.timestampUnix) / CalcMainBusActionDoorStateChangeDurationInMS,
 											);
 											// console.log('DOOR OPENING', renderSpriteFixedDoorOffset);
 										}
@@ -875,7 +924,10 @@ class VideoMainEngine {
 										if (actionWallState !== undefined) {
 											renderSpriteFixedWallMovableOffset =
 												2 *
-												Math.min(1, (timestampUnix - actionWallState.timestampUnix) / CalcMainBusActionWallMoveStateChangeDurationInMS);
+												Math.min(
+													1,
+													(timestampUnixEff - actionWallState.timestampUnix) / CalcMainBusActionWallMoveStateChangeDurationInMS,
+												);
 
 											// Render: Modification based on cell sidedness
 											switch (actionWallState.cellSide) {
@@ -1170,9 +1222,9 @@ class VideoMainEngine {
 
 									// Calc: Movement
 									if (renderCharacterNPC.running === true) {
-										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+										renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
 									} else if (renderCharacterNPC.walking === true) {
-										renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+										renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
 									} else {
 										renderCharacterNPCState = 0;
 									}
