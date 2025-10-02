@@ -2,7 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput } from '../../models/character.model.js';
+import { CharacterInput, CharacterWeapon } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -39,6 +39,7 @@ export enum CalcMainBusInputCmd {
 	PAUSE,
 	REPORT,
 	SETTINGS,
+	WEAPON_SELECT,
 }
 
 export interface CalcMainBusInputDataAudio {
@@ -67,6 +68,11 @@ export interface CalcMainBusInputDataSettings {
 	raycastQuality: RaycastQuality;
 }
 
+export interface CalcMainBusInputDataWeaponSelect {
+	player1: boolean;
+	weapon: CharacterWeapon;
+}
+
 export interface CalcMainBusInputPayload {
 	cmd: CalcMainBusInputCmd;
 	data:
@@ -75,6 +81,7 @@ export interface CalcMainBusInputPayload {
 		| CalcMainBusInputDataInit
 		| CalcMainBusInputDataPlayerInput
 		| CalcMainBusInputDataSettings
+		| CalcMainBusInputDataWeaponSelect
 		| CharacterInput
 		| Float64Array
 		| GameMap
@@ -98,6 +105,7 @@ export enum CalcMainBusOutputCmd {
 	NPC_UPDATE,
 	PATH_UPDATE,
 	STATS,
+	WEAPON_SELECT,
 }
 
 export interface CalcMainBusOutputDataActionSwitch {
@@ -146,6 +154,11 @@ export interface CalcMainBusOutputDataCalculations {
 
 export interface CalcMainBusOutputDataStats {}
 
+export interface CalcMainBusOutputDataWeaponSelect {
+	player1: boolean;
+	weapon: CharacterWeapon;
+}
+
 export interface CalcMainBusOutputPayload {
 	cmd: CalcMainBusOutputCmd;
 	data:
@@ -158,6 +171,7 @@ export interface CalcMainBusOutputPayload {
 		| CalcMainBusOutputDataCalculations
 		| CalcMainBusOutputDataCharacterMeta
 		| CalcMainBusOutputDataStats
+		| CalcMainBusOutputDataWeaponSelect
 		| Float32Array[]
 		| Map<number, number[]>
 		| Uint16Array;

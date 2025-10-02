@@ -17,6 +17,7 @@ import {
 	CalcMainBusInputDataInit,
 	CalcMainBusInputDataPlayerInput,
 	CalcMainBusInputDataSettings,
+	CalcMainBusInputDataWeaponSelect,
 	CalcMainBusInputPayload,
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputPayload,
@@ -120,6 +121,9 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case CalcMainBusInputCmd.SETTINGS:
 			CalcMainEngine.inputSettings(<CalcMainBusInputDataSettings>payload.data);
+			break;
+		case CalcMainBusInputCmd.WEAPON_SELECT:
+			CalcMainEngine.inputWeaponSelect(<CalcMainBusInputDataWeaponSelect>payload.data);
 			break;
 	}
 };
@@ -265,6 +269,27 @@ class CalcMainEngine {
 	public static inputSettings(data: CalcMainBusInputDataSettings): void {
 		CalcMainEngine.settings = data;
 		CalcMainEngine.settingsNew = true;
+	}
+
+	public static inputWeaponSelect(data: CalcMainBusInputDataWeaponSelect): void {
+		let character: Character;
+
+		if (data.player1 === true) {
+			character = CalcMainEngine.characterPlayer1;
+		} else {
+			character = CalcMainEngine.characterPlayer2;
+		}
+
+		if (character.weapons.includes(data.weapon) === true) {
+			character.weapon = data.weapon;
+
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+					data: data,
+				},
+			]);
+		}
 	}
 
 	/*
@@ -1385,6 +1410,9 @@ class CalcMainEngine {
 
 										if (characterNPCDistance !== 999999) {
 											if (timestampUnix - characterNPC.timestampUnixState > 1000) {
+												characterNPC.assetId = AssetIdImgCharacter.AIM;
+												characterNPC.timestampUnixState = timestampUnix;
+
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
 											}
 										} else if (characterNPCInputChanged === false) {
@@ -1458,6 +1486,7 @@ class CalcMainEngine {
 											characterNPC.running = true;
 
 											characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+											characterNPCUpdated.add(characterNPC.id);
 										}
 										break;
 									default:
@@ -1691,6 +1720,7 @@ class CalcMainEngine {
 											characterNPC.walking = true;
 
 											characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
+											characterNPCUpdated.add(characterNPC.id);
 										}
 										break;
 								}

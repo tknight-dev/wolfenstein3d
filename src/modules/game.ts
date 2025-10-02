@@ -24,6 +24,7 @@ import {
 	CalcMainBusOutputDataAudio,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataWeaponSelect,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -61,7 +62,7 @@ import {
 	GamingCanvasGridInputToCoordinate,
 	GamingCanvasGridICamera,
 } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput, CharacterNPC } from '../models/character.model.js';
+import { CharacterInput, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { CalcPathBusInputDataSettings } from '../workers/calc-path/calc-path.model.js';
 
@@ -372,7 +373,7 @@ export class Game {
 
 		// Editor commands
 		DOM.elEditorCommandFindAndReplace.onclick = () => {
-			DOM.elEditorFindAndReplaceValueFind.value = '';
+			DOM.elEditorFindAndReplaceValueFind.value = Game.editorCellValue.toString(16).padStart(4, '0');
 			DOM.elEditorFindAndReplaceValueReplace.value = '';
 			DOM.elEditorFindAndReplace.style.display = 'flex';
 			Game.inputSuspend = true;
@@ -844,6 +845,7 @@ export class Game {
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
+			player1: boolean,
 			position1: GamingCanvasInputPosition,
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
 			queueInput: GamingCanvasInput | undefined,
@@ -1019,6 +1021,11 @@ export class Game {
 			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
 			VideoEditorBus.outputNPCUpdate(data);
+		});
+
+		// Calc: Weapon Selection
+		CalcMainBus.setCallbackWeaponSelect((data: CalcMainBusOutputDataWeaponSelect) => {
+			VideoMainBus.weaponSelect(data);
 		});
 
 		// Calc: Paths
@@ -1328,11 +1335,14 @@ export class Game {
 				if (Game.settingsCalcMain.player2Enable === true) {
 					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
+						player1 = false;
 					} else {
 						characterPlayerInputPlayer = characterPlayerInput.player1;
+						player1 = true;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
+					player1 = true;
 				}
 
 				if (input.propriatary.axes !== undefined) {
@@ -1344,6 +1354,16 @@ export class Game {
 				if (input.propriatary.buttons !== undefined) {
 					characterPlayerInputPlayer.action = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__LEFT] || false;
 					characterPlayerInputPlayer.fire = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] || false;
+
+					if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__DOWN] === true) {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__LEFT] === true) {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__RIGHT] === true) {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+					}
 				}
 
 				updated = true;
@@ -1355,17 +1375,21 @@ export class Game {
 
 			if (modeEdit !== true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer2InputDevice === InputDevice.KEYBOARD) {
+					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
+						player1 = false;
 					} else {
 						characterPlayerInputPlayer = characterPlayerInput.player1;
+						player1 = true;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
+					player1 = true;
 				}
 
 				switch (input.propriatary.action.code) {
 					case 'ArrowDown':
+					case 'Space':
 						if (down) {
 							characterPlayerInputPlayer.action = true;
 						} else if ((characterPlayerInputPlayer.action = true)) {
@@ -1390,12 +1414,33 @@ export class Game {
 						updated = true;
 						break;
 					case 'ArrowUp':
+					case 'ControlLeft':
 						if (down) {
 							characterPlayerInputPlayer.fire = true;
 						} else if ((characterPlayerInputPlayer.fire = true)) {
 							characterPlayerInputPlayer.fire = false;
 						}
 						updated = true;
+						break;
+					case 'Digit1':
+						if (down) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+						}
+						break;
+					case 'Digit2':
+						if (down) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+						}
+						break;
+					case 'Digit3':
+						if (down) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+						}
+						break;
+					case 'Digit4':
+						if (down) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+						}
 						break;
 					case 'KeyA':
 						if (down) {

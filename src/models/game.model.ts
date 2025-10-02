@@ -37,6 +37,13 @@ export const gameGridCellMaskExtendedDoor: number =
 
 export const gameGridCellMaskSpriteFixed: number = GameGridCellMasksAndValues.SPRITE_FIXED_EW | GameGridCellMasksAndValues.SPRITE_FIXED_NS;
 
+export enum GameDifficulty {
+	EASY = 0,
+	NORMAL = 1,
+	HARD = 2,
+	INSANE = 3,
+}
+
 /**
  * Data: table cell accessed via (64 * x + y)
  */
@@ -44,11 +51,4 @@ export interface GameMap {
 	grid: GamingCanvasGridUint16Array;
 	npc: Map<number, CharacterNPC>; // number is id
 	position: GamingCanvasGridICamera;
-}
-
-export enum GameDifficulty {
-	EASY = 0,
-	NORMAL = 1,
-	HARD = 2,
-	INSANE = 3,
 }

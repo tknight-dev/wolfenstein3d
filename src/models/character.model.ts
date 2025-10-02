@@ -121,6 +121,7 @@ export interface CharacterInput extends GamingCanvasGridCharacterInput {
 
 export enum CharacterWeapon {
 	KNIFE = 0,
+	MACHINE_GUN = 3,
 	PISTOL = 1,
 	SUB_MACHINE_GUN = 2,
 }

@@ -14,9 +14,11 @@ import {
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataCharacterMeta,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataWeaponSelect,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
+import { CharacterWeapon } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -33,6 +35,7 @@ export class CalcMainBus {
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
+	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
 	private static worker: Worker;
 
 	public static initialize(settings: CalcMainBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
@@ -105,6 +108,9 @@ export class CalcMainBus {
 						break;
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
+						break;
+					case CalcMainBusOutputCmd.WEAPON_SELECT:
+						CalcMainBus.callbackWeaponSelect(<CalcMainBusOutputDataWeaponSelect>payload.data);
 						break;
 				}
 			}
@@ -183,6 +189,16 @@ export class CalcMainBus {
 		});
 	}
 
+	public static weaponSelect(player1: boolean, weapon: CharacterWeapon): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.WEAPON_SELECT,
+			data: {
+				player1: player1,
+				weapon: weapon,
+			},
+		});
+	}
+
 	public static setCallbackActionDoor(callbackActionDoor: (data: CalcMainBusActionDoorState) => void): void {
 		CalcMainBus.callbackActionDoor = callbackActionDoor;
 	}
@@ -217,5 +233,9 @@ export class CalcMainBus {
 
 	public static setCallbackStats(callbackStats: (data: CalcMainBusOutputDataStats) => void): void {
 		CalcMainBus.callbackStats = callbackStats;
+	}
+
+	public static setCallbackWeaponSelect(callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void): void {
+		CalcMainBus.callbackWeaponSelect = callbackWeaponSelect;
 	}
 }

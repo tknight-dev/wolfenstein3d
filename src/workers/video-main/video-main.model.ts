@@ -3,6 +3,7 @@ import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionSwitch, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { CharacterWeapon } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -23,6 +24,7 @@ export enum VideoMainBusInputCmd {
 	PAUSE,
 	REPORT,
 	SETTINGS,
+	WEAPON_SELECT,
 }
 
 export interface VideoMainBusInputDataCalculations {
@@ -60,6 +62,7 @@ export interface VideoMainBusInputPayload {
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataActionSwitch
 		| CalcMainBusOutputDataActionWallMove
+		| CharacterWeapon
 		| Float32Array[]
 		| Float64Array
 		| GameMap

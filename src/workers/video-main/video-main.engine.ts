@@ -68,7 +68,7 @@ import {
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
 } from '../calc-main/calc-main.model.js';
-import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
+import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId, CharacterWeapon } from '../../models/character.model.js';
 import { Assets } from '../../modules/assets.js';
 
 /**
@@ -115,6 +115,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.SETTINGS:
 			VideoMainEngine.inputSettings(<VideoMainBusInputDataSettings>payload.data);
 			break;
+		case VideoMainBusInputCmd.WEAPON_SELECT:
+			VideoMainEngine.inputWeaponSelect(<CharacterWeapon>payload.data);
+			break;
 	}
 };
 
@@ -143,6 +146,7 @@ class VideoMainEngine {
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
+	private static weapon: CharacterWeapon = CharacterWeapon.PISTOL;
 
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
 		// Assets
@@ -363,8 +367,6 @@ class VideoMainEngine {
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
 		VideoMainEngine.calculations = data;
-
-		// Last
 		VideoMainEngine.calculationsNew = true;
 	}
 
@@ -389,16 +391,16 @@ class VideoMainEngine {
 
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
-
-		// Last
 		VideoMainEngine.reportNew = true;
 	}
 
 	public static inputSettings(data: VideoMainBusInputDataSettings): void {
 		VideoMainEngine.settings = data;
-
-		// Last
 		VideoMainEngine.settingsNew = true;
+	}
+
+	public static inputWeaponSelect(weapon: CharacterWeapon): void {
+		VideoMainEngine.weapon = weapon;
 	}
 
 	/*
@@ -414,8 +416,7 @@ class VideoMainEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let actionDoorRequest: CalcMainBusActionDoorState,
-			actionDoors: Map<number, CalcMainBusActionDoorState> = VideoMainEngine.actionDoors,
+		let actionDoors: Map<number, CalcMainBusActionDoorState> = VideoMainEngine.actionDoors,
 			actionDoorState: CalcMainBusActionDoorState,
 			actionWall: Map<number, CalcMainBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
 			actionWallState: CalcMainBusOutputDataActionWallMove,
@@ -425,6 +426,7 @@ class VideoMainEngine {
 			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImages,
 			assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImagesInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
+			calculationsCameraGridIndex: number = (calculationsCamera.x | 0) * VideoMainEngine.gameMap.grid.sideLength + (calculationsCamera.y | 0),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
 			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
 			calculationsRaysMapKeysSorted: Float64Array = VideoMainEngine.calculations.raysMapKeysSorted,
@@ -453,7 +455,6 @@ class VideoMainEngine {
 			renderAssetId: number,
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			renderBrightness: number,
-			renderCellSide: GamingCanvasGridRaycastCellSide,
 			renderCharacterNPC: CharacterNPC | undefined,
 			renderCharacterNPCId: number,
 			renderCharacterNPCState: number,
@@ -462,7 +463,7 @@ class VideoMainEngine {
 			renderDistance2: number,
 			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			renderEnable: boolean,
-			renderExtended: boolean,
+			renderFilter: string,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
 			renderGammaFilter: string,
@@ -483,12 +484,16 @@ class VideoMainEngine {
 			renderSpriteFixedWallMovableOffset: number,
 			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
-			renderSpriteXFactor2: number,
 			renderWallHeight: number,
-			renderWallHeight2: number,
 			renderWallHeightFactored: number,
 			renderWallHeightHalf: number,
 			renderWallHeightFactor: number,
+			renderWeapon: CharacterWeapon = VideoMainEngine.weapon,
+			renderWeaponFactor: number,
+			renderWeaponHeight: number,
+			renderWeaponHeightOffset: number,
+			renderWeaponWidth: number,
+			renderWeaponWidthOffset: number,
 			settingsDifficulty: GameDifficulty = VideoMainEngine.settings.difficulty,
 			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
@@ -565,6 +570,7 @@ class VideoMainEngine {
 					VideoMainEngine.calculationsNew = false;
 
 					calculationsCamera.decode(VideoMainEngine.calculations.camera);
+					calculationsCameraGridIndex = (calculationsCamera.x | 0) * gameMapGridSideLength + (calculationsCamera.y | 0);
 					calculationsRays = VideoMainEngine.calculations.rays;
 					calculationsRaysMap = VideoMainEngine.calculations.raysMap;
 					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
@@ -656,6 +662,19 @@ class VideoMainEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
+
+					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
+
+					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+						renderWeaponFactor = (offscreenCanvasWidthPx * 0.75) / asset.width;
+					} else {
+						renderWeaponFactor = (offscreenCanvasWidthPx * 1.75) / asset.width;
+					}
+
+					renderWeaponHeight = asset.height * renderWeaponFactor;
+					renderWeaponWidth = asset.width * renderWeaponFactor;
+					renderWeaponHeightOffset = offscreenCanvasHeightPx - renderWeaponHeight;
+					renderWeaponWidthOffset = (offscreenCanvasWidthPx - renderWeaponWidth) / 2;
 				}
 
 				// Background cache
@@ -681,6 +700,10 @@ class VideoMainEngine {
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
 						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPx / 2, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
 					}
+				}
+
+				if (renderWeapon !== VideoMainEngine.weapon) {
+					renderWeapon = VideoMainEngine.weapon;
 				}
 
 				// Don't render a second screen if it's not even enabled
@@ -715,8 +738,19 @@ class VideoMainEngine {
 					}
 				}
 
+				// Render: Lighting
+				if (renderGamma !== 1 && renderGrayscale === true) {
+					renderFilter = `${renderGammaFilter} ${renderGrayscaleFilter}`;
+				} else if (renderGamma === 1 && renderGrayscale === false) {
+					renderFilter = renderFilterNone;
+				} else if (renderGrayscale === true) {
+					renderFilter = renderGrayscaleFilter;
+				} else {
+					renderFilter = renderGammaFilter;
+				}
+				offscreenCanvasContext.filter = renderFilter;
+
 				// Render: Backgrounds
-				offscreenCanvasContext.filter = 'none';
 				if (renderLightingQuality >= LightingQuality.FULL) {
 					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 				} else {
@@ -730,19 +764,6 @@ class VideoMainEngine {
 				}
 				// offscreenCanvasContext.fillStyle = 'black';
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
-
-				// Render: No Lighting
-				if (renderLightingQuality === LightingQuality.NONE) {
-					if (renderGamma !== 1 && renderGrayscale === true) {
-						offscreenCanvasContext.filter = `${renderGammaFilter} ${renderGrayscaleFilter}`;
-					} else if (renderGamma === 1 && renderGrayscale === false) {
-						offscreenCanvasContext.filter = renderFilterNone;
-					} else if (renderGrayscale === true) {
-						offscreenCanvasContext.filter = renderGrayscaleFilter;
-					} else {
-						offscreenCanvasContext.filter = renderGammaFilter;
-					}
-				}
 
 				// Iterate: By Distance
 				for (i of calculationsRaysMapKeysSorted) {
@@ -966,10 +987,10 @@ class VideoMainEngine {
 									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 
 									// Calc: Distance
-									renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
+									renderDistance1 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
 
 									// Calc: Height
-									renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance) * renderWallHeightFactor;
+									renderSpriteFixedCoordinates[1] = (offscreenCanvasHeightPx / renderDistance1) * renderWallHeightFactor;
 
 									// Calc: x (canvas pixel based on camera.r, fov, and sprite position)
 									renderSpriteXFactor = calculationsCamera.r + settingsFOV / 2 - renderAngle;
@@ -1027,10 +1048,10 @@ class VideoMainEngine {
 									/**
 									 * Render: Lighting
 									 */
-									renderDistance = (renderDistance + renderDistance2) / 2;
+									renderDistance = (renderDistance1 + renderDistance2) / 2;
 
 									if ((gameMapGridCell & GameGridCellMasksAndValues.LIGHT) !== 0) {
-										offscreenCanvasContext.filter = renderGrayscale === true ? renderGrayscaleFilter : renderFilterNone;
+										offscreenCanvasContext.filter = renderFilter;
 									} else if (renderLightingQuality !== LightingQuality.NONE) {
 										renderBrightness = 0;
 
@@ -1050,7 +1071,7 @@ class VideoMainEngine {
 										// Filter: End
 										offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
 									} else {
-										offscreenCanvasContext.filter = 'none';
+										offscreenCanvasContext.filter = renderFilter;
 									}
 
 									/**
@@ -1149,7 +1170,7 @@ class VideoMainEngine {
 									// Filter: End
 									offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
 								} else {
-									offscreenCanvasContext.filter = 'none';
+									offscreenCanvasContext.filter = renderFilter;
 								}
 
 								// Render: 3D Projection
@@ -1265,7 +1286,7 @@ class VideoMainEngine {
 									// Filter: End
 									offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
 								} else {
-									offscreenCanvasContext.filter = 'none';
+									offscreenCanvasContext.filter = renderFilter;
 								}
 
 								// Render: 3D Projection
@@ -1284,6 +1305,40 @@ class VideoMainEngine {
 						}
 					}
 				}
+
+				// Weapon
+				switch (renderWeapon) {
+					case CharacterWeapon.KNIFE:
+						asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
+						break;
+					case CharacterWeapon.MACHINE_GUN:
+						asset = assetImages.get(AssetIdImg.WEAPON_MACHINE_GUN_1) || renderImageTest;
+						break;
+					case CharacterWeapon.PISTOL:
+						asset = assetImages.get(AssetIdImg.WEAPON_PISTOL_1) || renderImageTest;
+						break;
+					case CharacterWeapon.SUB_MACHINE_GUN:
+						asset = assetImages.get(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1) || renderImageTest;
+						break;
+				}
+
+				// Render: Lighting
+				if (renderLightingQuality !== LightingQuality.NONE) {
+					renderBrightness = 0;
+
+					if ((gameMapGridData[calculationsCameraGridIndex] & GameGridCellMasksAndValues.LIGHT) !== 0) {
+						renderBrightness = 0;
+					} else {
+						renderBrightness = -0.1;
+					}
+
+					// Filter: End
+					offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+				} else {
+					offscreenCanvasContext.filter = renderFilter;
+				}
+
+				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight);
 			}
 
 			// Stats: sent once per second

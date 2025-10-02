@@ -10,7 +10,12 @@ import {
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
 import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
-import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionSwitch, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import {
+	CalcMainBusActionDoorState,
+	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataWeaponSelect,
+} from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -265,6 +270,20 @@ export class VideoMainBus {
 			cmd: VideoMainBusInputCmd.SETTINGS,
 			data: settings,
 		});
+	}
+
+	public static weaponSelect(data: CalcMainBusOutputDataWeaponSelect): void {
+		if (data.player1 === true) {
+			VideoMainBus.workerPlayer1.postMessage({
+				cmd: VideoMainBusInputCmd.WEAPON_SELECT,
+				data: data.weapon,
+			});
+		} else {
+			VideoMainBus.workerPlayer2.postMessage({
+				cmd: VideoMainBusInputCmd.WEAPON_SELECT,
+				data: data.weapon,
+			});
+		}
 	}
 
 	public static setCallbackStats(callbackStats: (player1: boolean, data: VideoMainBusOutputDataStats) => void): void {

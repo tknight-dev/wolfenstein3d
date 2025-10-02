@@ -15,7 +15,6 @@ import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
  */
 export const assetLoaderAudio = async (): Promise<Map<AssetIdAudio, string>> => {
 	let assetId: AssetIdAudio,
-		blob: Blob,
 		data: Map<AssetIdAudio, string> = new Map(),
 		dataType: string,
 		filename: string,
@@ -491,6 +490,11 @@ export enum AssetIdImg {
 	WEAPON_KNIFE_3 = 10002,
 	WEAPON_KNIFE_4 = 10003,
 	WEAPON_KNIFE_5 = 10004,
+	WEAPON_MACHINE_GUN_1 = 10015,
+	WEAPON_MACHINE_GUN_2 = 10016,
+	WEAPON_MACHINE_GUN_3 = 10017,
+	WEAPON_MACHINE_GUN_4 = 10018,
+	WEAPON_MACHINE_GUN_5 = 10019,
 	WEAPON_PISTOL_1 = 10005,
 	WEAPON_PISTOL_2 = 10006,
 	WEAPON_PISTOL_3 = 10007,
@@ -1799,7 +1803,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_KNIFE_1, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1808,7 +1812,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_KNIFE_2, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1817,7 +1821,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_KNIFE_3, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1826,7 +1830,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_KNIFE_4, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1835,7 +1839,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_KNIFE_5, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1843,8 +1847,53 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Knife 5',
 		});
 
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_1.png',
+			title: 'Machine Gun 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_2.png',
+			title: 'Machine Gun 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_3.png',
+			title: 'Machine Gun 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_4.png',
+			title: 'Machine Gun 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_5.png',
+			title: 'Machine Gun 5',
+		});
+
 		assetsImages.set(AssetIdImg.WEAPON_PISTOL_1, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1853,7 +1902,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_PISTOL_2, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1862,7 +1911,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_PISTOL_3, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1871,7 +1920,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_PISTOL_4, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1880,7 +1929,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_PISTOL_5, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1889,7 +1938,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1898,7 +1947,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_2, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1907,7 +1956,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_3, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1916,7 +1965,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_4, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
@@ -1925,7 +1974,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_5, {
-			alpha: false,
+			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.WEAPON,
 			ext: AssetExtImg.PNG,
