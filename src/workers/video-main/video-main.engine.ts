@@ -484,6 +484,7 @@ class VideoMainEngine {
 			renderSpriteFixedWallMovableOffset: number,
 			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
+			renderStep: number,
 			renderWallHeight: number,
 			renderWallHeightFactored: number,
 			renderWallHeightHalf: number,
@@ -1057,7 +1058,7 @@ class VideoMainEngine {
 
 										// Filter: Start
 										if (renderLightingQuality === LightingQuality.FULL) {
-											renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+											renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
 
 											if (renderGlobalShadow === true) {
 												renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
@@ -1082,13 +1083,15 @@ class VideoMainEngine {
 									y = renderSpriteFixedCoordinates[3] - renderSpriteFixedCoordinates[1];
 
 									// Calc: Width of sprite in pixels
-									renderDistance = ((x * x + y * y) ** 0.5) | 0;
+									renderDistance = Math.min(offscreenCanvasWidthPx, ((x * x + y * y) ** 0.5) | 0);
 
 									if (asset === undefined) {
 										asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 									}
 
-									for (i = 1; i < renderDistance; i++) {
+									renderStep = Math.max(1, (renderDistance / asset.width) | 0);
+
+									for (i = 1; i < renderDistance; i += renderStep) {
 										renderSpriteXFactor = i / renderDistance; // Determine percentage of left to right
 
 										// Calc: Height
@@ -1099,11 +1102,11 @@ class VideoMainEngine {
 											asset, // (image) Draw from our test image
 											renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
 											0, // (y-source) Start at the bottom of the image (y pixel)
-											1, // (width-source) Slice 1 pixel wide
+											0.025, // (width-source) Slice 1 pixel wide
 											asset.height, // (height-source) height of our test image
 											renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
 											(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
-											2, // (width-destination) Draw the sliced image as 1 pixel wide
+											renderStep + 2, // (width-destination) Draw the sliced image as 1 pixel wide
 											renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 										);
 									}
