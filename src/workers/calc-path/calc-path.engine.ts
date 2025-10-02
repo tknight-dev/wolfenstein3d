@@ -1,4 +1,4 @@
-import { Character, CharacterNPC, CharacterNPCState, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
+import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
 import {
 	CalcPathBusInputCmd,
 	CalcPathBusInputDataInit,
@@ -8,16 +8,18 @@ import {
 	CalcPathBusOutputCmd,
 	CalcPathBusOutputPayload,
 } from './calc-path.model.js';
-import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
-	GamingCanvasGridCharacterInput,
 	GamingCanvasGridPathAStarResult,
 	GamingCanvasGridPathAStarOptions,
 	GamingCanvasGridPathAStarOptionsPathHeuristic,
 	GamingCanvasGridUtilDistance,
+	GamingCanvasGridRaycastCellSide,
 } from '@tknight-dev/gaming-canvas/grid';
 import { GamingCanvasGridPathAStar, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 import { Assets } from '../../modules/assets.js';
+import { CalcMainBusActionWallMoveStateChangeDurationInMS, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
 
 /**
  * @author tknight-dev
@@ -30,6 +32,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: CalcPathBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case CalcPathBusInputCmd.ACTION_WALL_MOVE:
+			CalcPathEngine.inputActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
+			break;
 		case CalcPathBusInputCmd.MAP:
 			CalcPathEngine.inputMap(<GameMap>payload.data);
 			break;
@@ -38,6 +43,9 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case CalcPathBusInputCmd.NPC_UPDATE:
 			CalcPathEngine.inputNPCUpdate(<Float32Array[]>payload.data);
+			break;
+		case CalcPathBusInputCmd.PAUSE:
+			CalcPathEngine.inputPause(<boolean>payload.data);
 			break;
 		case CalcPathBusInputCmd.PLAYER_UPDATE:
 			CalcPathEngine.inputPlayerUpdate(<CalcPathBusInputDataPlayerUpdate>payload.data);
@@ -55,9 +63,11 @@ class CalcPathEngine {
 	private static npcUpdateNew: boolean;
 	private static playerUpdate: CalcPathBusInputDataPlayerUpdate;
 	private static playerUpdateNew: boolean;
+	private static pause: boolean = true;
 	private static request: number;
 	private static settings: CalcPathBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcPathBusInputDataInit): Promise<void> {
 		// Config: Game Map
@@ -82,6 +92,59 @@ class CalcPathEngine {
 	/*
 	 * Input
 	 */
+	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
+		const gameMapGridData: Uint16Array = CalcPathEngine.gameMap.grid.data;
+
+		// Calc: Offset
+		let offset: number, spriteType: number;
+		switch (data.cellSide) {
+			case GamingCanvasGridRaycastCellSide.EAST:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
+				offset = CalcPathEngine.gameMap.grid.sideLength;
+				break;
+			case GamingCanvasGridRaycastCellSide.NORTH:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
+				offset = -1;
+				break;
+			case GamingCanvasGridRaycastCellSide.SOUTH:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
+				offset = 1;
+				break;
+			case GamingCanvasGridRaycastCellSide.WEST:
+				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
+				offset = -CalcPathEngine.gameMap.grid.sideLength;
+				break;
+		}
+
+		// Calc: State
+		gameMapGridData[data.gridIndex + offset * 2] = gameMapGridData[data.gridIndex] & ~GameGridCellMasksAndValues.WALL_MOVABLE;
+
+		gameMapGridData[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL;
+		gameMapGridData[data.gridIndex] |= spriteType;
+
+		// Calc: Move 1st Block
+		CalcPathEngine.timers.add(
+			() => {
+				// 2nd block
+				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
+
+				data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
+
+				// 1st block
+				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+
+				// Calc: Move 2nd Block
+				CalcPathEngine.timers.add(
+					() => {
+						gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+					},
+					(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+				);
+			},
+			(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+		);
+	}
+
 	public static inputMap(data: GameMap): void {
 		CalcPathEngine.gameMap = Assets.parseMap(data);
 		CalcPathEngine.gameMapNew = true;
@@ -90,6 +153,10 @@ class CalcPathEngine {
 	public static inputNPCUpdate(data: Float32Array[]): void {
 		CalcPathEngine.npcUpdate = data;
 		CalcPathEngine.npcUpdateNew = true;
+	}
+
+	public static inputPause(state: boolean): void {
+		CalcPathEngine.pause = state;
 	}
 
 	public static inputPlayerUpdate(data: CalcPathBusInputDataPlayerUpdate): void {
@@ -147,11 +214,12 @@ class CalcPathEngine {
 
 				return 0; // just use heuristic
 			},
+			pause: boolean = CalcPathEngine.pause,
 			settingsDebug: boolean = CalcPathEngine.settings.debug,
 			settingsPlayer2Enable: boolean = CalcPathEngine.settings.player2Enable,
+			timers: GamingCanvasUtilTimers = CalcPathEngine.timers,
 			timestampDelta: number,
-			timestampThen: number = 0,
-			timestampUnix: number = Date.now();
+			timestampThen: number = 0;
 
 		characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
 		characterPlayer2GridIndex = characterPlayer1GridIndex;
@@ -164,13 +232,22 @@ class CalcPathEngine {
 			// Always start the request for the next frame first!
 			CalcPathEngine.request = requestAnimationFrame(CalcPathEngine.go);
 
-			/**
-			 * Calc
-			 */
+			// Timing
 			timestampDelta = timestampNow - timestampThen;
+
+			if (CalcPathEngine.pause !== pause) {
+				pause = CalcPathEngine.pause;
+
+				if (pause !== true) {
+					timers.clockUpdate(timestampNow);
+				}
+			}
+			if (pause !== true) {
+				timers.tick(timestampNow);
+			}
+
 			if (timestampDelta > 1000) {
 				timestampThen = timestampNow;
-				timestampUnix = Date.now();
 
 				if (CalcPathEngine.gameMapNew === true) {
 					CalcPathEngine.gameMapNew = false;
@@ -199,7 +276,7 @@ class CalcPathEngine {
 						gameMapNPCs.delete(characterNPC.gridIndex);
 
 						// Update
-						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
+						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, 0);
 
 						// Apply
 						gameMapNPCs.set(characterNPC.gridIndex, characterNPC);

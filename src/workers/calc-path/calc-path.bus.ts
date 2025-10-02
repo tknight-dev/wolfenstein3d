@@ -7,6 +7,7 @@ import {
 	CalcPathBusOutputPayload,
 } from './calc-path.model.js';
 import { GameMap } from '../../models/game.model.js';
+import { CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -73,6 +74,13 @@ export class CalcPathBus {
 	 * Output
 	 */
 
+	public static outputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
+		CalcPathBus.worker.postMessage({
+			cmd: CalcPathBusInputCmd.ACTION_WALL_MOVE,
+			data: data,
+		});
+	}
+
 	public static outputMap(data: GameMap): void {
 		CalcPathBus.worker.postMessage({
 			cmd: CalcPathBusInputCmd.MAP,
@@ -84,6 +92,13 @@ export class CalcPathBus {
 		CalcPathBus.worker.postMessage({
 			cmd: CalcPathBusInputCmd.NPC_UPDATE,
 			data: data,
+		});
+	}
+
+	public static outputPause(state: boolean): void {
+		CalcPathBus.worker.postMessage({
+			cmd: CalcPathBusInputCmd.PAUSE,
+			data: state,
 		});
 	}
 

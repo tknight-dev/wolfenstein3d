@@ -3,14 +3,17 @@
  */
 
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
+import { CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 
 /*
  * Input
  */
 export enum CalcPathBusInputCmd {
+	ACTION_WALL_MOVE,
 	INIT,
 	MAP,
 	NPC_UPDATE,
+	PAUSE,
 	PLAYER_UPDATE,
 	SETTINGS,
 	UPDATE,
@@ -33,7 +36,14 @@ export interface CalcPathBusInputDataSettings {
 
 export interface CalcPathBusInputPayload {
 	cmd: CalcPathBusInputCmd;
-	data: CalcPathBusInputDataInit | CalcPathBusInputDataPlayerUpdate | CalcPathBusInputDataSettings | Float32Array[] | GameMap;
+	data:
+		| boolean
+		| CalcPathBusInputDataInit
+		| CalcPathBusInputDataPlayerUpdate
+		| CalcPathBusInputDataSettings
+		| CalcMainBusOutputDataActionWallMove
+		| Float32Array[]
+		| GameMap;
 }
 
 /*

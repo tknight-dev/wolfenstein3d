@@ -334,33 +334,31 @@ class VideoMainEngine {
 		gameMapGridData[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL;
 		gameMapGridData[data.gridIndex] |= spriteType;
 
-		if (VideoMainEngine.player1 === true) {
-			// Calc: Move 1st Block
-			VideoMainEngine.timers.add(
-				() => {
-					// 2nd block
-					gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
+		// Calc: Move 1st Block
+		VideoMainEngine.timers.add(
+			() => {
+				// 2nd block
+				gameMapGridData[data.gridIndex + offset] = gameMapGridData[data.gridIndex];
 
-					data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
-					VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
+				data.timestampUnix += (CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0;
+				VideoMainEngine.actionWall.set(data.gridIndex + offset, data);
 
-					// 1st block
-					gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
-					VideoMainEngine.actionWall.delete(data.gridIndex);
+				// 1st block
+				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+				VideoMainEngine.actionWall.delete(data.gridIndex);
 
-					// Calc: Move 2nd Block
-					VideoMainEngine.timers.add(
-						() => {
-							gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+				// Calc: Move 2nd Block
+				VideoMainEngine.timers.add(
+					() => {
+						gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
 
-							VideoMainEngine.actionWall.delete(data.gridIndex + offset);
-						},
-						(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
-					);
-				},
-				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
-			);
-		}
+						VideoMainEngine.actionWall.delete(data.gridIndex + offset);
+					},
+					(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+				);
+			},
+			(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+		);
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {

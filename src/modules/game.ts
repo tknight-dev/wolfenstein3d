@@ -890,6 +890,7 @@ export class Game {
 
 		// Calc: Action Wall Move
 		CalcMainBus.setCallbackActionWallMove((data: CalcMainBusOutputDataActionWallMove) => {
+			CalcPathBus.outputActionWallMove(data);
 			VideoMainBus.outputActionWallMove(data);
 		});
 
@@ -1647,6 +1648,7 @@ export class Game {
 
 			// Game
 			CalcMainBus.outputPause(true);
+			CalcPathBus.outputPause(true);
 			GamingCanvas.audioControlPauseAll(true);
 			VideoMainBus.outputPause(true);
 
@@ -1735,6 +1737,7 @@ export class Game {
 				setTimeout(() => {
 					// Game
 					CalcMainBus.outputPause(false);
+					CalcPathBus.outputPause(false);
 					GamingCanvas.audioControlPauseAll(false);
 					VideoMainBus.outputPause(false);
 				}, 500);
