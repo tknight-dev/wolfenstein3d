@@ -1304,12 +1304,25 @@ class CalcMainEngine {
 								characterNPCState = characterNPCStates.get(characterNPC.id);
 								characterNPC.timestamp = timestampNow;
 
-								// Closest visible player
+								// Closest visible player or if player 1 block away
 								characterNPCDistance = 999999;
 								for (i = 0; i < characterPlayers.length; i++) {
 									if (characterNPC.playerLOS[i] === true && characterNPC.playerDistance[i] < characterNPCDistance) {
 										characterNPCDistance = characterNPC.playerDistance[i];
 										characterPlayer = characterPlayers[i];
+									}
+								}
+
+								// Or if player 1 block away
+								if (characterNPCDistance === 999999 && gameMapNPCPaths !== undefined) {
+									gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
+									if (gameMapNPCPath.length === 1) {
+										for (i = 0; i < characterPlayers.length; i++) {
+											if (characterNPC.playerDistance[i] < characterNPCDistance) {
+												characterNPCDistance = characterNPC.playerDistance[i];
+												characterPlayer = characterPlayers[i];
+											}
+										}
 									}
 								}
 
