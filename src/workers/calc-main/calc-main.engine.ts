@@ -1383,9 +1383,82 @@ class CalcMainEngine {
 										);
 										gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
 
+										if (characterNPCDistance !== 999999) {
+											if (timestampUnix - characterNPC.timestampUnixState > 1000) {
+												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+											}
+										} else if (characterNPCInputChanged === false) {
+											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
+											gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
+
+											if (
+												(gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0 &&
+												(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR) !== 0
+											) {
+												// Open door
+												actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
+												if (actionDoorState === undefined || actionDoorState.open !== true) {
+													switch (characterNPC.assetId) {
+														case AssetIdImgCharacter.MOVE1_E:
+															cellSide = GamingCanvasGridRaycastCellSide.WEST;
+															break;
+														case AssetIdImgCharacter.MOVE1_N:
+															cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+															break;
+														case AssetIdImgCharacter.MOVE1_NE:
+															if ((gameMapGridDataCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0) {
+																cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+															} else {
+																cellSide = GamingCanvasGridRaycastCellSide.WEST;
+															}
+															break;
+														case AssetIdImgCharacter.MOVE1_NW:
+															if ((gameMapGridDataCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0) {
+																cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+															} else {
+																cellSide = GamingCanvasGridRaycastCellSide.EAST;
+															}
+															break;
+														case AssetIdImgCharacter.MOVE1_S:
+															cellSide = GamingCanvasGridRaycastCellSide.NORTH;
+															break;
+														case AssetIdImgCharacter.MOVE1_SE:
+															if ((gameMapGridDataCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0) {
+																cellSide = GamingCanvasGridRaycastCellSide.NORTH;
+															} else {
+																cellSide = GamingCanvasGridRaycastCellSide.WEST;
+															}
+															break;
+														case AssetIdImgCharacter.MOVE1_SW:
+															if ((gameMapGridDataCell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0) {
+																cellSide = GamingCanvasGridRaycastCellSide.NORTH;
+															} else {
+																cellSide = GamingCanvasGridRaycastCellSide.EAST;
+															}
+															break;
+														case AssetIdImgCharacter.MOVE1_W:
+															cellSide = GamingCanvasGridRaycastCellSide.EAST;
+															break;
+													}
+
+													actionDoor(cellSide, characterNPCGridIndex);
+
+													characterNPC.timestampUnixState = timestampUnix;
+													characterNPC.walking = false;
+													characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING_DOOR);
+												}
+											}
+										}
+
 										characterNPCUpdated.add(characterNPC.id);
 										break;
 									case CharacterNPCState.RUNNING_DOOR:
+										if (timestampUnix - characterNPC.timestampUnixState > CalcMainBusActionDoorStateChangeDurationInMS) {
+											characterNPC.timestampUnixState = timestampUnix;
+											characterNPC.running = true;
+
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+										}
 										break;
 									default:
 									case CharacterNPCState.STANDING:
