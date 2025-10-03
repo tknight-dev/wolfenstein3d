@@ -1,19 +1,17 @@
 import { CalcMainBus } from './workers/calc-main/calc-main.bus.js';
-import { CalcMainBusOutputDataCharacterMeta, CalcMainBusOutputDataStats } from './workers/calc-main/calc-main.model.js';
 import { CalcPathBus } from './workers/calc-path/calc-path.bus.js';
 import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasRenderStyle, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
 import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from './asset-manager.js';
-import { Character, CharacterMetaDecode } from './models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -38,25 +36,6 @@ class Blockenstein {
 		/**
 		 * Calc
 		 */
-		CalcMainBus.setCallbackCharacterMeta((data: CalcMainBusOutputDataCharacterMeta) => {
-			let character: Character;
-
-			if (data.player1 !== undefined) {
-				character = CharacterMetaDecode(data.player1);
-
-				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
-				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
-			}
-
-			if (data.player2 !== undefined) {
-				character = CharacterMetaDecode(data.player2);
-
-				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
-				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
-			}
-		});
 
 		/**
 		 * GamingCanvas

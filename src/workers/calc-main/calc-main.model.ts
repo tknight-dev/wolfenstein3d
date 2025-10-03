@@ -25,6 +25,18 @@ export const CalcMainBusActionDoorStateAutoCloseDurationInMS: number = 5000;
 export const CalcMainBusActionDoorStateChangeDurationInMS: number = 1000;
 export const CalcMainBusActionWallMoveStateChangeDurationInMS: number = 5000;
 
+export const CalcMainBusWeaponFireDurationsInMS: Map<number, number[]> = new Map();
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.KNIFE, [100, 100, 100, 100, 100]);
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.MACHINE_GUN, [100, 100, 100, 100, 100]);
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [100, 100, 100, 100, 100]);
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.SUB_MACHINE_GUN, [100, 100, 100, 100, 100]);
+
+export const CalcMainBusWeaponFireFrame: Map<number, number> = new Map();
+CalcMainBusWeaponFireFrame.set(CharacterWeapon.KNIFE, 3);
+CalcMainBusWeaponFireFrame.set(CharacterWeapon.MACHINE_GUN, 2);
+CalcMainBusWeaponFireFrame.set(CharacterWeapon.PISTOL, 2);
+CalcMainBusWeaponFireFrame.set(CharacterWeapon.SUB_MACHINE_GUN, 2);
+
 /*
  * Input
  */
@@ -33,6 +45,7 @@ export enum CalcMainBusInputCmd {
 	AUDIO_STOP,
 	CAMERA,
 	CHARACTER_INPUT,
+	CHEAT_CODE,
 	INIT,
 	MAP,
 	PATH_UPDATE,
@@ -105,6 +118,7 @@ export enum CalcMainBusOutputCmd {
 	NPC_UPDATE,
 	PATH_UPDATE,
 	STATS,
+	WEAPON_FIRE,
 	WEAPON_SELECT,
 }
 
@@ -153,6 +167,11 @@ export interface CalcMainBusOutputDataCalculations {
 }
 
 export interface CalcMainBusOutputDataStats {}
+
+export interface CalcMainBusOutputDataWeaponFire {
+	player1: boolean;
+	refire?: boolean;
+}
 
 export interface CalcMainBusOutputDataWeaponSelect {
 	player1: boolean;

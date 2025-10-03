@@ -25,6 +25,8 @@ import {
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataWeaponSelect,
+	CalcMainBusOutputDataCharacterMeta,
+	CalcMainBusOutputDataWeaponFire,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -62,7 +64,7 @@ import {
 	GamingCanvasGridInputToCoordinate,
 	GamingCanvasGridICamera,
 } from '@tknight-dev/gaming-canvas/grid';
-import { CharacterInput, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
+import { Character, CharacterInput, CharacterMetaDecode, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { CalcPathBusInputDataSettings } from '../workers/calc-path/calc-path.model.js';
 
@@ -833,6 +835,7 @@ export class Game {
 			},
 			characterPlayerInputPlayer: CharacterInput,
 			characterWalking: boolean | undefined,
+			cheatCode: Map<string, boolean> = new Map(),
 			dataUpdated: boolean,
 			down: boolean,
 			downMode: boolean,
@@ -1017,10 +1020,36 @@ export class Game {
 		});
 
 		// Calc: NPCs
+		CalcMainBus.setCallbackCharacterMeta((data: CalcMainBusOutputDataCharacterMeta) => {
+			let character: Character;
+
+			if (data.player1 !== undefined) {
+				character = CharacterMetaDecode(data.player1);
+
+				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
+				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
+				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
+			}
+
+			if (data.player2 !== undefined) {
+				character = CharacterMetaDecode(data.player2);
+
+				DOM.elPlayerOverlay2Ammo.innerText = String(character.ammo);
+				DOM.elPlayerOverlay2Health.innerText = String(character.health) + '%';
+				DOM.elPlayerOverlay2Lives.innerText = String(character.lives);
+			}
+		});
+
+		// Calc: NPCs
 		CalcMainBus.setCallbackNPCUpdate((data: Float32Array[]) => {
 			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
 			VideoEditorBus.outputNPCUpdate(data);
+		});
+
+		// Calc: Weapon Fire
+		CalcMainBus.setCallbackWeaponFire((data: CalcMainBusOutputDataWeaponFire) => {
+			VideoMainBus.weaponFire(data.player1, data.refire);
 		});
 
 		// Calc: Weapon Selection
@@ -1075,6 +1104,12 @@ export class Game {
 				VideoMainBus.outputMap(map);
 			}
 		}, 100);
+
+		const cheatCodeCheck = (player1: boolean) => {
+			if (cheatCode.get('i') === true && cheatCode.get('l') === true && cheatCode.get('m') === true) {
+				CalcMainBus.outputCheatCode(player1);
+			}
+		};
 
 		const dataApply = (position: GamingCanvasInputPosition, erase?: boolean) => {
 			const cooridnate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
@@ -1457,6 +1492,30 @@ export class Game {
 							characterPlayerInputPlayer.x = 0;
 						}
 						updated = true;
+						break;
+					case 'KeyI':
+						if (down) {
+							cheatCode.set('i', true);
+							cheatCodeCheck(player1);
+						} else {
+							cheatCode.set('i', false);
+						}
+						break;
+					case 'KeyL':
+						if (down) {
+							cheatCode.set('l', true);
+							cheatCodeCheck(player1);
+						} else {
+							cheatCode.set('l', false);
+						}
+						break;
+					case 'KeyM':
+						if (down) {
+							cheatCode.set('m', true);
+							cheatCodeCheck(player1);
+						} else {
+							cheatCode.set('m', false);
+						}
 						break;
 					case 'KeyW':
 						if (down) {

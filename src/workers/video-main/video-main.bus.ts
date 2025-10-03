@@ -272,6 +272,20 @@ export class VideoMainBus {
 		});
 	}
 
+	public static weaponFire(player1: boolean, refire?: boolean): void {
+		if (player1 === true) {
+			VideoMainBus.workerPlayer1.postMessage({
+				cmd: VideoMainBusInputCmd.WEAPON_FIRE,
+				data: refire,
+			});
+		} else {
+			VideoMainBus.workerPlayer2.postMessage({
+				cmd: VideoMainBusInputCmd.WEAPON_FIRE,
+				data: undefined,
+			});
+		}
+	}
+
 	public static weaponSelect(data: CalcMainBusOutputDataWeaponSelect): void {
 		if (data.player1 === true) {
 			VideoMainBus.workerPlayer1.postMessage({

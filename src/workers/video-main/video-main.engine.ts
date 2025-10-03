@@ -16,6 +16,10 @@ import {
 	assetIdImgCharacterMovementN,
 	assetIdImgCharacterMovementNE,
 	assetIdImgCharacterMovementE,
+	AssetIdImgWeaponSequenceKnife,
+	AssetIdImgWeaponSequenceMachineGun,
+	AssetIdImgWeaponSequencePistol,
+	AssetIdImgWeaponSequenceSubMachineGun,
 } from '../../asset-manager.js';
 import {
 	GamingCanvas,
@@ -67,6 +71,7 @@ import {
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusWeaponFireDurationsInMS,
 } from '../calc-main/calc-main.model.js';
 import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId, CharacterWeapon } from '../../models/character.model.js';
 import { Assets } from '../../modules/assets.js';
@@ -115,6 +120,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.SETTINGS:
 			VideoMainEngine.inputSettings(<VideoMainBusInputDataSettings>payload.data);
 			break;
+		case VideoMainBusInputCmd.WEAPON_FIRE:
+			VideoMainEngine.inputWeaponFire(<boolean>payload.data);
+			break;
 		case VideoMainBusInputCmd.WEAPON_SELECT:
 			VideoMainEngine.inputWeaponSelect(<CharacterWeapon>payload.data);
 			break;
@@ -147,6 +155,8 @@ class VideoMainEngine {
 	private static settingsNew: boolean;
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 	private static weapon: CharacterWeapon = CharacterWeapon.PISTOL;
+	private static weaponFrame: number = 0;
+	private static weaponTimerId: number = -1;
 
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
 		// Assets
@@ -397,6 +407,60 @@ class VideoMainEngine {
 	public static inputSettings(data: VideoMainBusInputDataSettings): void {
 		VideoMainEngine.settings = data;
 		VideoMainEngine.settingsNew = true;
+	}
+
+	public static inputWeaponFire2(): void {
+		const timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
+			weapon: CharacterWeapon = VideoMainEngine.weapon;
+
+		timers.clear(VideoMainEngine.weaponTimerId);
+		VideoMainEngine.weaponFrame = 2;
+		VideoMainEngine.weaponTimerId = timers.add(
+			() => {
+				// Weapon state: 3 (fire, recoil or stab)
+				VideoMainEngine.weaponFrame = 3;
+				VideoMainEngine.weaponTimerId = timers.add(
+					() => {
+						// Weapon state: 4 (holstering)
+						VideoMainEngine.weaponFrame = 4;
+						VideoMainEngine.weaponTimerId = timers.add(
+							() => {
+								// Weapon state: 0 (holstered)
+								VideoMainEngine.weaponFrame = 0;
+							},
+							(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[4],
+						);
+					},
+					(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[3],
+				);
+			},
+			(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[2],
+		);
+	}
+
+	public static inputWeaponFire(refire?: boolean): void {
+		const timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
+			weapon: CharacterWeapon = VideoMainEngine.weapon;
+
+		if (refire === true) {
+			VideoMainEngine.inputWeaponFire2();
+		} else {
+			// Weapon state: 0 (holstered)
+			VideoMainEngine.weaponTimerId = timers.add(
+				() => {
+					// Weapon state: 1 (rising)
+					VideoMainEngine.weaponFrame = 1;
+					VideoMainEngine.weaponTimerId = timers.add(
+						() => {
+							// Weapon state: 2 (fire or rising)
+							VideoMainEngine.inputWeaponFire2();
+						},
+						(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[1],
+					);
+				},
+				(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[0],
+			);
+		}
 	}
 
 	public static inputWeaponSelect(weapon: CharacterWeapon): void {
@@ -1312,16 +1376,16 @@ class VideoMainEngine {
 				// Weapon
 				switch (renderWeapon) {
 					case CharacterWeapon.KNIFE:
-						asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
+						asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderImageTest;
 						break;
 					case CharacterWeapon.MACHINE_GUN:
-						asset = assetImages.get(AssetIdImg.WEAPON_MACHINE_GUN_1) || renderImageTest;
+						asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
 						break;
 					case CharacterWeapon.PISTOL:
-						asset = assetImages.get(AssetIdImg.WEAPON_PISTOL_1) || renderImageTest;
+						asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderImageTest;
 						break;
 					case CharacterWeapon.SUB_MACHINE_GUN:
-						asset = assetImages.get(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1) || renderImageTest;
+						asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
 						break;
 				}
 

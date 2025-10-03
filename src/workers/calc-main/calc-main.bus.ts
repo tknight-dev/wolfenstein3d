@@ -15,6 +15,7 @@ import {
 	CalcMainBusOutputDataCharacterMeta,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataWeaponSelect,
+	CalcMainBusOutputDataWeaponFire,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -35,6 +36,7 @@ export class CalcMainBus {
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
+	private static callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void;
 	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
 	private static worker: Worker;
 
@@ -109,6 +111,9 @@ export class CalcMainBus {
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
 						break;
+					case CalcMainBusOutputCmd.WEAPON_FIRE:
+						CalcMainBus.callbackWeaponFire(<CalcMainBusOutputDataWeaponFire>payload.data);
+						break;
 					case CalcMainBusOutputCmd.WEAPON_SELECT:
 						CalcMainBus.callbackWeaponSelect(<CalcMainBusOutputDataWeaponSelect>payload.data);
 						break;
@@ -143,6 +148,13 @@ export class CalcMainBus {
 			},
 			[camera.buffer],
 		);
+	}
+
+	public static outputCheatCode(player1: boolean): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.CHEAT_CODE,
+			data: player1,
+		});
 	}
 
 	public static outputCharacterInput(data: CalcMainBusInputDataPlayerInput): void {
@@ -233,6 +245,10 @@ export class CalcMainBus {
 
 	public static setCallbackStats(callbackStats: (data: CalcMainBusOutputDataStats) => void): void {
 		CalcMainBus.callbackStats = callbackStats;
+	}
+
+	public static setCallbackWeaponFire(callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void): void {
+		CalcMainBus.callbackWeaponFire = callbackWeaponFire;
 	}
 
 	public static setCallbackWeaponSelect(callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void): void {

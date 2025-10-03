@@ -21,6 +21,7 @@ import {
 	CalcMainBusInputPayload,
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputPayload,
+	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
 import {
 	GameDifficulty,
@@ -104,6 +105,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcMainBusInputCmd.CHARACTER_INPUT:
 			CalcMainEngine.inputCharacterInput(<CalcMainBusInputDataPlayerInput>payload.data);
 			break;
+		case CalcMainBusInputCmd.CHEAT_CODE:
+			CalcMainEngine.inputCheatCode(<boolean>payload.data);
+			break;
 		case CalcMainBusInputCmd.MAP:
 			CalcMainEngine.inputMap(<GameMap>payload.data);
 			break;
@@ -139,10 +143,13 @@ class CalcMainEngine {
 	private static audio: Map<number, AudioInstance> = new Map();
 	private static camera: Float64Array;
 	private static cameraNew: boolean;
+	private static cheatCodeNew: boolean;
 	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
 	private static characterPlayer1: Character;
+	private static characterPlayer1Firing: boolean;
 	private static characterPlayer2: Character;
+	private static characterPlayer2Firing: boolean;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
 	private static paths: Map<number, number[]>;
@@ -247,6 +254,31 @@ class CalcMainEngine {
 		CalcMainEngine.characterPlayerInputNew = true;
 	}
 
+	public static inputCheatCode(player1: boolean): void {
+		CalcMainEngine.cheatCodeNew = true;
+		if (player1 === true) {
+			CalcMainEngine.characterPlayer1.ammo = 99;
+			CalcMainEngine.characterPlayer1.health = 100;
+			CalcMainEngine.characterPlayer1.lives = 3;
+			CalcMainEngine.characterPlayer1.weapons = [
+				CharacterWeapon.KNIFE,
+				CharacterWeapon.PISTOL,
+				CharacterWeapon.SUB_MACHINE_GUN,
+				CharacterWeapon.MACHINE_GUN,
+			];
+		} else {
+			CalcMainEngine.characterPlayer2.ammo = 99;
+			CalcMainEngine.characterPlayer2.health = 100;
+			CalcMainEngine.characterPlayer2.lives = 3;
+			CalcMainEngine.characterPlayer2.weapons = [
+				CharacterWeapon.KNIFE,
+				CharacterWeapon.PISTOL,
+				CharacterWeapon.SUB_MACHINE_GUN,
+				CharacterWeapon.MACHINE_GUN,
+			];
+		}
+	}
+
 	public static inputMap(data: GameMap): void {
 		CalcMainEngine.gameMap = Assets.parseMap(data);
 		CalcMainEngine.gameMapNew = true;
@@ -275,8 +307,14 @@ class CalcMainEngine {
 		let character: Character;
 
 		if (data.player1 === true) {
+			if (CalcMainEngine.characterPlayer1Firing === true) {
+				return;
+			}
 			character = CalcMainEngine.characterPlayer1;
 		} else {
+			if (CalcMainEngine.characterPlayer2Firing === true) {
+				return;
+			}
 			character = CalcMainEngine.characterPlayer2;
 		}
 
@@ -361,6 +399,8 @@ class CalcMainEngine {
 			characterPlayer1Changed: boolean,
 			characterPlayer1ChangedMetaPickup: boolean,
 			characterPlayer1ChangedMetaReport: boolean = false,
+			characterPlayer1FiringLocked: boolean = false,
+			characterPlayer1FiringTimerId: number = -1,
 			characterPlayer1GridIndex: number,
 			characterPlayer1MetaEncoded: Uint16Array | undefined,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
@@ -380,6 +420,8 @@ class CalcMainEngine {
 			characterPlayer2Changed: boolean,
 			characterPlayer2ChangedMetaPickup: boolean,
 			characterPlayer2ChangedMetaReport: boolean = false,
+			characterPlayer2FiringLocked: boolean = false,
+			characterPlayer2FiringTimerId: number = -1,
 			characterPlayer2GridIndex: number,
 			characterPlayer2MetaEncoded: Uint16Array | undefined,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
@@ -650,6 +692,134 @@ class CalcMainEngine {
 			]);
 		};
 
+		// Gun shots should suprise NPCs based on path length and not distance (around corners but not through multiple walls to inaccessible rooms)
+		const actionWeaponFire = (player1: boolean, weapon: CharacterWeapon) => {
+			// Weapon state: 2 (fire or rising)
+			if (weapon !== CharacterWeapon.KNIFE) {
+				switch (weapon) {
+					case CharacterWeapon.MACHINE_GUN:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
+						break;
+					case CharacterWeapon.PISTOL:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_PISTOL);
+						break;
+					case CharacterWeapon.SUB_MACHINE_GUN:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN);
+						break;
+				}
+			}
+
+			timers.add(
+				() => {
+					// Weapon state: 3 (fire, recoil or stab)
+					if (weapon === CharacterWeapon.KNIFE) {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_KNIFE);
+					} else if (weapon === CharacterWeapon.MACHINE_GUN) {
+						// check if fire state still desired?
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
+					}
+
+					timers.add(
+						() => {
+							// Weapon state: 4 (holstering)
+							if (player1 === true) {
+								switch (weapon) {
+									case CharacterWeapon.MACHINE_GUN:
+									case CharacterWeapon.SUB_MACHINE_GUN:
+										if (characterPlayer1Input.fire === true) {
+											actionWeaponFire(player1, weapon);
+											return;
+										}
+										break;
+								}
+							} else {
+								switch (weapon) {
+									case CharacterWeapon.MACHINE_GUN:
+									case CharacterWeapon.SUB_MACHINE_GUN:
+										if (characterPlayer2Input.fire === true) {
+											actionWeaponFire(player1, weapon);
+											return;
+										}
+										break;
+								}
+							}
+
+							timers.add(
+								() => {
+									// Weapon state: 0 (holstered)
+									if (player1 === true) {
+										CalcMainEngine.characterPlayer1Firing = false;
+									} else {
+										CalcMainEngine.characterPlayer2Firing = false;
+									}
+								},
+								(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[4],
+							);
+						},
+						(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[3],
+					);
+				},
+				(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[2],
+			);
+
+			// Alert other threads about firing state
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
+					data: {
+						player1: player1,
+						refire: true,
+					},
+				},
+			]);
+		};
+
+		const actionWeapon = (player1: boolean, weapon: CharacterWeapon, weaponRefire?: boolean) => {
+			if (player1 === true) {
+				CalcMainEngine.characterPlayer1Firing = true;
+
+				switch (weapon) {
+					case CharacterWeapon.KNIFE:
+					case CharacterWeapon.PISTOL:
+						characterPlayer1FiringLocked = true;
+						break;
+				}
+			} else {
+				CalcMainEngine.characterPlayer2Firing = true;
+
+				switch (weapon) {
+					case CharacterWeapon.KNIFE:
+					case CharacterWeapon.PISTOL:
+						characterPlayer2FiringLocked = true;
+						break;
+				}
+			}
+
+			// Weapon state: 0 (holstered)
+			timers.add(
+				() => {
+					// Weapon state: 1 (rising)
+					timers.add(
+						() => {
+							actionWeaponFire(player1, weapon);
+						},
+						weaponRefire === true ? 0 : (<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[1],
+					);
+				},
+				weaponRefire === true ? 0 : (<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[0],
+			);
+
+			// Alert other threads about firing state
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
+					data: {
+						player1: player1,
+					},
+				},
+			]);
+		};
+
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			CalcMainEngine.post([
 				{
@@ -847,6 +1017,13 @@ class CalcMainEngine {
 					camera = GamingCanvasGridCamera.from(CalcMainEngine.camera);
 					cameraMode = true; // Snap back to camera
 					cameraUpdated = true;
+				}
+
+				if (CalcMainEngine.cheatCodeNew === true) {
+					CalcMainEngine.cheatCodeNew = false;
+
+					characterPlayer1ChangedMetaReport = true;
+					characterPlayer2ChangedMetaReport = true;
 				}
 
 				if (CalcMainEngine.gameMapNew === true) {
@@ -1766,7 +1943,25 @@ class CalcMainEngine {
 					 * Weapon
 					 */
 					if (pause !== true) {
-						// Gun shots should suprise NPCs based on path length and not distance (around corners but not through multiple walls to inaccessible rooms)
+						if (CalcMainEngine.characterPlayer1Firing !== true) {
+							if (characterPlayer1Input.fire === true) {
+								if (characterPlayer1FiringLocked !== true) {
+									actionWeapon(true, characterPlayer1.weapon);
+								}
+							} else {
+								characterPlayer1FiringLocked = false;
+							}
+						}
+
+						if (CalcMainEngine.characterPlayer2Firing !== true) {
+							if (characterPlayer2Input.fire === true) {
+								if (characterPlayer2FiringLocked !== true) {
+									actionWeapon(false, characterPlayer1.weapon);
+								}
+							} else {
+								characterPlayer2FiringLocked = false;
+							}
+						}
 					}
 				} else if (cameraUpdated) {
 					// Camera mode means we only need one raycast no matter how many players

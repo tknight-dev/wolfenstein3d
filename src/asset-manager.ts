@@ -389,6 +389,7 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_GUARD_FIRE = 10,
 	AUDIO_EFFECT_GUARD_SURPRISE = 11,
 	AUDIO_EFFECT_KNIFE = 12,
+	AUDIO_EFFECT_MACHINE_GUN = 33,
 	AUDIO_EFFECT_MEDKIT = 13,
 	AUDIO_EFFECT_MENU_EXIT = 14,
 	AUDIO_EFFECT_MENU_OPEN = 15,
@@ -506,6 +507,38 @@ export enum AssetIdImg {
 	WEAPON_SUB_MACHINE_GUN_4 = 10013,
 	WEAPON_SUB_MACHINE_GUN_5 = 10014,
 }
+
+export const AssetIdImgWeaponSequenceKnife: AssetIdImg[] = [
+	AssetIdImg.WEAPON_KNIFE_1,
+	AssetIdImg.WEAPON_KNIFE_2,
+	AssetIdImg.WEAPON_KNIFE_3,
+	AssetIdImg.WEAPON_KNIFE_4,
+	AssetIdImg.WEAPON_KNIFE_5,
+];
+
+export const AssetIdImgWeaponSequenceMachineGun: AssetIdImg[] = [
+	AssetIdImg.WEAPON_MACHINE_GUN_1,
+	AssetIdImg.WEAPON_MACHINE_GUN_2,
+	AssetIdImg.WEAPON_MACHINE_GUN_3,
+	AssetIdImg.WEAPON_MACHINE_GUN_4,
+	AssetIdImg.WEAPON_MACHINE_GUN_5,
+];
+
+export const AssetIdImgWeaponSequencePistol: AssetIdImg[] = [
+	AssetIdImg.WEAPON_PISTOL_1,
+	AssetIdImg.WEAPON_PISTOL_2,
+	AssetIdImg.WEAPON_PISTOL_3,
+	AssetIdImg.WEAPON_PISTOL_4,
+	AssetIdImg.WEAPON_PISTOL_5,
+];
+
+export const AssetIdImgWeaponSequenceSubMachineGun: AssetIdImg[] = [
+	AssetIdImg.WEAPON_SUB_MACHINE_GUN_1,
+	AssetIdImg.WEAPON_SUB_MACHINE_GUN_2,
+	AssetIdImg.WEAPON_SUB_MACHINE_GUN_3,
+	AssetIdImg.WEAPON_SUB_MACHINE_GUN_4,
+	AssetIdImg.WEAPON_SUB_MACHINE_GUN_5,
+];
 
 export enum AssetIdImgCharacter {
 	AIM = 0,
@@ -1027,6 +1060,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/knife.mp3',
 		title: 'Knife',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN, {
+		author: 'Robert Prince',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/machine_gun.mp3',
+		title: 'Machine Gun Fire',
 		volume: 0.75,
 	});
 

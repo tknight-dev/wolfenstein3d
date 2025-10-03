@@ -24,6 +24,7 @@ export enum VideoMainBusInputCmd {
 	PAUSE,
 	REPORT,
 	SETTINGS,
+	WEAPON_FIRE,
 	WEAPON_SELECT,
 }
 
