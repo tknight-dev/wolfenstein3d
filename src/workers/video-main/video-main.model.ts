@@ -22,6 +22,8 @@ export enum VideoMainBusInputCmd {
 	MAP_UPDATE,
 	NPC_UPDATE,
 	PAUSE,
+	PLAYER_DEAD,
+	PLAYER_HIT,
 	REPORT,
 	SETTINGS,
 	WEAPON_FIRE,
@@ -39,6 +41,7 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 	camera: Float64Array;
 	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
+	offscreenCanvasOverlay: OffscreenCanvas;
 	player1: boolean;
 	report: GamingCanvasReport;
 }

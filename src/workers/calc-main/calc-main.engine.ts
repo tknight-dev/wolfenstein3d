@@ -12,6 +12,7 @@ import {
 	CalcMainBusActionDoorStateAutoCloseDurationInMS,
 	CalcMainBusActionDoorStateChangeDurationInMS,
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
+	CalcMainBusFOVByDifficulty,
 	CalcMainBusInputCmd,
 	CalcMainBusInputDataAudio,
 	CalcMainBusInputDataInit,
@@ -21,6 +22,7 @@ import {
 	CalcMainBusInputPayload,
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputPayload,
+	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
 import {
@@ -173,8 +175,8 @@ class CalcMainEngine {
 			ammo: 8,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
-			fov: (10 * GamingCanvasConstPI_1_000) / 180, // WeaponFOV
-			fovDistanceMax: 20, // WeaponFOVDistanceMax
+			fov: 0,
+			fovDistanceMax: 30, // WeaponFOVDistanceMax
 			gridIndex: data.gameMap.position.x * data.gameMap.grid.sideLength + data.gameMap.position.y,
 			health: 100,
 			id: -1,
@@ -562,6 +564,7 @@ class CalcMainEngine {
 			if (state === undefined) {
 				state = {
 					cellSide: cellSide,
+					closed: true,
 					closing: false,
 					gridIndex: gridIndex,
 					opening: false,
@@ -585,6 +588,7 @@ class CalcMainEngine {
 				} else {
 					durationEff = CalcMainBusActionDoorStateChangeDurationInMS;
 				}
+				state.closed = false;
 				state.closing = false;
 				state.open = false;
 				state.opening = true;
@@ -600,6 +604,7 @@ class CalcMainEngine {
 				// Close Door
 				durationEff = CalcMainBusActionDoorStateChangeDurationInMS;
 
+				state.closed = false;
 				state.closing = true;
 				state.open = false;
 				state.opening = false;
@@ -623,11 +628,13 @@ class CalcMainEngine {
 			state.timeout = CalcMainEngine.timers.add(() => {
 				// Change state complete
 				if (state.closing === true) {
+					state.closed = true;
 					state.closing = false;
 					state.open = false;
 					state.opening = false;
 					gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 				} else if (state.opening === true) {
+					state.closed = false;
 					state.closing = false;
 					state.open = true;
 					state.opening = false;
@@ -650,6 +657,7 @@ class CalcMainEngine {
 					// Someone/something is in the way
 					actionDoorAutoClose(gridIndex, state);
 				} else {
+					state.closed = false;
 					state.closing = true;
 					state.open = false;
 					state.opening = false;
@@ -668,6 +676,7 @@ class CalcMainEngine {
 
 					state.timeout = setTimeout(() => {
 						// Auto close complete
+						state.closed = true;
 						state.closing = false;
 						state.open = false;
 						state.opening = false;
@@ -720,6 +729,13 @@ class CalcMainEngine {
 						},
 					]);
 				}
+			} else {
+				CalcMainEngine.post([
+					{
+						cmd: CalcMainBusOutputCmd.PLAYER_HIT,
+						data: player1,
+					},
+				]);
 			}
 		};
 
@@ -982,10 +998,12 @@ class CalcMainEngine {
 		};
 
 		const actionWeaponFireHitDetection = (characterPlayer: Character, weapon: CharacterWeapon) => {
-			let characterNPCDistance: number = 99999,
+			let angle: number,
 				characterNPC: CharacterNPC | undefined,
 				characterNPC2: CharacterNPC | undefined,
 				characterNPCId: number,
+				gridIndex: number,
+				playerWeaponFOV: number,
 				seen: boolean;
 
 			// Look
@@ -996,29 +1014,71 @@ class CalcMainEngine {
 				characterNPC2 = <CharacterNPC>gameMapNPC.get(characterNPCId);
 
 				if (characterNPC2.health !== 0 && seen === true && <number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance) {
-					characterNPCDistance = <number>characterPlayer.seenDistance.get(characterNPCId);
 					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
 				}
 			}
 
 			if (characterNPC !== undefined) {
-				characterNPC.health -= 50;
+				if (weapon === CharacterWeapon.KNIFE) {
+					characterNPC.health -= <number>CalcMainBusWeaponDamage.get(CharacterWeapon.KNIFE);
+				} else {
+					// Calculate the angle to the NPC from the player to compare against the current player r-direction to determine how accurate the shot was
+					angle = Math.atan2(-(characterNPC.camera.y - characterPlayer.camera.y), characterNPC.camera.x - characterPlayer.camera.x);
+					if (angle < 0) {
+						angle += GamingCanvasConstPI_2_000;
+					} else if (angle >= GamingCanvasConstPI_2_000) {
+						angle -= GamingCanvasConstPI_2_000;
+					}
+
+					// Calculate the difference in angles between the player r-direction and the angle to the NPC
+					angle = Math.abs(characterPlayer.camera.r - angle);
+
+					// Headshot range
+					angle = Math.max(0, angle - 0.05);
+
+					// Percentage of the weapon fov that the angle lands on
+					// 0.2 is the min damage delivered
+					angle = Math.max(0.2, 1 - angle / <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)); // WeaponFOV
+
+					characterNPC.health -= <number>CalcMainBusWeaponDamage.get(weapon) * angle;
+				}
 				characterNPC.timestampUnixState = timestampUnix;
 
 				if (characterNPC.health <= 0) {
 					characterNPC.assetId = AssetIdImgCharacter.DIE1;
 					characterNPC.health = 0;
 					characterNPCStates.set(characterNPC.id, CharacterNPCState.CORPSE);
+					gridIndex = characterNPC.gridIndex;
 
-					x = Math.random() * 4;
-					if (x < 1) {
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH);
-					} else if (x < 2) {
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2);
-					} else if (x < 3) {
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH3);
-					} else {
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH4);
+					switch (Math.floor(Math.random() * 5) + 1) {
+						case 1:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, gridIndex);
+							break;
+						case 2:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2, gridIndex);
+							break;
+						case 3:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH3, gridIndex);
+							break;
+						case 4:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH4, gridIndex);
+							break;
+						default:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH5, gridIndex);
+							break;
+					}
+
+					// Spawn ammo drop
+					if (gameMapGridData[gridIndex] === GameGridCellMasksAndValues.FLOOR) {
+						gameMapGridData[gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+					} else if (gameMapGridData[gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
+						gameMapGridData[gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+					} else if (gameMapGridData[gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
+						gameMapGridData[gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+					} else if (gameMapGridData[gridIndex + gameMapSideLength] === GameGridCellMasksAndValues.FLOOR) {
+						gameMapGridData[gridIndex + gameMapSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+					} else if (gameMapGridData[gridIndex - gameMapSideLength] === GameGridCellMasksAndValues.FLOOR) {
+						gameMapGridData[gridIndex - gameMapSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
 					}
 				} else {
 					characterNPC.assetId = AssetIdImgCharacter.HIT;
@@ -1026,6 +1086,56 @@ class CalcMainEngine {
 				}
 
 				characterNPCUpdated.add(characterNPC.id);
+			}
+
+			// Did the anybody hear the shot?
+			if (weapon !== CharacterWeapon.KNIFE) {
+				for (characterNPC of gameMapNPC.values()) {
+					if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
+						continue;
+					}
+					characterNPCState = characterNPCStates.get(characterNPC.id);
+
+					if (
+						characterNPCState === CharacterNPCState.STANDING ||
+						characterNPCState === CharacterNPCState.WALKING ||
+						characterNPCState === CharacterNPCState.WALKING_DOOR
+					) {
+						gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
+
+						if (gameMapNPCPath.length < 10) {
+							seen = true;
+							for (gridIndex of gameMapNPCPath) {
+								if (
+									(gameMapGridData[gridIndex] & GameGridCellMasksAndValues.EXTENDED) !== 0 &&
+									(gameMapGridData[gridIndex] & gameGridCellMaskExtendedDoor) !== 0
+								) {
+									// Closed doors block sounds
+									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+
+									if (actionDoorState === undefined || actionDoorState.closed === true) {
+										// Door closed, the NPC didn't hear it
+										seen = false;
+									}
+								}
+							}
+							if (seen === false) {
+								continue;
+							}
+
+							// Enemy contact!
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex);
+
+							characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
+							characterNPC.running = true;
+							characterNPC.timestampUnixState = timestampUnix;
+							characterNPC.walking = false;
+
+							characterNPCUpdated.add(characterNPC.id);
+							characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+						}
+					}
+				}
 			}
 		};
 
@@ -1241,6 +1351,9 @@ class CalcMainEngine {
 					settingsFPMS = 1000 / CalcMainEngine.settings.fps;
 					settingsPlayer2Enable = CalcMainEngine.settings.player2Enable;
 
+					characterPlayer1.fov = <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty); // WeaponFOV
+					characterPlayer2.fov = characterPlayer1.fov;
+
 					// Report
 					report = CalcMainEngine.report;
 					raycastOptions.rayCount = report.canvasWidth;
@@ -1284,8 +1397,16 @@ class CalcMainEngine {
 							characterPlayer1,
 							characterPlayer1Input,
 							gameMapGrid,
-							// GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
-							(cell: number) => {
+							(cell: number, gridIndex: number) => {
+								characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
+								if (characterNPCId !== undefined) {
+									characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+
+									if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
+										return true;
+									}
+								}
+
 								return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
 							},
 							characterControlOptions,
@@ -1320,7 +1441,18 @@ class CalcMainEngine {
 								characterPlayer2,
 								characterPlayer2Input,
 								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
+								(cell: number, gridIndex: number) => {
+									characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
+									if (characterNPCId !== undefined) {
+										characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+
+										if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
+											return true;
+										}
+									}
+
+									return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+								},
 								characterControlOptions,
 							);
 						}
@@ -1753,7 +1885,7 @@ class CalcMainEngine {
 										cameraInstance.r = Math.atan2(-(y - cameraInstance.y), x - cameraInstance.x);
 										if (cameraInstance.r < 0) {
 											cameraInstance.r += GamingCanvasConstPI_2_000;
-										} else if (cameraInstance.r > GamingCanvasConstPI_2_000) {
+										} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
 											cameraInstance.r -= GamingCanvasConstPI_2_000;
 										}
 
@@ -1796,7 +1928,18 @@ class CalcMainEngine {
 											characterNPC,
 											characterNPCInput,
 											gameMapGrid,
-											GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
+											(cell: number, gridIndex: number) => {
+												if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
+													return true;
+												} else if (
+													gridIndex === CalcMainEngine.characterPlayer2.gridIndex &&
+													CalcMainEngine.characterPlayer2.health > 0
+												) {
+													return true;
+												}
+
+												return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+											},
 											{
 												clip: true,
 												factorPosition: characterNPC.runningSpeed,
@@ -1918,7 +2061,18 @@ class CalcMainEngine {
 											characterNPC,
 											characterNPCInput,
 											gameMapGrid,
-											GameGridCellMasksAndValues.BLOCKING_MASK_ALL,
+											(cell: number, gridIndex: number) => {
+												if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
+													return true;
+												} else if (
+													gridIndex === CalcMainEngine.characterPlayer2.gridIndex &&
+													CalcMainEngine.characterPlayer2.health > 0
+												) {
+													return true;
+												}
+
+												return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+											},
 											{
 												clip: true,
 												factorPosition: characterNPC.walkingSpeed,

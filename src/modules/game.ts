@@ -637,6 +637,13 @@ export class Game {
 			DOM.elSettingsSubGame.click();
 			DOM.elSettings.style.display = 'block';
 			Game.inputSuspend = true;
+
+			if (Game.modeEdit === false) {
+				CalcMainBus.outputPause(true);
+				CalcPathBus.outputPause(true);
+				GamingCanvas.audioControlPauseAll(true);
+				VideoMainBus.outputPause(true);
+			}
 		};
 
 		document.addEventListener('click', (event: any) => {
@@ -1054,7 +1061,12 @@ export class Game {
 
 		// Calc: Player died
 		CalcMainBus.setCallbackPlayerDied((player1: boolean) => {
-			console.log('player died', player1);
+			VideoMainBus.outputPlayerDead(player1);
+		});
+
+		// Calc: Player hit
+		CalcMainBus.setCallbackPlayerHit((player1: boolean) => {
+			VideoMainBus.outputPlayerHit(player1);
 		});
 
 		// Calc: Weapon Fire
@@ -1773,7 +1785,7 @@ export class Game {
 			DOM.elButtonMove.classList.add('active');
 			DOM.elButtonEdit.classList.add('active');
 			DOM.elButtonPlay.classList.remove('active');
-			DOM.elCanvases[2].classList.remove('hide');
+			DOM.elCanvases[4].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.remove('hide');
@@ -1804,7 +1816,7 @@ export class Game {
 			// DOM
 			DOM.elButtonEdit.classList.remove('active');
 			DOM.elButtonPlay.classList.add('active');
-			DOM.elCanvases[2].classList.add('hide');
+			DOM.elCanvases[4].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.add('hide');

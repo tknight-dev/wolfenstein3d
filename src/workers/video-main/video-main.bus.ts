@@ -33,7 +33,9 @@ export class VideoMainBus {
 
 	public static initialize(
 		canvasPlayer1: HTMLCanvasElement,
+		canvasPlayer1Overlay: HTMLCanvasElement,
 		canvasPlayer2: HTMLCanvasElement,
+		canvasPlayer2Overlay: HTMLCanvasElement,
 		gameMap: GameMap,
 		settings: VideoMainBusInputDataSettings,
 		callback: (status: boolean) => void,
@@ -57,7 +59,9 @@ export class VideoMainBus {
 
 			// Payload
 			const offscreenCanvasPlayer1: OffscreenCanvas = canvasPlayer1.transferControlToOffscreen();
+			const offscreenCanvasPlayer1Overlay: OffscreenCanvas = canvasPlayer1Overlay.transferControlToOffscreen();
 			const offscreenCanvasPlayer2: OffscreenCanvas = canvasPlayer2.transferControlToOffscreen();
+			const offscreenCanvasPlayer2Overlay: OffscreenCanvas = canvasPlayer2Overlay.transferControlToOffscreen();
 
 			const payload: VideoMainBusInputDataInit = <VideoMainBusInputDataInit>Object.assign(
 				{
@@ -71,25 +75,27 @@ export class VideoMainBus {
 			// Init: Player 1
 			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer1;
+			payload.offscreenCanvasOverlay = offscreenCanvasPlayer1Overlay;
 			payload.player1 = true;
 			VideoMainBus.workerPlayer1.postMessage(
 				{
 					cmd: VideoMainBusInputCmd.INIT,
 					data: payload,
 				},
-				[payload.camera.buffer, payload.offscreenCanvas],
+				[payload.camera.buffer, payload.offscreenCanvas, payload.offscreenCanvasOverlay],
 			);
 
 			// Init: Player 2
 			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer2;
+			payload.offscreenCanvasOverlay = offscreenCanvasPlayer2Overlay;
 			payload.player1 = false;
 			VideoMainBus.workerPlayer2.postMessage(
 				{
 					cmd: VideoMainBusInputCmd.INIT,
 					data: payload,
 				},
-				[payload.camera.buffer, payload.offscreenCanvas],
+				[payload.camera.buffer, payload.offscreenCanvas, payload.offscreenCanvasOverlay],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');
@@ -244,6 +250,34 @@ export class VideoMainBus {
 			cmd: VideoMainBusInputCmd.PAUSE,
 			data: state,
 		});
+	}
+
+	public static outputPlayerDead(player1: boolean): void {
+		if (player1 === true) {
+			VideoMainBus.workerPlayer1.postMessage({
+				cmd: VideoMainBusInputCmd.PLAYER_DEAD,
+				data: undefined,
+			});
+		} else {
+			VideoMainBus.workerPlayer2.postMessage({
+				cmd: VideoMainBusInputCmd.PLAYER_DEAD,
+				data: undefined,
+			});
+		}
+	}
+
+	public static outputPlayerHit(player1: boolean): void {
+		if (player1 === true) {
+			VideoMainBus.workerPlayer1.postMessage({
+				cmd: VideoMainBusInputCmd.PLAYER_HIT,
+				data: undefined,
+			});
+		} else {
+			VideoMainBus.workerPlayer2.postMessage({
+				cmd: VideoMainBusInputCmd.PLAYER_HIT,
+				data: undefined,
+			});
+		}
 	}
 
 	// Non-fixed resolution canvas has changed in size

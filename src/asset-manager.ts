@@ -386,6 +386,7 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_GUARD_DEATH2 = 7,
 	AUDIO_EFFECT_GUARD_DEATH3 = 8,
 	AUDIO_EFFECT_GUARD_DEATH4 = 9,
+	AUDIO_EFFECT_GUARD_DEATH5 = 34,
 	AUDIO_EFFECT_GUARD_FIRE = 10,
 	AUDIO_EFFECT_GUARD_SURPRISE = 11,
 	AUDIO_EFFECT_KNIFE = 12,
@@ -1041,6 +1042,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death_4.mp3',
 		title: 'Guard Death4',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH5, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/guard_death_5.mp3',
+		title: 'Guard Death5',
 		volume: 0.75,
 	});
 

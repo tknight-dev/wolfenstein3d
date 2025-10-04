@@ -132,8 +132,8 @@ export class Settings {
 		 */
 		Game.settingsGamingCanvas = {
 			audioEnable: true,
-			canvasCount: 2,
-			canvasSplit: [1],
+			canvasCount: 3,
+			canvasSplit: [1, 2],
 			canvasSplitLandscapeVertical: true,
 			dpiSupportEnable: Game.settingGraphicsDPISupport,
 			elementInteractive: DOM.elVideoInteractive,
@@ -264,6 +264,13 @@ export class Settings {
 			GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
 
 			GamingCanvas.setOptions(Game.settingsGamingCanvas);
+		}
+
+		if (Game.modeEdit === false) {
+			CalcMainBus.outputPause(false);
+			CalcPathBus.outputPause(false);
+			GamingCanvas.audioControlPauseAll(false);
+			VideoMainBus.outputPause(false);
 		}
 	}
 

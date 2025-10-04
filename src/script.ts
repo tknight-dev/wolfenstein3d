@@ -93,19 +93,27 @@ class Blockenstein {
 
 					// Load video-main
 					then = performance.now();
-					VideoEditorBus.initialize(GamingCanvas.getCanvases()[2], gameMap, Game.settingsVideoEditor, viewport, () => {
+					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], gameMap, Game.settingsVideoEditor, viewport, () => {
 						// Done
 						console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
 
 						// Load video-main
 						then = performance.now();
-						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
-							// Done
-							console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+						VideoMainBus.initialize(
+							GamingCanvas.getCanvases()[0],
+							GamingCanvas.getCanvases()[2],
+							GamingCanvas.getCanvases()[1],
+							GamingCanvas.getCanvases()[3],
+							gameMap,
+							Game.settingsVideoMain,
+							() => {
+								// Done
+								console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
 
-							// Resolve initial promise
-							resolve();
-						});
+								// Resolve initial promise
+								resolve();
+							},
+						);
 					});
 				});
 			});

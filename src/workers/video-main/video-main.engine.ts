@@ -116,6 +116,12 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.PAUSE:
 			VideoMainEngine.inputPause(<boolean>payload.data);
 			break;
+		case VideoMainBusInputCmd.PLAYER_DEAD:
+			VideoMainEngine.inputPlayerDead();
+			break;
+		case VideoMainBusInputCmd.PLAYER_HIT:
+			VideoMainEngine.inputPlayerHit();
+			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -147,6 +153,8 @@ class VideoMainEngine {
 	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
+	private static offscreenCanvasOverlay: OffscreenCanvas;
+	private static offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
 	private static pause: boolean = true;
 	private static pauseTimestampUnix: number = Date.now();
@@ -237,6 +245,15 @@ class VideoMainEngine {
 			powerPreference: 'high-performance',
 		}) as OffscreenCanvasRenderingContext2D;
 
+		VideoMainEngine.offscreenCanvasOverlay = data.offscreenCanvasOverlay;
+		VideoMainEngine.offscreenCanvasOverlayContext = data.offscreenCanvasOverlay.getContext('2d', {
+			alpha: true,
+			antialias: false,
+			depth: true,
+			desynchronized: true,
+			powerPreference: 'high-performance',
+		}) as OffscreenCanvasRenderingContext2D;
+
 		// Config
 		VideoMainEngine.inputMap(data.gameMap);
 		VideoMainEngine.player1 = data.player1;
@@ -300,11 +317,13 @@ class VideoMainEngine {
 		data.timeout = VideoMainEngine.timers.add(() => {
 			// Change state complete
 			if (data.closing === true) {
+				data.closed = true;
 				data.closing = false;
 				data.open = false;
 				data.opening = false;
 				VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 			} else if (data.opening === true) {
+				data.closed = false;
 				data.closing = false;
 				data.open = true;
 				data.opening = false;
@@ -400,6 +419,10 @@ class VideoMainEngine {
 	public static inputPause(state: boolean): void {
 		VideoMainEngine.pause = state;
 	}
+
+	public static inputPlayerDead(): void {}
+
+	public static inputPlayerHit(): void {}
 
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
@@ -500,11 +523,13 @@ class VideoMainEngine {
 			characterNPCId: number,
 			characterNPCUpdateEncoded: Float32Array,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
+			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeightSplit,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
-			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
+			offscreenCanvasOverlay: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
+			offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			frameCount: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
@@ -588,33 +613,21 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		const actionDie = (character: CharacterNPC) => {
-			let test = performance.now();
-
-			console.log('die', character.id, 0);
-
 			let state: number = 1;
 			timers.add(() => {
 				// DIE2
-				console.log('die2', character.id, performance.now() - test);
-				test = performance.now();
 				character.assetId = assetIdImgCharacterDie[state++];
 
 				timers.add(() => {
 					// DIE3
-					console.log('die3', character.id, performance.now() - test);
-					test = performance.now();
 					character.assetId = assetIdImgCharacterDie[state++];
 
 					timers.add(() => {
 						// DIE4
-						console.log('die4', character.id, performance.now() - test);
-						test = performance.now();
 						character.assetId = assetIdImgCharacterDie[state++];
 
 						timers.add(() => {
 							// CORPSE
-							console.log('corpse', character.id, performance.now() - test);
-							test = performance.now();
 							character.assetId = assetIdImgCharacterDie[state];
 						}, CalcMainBusDieFrameDurationInMS);
 					}, CalcMainBusDieFrameDurationInMS);
@@ -728,10 +741,21 @@ class VideoMainEngine {
 
 						if (x >= AssetIdImgCharacter.DIE1 && x <= AssetIdImgCharacter.DIE4) {
 							characterNPC.assetId = x;
+						} else if (characterNPC.assetId === AssetIdImgCharacter.DIE1 && gameMapNPCDead.has(characterNPC.id) !== true) {
+							gameMapNPCDead.add(characterNPC.id);
+							actionDie(characterNPC);
 
-							if (characterNPC.assetId === AssetIdImgCharacter.DIE1 && gameMapNPCDead.has(characterNPC.id) !== true) {
-								gameMapNPCDead.add(characterNPC.id);
-								actionDie(characterNPC);
+							// Spawn ammo drop
+							if (gameMapGridData[characterNPC.gridIndex] === GameGridCellMasksAndValues.FLOOR) {
+								gameMapGridData[characterNPC.gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							} else if (gameMapGridData[characterNPC.gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
+								gameMapGridData[characterNPC.gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							} else if (gameMapGridData[characterNPC.gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
+								gameMapGridData[characterNPC.gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							} else if (gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+								gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							} else if (gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+								gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
 							}
 						}
 
@@ -753,8 +777,10 @@ class VideoMainEngine {
 
 					if (VideoMainEngine.settings.antialias === true) {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+						GamingCanvas.renderStyle(offscreenCanvasOverlayContext, GamingCanvasRenderStyle.ANTIALIAS);
 					} else {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+						GamingCanvas.renderStyle(offscreenCanvasOverlayContext, GamingCanvasRenderStyle.PIXELATED);
 					}
 
 					renderEnable = player1 === true || settingsPlayer2Enable === true;
@@ -777,6 +803,8 @@ class VideoMainEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
+					offscreenCanvasOverlay.height = offscreenCanvasHeightPx;
+					offscreenCanvasOverlay.width = offscreenCanvasWidthPx;
 
 					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
 
@@ -1352,7 +1380,7 @@ class VideoMainEngine {
 									renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
 									if (renderAngle < 0) {
 										renderAngle += GamingCanvasConstPI_2_000;
-									} else if (renderAngle > GamingCanvasConstPI_2_000) {
+									} else if (renderAngle >= GamingCanvasConstPI_2_000) {
 										renderAngle -= GamingCanvasConstPI_2_000;
 									}
 

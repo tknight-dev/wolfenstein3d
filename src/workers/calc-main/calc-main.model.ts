@@ -1,4 +1,4 @@
-import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasConstPI_1_000, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
@@ -14,6 +14,7 @@ import { CharacterInput, CharacterWeapon } from '../../models/character.model.js
 
 export interface CalcMainBusActionDoorState {
 	cellSide: GamingCanvasGridRaycastCellSide;
+	closed: boolean;
 	closing: boolean;
 	gridIndex: number;
 	open: boolean;
@@ -27,7 +28,19 @@ export const CalcMainBusActionWallMoveStateChangeDurationInMS: number = 5000;
 
 export const CalcMainBusDieFrameDurationInMS: number = 250;
 
-export const CalcMainBusWeaponFireDurationsInMS: Map<number, number[]> = new Map();
+export const CalcMainBusFOVByDifficulty: Map<GameDifficulty, number> = new Map();
+CalcMainBusFOVByDifficulty.set(GameDifficulty.EASY, (22 * GamingCanvasConstPI_1_000) / 180);
+CalcMainBusFOVByDifficulty.set(GameDifficulty.NORMAL, (20 * GamingCanvasConstPI_1_000) / 180);
+CalcMainBusFOVByDifficulty.set(GameDifficulty.HARD, (18 * GamingCanvasConstPI_1_000) / 180);
+CalcMainBusFOVByDifficulty.set(GameDifficulty.INSANE, (16 * GamingCanvasConstPI_1_000) / 180);
+
+export const CalcMainBusWeaponDamage: Map<CharacterWeapon, number> = new Map();
+CalcMainBusWeaponDamage.set(CharacterWeapon.KNIFE, 20);
+CalcMainBusWeaponDamage.set(CharacterWeapon.MACHINE_GUN, 100);
+CalcMainBusWeaponDamage.set(CharacterWeapon.PISTOL, 100);
+CalcMainBusWeaponDamage.set(CharacterWeapon.SUB_MACHINE_GUN, 100);
+
+export const CalcMainBusWeaponFireDurationsInMS: Map<CharacterWeapon, number[]> = new Map();
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.KNIFE, [100, 100, 100, 100, 100]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.MACHINE_GUN, [100, 100, 100, 100, 100]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [100, 100, 100, 100, 100]);
@@ -121,6 +134,7 @@ export enum CalcMainBusOutputCmd {
 	NPC_UPDATE,
 	PATH_UPDATE,
 	PLAYER_DIED,
+	PLAYER_HIT,
 	STATS,
 	WEAPON_FIRE,
 	WEAPON_SELECT,

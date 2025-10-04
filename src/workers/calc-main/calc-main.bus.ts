@@ -37,6 +37,7 @@ export class CalcMainBus {
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackPlayerDied: (player1: boolean) => void;
+	private static callbackPlayerHit: (player1: boolean) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
 	private static callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void;
 	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
@@ -115,6 +116,9 @@ export class CalcMainBus {
 						break;
 					case CalcMainBusOutputCmd.PLAYER_DIED:
 						CalcMainBus.callbackPlayerDied(<boolean>payload.data);
+						break;
+					case CalcMainBusOutputCmd.PLAYER_HIT:
+						CalcMainBus.callbackPlayerHit(<boolean>payload.data);
 						break;
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
@@ -257,6 +261,10 @@ export class CalcMainBus {
 
 	public static setCallbackPlayerDied(callbackPlayerDied: (data: boolean) => void): void {
 		CalcMainBus.callbackPlayerDied = callbackPlayerDied;
+	}
+
+	public static setCallbackPlayerHit(callbackPlayerHit: (data: boolean) => void): void {
+		CalcMainBus.callbackPlayerHit = callbackPlayerHit;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcMainBusOutputDataStats) => void): void {
