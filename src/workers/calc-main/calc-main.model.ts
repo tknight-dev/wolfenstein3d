@@ -34,6 +34,12 @@ CalcMainBusFOVByDifficulty.set(GameDifficulty.NORMAL, (20 * GamingCanvasConstPI_
 CalcMainBusFOVByDifficulty.set(GameDifficulty.HARD, (18 * GamingCanvasConstPI_1_000) / 180);
 CalcMainBusFOVByDifficulty.set(GameDifficulty.INSANE, (16 * GamingCanvasConstPI_1_000) / 180);
 
+export const CalcMainBusPlayerDamageByDifficulty: Map<GameDifficulty, number> = new Map();
+CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.EASY, 10);
+CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.NORMAL, 20);
+CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.HARD, 30);
+CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.INSANE, 50);
+
 export const CalcMainBusWeaponDamage: Map<CharacterWeapon, number> = new Map();
 CalcMainBusWeaponDamage.set(CharacterWeapon.KNIFE, 20);
 CalcMainBusWeaponDamage.set(CharacterWeapon.MACHINE_GUN, 100);
@@ -182,6 +188,11 @@ export interface CalcMainBusOutputDataCalculations {
 	characterPlayer2Rays?: Float64Array;
 	characterPlayer2RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	characterPlayer2RaysMapKeysSorted?: Float64Array;
+}
+
+export interface CalcMainBusOutputDataPlayerHit {
+	angle: number;
+	player1: boolean;
 }
 
 export interface CalcMainBusOutputDataStats {}

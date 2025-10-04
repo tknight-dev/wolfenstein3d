@@ -189,6 +189,7 @@ export class Settings {
 			Game.settingAudioVolume = Number(DOM.elSettingsValueAudioVolume.value);
 			Game.settingAudioVolumeEffect = Number(DOM.elSettingsValueAudioVolumeEffect.value);
 			Game.settingAudioVolumeMusic = Number(DOM.elSettingsValueAudioVolumeMusic.value);
+			Game.settingDebug = DOM.elSettingsValueGameDebug.checked;
 			Game.settingGamePlayer2InputDevice = Number(DOM.elSettingsValueGamePlayer2InputDevice.value);
 			Game.settingGraphicsDPISupport = DOM.elSettingsValueGraphicsDPI.checked;
 			Game.settingGraphicsFPSDisplay = DOM.elSettingsValueGraphicsFPSShow.checked;
@@ -201,16 +202,19 @@ export class Settings {
 
 			Game.settingsCalcMain.audioNoAction = DOM.elSettingsValueAudioNoAction.checked;
 			Game.settingsCalcMain.audioWallCollisions = DOM.elSettingsValueAudioWallCollisions.checked;
-			((Game.settingsCalcMain.difficulty = Number(DOM.elSettingsValueGameDifficulty.value)),
-				(Game.settingsCalcMain.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI_1_000) / 180));
+			Game.settingsCalcMain.debug = Game.settingDebug;
+			Game.settingsCalcMain.difficulty = Number(DOM.elSettingsValueGameDifficulty.value);
+			Game.settingsCalcMain.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI_1_000) / 180;
 			Game.settingsCalcMain.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
 			Game.settingsCalcMain.player2Enable = DOM.elSettingsValueGameMultiplayer.checked;
 			Game.settingsCalcMain.raycastQuality = Number(DOM.elSettingsValueGraphicsRaycastQuality.value);
 
+			Game.settingsCalcPath.debug = Game.settingDebug;
 			Game.settingsCalcPath.difficulty = Game.settingsCalcMain.difficulty;
 			Game.settingsCalcPath.player2Enable = Game.settingsCalcMain.player2Enable;
 
 			Game.settingsVideoEditor.antialias = DOM.elSettingsValueGraphicsAntialias.checked;
+			Game.settingsVideoEditor.debug = Game.settingDebug;
 			Game.settingsVideoEditor.difficulty = Game.settingsCalcMain.difficulty;
 			Game.settingsVideoEditor.gridDraw = DOM.elSettingsValueEditorDrawGrid.checked;
 			Game.settingsVideoEditor.fov = Game.settingsCalcMain.fov;
@@ -218,6 +222,7 @@ export class Settings {
 			Game.settingsVideoEditor.player2Enable = Game.settingsCalcMain.player2Enable;
 
 			Game.settingsVideoMain.antialias = Game.settingsVideoEditor.antialias;
+			Game.settingsVideoMain.debug = Game.settingDebug;
 			Game.settingsVideoMain.difficulty = Game.settingsCalcMain.difficulty;
 			Game.settingsVideoMain.fov = Game.settingsCalcMain.fov;
 			Game.settingsVideoMain.fps = Game.settingsCalcMain.fps;
@@ -243,6 +248,7 @@ export class Settings {
 			DOM.elSettingsValueAudioNoAction.checked = Game.settingsCalcMain.audioNoAction;
 			DOM.elSettingsValueAudioWallCollisions.checked = Game.settingsCalcMain.audioWallCollisions;
 			DOM.elSettingsValueEditorDrawGrid.checked = Game.settingsVideoEditor.gridDraw;
+			DOM.elSettingsValueGameDebug.checked = Game.settingDebug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settingsCalcMain.difficulty);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settingsCalcMain.player2Enable;
 			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);

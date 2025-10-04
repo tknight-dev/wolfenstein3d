@@ -27,6 +27,7 @@ import {
 	CalcMainBusOutputDataWeaponSelect,
 	CalcMainBusOutputDataCharacterMeta,
 	CalcMainBusOutputDataWeaponFire,
+	CalcMainBusOutputDataPlayerHit,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -1065,8 +1066,8 @@ export class Game {
 		});
 
 		// Calc: Player hit
-		CalcMainBus.setCallbackPlayerHit((player1: boolean) => {
-			VideoMainBus.outputPlayerHit(player1);
+		CalcMainBus.setCallbackPlayerHit((data: CalcMainBusOutputDataPlayerHit) => {
+			VideoMainBus.outputPlayerHit(data.angle, data.player1);
 		});
 
 		// Calc: Weapon Fire

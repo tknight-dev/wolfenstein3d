@@ -266,16 +266,16 @@ export class VideoMainBus {
 		}
 	}
 
-	public static outputPlayerHit(player1: boolean): void {
+	public static outputPlayerHit(angle: number, player1: boolean): void {
 		if (player1 === true) {
 			VideoMainBus.workerPlayer1.postMessage({
 				cmd: VideoMainBusInputCmd.PLAYER_HIT,
-				data: undefined,
+				data: angle,
 			});
 		} else {
 			VideoMainBus.workerPlayer2.postMessage({
 				cmd: VideoMainBusInputCmd.PLAYER_HIT,
-				data: undefined,
+				data: angle,
 			});
 		}
 	}

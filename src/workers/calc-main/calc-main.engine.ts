@@ -22,6 +22,7 @@ import {
 	CalcMainBusInputPayload,
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputPayload,
+	CalcMainBusPlayerDamageByDifficulty,
 	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
@@ -63,9 +64,6 @@ import {
 	GamingCanvasGridCharacterInput,
 	GamingCanvasGridCharacterLook,
 	GamingCanvasGridICamera,
-	GamingCanvasGridPathAStarOptions,
-	GamingCanvasGridPathAStarOptionsPathHeuristic,
-	GamingCanvasGridPathAStarResult,
 	GamingCanvasGridRaycast,
 	GamingCanvasGridRaycastCellSide,
 	GamingCanvasGridRaycastOptions,
@@ -388,7 +386,6 @@ class CalcMainEngine {
 			characterNPCInput: GamingCanvasGridCharacterInput,
 			characterNPCInputChanged: boolean,
 			characterNPCInputs: Map<AssetIdImgCharacter, GamingCanvasGridCharacterInput> = new Map(),
-			characterNPCPlayerIndex: number,
 			characterNPCGridIndex: number,
 			characterNPCPathById: Map<number, number[]> = new Map(),
 			characterNPCState: CharacterNPCState | undefined,
@@ -411,7 +408,6 @@ class CalcMainEngine {
 			characterPlayer1ChangedMetaPickup: boolean,
 			characterPlayer1ChangedMetaReport: boolean = false,
 			characterPlayer1FiringLocked: boolean = false,
-			characterPlayer1FiringTimerId: number = -1,
 			characterPlayer1GridIndex: number,
 			characterPlayer1MetaEncoded: Uint16Array | undefined,
 			characterPlayer1Raycast: GamingCanvasGridRaycastResult | undefined,
@@ -432,7 +428,6 @@ class CalcMainEngine {
 			characterPlayer2ChangedMetaPickup: boolean,
 			characterPlayer2ChangedMetaReport: boolean = false,
 			characterPlayer2FiringLocked: boolean = false,
-			characterPlayer2FiringTimerId: number = -1,
 			characterPlayer2GridIndex: number,
 			characterPlayer2MetaEncoded: Uint16Array | undefined,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
@@ -452,13 +447,32 @@ class CalcMainEngine {
 			gameMapGrid: GamingCanvasGridUint16Array = CalcMainEngine.gameMap.grid,
 			gameMapGridData: Uint16Array = CalcMainEngine.gameMap.grid.data,
 			gameMapGridDataCell: number,
-			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
-				pathDiagonalsDisable: false,
-				pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN,
-			},
-			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapIndexEff: number,
+			gameMapControlBlocking = (cell: number, gridIndex: number) => {
+				// Can Player walk here?
+				characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
+				if (characterNPCId !== undefined) {
+					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+
+					if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
+						return true;
+					}
+				}
+
+				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+			},
+			gameMapControlNPCBlocking = (cell: number, gridIndex: number) => {
+				// Can NPC walk here?
+				if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
+					return true;
+				} else if (gridIndex === CalcMainEngine.characterPlayer2.gridIndex && CalcMainEngine.characterPlayer2.health > 0) {
+					return true;
+				}
+
+				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+			},
 			gameMapLookBlocking = (cell: number, gridIndex: number) => {
+				// Can NPC see player
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
@@ -471,7 +485,27 @@ class CalcMainEngine {
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
 			},
+			gameMapLookPlayerBlocking = (cell: number, gridIndex: number) => {
+				// Can player weapon hit NPC?
+				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+
+					if (
+						actionDoorState === undefined ||
+						actionDoorState.closed === true ||
+						actionDoorState.closing === true ||
+						actionDoorState.opening === true
+					) {
+						return true;
+					}
+
+					return false;
+				}
+
+				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
+			},
 			gameMapNPC: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npc,
+			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
 			gameMapNPCPath: number[],
 			gameMapNPCPathInstance: number,
@@ -481,7 +515,6 @@ class CalcMainEngine {
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
-			i: number,
 			pause: boolean = CalcMainEngine.pause,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
@@ -492,7 +525,6 @@ class CalcMainEngine {
 			report: GamingCanvasReport = CalcMainEngine.report,
 			reportOrientation: GamingCanvasOrientation = CalcMainEngine.report.orientation,
 			reportOrientationForce: boolean = true,
-			scratchMap: Map<number, number> = new Map(),
 			settingsDebug: boolean = CalcMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
 			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
@@ -584,7 +616,7 @@ class CalcMainEngine {
 				// Open Door
 
 				if (state.closing === true) {
-					durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (timestampUnix - state.timestampUnix);
+					durationEff = timestampUnix - state.timestampUnix;
 				} else {
 					durationEff = CalcMainBusActionDoorStateChangeDurationInMS;
 				}
@@ -609,6 +641,8 @@ class CalcMainEngine {
 				state.open = false;
 				state.opening = false;
 				audioPlay(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, gridIndex);
+
+				gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 			}
 
 			// Calc: Meta
@@ -624,6 +658,7 @@ class CalcMainEngine {
 				},
 			]);
 
+			// Perform action
 			CalcMainEngine.timers.clear(state.timeout);
 			state.timeout = CalcMainEngine.timers.add(() => {
 				// Change state complete
@@ -632,7 +667,6 @@ class CalcMainEngine {
 					state.closing = false;
 					state.open = false;
 					state.opening = false;
-					gameMapGridData[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 				} else if (state.opening === true) {
 					state.closed = false;
 					state.closing = false;
@@ -686,9 +720,7 @@ class CalcMainEngine {
 			}, CalcMainBusActionDoorStateAutoCloseDurationInMS);
 		};
 
-		const actionPlayerHit = (player1: boolean, distance: number, weapon: CharacterWeapon) => {
-			console.log('actionPlayerHit', player1, distance, CharacterWeapon[weapon], GameDifficulty[settingsDifficulty]);
-
+		const actionPlayerHit = (player1: boolean, angle: number, distance: number, distanceMax: number, _weapon: CharacterWeapon) => {
 			if (player1 === true) {
 				characterPlayer = CalcMainEngine.characterPlayer1;
 				characterPlayer1ChangedMetaReport = true;
@@ -697,7 +729,9 @@ class CalcMainEngine {
 				characterPlayer2ChangedMetaReport = true;
 			}
 
-			characterPlayer.health -= 10;
+			// Damage decreases with distance
+			// characterPlayer.health -=
+			// 	Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
 
 			if (characterPlayer.health <= 0) {
 				characterPlayer.lives--;
@@ -733,7 +767,10 @@ class CalcMainEngine {
 				CalcMainEngine.post([
 					{
 						cmd: CalcMainBusOutputCmd.PLAYER_HIT,
-						data: player1,
+						data: {
+							angle: angle,
+							player1: player1,
+						},
 					},
 				]);
 			}
@@ -1003,17 +1040,21 @@ class CalcMainEngine {
 				characterNPC2: CharacterNPC | undefined,
 				characterNPCId: number,
 				gridIndex: number,
-				playerWeaponFOV: number,
 				seen: boolean;
 
 			// Look
-			GamingCanvasGridCharacterLook(gameMapNPC.values(), [characterPlayer], gameMapGrid, gameMapLookBlocking);
+			GamingCanvasGridCharacterLook(gameMapNPC.values(), [characterPlayer], gameMapGrid, gameMapLookPlayerBlocking);
 
 			// Did the weapon "see" anybody?
 			for ([characterNPCId, seen] of characterPlayer.seenLOS.entries()) {
 				characterNPC2 = <CharacterNPC>gameMapNPC.get(characterNPCId);
 
-				if (characterNPC2.health !== 0 && seen === true && <number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance) {
+				if (
+					characterNPC2.difficulty <= settingsDifficulty &&
+					characterNPC2.health !== 0 &&
+					seen === true &&
+					<number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance
+				) {
 					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
 				}
 			}
@@ -1034,7 +1075,7 @@ class CalcMainEngine {
 					angle = Math.abs(characterPlayer.camera.r - angle);
 
 					// Headshot range
-					angle = Math.max(0, angle - 0.05);
+					angle = Math.max(0, angle - 0.025);
 
 					// Percentage of the weapon fov that the angle lands on
 					// 0.2 is the min damage delivered
@@ -1315,6 +1356,7 @@ class CalcMainEngine {
 
 					characterNPCPathById.clear();
 					characterNPCStates.clear();
+					gameMapNPCDead.clear();
 					gameMapNPCIdByGridIndex.clear();
 					gameMapNPCShootAt.clear();
 					for (characterNPC of gameMapNPC.values()) {
@@ -1397,18 +1439,7 @@ class CalcMainEngine {
 							characterPlayer1,
 							characterPlayer1Input,
 							gameMapGrid,
-							(cell: number, gridIndex: number) => {
-								characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
-								if (characterNPCId !== undefined) {
-									characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
-
-									if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
-										return true;
-									}
-								}
-
-								return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
-							},
+							gameMapControlBlocking,
 							characterControlOptions,
 						);
 					}
@@ -1441,18 +1472,7 @@ class CalcMainEngine {
 								characterPlayer2,
 								characterPlayer2Input,
 								gameMapGrid,
-								(cell: number, gridIndex: number) => {
-									characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
-									if (characterNPCId !== undefined) {
-										characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
-
-										if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
-											return true;
-										}
-									}
-
-									return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
-								},
+								gameMapControlBlocking,
 								characterControlOptions,
 							);
 						}
@@ -1830,10 +1850,22 @@ class CalcMainEngine {
 														break;
 												}
 
+												// Angle of character to NPC
+												x = Math.atan2(
+													-(characterNPC.camera.y - characterPlayer.camera.y),
+													characterNPC.camera.x - characterPlayer.camera.x,
+												);
+												x = GamingCanvasConstPI_2_000 - (characterPlayer.camera.r - x);
+												if (x < 0) {
+													x += GamingCanvasConstPI_2_000;
+												} else if (x >= GamingCanvasConstPI_2_000) {
+													x -= GamingCanvasConstPI_2_000;
+												}
+
 												if (characterPlayerId === -1) {
-													actionPlayerHit(true, characterNPCDistance, weapon);
+													actionPlayerHit(true, x, characterNPCDistance, characterNPC.fovDistanceMax, weapon);
 												} else {
-													actionPlayerHit(false, characterNPCDistance, weapon);
+													actionPlayerHit(false, x, characterNPCDistance, characterNPC.fovDistanceMax, weapon);
 												}
 
 												characterNPC.assetId = AssetIdImgCharacter.FIRE;
@@ -1928,18 +1960,7 @@ class CalcMainEngine {
 											characterNPC,
 											characterNPCInput,
 											gameMapGrid,
-											(cell: number, gridIndex: number) => {
-												if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
-													return true;
-												} else if (
-													gridIndex === CalcMainEngine.characterPlayer2.gridIndex &&
-													CalcMainEngine.characterPlayer2.health > 0
-												) {
-													return true;
-												}
-
-												return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
-											},
+											gameMapControlNPCBlocking,
 											{
 												clip: true,
 												factorPosition: characterNPC.runningSpeed,
@@ -2061,18 +2082,7 @@ class CalcMainEngine {
 											characterNPC,
 											characterNPCInput,
 											gameMapGrid,
-											(cell: number, gridIndex: number) => {
-												if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
-													return true;
-												} else if (
-													gridIndex === CalcMainEngine.characterPlayer2.gridIndex &&
-													CalcMainEngine.characterPlayer2.health > 0
-												) {
-													return true;
-												}
-
-												return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
-											},
+											gameMapControlNPCBlocking,
 											{
 												clip: true,
 												factorPosition: characterNPC.walkingSpeed,
@@ -2574,12 +2584,16 @@ class CalcMainEngine {
 							timestampUnixState: characterNPC.timestampUnixState,
 							walking: characterNPC.walking === true ? true : undefined,
 						});
-						characterNPCUpdates.push(characterNPCUpdate);
 
 						buffers.push(characterNPCUpdate.buffer);
+						characterNPCUpdates.push(characterNPCUpdate);
 
 						if (characterNPC.assetId === AssetIdImgCharacter.DIE1) {
-							characterNPC.assetId = AssetIdImgCharacter.CORPSE;
+							if (gameMapNPCDead.has(characterNPC.id) === true) {
+								characterNPC.assetId = AssetIdImgCharacter.CORPSE;
+							} else {
+								gameMapNPCDead.add(characterNPC.id);
+							}
 						}
 					}
 

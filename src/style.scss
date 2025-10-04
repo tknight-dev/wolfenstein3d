@@ -903,7 +903,7 @@ $main-z-index-video-interactive: 50;
 						z-index: 2;
 
 						&.animate {
-							animation-duration: 1.5s;
+							animation-duration: 1s;
 							animation-name: screen-level-end-image-rotation;
 							animation-iteration-count: infinite;
 							animation-direction: alternate;

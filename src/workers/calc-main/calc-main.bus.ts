@@ -16,6 +16,7 @@ import {
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataWeaponSelect,
 	CalcMainBusOutputDataWeaponFire,
+	CalcMainBusOutputDataPlayerHit,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -37,7 +38,7 @@ export class CalcMainBus {
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackPlayerDied: (player1: boolean) => void;
-	private static callbackPlayerHit: (player1: boolean) => void;
+	private static callbackPlayerHit: (player1: CalcMainBusOutputDataPlayerHit) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
 	private static callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void;
 	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
@@ -118,7 +119,7 @@ export class CalcMainBus {
 						CalcMainBus.callbackPlayerDied(<boolean>payload.data);
 						break;
 					case CalcMainBusOutputCmd.PLAYER_HIT:
-						CalcMainBus.callbackPlayerHit(<boolean>payload.data);
+						CalcMainBus.callbackPlayerHit(<CalcMainBusOutputDataPlayerHit>payload.data);
 						break;
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
@@ -263,7 +264,7 @@ export class CalcMainBus {
 		CalcMainBus.callbackPlayerDied = callbackPlayerDied;
 	}
 
-	public static setCallbackPlayerHit(callbackPlayerHit: (data: boolean) => void): void {
+	public static setCallbackPlayerHit(callbackPlayerHit: (data: CalcMainBusOutputDataPlayerHit) => void): void {
 		CalcMainBus.callbackPlayerHit = callbackPlayerHit;
 	}
 

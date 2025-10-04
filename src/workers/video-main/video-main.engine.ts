@@ -120,7 +120,7 @@ self.onmessage = (event: MessageEvent) => {
 			VideoMainEngine.inputPlayerDead();
 			break;
 		case VideoMainBusInputCmd.PLAYER_HIT:
-			VideoMainEngine.inputPlayerHit();
+			VideoMainEngine.inputPlayerHit(<number>payload.data);
 			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
@@ -149,6 +149,8 @@ class VideoMainEngine {
 	private static gameMapNew: boolean;
 	private static gameMapUpdate: Uint16Array;
 	private static gameMapUpdateNew: boolean;
+	private static hit: number;
+	private static hitNew: boolean;
 	private static npcUpdate: Float32Array[];
 	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
@@ -314,6 +316,9 @@ class VideoMainEngine {
 		durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
 		VideoMainEngine.actionDoors.set(data.gridIndex, data);
 
+		if (data.closing === true) {
+			VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+		}
 		data.timeout = VideoMainEngine.timers.add(() => {
 			// Change state complete
 			if (data.closing === true) {
@@ -321,7 +326,6 @@ class VideoMainEngine {
 				data.closing = false;
 				data.open = false;
 				data.opening = false;
-				VideoMainEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
 			} else if (data.opening === true) {
 				data.closed = false;
 				data.closing = false;
@@ -420,9 +424,14 @@ class VideoMainEngine {
 		VideoMainEngine.pause = state;
 	}
 
-	public static inputPlayerDead(): void {}
+	public static inputPlayerDead(): void {
+		console.log('dead');
+	}
 
-	public static inputPlayerHit(): void {}
+	public static inputPlayerHit(angle: number): void {
+		VideoMainEngine.hit = angle;
+		VideoMainEngine.hitNew = true;
+	}
 
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoMainEngine.report = report;
@@ -528,8 +537,8 @@ class VideoMainEngine {
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
-			offscreenCanvasOverlay: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
-			offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
+			offscreenCanvasOverlay: OffscreenCanvas = VideoMainEngine.offscreenCanvasOverlay,
+			offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasOverlayContext,
 			frameCount: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
@@ -568,6 +577,7 @@ class VideoMainEngine {
 			renderHeightFactor: number,
 			renderHeightOffset: number,
 			renderLightingQuality: LightingQuality,
+			renderOverlayHitTimer: number = -5,
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
 			renderSkip: boolean,
@@ -805,6 +815,7 @@ class VideoMainEngine {
 					offscreenCanvas.width = offscreenCanvasWidthPx;
 					offscreenCanvasOverlay.height = offscreenCanvasHeightPx;
 					offscreenCanvasOverlay.width = offscreenCanvasWidthPx;
+					console.log('RESET');
 
 					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
 
@@ -1098,6 +1109,7 @@ class VideoMainEngine {
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
 														renderImageTest;
 													x -= renderSpriteFixedWallMovableOffset - 0.5;
+													renderGlobalShadow = true;
 													break;
 												case GamingCanvasGridRaycastCellSide.NORTH:
 													asset =
@@ -1108,7 +1120,6 @@ class VideoMainEngine {
 												case GamingCanvasGridRaycastCellSide.SOUTH:
 													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
 													y -= renderSpriteFixedWallMovableOffset - 0.5; // good
-													renderGlobalShadow = true;
 													break;
 												case GamingCanvasGridRaycastCellSide.WEST: // good
 													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
@@ -1497,6 +1508,24 @@ class VideoMainEngine {
 				}
 
 				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight);
+
+				// Hit & Death
+				if (VideoMainEngine.hitNew === true) {
+					VideoMainEngine.hitNew = false;
+					timers.clear(renderOverlayHitTimer);
+					console.log('HIT', VideoMainEngine.hit);
+
+					offscreenCanvasOverlayContext.fillStyle = 'rgba(255,0,0,.25)';
+					offscreenCanvasOverlayContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
+
+					timers.add(
+						() => {
+							offscreenCanvasOverlayContext.clearRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
+						},
+						100,
+						renderOverlayHitTimer,
+					);
+				}
 			}
 
 			// Stats: sent once per second
