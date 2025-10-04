@@ -716,8 +716,8 @@ class VideoEditorEngine {
 					offscreenCanvasContext.beginPath();
 					offscreenCanvasContext.moveTo(characterPlayer1XEff * calculationsViewportCellSizePx, characterPlayer1YEff * calculationsViewportCellSizePx); // Center
 					offscreenCanvasContext.lineTo(
-						calculationsViewportCellSizePx * (Math.sin(characterPlayer1.r) + characterPlayer1XEff),
-						calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1YEff),
+						calculationsViewportCellSizePx * (Math.cos(characterPlayer1.r) + characterPlayer1XEff),
+						calculationsViewportCellSizePx * (-Math.sin(characterPlayer1.r) + characterPlayer1YEff),
 					);
 					offscreenCanvasContext.stroke();
 
@@ -743,8 +743,8 @@ class VideoEditorEngine {
 							characterPlayer2YEff * calculationsViewportCellSizePx,
 						); // Center
 						offscreenCanvasContext.lineTo(
-							calculationsViewportCellSizePx * (Math.sin(characterPlayer2.r) + characterPlayer2XEff),
-							calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2YEff),
+							calculationsViewportCellSizePx * (Math.cos(characterPlayer2.r) + characterPlayer2XEff),
+							calculationsViewportCellSizePx * (-Math.sin(characterPlayer2.r) + characterPlayer2YEff),
 						);
 						offscreenCanvasContext.stroke();
 
@@ -783,9 +783,9 @@ class VideoEditorEngine {
 					// 		);
 					// 		offscreenCanvasContext.lineTo(
 					// 			calculationsViewportCellSizePx *
-					// 				(Math.sin(characterNPC.playerAngle[i]) + (characterNPC.camera.x - calculationsViewportWidthStart)),
+					// 				(Math.cos(characterNPC.playerAngle[i]) + (characterNPC.camera.x - calculationsViewportWidthStart)),
 					// 			calculationsViewportCellSizePx *
-					// 				(Math.cos(characterNPC.playerAngle[i]) + (characterNPC.camera.y - calculationsViewportHeightStart)),
+					// 				(-Math.sin(characterNPC.playerAngle[i]) + (characterNPC.camera.y - calculationsViewportHeightStart)),
 					// 		);
 					// 		offscreenCanvasContext.stroke();
 					// 	}
@@ -835,12 +835,12 @@ class VideoEditorEngine {
 							(calculationsCamera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 						); // Center
 						offscreenCanvasContext.lineTo(
-							calculationsViewportCellSizePx * (Math.sin(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
-							calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
+							calculationsViewportCellSizePx * (Math.cos(calculationsCamera.r) + (calculationsCamera.x - calculationsViewportWidthStart)),
+							calculationsViewportCellSizePx * (-Math.sin(calculationsCamera.r) + (calculationsCamera.y - calculationsViewportHeightStart)),
 						);
 						offscreenCanvasContext.stroke();
 
-						// Position
+						// Positions
 						offscreenCanvasContext.fillStyle = 'magenta';
 						offscreenCanvasContext.beginPath();
 						offscreenCanvasContext.arc(

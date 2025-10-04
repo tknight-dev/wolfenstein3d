@@ -1,9 +1,4 @@
-import {
-	GamingCanvasGridCharacter,
-	GamingCanvasGridCharacterInput,
-	GamingCanvasGridCharacterNPC,
-	GamingCanvasGridICamera,
-} from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCharacter, GamingCanvasGridCharacterInput, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
 import { GameDifficulty } from './game.model.js';
 import { AssetIdImgCharacter, AssetIdImgCharacterType } from '../asset-manager.js';
 
@@ -47,7 +42,7 @@ export const CharacterMetaEncode = (character: Character): Uint16Array => {
 	return Uint16Array.from([character.ammo, character.health, character.lives, character.score, character.type, character.weapon, ...character.weapons]);
 };
 
-export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
+export interface CharacterNPC extends GamingCanvasGridCharacter {
 	assetId: AssetIdImgCharacter;
 	difficulty: GameDifficulty;
 	health: number;
@@ -62,6 +57,7 @@ export interface CharacterNPC extends GamingCanvasGridCharacterNPC {
 
 export enum CharacterNPCState {
 	AIM,
+	CORPSE,
 	HIT,
 	RUNNING,
 	RUNNING_DOOR,

@@ -12,7 +12,7 @@
     "type": "module",
     "version": "0.1.0",
     "dependencies": {
-        "@tknight-dev/gaming-canvas": "1.13.0",
+        "@tknight-dev/gaming-canvas": "1.14.0",
         "jszip": "^3.10.1",
         "node-stream-zip": "^1.15.0"
     },

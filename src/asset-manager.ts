@@ -603,6 +603,14 @@ export enum AssetIdImgMenu {
 	SCREEN_TITLE,
 }
 
+export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.DIE1,
+	AssetIdImgCharacter.DIE2,
+	AssetIdImgCharacter.DIE3,
+	AssetIdImgCharacter.DIE4,
+	AssetIdImgCharacter.CORPSE,
+];
+
 export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
 	AssetIdImgCharacter.MOVE1_S,
 	AssetIdImgCharacter.STAND_S,
@@ -947,7 +955,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 */
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_AMMO, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/ammo.mp3',
@@ -956,7 +964,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_close.mp3',
@@ -965,7 +973,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_OPEN, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/door_open.mp3',
@@ -974,7 +982,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/extra_life.mp3',
@@ -983,7 +991,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/food.mp3',
@@ -992,7 +1000,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/food_dog.mp3',
@@ -1001,7 +1009,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death_1.mp3',
@@ -1010,7 +1018,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death_2.mp3',
@@ -1019,7 +1027,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH3, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death_3.mp3',
@@ -1028,7 +1036,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH4, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_death_4.mp3',
@@ -1037,7 +1045,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_fire.mp3',
@@ -1046,7 +1054,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/guard_surprise.mp3',
@@ -1055,16 +1063,16 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_KNIFE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/knife.mp3',
 		title: 'Knife',
-		volume: 0.75,
+		volume: 0.5,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/machine_gun.mp3',
@@ -1073,7 +1081,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MEDKIT, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/medkit.mp3',
@@ -1082,7 +1090,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_EXIT, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/menu_exit.mp3',
@@ -1091,7 +1099,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/menu_open.mp3',
@@ -1100,7 +1108,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/menu_select.mp3',
@@ -1109,7 +1117,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/menu_select_double.mp3',
@@ -1118,7 +1126,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/action_nothing_to_do.mp3',
@@ -1127,7 +1135,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_PISTOL, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/pistol.mp3',
@@ -1136,7 +1144,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/sub_machine_gun.mp3',
@@ -1145,7 +1153,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/sub_machine_gun_pickup.mp3',
@@ -1154,7 +1162,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SWITCH, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/switch.mp3',
@@ -1163,7 +1171,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_chest.mp3',
@@ -1172,7 +1180,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cross.mp3',
@@ -1181,7 +1189,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_crown.mp3',
@@ -1190,7 +1198,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/treasure_cup.mp3',
@@ -1199,7 +1207,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_HIT, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_hit.mp3',
@@ -1208,7 +1216,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_WALL_MOVE, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/wall_move.mp3',
@@ -1221,7 +1229,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 */
 
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/end_of_level.mp3',
@@ -1230,7 +1238,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_LVL1, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/get_them_before_they_get_you.mp3',
@@ -1239,7 +1247,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MENU, {
-		author: 'Robert Prince',
+		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/wodering_about_my_loved_ones.mp3',

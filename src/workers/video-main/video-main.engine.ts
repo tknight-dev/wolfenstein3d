@@ -20,6 +20,7 @@ import {
 	AssetIdImgWeaponSequenceMachineGun,
 	AssetIdImgWeaponSequencePistol,
 	AssetIdImgWeaponSequenceSubMachineGun,
+	assetIdImgCharacterDie,
 } from '../../asset-manager.js';
 import {
 	GamingCanvas,
@@ -69,6 +70,7 @@ import {
 	CalcMainBusActionDoorState,
 	CalcMainBusActionDoorStateChangeDurationInMS,
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
+	CalcMainBusDieFrameDurationInMS,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusWeaponFireDurationsInMS,
@@ -326,19 +328,19 @@ class VideoMainEngine {
 		switch (data.cellSide) {
 			case GamingCanvasGridRaycastCellSide.EAST:
 				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
-				offset = VideoMainEngine.gameMap.grid.sideLength;
+				offset = -VideoMainEngine.gameMap.grid.sideLength;
 				break;
 			case GamingCanvasGridRaycastCellSide.NORTH:
 				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
-				offset = -1;
+				offset = 1;
 				break;
 			case GamingCanvasGridRaycastCellSide.SOUTH:
 				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_EW;
-				offset = 1;
+				offset = -1;
 				break;
 			case GamingCanvasGridRaycastCellSide.WEST:
 				spriteType = GameGridCellMasksAndValues.SPRITE_FIXED_NS;
-				offset = -VideoMainEngine.gameMap.grid.sideLength;
+				offset = VideoMainEngine.gameMap.grid.sideLength;
 				break;
 		}
 
@@ -510,6 +512,7 @@ class VideoMainEngine {
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
 			gameMapNPC: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npc,
+			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
 			gameMapUpdate: Uint16Array,
 			i: number,
@@ -554,6 +557,7 @@ class VideoMainEngine {
 			renderWallHeightHalf: number,
 			renderWallHeightFactor: number,
 			renderWeapon: CharacterWeapon = VideoMainEngine.weapon,
+			renderWeaponFire: boolean,
 			renderWeaponFactor: number,
 			renderWeaponHeight: number,
 			renderWeaponHeightOffset: number,
@@ -582,6 +586,41 @@ class VideoMainEngine {
 			desynchronized: true,
 			powerPreference: 'high-performance',
 		}) as OffscreenCanvasRenderingContext2D;
+
+		const actionDie = (character: CharacterNPC) => {
+			let test = performance.now();
+
+			console.log('die', character.id, 0);
+
+			let state: number = 1;
+			timers.add(() => {
+				// DIE2
+				console.log('die2', character.id, performance.now() - test);
+				test = performance.now();
+				character.assetId = assetIdImgCharacterDie[state++];
+
+				timers.add(() => {
+					// DIE3
+					console.log('die3', character.id, performance.now() - test);
+					test = performance.now();
+					character.assetId = assetIdImgCharacterDie[state++];
+
+					timers.add(() => {
+						// DIE4
+						console.log('die4', character.id, performance.now() - test);
+						test = performance.now();
+						character.assetId = assetIdImgCharacterDie[state++];
+
+						timers.add(() => {
+							// CORPSE
+							console.log('corpse', character.id, performance.now() - test);
+							test = performance.now();
+							character.assetId = assetIdImgCharacterDie[state];
+						}, CalcMainBusDieFrameDurationInMS);
+					}, CalcMainBusDieFrameDurationInMS);
+				}, CalcMainBusDieFrameDurationInMS);
+			}, CalcMainBusDieFrameDurationInMS);
+		};
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
@@ -652,6 +691,7 @@ class VideoMainEngine {
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
 					gameMapNPC = VideoMainEngine.gameMap.npc;
 
+					gameMapNPCDead.clear();
 					gameMapNPCIdByGridIndex.clear();
 					for (characterNPC of gameMapNPC.values()) {
 						gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
@@ -683,7 +723,17 @@ class VideoMainEngine {
 						gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
 
 						// Update
+						x = characterNPC.assetId;
 						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
+
+						if (x >= AssetIdImgCharacter.DIE1 && x <= AssetIdImgCharacter.DIE4) {
+							characterNPC.assetId = x;
+
+							if (characterNPC.assetId === AssetIdImgCharacter.DIE1 && gameMapNPCDead.has(characterNPC.id) !== true) {
+								gameMapNPCDead.add(characterNPC.id);
+								actionDie(characterNPC);
+							}
+						}
 
 						// Apply
 						gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
@@ -1016,25 +1066,25 @@ class VideoMainEngine {
 											// Render: Modification based on cell sidedness
 											switch (actionWallState.cellSide) {
 												case GamingCanvasGridRaycastCellSide.EAST: // inv
-													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-													x += renderSpriteFixedWallMovableOffset - 0.5;
-													break;
-												case GamingCanvasGridRaycastCellSide.NORTH:
-													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
-													y -= renderSpriteFixedWallMovableOffset - 0.5; // inv
-													break;
-												case GamingCanvasGridRaycastCellSide.SOUTH:
-													asset =
-														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
-														renderImageTest;
-													y += renderSpriteFixedWallMovableOffset - 0.5; // good
-													renderGlobalShadow = true;
-													break;
-												case GamingCanvasGridRaycastCellSide.WEST: // good
 													asset =
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
 														renderImageTest;
 													x -= renderSpriteFixedWallMovableOffset - 0.5;
+													break;
+												case GamingCanvasGridRaycastCellSide.NORTH:
+													asset =
+														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
+														renderImageTest;
+													y += renderSpriteFixedWallMovableOffset - 0.5; // inv
+													break;
+												case GamingCanvasGridRaycastCellSide.SOUTH:
+													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+													y -= renderSpriteFixedWallMovableOffset - 0.5; // good
+													renderGlobalShadow = true;
+													break;
+												case GamingCanvasGridRaycastCellSide.WEST: // good
+													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+													x += renderSpriteFixedWallMovableOffset - 0.5;
 													renderGlobalShadow = true;
 													break;
 											}
@@ -1049,7 +1099,7 @@ class VideoMainEngine {
 									y += renderSpriteFixedNS === true ? 0 : 0.5; // 0.5 is center
 
 									// Calc: Angle (fisheye correction)
-									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+									renderAngle = Math.atan2(-y, x);
 
 									// Calc: Distance
 									renderDistance1 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1089,7 +1139,7 @@ class VideoMainEngine {
 									y += renderSpriteFixedNS === true ? 1 : 0;
 
 									// Calc: Angle (fisheye correction)
-									renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+									renderAngle = Math.atan2(-y, x);
 
 									// Calc: Distance
 									renderDistance2 = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1192,7 +1242,7 @@ class VideoMainEngine {
 								y -= calculationsCamera.y - 0.5; // 0.5 is center
 
 								// Calc: Angle (fisheye correction)
-								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+								renderAngle = Math.atan2(-y, x);
 
 								// Calc: Distance
 								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1270,7 +1320,7 @@ class VideoMainEngine {
 								y = renderCharacterNPC.camera.y - calculationsCamera.y;
 
 								// Calc: Angle (fisheye correction)
-								renderAngle = Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+								renderAngle = Math.atan2(-y, x);
 
 								// Calc: Distance
 								renderDistance = (x * x + y * y) ** 0.5 * Math.cos(calculationsCamera.r - renderAngle);
@@ -1374,18 +1424,29 @@ class VideoMainEngine {
 				}
 
 				// Weapon
+				renderWeaponFire = false;
 				switch (renderWeapon) {
 					case CharacterWeapon.KNIFE:
 						asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderImageTest;
 						break;
 					case CharacterWeapon.MACHINE_GUN:
 						asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+
+						if (VideoMainEngine.weaponFrame === 2 || VideoMainEngine.weaponFrame === 3) {
+							renderWeaponFire = true;
+						}
 						break;
 					case CharacterWeapon.PISTOL:
 						asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderImageTest;
+						if (VideoMainEngine.weaponFrame === 2) {
+							renderWeaponFire = true;
+						}
 						break;
 					case CharacterWeapon.SUB_MACHINE_GUN:
 						asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+						if (VideoMainEngine.weaponFrame === 2) {
+							renderWeaponFire = true;
+						}
 						break;
 				}
 
@@ -1393,7 +1454,9 @@ class VideoMainEngine {
 				if (renderLightingQuality !== LightingQuality.NONE) {
 					renderBrightness = 0;
 
-					if ((gameMapGridData[calculationsCameraGridIndex] & GameGridCellMasksAndValues.LIGHT) !== 0) {
+					if (renderWeaponFire === true) {
+						renderBrightness = 0.1;
+					} else if ((gameMapGridData[calculationsCameraGridIndex] & GameGridCellMasksAndValues.LIGHT) !== 0) {
 						renderBrightness = 0;
 					} else {
 						renderBrightness = -0.1;

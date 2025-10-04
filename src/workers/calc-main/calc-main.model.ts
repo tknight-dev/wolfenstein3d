@@ -25,6 +25,8 @@ export const CalcMainBusActionDoorStateAutoCloseDurationInMS: number = 5000;
 export const CalcMainBusActionDoorStateChangeDurationInMS: number = 1000;
 export const CalcMainBusActionWallMoveStateChangeDurationInMS: number = 5000;
 
+export const CalcMainBusDieFrameDurationInMS: number = 250;
+
 export const CalcMainBusWeaponFireDurationsInMS: Map<number, number[]> = new Map();
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.KNIFE, [100, 100, 100, 100, 100]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.MACHINE_GUN, [100, 100, 100, 100, 100]);
@@ -113,10 +115,12 @@ export enum CalcMainBusOutputCmd {
 	CAMERA,
 	CALCULATIONS,
 	CHARACTER_META,
+	GAME_OVER,
 	INIT_COMPLETE,
 	MAP_UPDATE,
 	NPC_UPDATE,
 	PATH_UPDATE,
+	PLAYER_DIED,
 	STATS,
 	WEAPON_FIRE,
 	WEAPON_SELECT,
@@ -193,5 +197,6 @@ export interface CalcMainBusOutputPayload {
 		| CalcMainBusOutputDataWeaponSelect
 		| Float32Array[]
 		| Map<number, number[]>
-		| Uint16Array;
+		| Uint16Array
+		| undefined;
 }

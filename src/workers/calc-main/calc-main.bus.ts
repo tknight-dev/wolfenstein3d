@@ -33,8 +33,10 @@ export class CalcMainBus {
 	private static callbackCamera: (data: CalcMainBusOutputDataCamera) => void;
 	private static callbackCalculations: (data: CalcMainBusOutputDataCalculations) => void;
 	private static callbackCharacterMeta: (data: CalcMainBusOutputDataCharacterMeta) => void;
+	private static callbackGameover: () => void;
 	private static callbackInitComplete: (status: boolean) => void;
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
+	private static callbackPlayerDied: (player1: boolean) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
 	private static callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void;
 	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
@@ -99,6 +101,9 @@ export class CalcMainBus {
 					case CalcMainBusOutputCmd.CALCULATIONS:
 						CalcMainBus.callbackCalculations(<CalcMainBusOutputDataCalculations>payload.data);
 						break;
+					case CalcMainBusOutputCmd.GAME_OVER:
+						CalcMainBus.callbackGameover();
+						break;
 					case CalcMainBusOutputCmd.INIT_COMPLETE:
 						CalcMainBus.callbackInitComplete(<boolean>payload.data);
 						break;
@@ -107,6 +112,9 @@ export class CalcMainBus {
 						break;
 					case CalcMainBusOutputCmd.NPC_UPDATE:
 						CalcMainBus.callbackNPCUpdate(<Float32Array[]>payload.data);
+						break;
+					case CalcMainBusOutputCmd.PLAYER_DIED:
+						CalcMainBus.callbackPlayerDied(<boolean>payload.data);
 						break;
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
@@ -239,8 +247,16 @@ export class CalcMainBus {
 		CalcMainBus.callbackCharacterMeta = callbackCharacterMeta;
 	}
 
+	public static setCallbackGameover(callbackGameover: () => void): void {
+		CalcMainBus.callbackGameover = callbackGameover;
+	}
+
 	public static setCallbackNPCUpdate(callbackNPCUpdate: (data: Float32Array[]) => void): void {
 		CalcMainBus.callbackNPCUpdate = callbackNPCUpdate;
+	}
+
+	public static setCallbackPlayerDied(callbackPlayerDied: (data: boolean) => void): void {
+		CalcMainBus.callbackPlayerDied = callbackPlayerDied;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcMainBusOutputDataStats) => void): void {

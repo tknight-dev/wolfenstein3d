@@ -31,6 +31,7 @@ import {
 	GameMap,
 } from '../../models/game.model.js';
 import {
+	GamingCanvasConstIntegerMaxSafe,
 	GamingCanvasConstPI_0_125,
 	GamingCanvasConstPI_0_250,
 	GamingCanvasConstPI_0_375,
@@ -58,7 +59,7 @@ import {
 	GamingCanvasGridCharacterControlOptions,
 	GamingCanvasGridCharacterControlStyle,
 	GamingCanvasGridCharacterInput,
-	GamingCanvasGridCharacterSeen,
+	GamingCanvasGridCharacterLook,
 	GamingCanvasGridICamera,
 	GamingCanvasGridPathAStarOptions,
 	GamingCanvasGridPathAStarOptionsPathHeuristic,
@@ -172,10 +173,16 @@ class CalcMainEngine {
 			ammo: 8,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
+			fov: (10 * GamingCanvasConstPI_1_000) / 180, // WeaponFOV
+			fovDistanceMax: 20, // WeaponFOVDistanceMax
 			gridIndex: data.gameMap.position.x * data.gameMap.grid.sideLength + data.gameMap.position.y,
 			health: 100,
+			id: -1,
 			lives: 3,
 			player1: true,
+			seenAngle: new Map(),
+			seenDistance: new Map(),
+			seenLOS: new Map(),
 			score: 0,
 			size: 0.25,
 			weapon: CharacterWeapon.PISTOL,
@@ -190,10 +197,16 @@ class CalcMainEngine {
 			ammo: CalcMainEngine.characterPlayer1.ammo,
 			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
 			cameraPrevious: <GamingCanvasGridICamera>{},
+			fov: CalcMainEngine.characterPlayer1.fov,
+			fovDistanceMax: CalcMainEngine.characterPlayer1.fovDistanceMax,
 			gridIndex: CalcMainEngine.characterPlayer1.gridIndex,
 			health: CalcMainEngine.characterPlayer1.health,
+			id: -2,
 			lives: 3,
 			player1: true,
+			seenAngle: new Map(),
+			seenDistance: new Map(),
+			seenLOS: new Map(),
 			score: CalcMainEngine.characterPlayer1.score,
 			size: CalcMainEngine.characterPlayer1.size,
 			weapon: CalcMainEngine.characterPlayer1.weapon,
@@ -255,28 +268,24 @@ class CalcMainEngine {
 	}
 
 	public static inputCheatCode(player1: boolean): void {
+		let characterPlayer: Character = player1 === true ? CalcMainEngine.characterPlayer1 : CalcMainEngine.characterPlayer2;
+
+		characterPlayer.ammo = 99;
+		characterPlayer.health = 100;
+		characterPlayer.lives = 3;
+		characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
+		characterPlayer.weapons = [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL, CharacterWeapon.SUB_MACHINE_GUN, CharacterWeapon.MACHINE_GUN];
+
 		CalcMainEngine.cheatCodeNew = true;
-		if (player1 === true) {
-			CalcMainEngine.characterPlayer1.ammo = 99;
-			CalcMainEngine.characterPlayer1.health = 100;
-			CalcMainEngine.characterPlayer1.lives = 3;
-			CalcMainEngine.characterPlayer1.weapons = [
-				CharacterWeapon.KNIFE,
-				CharacterWeapon.PISTOL,
-				CharacterWeapon.SUB_MACHINE_GUN,
-				CharacterWeapon.MACHINE_GUN,
-			];
-		} else {
-			CalcMainEngine.characterPlayer2.ammo = 99;
-			CalcMainEngine.characterPlayer2.health = 100;
-			CalcMainEngine.characterPlayer2.lives = 3;
-			CalcMainEngine.characterPlayer2.weapons = [
-				CharacterWeapon.KNIFE,
-				CharacterWeapon.PISTOL,
-				CharacterWeapon.SUB_MACHINE_GUN,
-				CharacterWeapon.MACHINE_GUN,
-			];
-		}
+		CalcMainEngine.post([
+			{
+				cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+				data: {
+					player1: player1,
+					weapon: characterPlayer.weapon,
+				},
+			},
+		]);
 	}
 
 	public static inputMap(data: GameMap): void {
@@ -307,12 +316,12 @@ class CalcMainEngine {
 		let character: Character;
 
 		if (data.player1 === true) {
-			if (CalcMainEngine.characterPlayer1Firing === true) {
+			if (CalcMainEngine.characterPlayer1Firing === true || CalcMainEngine.characterPlayer1.ammo === 0) {
 				return;
 			}
 			character = CalcMainEngine.characterPlayer1;
 		} else {
-			if (CalcMainEngine.characterPlayer2Firing === true) {
+			if (CalcMainEngine.characterPlayer2Firing === true || CalcMainEngine.characterPlayer2.ammo === 0) {
 				return;
 			}
 			character = CalcMainEngine.characterPlayer2;
@@ -430,6 +439,7 @@ class CalcMainEngine {
 			characterPlayer2RaycastRays: Float64Array | undefined,
 			characterPlayerMulti: Character[] = [characterPlayer1, characterPlayer2],
 			characterPlayer: Character,
+			characterPlayerId: number,
 			characterPlayers: Character[],
 			characterPlayerSingle: Character[] = [characterPlayer1],
 			cycleCount: number = 0,
@@ -446,12 +456,7 @@ class CalcMainEngine {
 			},
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapIndexEff: number,
-			gameMapNPC: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npc,
-			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
-			gameMapNPCPath: number[],
-			gameMapNPCPathInstance: number,
-			gameMapNPCPaths: Map<number, number[]>,
-			gameMapNPCSeenBlocking = (cell: number, gridIndex: number) => {
+			gameMapLookBlocking = (cell: number, gridIndex: number) => {
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
@@ -464,6 +469,12 @@ class CalcMainEngine {
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
 			},
+			gameMapNPC: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npc,
+			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
+			gameMapNPCPath: number[],
+			gameMapNPCPathInstance: number,
+			gameMapNPCPaths: Map<number, number[]>,
+			gameMapNPCShootAt: Map<number, number> = new Map(),
 			gameMapSideLength: number = CalcMainEngine.gameMap.grid.sideLength,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
@@ -494,6 +505,7 @@ class CalcMainEngine {
 			timestampUnixEff: number = Date.now(),
 			timestampUnixPause: number = Date.now(),
 			timestampUnixPauseDelta: number = 0,
+			weapon: CharacterWeapon,
 			x: number,
 			y: number;
 
@@ -665,6 +677,52 @@ class CalcMainEngine {
 			}, CalcMainBusActionDoorStateAutoCloseDurationInMS);
 		};
 
+		const actionPlayerHit = (player1: boolean, distance: number, weapon: CharacterWeapon) => {
+			console.log('actionPlayerHit', player1, distance, CharacterWeapon[weapon], GameDifficulty[settingsDifficulty]);
+
+			if (player1 === true) {
+				characterPlayer = CalcMainEngine.characterPlayer1;
+				characterPlayer1ChangedMetaReport = true;
+			} else {
+				characterPlayer = CalcMainEngine.characterPlayer2;
+				characterPlayer2ChangedMetaReport = true;
+			}
+
+			characterPlayer.health -= 10;
+
+			if (characterPlayer.health <= 0) {
+				characterPlayer.lives--;
+
+				if (characterPlayer.lives <= 0) {
+					console.log('GAME OVER');
+
+					// Post to other threads
+					CalcMainEngine.post([
+						{
+							cmd: CalcMainBusOutputCmd.GAME_OVER,
+							data: undefined,
+						},
+					]);
+				} else {
+					// TODO FORCE RENDER
+					// TODO STOP CHASING THAT PLAYER
+
+					characterPlayer.camera.r = gameMap.position.r;
+					characterPlayer.camera.x = gameMap.position.x;
+					characterPlayer.camera.y = gameMap.position.y;
+					characterPlayer.camera.z = gameMap.position.z;
+					characterPlayer.health = 100;
+
+					CalcMainEngine.post([
+						{
+							cmd: CalcMainBusOutputCmd.PLAYER_DIED,
+							data: player1,
+						},
+					]);
+				}
+			}
+		};
+
 		const actionSwitch = (gridIndex: number) => {
 			// Calc: AssetId
 			let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.ID_MASK;
@@ -692,134 +750,6 @@ class CalcMainEngine {
 			]);
 		};
 
-		// Gun shots should suprise NPCs based on path length and not distance (around corners but not through multiple walls to inaccessible rooms)
-		const actionWeaponFire = (player1: boolean, weapon: CharacterWeapon) => {
-			// Weapon state: 2 (fire or rising)
-			if (weapon !== CharacterWeapon.KNIFE) {
-				switch (weapon) {
-					case CharacterWeapon.MACHINE_GUN:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
-						break;
-					case CharacterWeapon.PISTOL:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_PISTOL);
-						break;
-					case CharacterWeapon.SUB_MACHINE_GUN:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN);
-						break;
-				}
-			}
-
-			timers.add(
-				() => {
-					// Weapon state: 3 (fire, recoil or stab)
-					if (weapon === CharacterWeapon.KNIFE) {
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_KNIFE);
-					} else if (weapon === CharacterWeapon.MACHINE_GUN) {
-						// check if fire state still desired?
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
-					}
-
-					timers.add(
-						() => {
-							// Weapon state: 4 (holstering)
-							if (player1 === true) {
-								switch (weapon) {
-									case CharacterWeapon.MACHINE_GUN:
-									case CharacterWeapon.SUB_MACHINE_GUN:
-										if (characterPlayer1Input.fire === true) {
-											actionWeaponFire(player1, weapon);
-											return;
-										}
-										break;
-								}
-							} else {
-								switch (weapon) {
-									case CharacterWeapon.MACHINE_GUN:
-									case CharacterWeapon.SUB_MACHINE_GUN:
-										if (characterPlayer2Input.fire === true) {
-											actionWeaponFire(player1, weapon);
-											return;
-										}
-										break;
-								}
-							}
-
-							timers.add(
-								() => {
-									// Weapon state: 0 (holstered)
-									if (player1 === true) {
-										CalcMainEngine.characterPlayer1Firing = false;
-									} else {
-										CalcMainEngine.characterPlayer2Firing = false;
-									}
-								},
-								(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[4],
-							);
-						},
-						(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[3],
-					);
-				},
-				(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[2],
-			);
-
-			// Alert other threads about firing state
-			CalcMainEngine.post([
-				{
-					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
-					data: {
-						player1: player1,
-						refire: true,
-					},
-				},
-			]);
-		};
-
-		const actionWeapon = (player1: boolean, weapon: CharacterWeapon, weaponRefire?: boolean) => {
-			if (player1 === true) {
-				CalcMainEngine.characterPlayer1Firing = true;
-
-				switch (weapon) {
-					case CharacterWeapon.KNIFE:
-					case CharacterWeapon.PISTOL:
-						characterPlayer1FiringLocked = true;
-						break;
-				}
-			} else {
-				CalcMainEngine.characterPlayer2Firing = true;
-
-				switch (weapon) {
-					case CharacterWeapon.KNIFE:
-					case CharacterWeapon.PISTOL:
-						characterPlayer2FiringLocked = true;
-						break;
-				}
-			}
-
-			// Weapon state: 0 (holstered)
-			timers.add(
-				() => {
-					// Weapon state: 1 (rising)
-					timers.add(
-						() => {
-							actionWeaponFire(player1, weapon);
-						},
-						weaponRefire === true ? 0 : (<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[1],
-					);
-				},
-				weaponRefire === true ? 0 : (<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[0],
-			);
-
-			// Alert other threads about firing state
-			CalcMainEngine.post([
-				{
-					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
-					data: {
-						player1: player1,
-					},
-				},
-			]);
-		};
-
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			CalcMainEngine.post([
 				{
@@ -837,16 +767,16 @@ class CalcMainEngine {
 			let offset: number;
 			switch (cellSide) {
 				case GamingCanvasGridRaycastCellSide.EAST:
-					offset = gameMapSideLength;
+					offset = -gameMapSideLength;
 					break;
 				case GamingCanvasGridRaycastCellSide.NORTH:
-					offset = -1;
-					break;
-				case GamingCanvasGridRaycastCellSide.SOUTH:
 					offset = 1;
 					break;
+				case GamingCanvasGridRaycastCellSide.SOUTH:
+					offset = -1;
+					break;
 				case GamingCanvasGridRaycastCellSide.WEST:
-					offset = -gameMapSideLength;
+					offset = gameMapSideLength;
 					break;
 			}
 
@@ -872,6 +802,231 @@ class CalcMainEngine {
 				},
 				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 			);
+		};
+
+		const actionWeapon = (player1: boolean, weapon: CharacterWeapon) => {
+			if (player1 === true) {
+				if (weapon !== CharacterWeapon.KNIFE && characterPlayer1.ammo === 0) {
+					return;
+				}
+
+				CalcMainEngine.characterPlayer1Firing = true;
+
+				switch (weapon) {
+					case CharacterWeapon.KNIFE:
+					case CharacterWeapon.PISTOL:
+						characterPlayer1FiringLocked = true;
+						break;
+				}
+			} else {
+				if (weapon !== CharacterWeapon.KNIFE && characterPlayer2.ammo === 0) {
+					return;
+				}
+				CalcMainEngine.characterPlayer2Firing = true;
+
+				switch (weapon) {
+					case CharacterWeapon.KNIFE:
+					case CharacterWeapon.PISTOL:
+						characterPlayer2FiringLocked = true;
+						break;
+				}
+			}
+
+			// Weapon state: 0 (holstered)
+			timers.add(
+				() => {
+					// Weapon state: 1 (rising)
+					timers.add(
+						() => {
+							actionWeaponFire(player1, weapon);
+						},
+						(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[1],
+					);
+				},
+				(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[0],
+			);
+
+			// Alert other threads about firing state
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
+					data: {
+						player1: player1,
+					},
+				},
+			]);
+		};
+
+		// Gun shots should suprise NPCs based on path length and not distance (around corners but not through multiple walls to inaccessible rooms)
+		const actionWeaponFire = (player1: boolean, weapon: CharacterWeapon) => {
+			if (player1 === true) {
+				characterPlayer = characterPlayer1;
+			} else {
+				characterPlayer = characterPlayer2;
+			}
+
+			// Weapon state: 2 (fire or rising)
+			if (weapon !== CharacterWeapon.KNIFE) {
+				characterPlayer.ammo--;
+				if (player1 === true) {
+					characterPlayer1ChangedMetaReport = true;
+				} else {
+					characterPlayer2ChangedMetaReport = true;
+				}
+
+				switch (weapon) {
+					case CharacterWeapon.MACHINE_GUN:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
+						break;
+					case CharacterWeapon.PISTOL:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_PISTOL);
+						break;
+					case CharacterWeapon.SUB_MACHINE_GUN:
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN);
+						break;
+				}
+
+				actionWeaponFireHitDetection(characterPlayer, weapon);
+			}
+
+			timers.add(
+				() => {
+					// Weapon state: 3 (fire, recoil or stab)
+					if (weapon === CharacterWeapon.KNIFE) {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_KNIFE);
+						actionWeaponFireHitDetection(characterPlayer, weapon);
+					} else if (weapon === CharacterWeapon.MACHINE_GUN) {
+						characterPlayer.ammo--;
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
+						actionWeaponFireHitDetection(characterPlayer, weapon);
+					}
+
+					timers.add(
+						() => {
+							// Weapon state: 4 (holstering)
+							if (player1 === true) {
+								switch (weapon) {
+									case CharacterWeapon.MACHINE_GUN:
+									case CharacterWeapon.SUB_MACHINE_GUN:
+										if (characterPlayer1Input.fire === true && characterPlayer1.ammo !== 0) {
+											actionWeaponFire(player1, weapon);
+											characterPlayer1ChangedMetaReport = true;
+											return;
+										}
+										break;
+								}
+							} else {
+								switch (weapon) {
+									case CharacterWeapon.MACHINE_GUN:
+									case CharacterWeapon.SUB_MACHINE_GUN:
+										if (characterPlayer2Input.fire === true && characterPlayer2.ammo !== 0) {
+											actionWeaponFire(player1, weapon);
+											return;
+										}
+										break;
+								}
+							}
+
+							timers.add(
+								() => {
+									// Weapon state: 0 (holstered)
+									if (player1 === true) {
+										CalcMainEngine.characterPlayer1Firing = false;
+										characterPlayer = characterPlayer1;
+									} else {
+										CalcMainEngine.characterPlayer2Firing = false;
+										characterPlayer = characterPlayer2;
+									}
+
+									if (characterPlayer.ammo === 0) {
+										characterPlayer.weapon = CharacterWeapon.KNIFE;
+
+										if (player1 === true) {
+											characterPlayer1FiringLocked = true;
+											characterPlayer1ChangedMetaReport = true;
+										} else {
+											characterPlayer2FiringLocked = true;
+											characterPlayer2ChangedMetaReport = true;
+										}
+
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+												data: {
+													player1: player1,
+													weapon: CharacterWeapon.KNIFE,
+												},
+											},
+										]);
+									}
+								},
+								(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[4],
+							);
+						},
+						(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[3],
+					);
+				},
+				(<number[]>CalcMainBusWeaponFireDurationsInMS.get(weapon))[2],
+			);
+
+			// Alert other threads about firing state
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_FIRE,
+					data: {
+						player1: player1,
+						refire: true,
+					},
+				},
+			]);
+		};
+
+		const actionWeaponFireHitDetection = (characterPlayer: Character, weapon: CharacterWeapon) => {
+			let characterNPCDistance: number = 99999,
+				characterNPC: CharacterNPC | undefined,
+				characterNPC2: CharacterNPC | undefined,
+				characterNPCId: number,
+				seen: boolean;
+
+			// Look
+			GamingCanvasGridCharacterLook(gameMapNPC.values(), [characterPlayer], gameMapGrid, gameMapLookBlocking);
+
+			// Did the weapon "see" anybody?
+			for ([characterNPCId, seen] of characterPlayer.seenLOS.entries()) {
+				characterNPC2 = <CharacterNPC>gameMapNPC.get(characterNPCId);
+
+				if (characterNPC2.health !== 0 && seen === true && <number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance) {
+					characterNPCDistance = <number>characterPlayer.seenDistance.get(characterNPCId);
+					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+				}
+			}
+
+			if (characterNPC !== undefined) {
+				characterNPC.health -= 50;
+				characterNPC.timestampUnixState = timestampUnix;
+
+				if (characterNPC.health <= 0) {
+					characterNPC.assetId = AssetIdImgCharacter.DIE1;
+					characterNPC.health = 0;
+					characterNPCStates.set(characterNPC.id, CharacterNPCState.CORPSE);
+
+					x = Math.random() * 4;
+					if (x < 1) {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH);
+					} else if (x < 2) {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH2);
+					} else if (x < 3) {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH3);
+					} else {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH4);
+					}
+				} else {
+					characterNPC.assetId = AssetIdImgCharacter.HIT;
+					characterNPCStates.set(characterNPC.id, CharacterNPCState.HIT);
+				}
+
+				characterNPCUpdated.add(characterNPC.id);
+			}
 		};
 
 		/**
@@ -913,14 +1068,15 @@ class CalcMainEngine {
 				}
 
 				// Calc: Angle
-				x = cameraInstance.r - Math.atan2(x, y);
-
-				// Corrections for rotations between 0 and 2pi
-				if (x > GamingCanvasConstPI_2_000) {
-					x -= GamingCanvasConstPI_2_000;
-				}
-				if (x > GamingCanvasConstPI_1_000) {
-					x -= GamingCanvasConstPI_2_000;
+				x = cameraInstance.r - Math.atan2(-y, x);
+				if (x < GamingCanvasConstPI_0_500) {
+					x /= GamingCanvasConstPI_0_500;
+				} else if (x < GamingCanvasConstPI_1_000) {
+					x = (GamingCanvasConstPI_1_000 - x) / GamingCanvasConstPI_0_500;
+				} else if (x < GamingCanvasConstPI_1_500) {
+					x = (x - GamingCanvasConstPI_1_000) / -GamingCanvasConstPI_0_500;
+				} else {
+					x = (GamingCanvasConstPI_2_000 - x) / -GamingCanvasConstPI_0_500;
 				}
 
 				// Cache
@@ -1050,7 +1206,9 @@ class CalcMainEngine {
 					characterNPCPathById.clear();
 					characterNPCStates.clear();
 					gameMapNPCIdByGridIndex.clear();
+					gameMapNPCShootAt.clear();
 					for (characterNPC of gameMapNPC.values()) {
+						characterNPC.timestampUnixState = timestampUnixEff;
 						gameMapNPCIdByGridIndex.set(characterNPC.id, characterNPC.gridIndex);
 
 						if (characterNPC.walking === true) {
@@ -1203,20 +1361,20 @@ class CalcMainEngine {
 							characterPlayer1GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
 							// 45deg = GamingCanvasConstPI_0_250 (NE)
-							// 135deg = GamingCanvasConstPI_0_750rad (NW)
-							// 225deg = GamingCanvasConstPI_1_2500rad (SW)
-							// 315deg = GamingCanvasConstPI_1_750rad (SE)
-							if (cameraInstance.r > GamingCanvasConstPI_0_250 && cameraInstance.r < GamingCanvasConstPI_0_750) {
-								cellSide = GamingCanvasGridRaycastCellSide.EAST;
-								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
-							} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
+							// 135deg = GamingCanvasConstPI_0_750 (NW)
+							// 225deg = GamingCanvasConstPI_1_250 (SW)
+							// 315deg = GamingCanvasConstPI_1_750 (SE)
+							if (cameraInstance.r > GamingCanvasConstPI_1_750 || cameraInstance.r < GamingCanvasConstPI_0_250) {
 								cellSide = GamingCanvasGridRaycastCellSide.WEST;
-								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
-							} else if (cameraInstance.r > GamingCanvasConstPI_0_750 && cameraInstance.r < GamingCanvasConstPI_1_250) {
-								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
-								gameMapIndexEff = characterPlayer1GridIndex - 1;
-							} else {
+								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
+							} else if (cameraInstance.r < GamingCanvasConstPI_0_750) {
 								cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
+								gameMapIndexEff = characterPlayer1GridIndex - 1;
+							} else if (cameraInstance.r < GamingCanvasConstPI_1_250) {
+								cellSide = GamingCanvasGridRaycastCellSide.EAST;
+								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
+							} else {
+								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
 								gameMapIndexEff = characterPlayer1GridIndex + 1;
 							}
 
@@ -1253,17 +1411,17 @@ class CalcMainEngine {
 								// 225deg = GamingCanvasConstPI_1_2500rad (SW)
 								// 315deg = GamingCanvasConstPI_1_750rad (SE)
 								if (cameraInstance.r > GamingCanvasConstPI_0_250 && cameraInstance.r < GamingCanvasConstPI_0_750) {
-									cellSide = GamingCanvasGridRaycastCellSide.EAST;
-									gameMapIndexEff = characterPlayer2GridIndex + gameMapSideLength;
-								} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
 									cellSide = GamingCanvasGridRaycastCellSide.WEST;
-									gameMapIndexEff = characterPlayer2GridIndex - gameMapSideLength;
+									gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
+								} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
+									cellSide = GamingCanvasGridRaycastCellSide.EAST;
+									gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
 								} else if (cameraInstance.r > GamingCanvasConstPI_0_750 && cameraInstance.r < GamingCanvasConstPI_1_250) {
-									cellSide = GamingCanvasGridRaycastCellSide.NORTH;
-									gameMapIndexEff = characterPlayer2GridIndex - 1;
-								} else {
 									cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
-									gameMapIndexEff = characterPlayer2GridIndex + 1;
+									gameMapIndexEff = characterPlayer1GridIndex + 1;
+								} else {
+									cellSide = GamingCanvasGridRaycastCellSide.NORTH;
+									gameMapIndexEff = characterPlayer1GridIndex - 1;
 								}
 
 								gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
@@ -1318,6 +1476,16 @@ class CalcMainEngine {
 											characterPlayer1.weapon = CharacterWeapon.SUB_MACHINE_GUN;
 											characterPlayer1.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
+
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+													data: {
+														player1: true,
+														weapon: characterPlayer1.weapon,
+													},
+												},
+											]);
 										}
 										break;
 									case AssetIdImg.SPRITE_MEDKIT:
@@ -1399,6 +1567,16 @@ class CalcMainEngine {
 											characterPlayer2.weapon = CharacterWeapon.SUB_MACHINE_GUN;
 											characterPlayer2.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
+
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+													data: {
+														player1: false,
+														weapon: characterPlayer2.weapon,
+													},
+												},
+											]);
 										}
 										break;
 									case AssetIdImg.SPRITE_MEDKIT:
@@ -1471,7 +1649,7 @@ class CalcMainEngine {
 							}
 
 							// Calc: Angle, Distance, and Line-of-Sight state
-							GamingCanvasGridCharacterSeen(characterPlayers, gameMapNPC.values(), gameMapGrid, gameMapNPCSeenBlocking);
+							GamingCanvasGridCharacterLook(characterPlayers, gameMapNPC.values(), gameMapGrid, gameMapLookBlocking);
 
 							for (characterNPC of gameMapNPC.values()) {
 								if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
@@ -1482,22 +1660,26 @@ class CalcMainEngine {
 								characterNPC.timestamp = timestampNow;
 
 								// Closest visible player or if player 1 block away
-								characterNPCDistance = 999999;
-								for (i = 0; i < characterPlayers.length; i++) {
-									if (characterNPC.playerLOS[i] === true && characterNPC.playerDistance[i] < characterNPCDistance) {
-										characterNPCDistance = characterNPC.playerDistance[i];
-										characterPlayer = characterPlayers[i];
+								characterNPCDistance = GamingCanvasConstIntegerMaxSafe;
+								characterPlayerId = -100;
+								for (characterPlayer of characterPlayers) {
+									if (
+										characterNPC.seenLOS.get(characterPlayer.id) === true &&
+										<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance
+									) {
+										characterNPCDistance = <number>characterNPC.seenDistance.get(characterPlayer.id);
+										characterPlayerId = characterPlayer.id;
 									}
 								}
 
 								// Or if player 1 block away
-								if (characterNPCDistance === 999999 && gameMapNPCPaths !== undefined) {
+								if (characterNPCDistance === GamingCanvasConstIntegerMaxSafe && gameMapNPCPaths !== undefined) {
 									gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 									if (gameMapNPCPath.length === 1) {
-										for (i = 0; i < characterPlayers.length; i++) {
-											if (characterNPC.playerDistance[i] < characterNPCDistance) {
-												characterNPCDistance = characterNPC.playerDistance[i];
-												characterPlayer = characterPlayers[i];
+										for (characterPlayer of characterPlayers) {
+											if (<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance) {
+												characterNPCDistance = <number>characterNPC.seenDistance.get(characterPlayer.id);
+												characterPlayerId = characterPlayer.id;
 											}
 										}
 									}
@@ -1506,14 +1688,40 @@ class CalcMainEngine {
 								switch (characterNPCState) {
 									case CharacterNPCState.AIM:
 										if (timestampUnix - characterNPC.timestampUnixState > 500) {
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, characterNPC.gridIndex);
+											if (gameMapNPCShootAt.get(characterNPC.id) === characterPlayerId) {
+												// Fire at player intended
+												audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, characterNPC.gridIndex);
 
-											characterNPC.assetId = AssetIdImgCharacter.FIRE;
-											characterNPC.timestampUnixState = timestampUnix;
+												switch (characterNPC.type) {
+													case AssetIdImgCharacterType.GUARD:
+														weapon = CharacterWeapon.PISTOL;
+														break;
+												}
 
-											characterNPCUpdated.add(characterNPC.id);
-											characterNPCStates.set(characterNPC.id, CharacterNPCState.FIRE);
+												if (characterPlayerId === -1) {
+													actionPlayerHit(true, characterNPCDistance, weapon);
+												} else {
+													actionPlayerHit(false, characterNPCDistance, weapon);
+												}
+
+												characterNPC.assetId = AssetIdImgCharacter.FIRE;
+												characterNPC.timestampUnixState = timestampUnix;
+
+												characterNPCUpdated.add(characterNPC.id);
+												characterNPCStates.set(characterNPC.id, CharacterNPCState.FIRE);
+											} else {
+												// Run toward player the NPC lost sight of
+												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+												characterNPC.timestampUnixState = timestampUnix;
+
+												characterNPCUpdated.add(characterNPC.id);
+												characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+											}
+
+											gameMapNPCShootAt.delete(characterNPC.id);
 										}
+										break;
+									case CharacterNPCState.CORPSE:
 										break;
 									case CharacterNPCState.FIRE:
 										if (timestampUnix - characterNPC.timestampUnixState > 250) {
@@ -1598,12 +1806,13 @@ class CalcMainEngine {
 										);
 										gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
 
-										if (characterNPCDistance !== 999999) {
+										if (characterNPCDistance !== GamingCanvasConstIntegerMaxSafe) {
 											if (timestampUnix - characterNPC.timestampUnixState > 1000) {
 												characterNPC.assetId = AssetIdImgCharacter.AIM;
 												characterNPC.timestampUnixState = timestampUnix;
 
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+												gameMapNPCShootAt.set(characterNPC.id, characterPlayerId);
 											}
 										} else if (characterNPCInputChanged === false) {
 											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
@@ -1688,12 +1897,14 @@ class CalcMainEngine {
 											characterNPC.timestampUnixState = timestampUnix;
 											characterNPC.walking = false;
 
-											if (characterNPCDistance === 999999) {
+											if (characterNPCDistance === GamingCanvasConstIntegerMaxSafe) {
 												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
 											} else {
 												characterNPC.assetId = AssetIdImgCharacter.AIM;
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+
+												gameMapNPCShootAt.set(characterNPC.id, characterPlayerId);
 											}
 
 											characterNPCUpdated.add(characterNPC.id);
@@ -1916,7 +2127,7 @@ class CalcMainEngine {
 								}
 
 								if (
-									characterNPCDistance !== 999999 &&
+									characterNPCDistance !== GamingCanvasConstIntegerMaxSafe &&
 									(characterNPCState === CharacterNPCState.STANDING ||
 										characterNPCState === CharacterNPCState.WALKING ||
 										characterNPCState === CharacterNPCState.WALKING_DOOR)
@@ -2016,14 +2227,15 @@ class CalcMainEngine {
 						}
 
 						// Calc: Angle
-						x = cameraInstance.r - Math.atan2(x, y);
-
-						// Corrections for rotations between 0 and 2pi
-						if (x > GamingCanvasConstPI_2_000) {
-							x -= GamingCanvasConstPI_2_000;
-						}
-						if (x > GamingCanvasConstPI_1_000) {
-							x -= GamingCanvasConstPI_2_000;
+						x = cameraInstance.r - Math.atan2(-y, x);
+						if (x < GamingCanvasConstPI_0_500) {
+							x /= GamingCanvasConstPI_0_500;
+						} else if (x < GamingCanvasConstPI_1_000) {
+							x = (GamingCanvasConstPI_1_000 - x) / GamingCanvasConstPI_0_500;
+						} else if (x < GamingCanvasConstPI_1_500) {
+							x = (x - GamingCanvasConstPI_1_000) / -GamingCanvasConstPI_0_500;
+						} else {
+							x = (GamingCanvasConstPI_2_000 - x) / -GamingCanvasConstPI_0_500;
 						}
 
 						// Buffer for audio engine thread push
@@ -2211,6 +2423,10 @@ class CalcMainEngine {
 						characterNPCUpdates.push(characterNPCUpdate);
 
 						buffers.push(characterNPCUpdate.buffer);
+
+						if (characterNPC.assetId === AssetIdImgCharacter.DIE1) {
+							characterNPC.assetId = AssetIdImgCharacter.CORPSE;
+						}
 					}
 
 					CalcMainEngine.post(

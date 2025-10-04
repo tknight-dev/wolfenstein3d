@@ -1040,11 +1040,21 @@ export class Game {
 			}
 		});
 
+		// Calc: Game Over
+		CalcMainBus.setCallbackGameover(() => {
+			console.log('game over');
+		});
+
 		// Calc: NPCs
 		CalcMainBus.setCallbackNPCUpdate((data: Float32Array[]) => {
 			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
 			VideoEditorBus.outputNPCUpdate(data);
+		});
+
+		// Calc: Player died
+		CalcMainBus.setCallbackPlayerDied((player1: boolean) => {
+			console.log('player died', player1);
 		});
 
 		// Calc: Weapon Fire
@@ -1151,10 +1161,10 @@ export class Game {
 						fovDistanceMax: 20,
 						health: 100,
 						id: id,
-						playerAngle: [],
-						playerDistance: [],
-						playerLOS: [],
 						runningSpeed: 0.00055,
+						seenAngle: new Map(),
+						seenDistance: new Map(),
+						seenLOS: new Map(),
 						size: 0.25,
 						timestamp: 0,
 						timestampPrevious: 0,
@@ -1449,7 +1459,7 @@ export class Game {
 						updated = true;
 						break;
 					case 'ArrowUp':
-					case 'ControlLeft':
+					case 'ShiftLeft':
 						if (down) {
 							characterPlayerInputPlayer.fire = true;
 						} else if ((characterPlayerInputPlayer.fire = true)) {
