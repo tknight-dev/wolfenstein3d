@@ -40,6 +40,10 @@ CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.NORMAL, 20);
 CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.HARD, 30);
 CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.INSANE, 50);
 
+export const CalcMainBusPlayerDeadFadeDurationInMS: number = 4000;
+export const CalcMainBusPlayerDeadFallDurationInMS: number = 5000;
+export const CalcMainBusPlayerHitDurationInMS: number = 1000;
+
 export const CalcMainBusWeaponDamage: Map<CharacterWeapon, number> = new Map();
 CalcMainBusWeaponDamage.set(CharacterWeapon.KNIFE, 20);
 CalcMainBusWeaponDamage.set(CharacterWeapon.MACHINE_GUN, 100);

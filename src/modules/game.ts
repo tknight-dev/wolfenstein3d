@@ -28,6 +28,7 @@ import {
 	CalcMainBusOutputDataCharacterMeta,
 	CalcMainBusOutputDataWeaponFire,
 	CalcMainBusOutputDataPlayerHit,
+	CalcMainBusPlayerDeadFallDurationInMS,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -68,6 +69,8 @@ import {
 import { Character, CharacterInput, CharacterMetaDecode, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { CalcPathBusInputDataSettings } from '../workers/calc-path/calc-path.model.js';
+import { VideoOverlayBusInputDataSettings } from '../workers/video-overlay/video-overlay.model.js';
+import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
 
 /**
  * Guards are 100 points
@@ -95,6 +98,7 @@ export class Game {
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
+	public static gameOver: boolean;
 	public static inputRequest: number;
 	public static inputSuspend: boolean = true;
 	public static map: GameMap;
@@ -123,6 +127,7 @@ export class Game {
 	public static settingsGamingCanvas: GamingCanvasOptions;
 	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
 	public static settingsVideoMain: VideoMainBusInputDataSettings;
+	public static settingsVideoOverlay: VideoOverlayBusInputDataSettings;
 	public static viewport: GamingCanvasGridViewport;
 
 	private static cellApply(): void {
@@ -350,12 +355,14 @@ export class Game {
 							Game.mapBackup = parsed2;
 
 							// Done
+							Game.gameOver = false;
 							Game.mapNew = true;
 
 							CalcMainBus.outputMap(parsed);
 							CalcPathBus.outputMap(parsed);
 							VideoEditorBus.outputMap(parsed);
 							VideoMainBus.outputMap(parsed);
+							VideoOverlayBus.outputReset();
 						} catch (error) {
 							console.error('upload failed with', error);
 
@@ -426,6 +433,7 @@ export class Game {
 			const parsed: GameMap = Assets.parseMap(JSON.parse(JSON.stringify(Game.mapBackup)));
 
 			// Restore map
+			Game.gameOver = false;
 			Game.mapBackup.npc = npc;
 
 			Game.camera.r = parsed.position.r;
@@ -439,6 +447,7 @@ export class Game {
 			CalcPathBus.outputMap(parsed);
 			VideoEditorBus.outputMap(parsed);
 			VideoMainBus.outputMap(parsed);
+			VideoOverlayBus.outputReset();
 		};
 
 		// Editor items
@@ -644,6 +653,7 @@ export class Game {
 				CalcPathBus.outputPause(true);
 				GamingCanvas.audioControlPauseAll(true);
 				VideoMainBus.outputPause(true);
+				VideoOverlayBus.outputPause(true);
 			}
 		};
 
@@ -802,6 +812,7 @@ export class Game {
 			CalcMainBus.outputReport(report);
 			VideoEditorBus.outputReport(report);
 			VideoMainBus.outputReport(report);
+			VideoOverlayBus.outputReport(report);
 		});
 
 		// Start inputs
@@ -1050,7 +1061,19 @@ export class Game {
 
 		// Calc: Game Over
 		CalcMainBus.setCallbackGameover(() => {
-			console.log('game over');
+			Game.gameOver = true;
+
+			if (Game.musicInstance !== null) {
+				GamingCanvas.audioControlVolume(Game.musicInstance, 0, (CalcMainBusPlayerDeadFallDurationInMS / 2) | 0, (instance: number) => {
+					GamingCanvas.audioControlStop(instance);
+				});
+			}
+
+			CalcMainBus.outputPause(true);
+			CalcPathBus.outputPause(true);
+			VideoMainBus.outputPause(true);
+
+			VideoOverlayBus.outputGameOver();
 		});
 
 		// Calc: NPCs
@@ -1063,11 +1086,12 @@ export class Game {
 		// Calc: Player died
 		CalcMainBus.setCallbackPlayerDied((player1: boolean) => {
 			VideoMainBus.outputPlayerDead(player1);
+			VideoOverlayBus.outputPlayerDead(player1);
 		});
 
 		// Calc: Player hit
 		CalcMainBus.setCallbackPlayerHit((data: CalcMainBusOutputDataPlayerHit) => {
-			VideoMainBus.outputPlayerHit(data.angle, data.player1);
+			VideoOverlayBus.outputPlayerHit(data.angle, data.player1);
 		});
 
 		// Calc: Weapon Fire
@@ -1357,6 +1381,23 @@ export class Game {
 					updatedR = true;
 
 					Game.reportNew = true;
+				}
+
+				// Skipping the intro can cause the initial audio to not be permitted
+				if (Game.musicInstance === null && GamingCanvas.isAudioPermitted() === true) {
+					// Prevent another cycle from starting while waiting for the play to start
+					Game.musicInstance = -1;
+
+					setTimeout(async () => {
+						Game.musicInstance = await GamingCanvas.audioControlPlay(
+							AssetIdAudio.AUDIO_MUSIC_LVL1,
+							GamingCanvasAudioType.MUSIC,
+							true,
+							0,
+							0,
+							(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
+						);
+					});
 				}
 
 				while (queue.length !== 0) {
@@ -1778,6 +1819,7 @@ export class Game {
 			CalcPathBus.outputPause(true);
 			GamingCanvas.audioControlPauseAll(true);
 			VideoMainBus.outputPause(true);
+			VideoOverlayBus.outputPause(true);
 
 			// DOM
 			DOM.elButtonApply.classList.remove('active');
@@ -1863,10 +1905,13 @@ export class Game {
 
 				setTimeout(() => {
 					// Game
-					CalcMainBus.outputPause(false);
-					CalcPathBus.outputPause(false);
-					GamingCanvas.audioControlPauseAll(false);
-					VideoMainBus.outputPause(false);
+					if (Game.gameOver !== true) {
+						CalcMainBus.outputPause(false);
+						CalcPathBus.outputPause(false);
+						GamingCanvas.audioControlPauseAll(false);
+						VideoMainBus.outputPause(false);
+					}
+					VideoOverlayBus.outputPause(false);
 				}, 500);
 			});
 			CalcMainBus.outputCharacterInput({

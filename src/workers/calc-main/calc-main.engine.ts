@@ -23,6 +23,8 @@ import {
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputPayload,
 	CalcMainBusPlayerDamageByDifficulty,
+	CalcMainBusPlayerDeadFadeDurationInMS,
+	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
@@ -388,12 +390,20 @@ class CalcMainEngine {
 			characterNPCInputs: Map<AssetIdImgCharacter, GamingCanvasGridCharacterInput> = new Map(),
 			characterNPCGridIndex: number,
 			characterNPCPathById: Map<number, number[]> = new Map(),
+			characterNPCReset: boolean,
 			characterNPCState: CharacterNPCState | undefined,
 			characterNPCStates: Map<number, CharacterNPCState> = new Map(),
 			characterNPCUpdate: Float32Array,
 			characterNPCUpdates: Float32Array[] = [],
 			characterNPCUpdated: Set<number> = new Set(),
 			characterNPCWaypoint: boolean,
+			characterPlayerInputNone: CharacterInput = {
+				action: false,
+				fire: false,
+				r: 0,
+				x: 0,
+				y: 0,
+			},
 			characterPlayer1Input: CharacterInput = {
 				action: false,
 				fire: false,
@@ -729,15 +739,23 @@ class CalcMainEngine {
 				characterPlayer2ChangedMetaReport = true;
 			}
 
+			if (characterPlayer.health <= 0) {
+				characterPlayer1ChangedMetaReport = false;
+				characterPlayer2ChangedMetaReport = false;
+				return;
+			}
+
 			// Damage decreases with distance
-			// characterPlayer.health -=
-			// 	Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
+			characterPlayer.health -=
+				Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
 
 			if (characterPlayer.health <= 0) {
 				characterPlayer.lives--;
 
 				if (characterPlayer.lives <= 0) {
-					console.log('GAME OVER');
+					setTimeout(() => {
+						audioPlay(AssetIdAudio.AUDIO_EFFECT_EVIL_LAUGH);
+					}, CalcMainBusPlayerDeadFallDurationInMS);
 
 					// Post to other threads
 					CalcMainEngine.post([
@@ -747,21 +765,115 @@ class CalcMainEngine {
 						},
 					]);
 				} else {
-					// TODO FORCE RENDER
-					// TODO STOP CHASING THAT PLAYER
+					// Respawn
+					setTimeout(
+						() => {
+							characterPlayer.camera.r = gameMap.position.r;
+							characterPlayer.camera.x = gameMap.position.x;
+							characterPlayer.camera.y = gameMap.position.y;
+							characterPlayer.camera.z = gameMap.position.z;
+							characterPlayer.ammo = 8;
+							characterPlayer.health = 100;
 
-					characterPlayer.camera.r = gameMap.position.r;
-					characterPlayer.camera.x = gameMap.position.x;
-					characterPlayer.camera.y = gameMap.position.y;
-					characterPlayer.camera.z = gameMap.position.z;
-					characterPlayer.health = 100;
+							if (player1 === true) {
+								characterPlayer1ChangedMetaReport = true;
+							} else {
+								characterPlayer2ChangedMetaReport = true;
+							}
+						},
+						((CalcMainBusPlayerDeadFadeDurationInMS / 2) | 0) + CalcMainBusPlayerDeadFallDurationInMS,
+					);
 
+					// Post to other threads
 					CalcMainEngine.post([
 						{
 							cmd: CalcMainBusOutputCmd.PLAYER_DIED,
 							data: player1,
 						},
 					]);
+
+					// NPC Update
+					GamingCanvasGridCharacterLook(characterPlayers, gameMapNPC.values(), gameMapGrid, gameMapLookBlocking);
+					for (characterNPC of gameMapNPC.values()) {
+						if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
+							continue;
+						}
+						characterNPCState = characterNPCStates.get(characterNPC.id);
+
+						if (
+							characterNPCState === CharacterNPCState.AIM ||
+							characterNPCState === CharacterNPCState.FIRE ||
+							characterNPCState === CharacterNPCState.RUNNING ||
+							characterNPCState === CharacterNPCState.RUNNING_DOOR
+						) {
+							characterNPCReset = true;
+
+							for (characterPlayer2 of characterPlayers) {
+								if (
+									characterPlayer2.health > 0 &&
+									characterNPC.seenLOS.get(characterPlayer2.id) === true &&
+									<number>characterNPC.seenDistance.get(characterPlayer2.id) < characterNPCDistance
+								) {
+									characterNPCReset = false;
+								}
+							}
+
+							// Or if player 1 block away
+							if (characterNPCReset === true && gameMapNPCPaths !== undefined) {
+								gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
+								if (gameMapNPCPath.length === 1) {
+									for (characterPlayer2 of characterPlayers) {
+										if (characterPlayer2.health > 0 && <number>characterNPC.seenDistance.get(characterPlayer2.id) < characterNPCDistance) {
+											characterNPCReset = false;
+										}
+									}
+								}
+							}
+
+							if (characterNPCReset === true) {
+								cameraInstance = characterNPC.camera;
+								cameraInstance.r = Math.atan2(-(characterPlayer.camera.y - cameraInstance.y), characterPlayer.camera.x - cameraInstance.x);
+								if (cameraInstance.r < 0) {
+									cameraInstance.r += GamingCanvasConstPI_2_000;
+								} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
+									cameraInstance.r -= GamingCanvasConstPI_2_000;
+								}
+
+								if (cameraInstance.r < GamingCanvasConstPI_0_125) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+								} else if (cameraInstance.r < GamingCanvasConstPI_0_375) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
+								} else if (cameraInstance.r < GamingCanvasConstPI_0_625) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
+								} else if (cameraInstance.r < GamingCanvasConstPI_0_875) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
+								} else if (cameraInstance.r < GamingCanvasConstPI_1_125) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
+								} else if (cameraInstance.r < GamingCanvasConstPI_1_375) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
+								} else if (cameraInstance.r < GamingCanvasConstPI_1_625) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
+								} else if (cameraInstance.r < GamingCanvasConstPI_1_875) {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
+								} else {
+									characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+								}
+
+								characterNPC.running = false;
+								characterNPC.timestampUnixState = timestampUnix;
+								characterNPC.walking = true;
+
+								if (characterNPCState === CharacterNPCState.RUNNING_DOOR) {
+									characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING_DOOR);
+								} else {
+									characterNPC.timestampUnixState = timestampUnix;
+									characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
+								}
+
+								characterNPCUpdated.add(characterNPC.id);
+							}
+						}
+					}
 				}
 			} else {
 				CalcMainEngine.post([
@@ -859,7 +971,7 @@ class CalcMainEngine {
 
 		const actionWeapon = (player1: boolean, weapon: CharacterWeapon) => {
 			if (player1 === true) {
-				if (weapon !== CharacterWeapon.KNIFE && characterPlayer1.ammo === 0) {
+				if ((weapon !== CharacterWeapon.KNIFE && characterPlayer1.ammo === 0) || characterPlayer1.health <= 0) {
 					return;
 				}
 
@@ -872,7 +984,7 @@ class CalcMainEngine {
 						break;
 				}
 			} else {
-				if (weapon !== CharacterWeapon.KNIFE && characterPlayer2.ammo === 0) {
+				if ((weapon !== CharacterWeapon.KNIFE && characterPlayer2.ammo === 0) || characterPlayer2.health <= 0) {
 					return;
 				}
 				CalcMainEngine.characterPlayer2Firing = true;
@@ -1435,13 +1547,24 @@ class CalcMainEngine {
 						 */
 
 						// Player 1: Position
-						characterPlayer1Changed = GamingCanvasGridCharacterControl(
-							characterPlayer1,
-							characterPlayer1Input,
-							gameMapGrid,
-							gameMapControlBlocking,
-							characterControlOptions,
-						);
+						if (characterPlayer1.health > 0) {
+							characterPlayer1Changed = GamingCanvasGridCharacterControl(
+								characterPlayer1,
+								characterPlayer1Input,
+								gameMapGrid,
+								gameMapControlBlocking,
+								characterControlOptions,
+							);
+						} else {
+							GamingCanvasGridCharacterControl(
+								characterPlayer1,
+								characterPlayerInputNone,
+								gameMapGrid,
+								gameMapControlBlocking,
+								characterControlOptions,
+							);
+							characterPlayer1Changed = true;
+						}
 					}
 
 					// Player 1: Raycast
@@ -1468,13 +1591,24 @@ class CalcMainEngine {
 					if (settingsPlayer2Enable === true) {
 						if (pause !== true) {
 							// Player 2: Position
-							characterPlayer2Changed = GamingCanvasGridCharacterControl(
-								characterPlayer2,
-								characterPlayer2Input,
-								gameMapGrid,
-								gameMapControlBlocking,
-								characterControlOptions,
-							);
+							if (characterPlayer2.health > 0) {
+								characterPlayer2Changed = GamingCanvasGridCharacterControl(
+									characterPlayer2,
+									characterPlayer2Input,
+									gameMapGrid,
+									gameMapControlBlocking,
+									characterControlOptions,
+								);
+							} else {
+								GamingCanvasGridCharacterControl(
+									characterPlayer2,
+									characterPlayerInputNone,
+									gameMapGrid,
+									gameMapControlBlocking,
+									characterControlOptions,
+								);
+								characterPlayer2Changed = true;
+							}
 						}
 
 						// Player 2: Raycast
@@ -1816,6 +1950,7 @@ class CalcMainEngine {
 								characterPlayerId = -100;
 								for (characterPlayer of characterPlayers) {
 									if (
+										characterPlayer.health > 0 &&
 										characterNPC.seenLOS.get(characterPlayer.id) === true &&
 										<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance
 									) {
@@ -1829,7 +1964,10 @@ class CalcMainEngine {
 									gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 									if (gameMapNPCPath.length === 1) {
 										for (characterPlayer of characterPlayers) {
-											if (<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance) {
+											if (
+												characterPlayer.health > 0 &&
+												<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance
+											) {
 												characterNPCDistance = <number>characterNPC.seenDistance.get(characterPlayer.id);
 												characterPlayerId = characterPlayer.id;
 											}
@@ -1954,21 +2092,21 @@ class CalcMainEngine {
 										// console.log(AssetIdImgCharacter[characterNPC.assetId], cameraInstance.r);
 
 										// Move
-										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
-										gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
-										characterNPCInputChanged = GamingCanvasGridCharacterControl(
-											characterNPC,
-											characterNPCInput,
-											gameMapGrid,
-											gameMapControlNPCBlocking,
-											{
-												clip: true,
-												factorPosition: characterNPC.runningSpeed,
-												factorRotation: 0.00225,
-												style: GamingCanvasGridCharacterControlStyle.FIXED,
-											},
-										);
-										gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
+										// characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
+										// gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
+										// characterNPCInputChanged = GamingCanvasGridCharacterControl(
+										// 	characterNPC,
+										// 	characterNPCInput,
+										// 	gameMapGrid,
+										// 	gameMapControlNPCBlocking,
+										// 	{
+										// 		clip: true,
+										// 		factorPosition: characterNPC.runningSpeed,
+										// 		factorRotation: 0.00225,
+										// 		style: GamingCanvasGridCharacterControlStyle.FIXED,
+										// 	},
+										// );
+										// gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
 
 										if (characterNPCDistance !== GamingCanvasConstIntegerMaxSafe) {
 											if (timestampUnix - characterNPC.timestampUnixState > 1000) {

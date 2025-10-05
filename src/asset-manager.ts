@@ -380,6 +380,7 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_DOOR_CLOSE = 1,
 	AUDIO_EFFECT_DOOR_OPEN = 2,
 	AUDIO_EFFECT_EXTRA_LIFE = 3,
+	AUDIO_EFFECT_EVIL_LAUGH = 35,
 	AUDIO_EFFECT_FOOD = 4,
 	AUDIO_EFFECT_FOOD_DOG = 5,
 	AUDIO_EFFECT_GUARD_DEATH = 6,
@@ -980,6 +981,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		file: 'audio/effect/door_open.mp3',
 		title: 'Door Open',
 		volume: 0.8,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EVIL_LAUGH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/evil_laugh.mp3',
+		title: 'Evil Laugh',
+		volume: 0.75,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE, {

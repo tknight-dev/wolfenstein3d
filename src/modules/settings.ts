@@ -7,6 +7,7 @@ import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import { GameDifficulty } from '../models/game.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
+import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
 
 /**
  * @author tknight-dev
@@ -71,6 +72,13 @@ export class Settings {
 			raycastQuality: Game.settingsCalcMain.raycastQuality,
 		};
 
+		Game.settingsVideoOverlay = {
+			antialias: Game.settingsVideoEditor.antialias,
+			debug: Game.settingDebug,
+			grayscale: false,
+			player2Enable: Game.settingsCalcMain.player2Enable,
+		};
+
 		/**
 		 * URL Param
 		 */
@@ -83,6 +91,7 @@ export class Settings {
 					Game.settingsCalcPath.debug = Game.settingDebug;
 					Game.settingsVideoEditor.debug = Game.settingDebug;
 					Game.settingsVideoMain.debug = Game.settingDebug;
+					Game.settingsVideoOverlay.debug = Game.settingDebug;
 					break;
 				case 'dpi':
 					Game.settingGraphicsDPISupport = String(value).toLowerCase() === 'true';
@@ -101,6 +110,7 @@ export class Settings {
 					Game.settingsCalcPath.player2Enable = Game.settingsCalcMain.player2Enable;
 					Game.settingsVideoEditor.player2Enable = Game.settingsCalcMain.player2Enable;
 					Game.settingsVideoMain.player2Enable = Game.settingsCalcMain.player2Enable;
+					Game.settingsVideoOverlay.player2Enable = Game.settingsCalcMain.player2Enable;
 					break;
 				case 'effect':
 					Game.settingAudioVolumeEffect = Math.max(0, Math.min(1, Number(value)));
@@ -174,14 +184,17 @@ export class Settings {
 		if (state === true) {
 			Game.settingsCalcMain.player2Enable = false;
 			Game.settingsVideoMain.player2Enable = false;
+			Game.settingsVideoOverlay.player2Enable = false;
 		} else {
 			Game.settingsCalcMain.player2Enable = Game.settingsVideoEditor.player2Enable;
 			Game.settingsVideoMain.player2Enable = Game.settingsVideoEditor.player2Enable;
+			Game.settingsVideoOverlay.player2Enable = Game.settingsVideoEditor.player2Enable;
 		}
 
 		// Send to Workers
 		CalcMainBus.outputSettings(Game.settingsCalcMain);
 		VideoMainBus.outputSettings(Game.settingsVideoMain);
+		VideoOverlayBus.outputSettings(Game.settingsVideoOverlay);
 	}
 
 	public static set(apply: boolean): void {
@@ -232,6 +245,11 @@ export class Settings {
 			Game.settingsVideoMain.player2Enable = Game.settingsCalcMain.player2Enable;
 			Game.settingsVideoMain.raycastQuality = Game.settingsCalcMain.raycastQuality;
 
+			Game.settingsVideoOverlay.antialias = Game.settingsVideoEditor.antialias;
+			Game.settingsVideoOverlay.debug = Game.settingDebug;
+			Game.settingsVideoOverlay.grayscale = Game.settingsVideoMain.grayscale;
+			Game.settingsVideoOverlay.player2Enable = Game.settingsVideoMain.player2Enable;
+
 			// GamingCanvas
 			Game.settingsGamingCanvas.dpiSupportEnable = Game.settingGraphicsDPISupport;
 			Game.settingsGamingCanvas.resolutionWidthPx = Game.settingGraphicsResolution;
@@ -241,6 +259,7 @@ export class Settings {
 			CalcPathBus.outputSettings(Game.settingsCalcPath);
 			VideoEditorBus.outputSettings(Game.settingsVideoEditor);
 			VideoMainBus.outputSettings(Game.settingsVideoMain);
+			VideoOverlayBus.outputSettings(Game.settingsVideoMain);
 		} else {
 			DOM.elSettingsValueAudioVolume.value = String(Game.settingAudioVolume);
 			DOM.elSettingsValueAudioVolumeEffect.value = String(Game.settingAudioVolumeEffect);
@@ -273,10 +292,13 @@ export class Settings {
 		}
 
 		if (Game.modeEdit === false) {
-			CalcMainBus.outputPause(false);
-			CalcPathBus.outputPause(false);
-			GamingCanvas.audioControlPauseAll(false);
-			VideoMainBus.outputPause(false);
+			if (Game.gameOver !== true) {
+				CalcMainBus.outputPause(false);
+				CalcPathBus.outputPause(false);
+				GamingCanvas.audioControlPauseAll(false);
+				VideoMainBus.outputPause(false);
+			}
+			VideoOverlayBus.outputPause(false);
 		}
 	}
 

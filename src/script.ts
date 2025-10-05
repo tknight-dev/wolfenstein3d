@@ -12,6 +12,8 @@ import { VideoMainBus } from './workers/video-main/video-main.bus.js';
 import { VideoMainBusOutputDataStats } from './workers/video-main/video-main.model.js';
 import { GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from './asset-manager.js';
+import { VideoOverlayBus } from './workers/video-overlay/video-overlay.bus.js';
+import { VideoOverlayBusOutputDataStats } from './workers/video-overlay/video-overlay.model.js';
 
 /**
  * @author tknight-dev
@@ -56,6 +58,11 @@ class Blockenstein {
 			Blockenstein.statFPS['video-main-player' + (player1 === true ? '1' : '2')] = stats.fps;
 			Blockenstein.displayStatFPS();
 		});
+
+		/**
+		 * Video: Overlay
+		 */
+		VideoOverlayBus.setCallbackStats((player1: boolean, stats: VideoOverlayBusOutputDataStats) => {});
 	}
 
 	private static displayStatFPS(): void {
@@ -99,21 +106,20 @@ class Blockenstein {
 
 						// Load video-main
 						then = performance.now();
-						VideoMainBus.initialize(
-							GamingCanvas.getCanvases()[0],
-							GamingCanvas.getCanvases()[2],
-							GamingCanvas.getCanvases()[1],
-							GamingCanvas.getCanvases()[3],
-							gameMap,
-							Game.settingsVideoMain,
-							() => {
+						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
+							// Done
+							console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+
+							// Load video-overlay
+							then = performance.now();
+							VideoOverlayBus.initialize(GamingCanvas.getCanvases()[2], GamingCanvas.getCanvases()[3], Game.settingsVideoOverlay, () => {
 								// Done
-								console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+								console.log('VideoOverlayEngine Loaded in', performance.now() - then, 'ms');
 
 								// Resolve initial promise
 								resolve();
-							},
-						);
+							});
+						});
 					});
 				});
 			});

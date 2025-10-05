@@ -73,6 +73,8 @@ import {
 	CalcMainBusDieFrameDurationInMS,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusPlayerDeadFadeDurationInMS,
+	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusWeaponFireDurationsInMS,
 } from '../calc-main/calc-main.model.js';
 import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId, CharacterWeapon } from '../../models/character.model.js';
@@ -119,9 +121,6 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoMainBusInputCmd.PLAYER_DEAD:
 			VideoMainEngine.inputPlayerDead();
 			break;
-		case VideoMainBusInputCmd.PLAYER_HIT:
-			VideoMainEngine.inputPlayerHit(<number>payload.data);
-			break;
 		case VideoMainBusInputCmd.REPORT:
 			VideoMainEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
@@ -145,18 +144,16 @@ class VideoMainEngine {
 	private static assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoMainBusInputDataCalculations;
 	private static calculationsNew: boolean;
+	private static dead: boolean;
+	private static deadTimerId: number;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
 	private static gameMapUpdate: Uint16Array;
 	private static gameMapUpdateNew: boolean;
-	private static hit: number;
-	private static hitNew: boolean;
 	private static npcUpdate: Float32Array[];
 	private static npcUpdateNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
-	private static offscreenCanvasOverlay: OffscreenCanvas;
-	private static offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
 	private static pause: boolean = true;
 	private static pauseTimestampUnix: number = Date.now();
@@ -240,15 +237,6 @@ class VideoMainEngine {
 		// Config: Canvas
 		VideoMainEngine.offscreenCanvas = data.offscreenCanvas;
 		VideoMainEngine.offscreenCanvasContext = data.offscreenCanvas.getContext('2d', {
-			alpha: true,
-			antialias: false,
-			depth: true,
-			desynchronized: true,
-			powerPreference: 'high-performance',
-		}) as OffscreenCanvasRenderingContext2D;
-
-		VideoMainEngine.offscreenCanvasOverlay = data.offscreenCanvasOverlay;
-		VideoMainEngine.offscreenCanvasOverlayContext = data.offscreenCanvasOverlay.getContext('2d', {
 			alpha: true,
 			antialias: false,
 			depth: true,
@@ -406,6 +394,7 @@ class VideoMainEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
+		VideoMainEngine.dead = false;
 		VideoMainEngine.gameMap = Assets.parseMap(data);
 		VideoMainEngine.gameMapNew = true;
 	}
@@ -425,12 +414,18 @@ class VideoMainEngine {
 	}
 
 	public static inputPlayerDead(): void {
-		console.log('dead');
-	}
+		// Fall
+		VideoMainEngine.deadTimerId = VideoMainEngine.timers.add(() => {}, CalcMainBusPlayerDeadFallDurationInMS);
 
-	public static inputPlayerHit(angle: number): void {
-		VideoMainEngine.hit = angle;
-		VideoMainEngine.hitNew = true;
+		// Fall + Fade/2
+		VideoMainEngine.timers.add(
+			() => {
+				VideoMainEngine.dead = false;
+			},
+			((CalcMainBusPlayerDeadFadeDurationInMS / 2) | 0) + CalcMainBusPlayerDeadFallDurationInMS,
+		);
+
+		VideoMainEngine.dead = true;
 	}
 
 	public static inputReport(report: GamingCanvasReport): void {
@@ -537,8 +532,6 @@ class VideoMainEngine {
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
-			offscreenCanvasOverlay: OffscreenCanvas = VideoMainEngine.offscreenCanvasOverlay,
-			offscreenCanvasOverlayContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasOverlayContext,
 			frameCount: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
@@ -559,11 +552,12 @@ class VideoMainEngine {
 			renderCharacterNPC: CharacterNPC | undefined,
 			renderCharacterNPCId: number,
 			renderCharacterNPCState: number,
+			renderDead: boolean = VideoMainEngine.dead,
+			renderDeadTimerId: number = VideoMainEngine.deadTimerId,
 			renderDistance: number,
 			renderDistance1: number,
 			renderDistance2: number,
 			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
-			renderEnable: boolean,
 			renderFilter: string,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
@@ -577,7 +571,6 @@ class VideoMainEngine {
 			renderHeightFactor: number,
 			renderHeightOffset: number,
 			renderLightingQuality: LightingQuality,
-			renderOverlayHitTimer: number = -5,
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
 			renderSkip: boolean,
@@ -587,6 +580,7 @@ class VideoMainEngine {
 			renderSpriteFixedNS: boolean,
 			renderSpriteXFactor: number,
 			renderStep: number,
+			renderTilt: number = 1,
 			renderWallHeight: number,
 			renderWallHeightFactored: number,
 			renderWallHeightHalf: number,
@@ -703,6 +697,16 @@ class VideoMainEngine {
 					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
 				}
 
+				if (VideoMainEngine.dead !== renderDead) {
+					renderDead = VideoMainEngine.dead;
+
+					if (renderDead === true) {
+						renderDeadTimerId = VideoMainEngine.deadTimerId;
+					} else {
+						renderTilt = 1;
+					}
+				}
+
 				if (VideoMainEngine.gameMapNew === true) {
 					VideoMainEngine.gameMapNew = false;
 
@@ -787,13 +791,10 @@ class VideoMainEngine {
 
 					if (VideoMainEngine.settings.antialias === true) {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
-						GamingCanvas.renderStyle(offscreenCanvasOverlayContext, GamingCanvasRenderStyle.ANTIALIAS);
 					} else {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
-						GamingCanvas.renderStyle(offscreenCanvasOverlayContext, GamingCanvasRenderStyle.PIXELATED);
 					}
 
-					renderEnable = player1 === true || settingsPlayer2Enable === true;
 					renderGammaFilter = `brightness(${renderGamma})`;
 
 					// Report
@@ -813,16 +814,17 @@ class VideoMainEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
-					offscreenCanvasOverlay.height = offscreenCanvasHeightPx;
-					offscreenCanvasOverlay.width = offscreenCanvasWidthPx;
-					console.log('RESET');
 
 					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
 
 					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
-						renderWeaponFactor = (offscreenCanvasWidthPx * 0.75) / asset.width;
+						renderWeaponFactor = (offscreenCanvasWidthPx * 0.625) / asset.width;
 					} else {
-						renderWeaponFactor = (offscreenCanvasWidthPx * 1.75) / asset.width;
+						if (settingsPlayer2Enable === true) {
+							renderWeaponFactor = offscreenCanvasWidthPx / asset.width;
+						} else {
+							renderWeaponFactor = (offscreenCanvasWidthPx * 1.75) / asset.width;
+						}
 					}
 
 					renderWeaponHeight = asset.height * renderWeaponFactor;
@@ -841,18 +843,18 @@ class VideoMainEngine {
 
 					if (renderLightingQuality >= LightingQuality.FULL) {
 						// Ceiling
-						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx / 2); // Ceiling
+						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPxHalf); // Ceiling
 						renderGradientCanvasGradient.addColorStop(0, '#383838');
 						renderGradientCanvasGradient.addColorStop(1, '#181818');
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
-						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 
 						// Floor
-						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, offscreenCanvasHeightPx / 2, 0, offscreenCanvasHeightPx); // Floor
+						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, offscreenCanvasHeightPxHalf, 0, offscreenCanvasHeightPx); // Floor
 						renderGradientCanvasGradient.addColorStop(0, '#313131');
 						renderGradientCanvasGradient.addColorStop(1, '#717171');
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
-						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPx / 2, offscreenCanvasWidthPx, offscreenCanvasHeightPx / 2);
+						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 					}
 				}
 
@@ -861,7 +863,7 @@ class VideoMainEngine {
 				}
 
 				// Don't render a second screen if it's not even enabled
-				if (renderEnable !== true || calculationsRays === undefined) {
+				if (calculationsRays === undefined) {
 					return;
 				}
 
@@ -892,6 +894,15 @@ class VideoMainEngine {
 					}
 				}
 
+				// Render: Dead
+				if (renderDead === true) {
+					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+						renderTilt = 2 - <number>timers.getTimeRemaining(renderDeadTimerId) / CalcMainBusPlayerDeadFallDurationInMS;
+					} else {
+						renderTilt = 1.5 - 0.5 * (<number>timers.getTimeRemaining(renderDeadTimerId) / CalcMainBusPlayerDeadFallDurationInMS);
+					}
+				}
+
 				// Render: Lighting
 				if (renderGamma !== 1 && renderGrayscale === true) {
 					renderFilter = `${renderGammaFilter} ${renderGrayscaleFilter}`;
@@ -906,15 +917,15 @@ class VideoMainEngine {
 
 				// Render: Backgrounds
 				if (renderLightingQuality >= LightingQuality.FULL) {
-					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
+					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx * renderTilt);
 				} else {
 					// Ceiling
 					offscreenCanvasContext.fillStyle = '#383838';
-					offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
+					offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf * renderTilt);
 
 					// Floor
 					offscreenCanvasContext.fillStyle = '#717171';
-					offscreenCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
+					offscreenCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf * renderTilt, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 				}
 				// offscreenCanvasContext.fillStyle = 'black';
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
@@ -1002,7 +1013,7 @@ class VideoMainEngine {
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 6) * settingsRaycastQuality) / 7, // (x-destination) Draw sliced image at pixel (6 elements per ray)
-							(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+							((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 						);
@@ -1258,7 +1269,7 @@ class VideoMainEngine {
 											0.025, // (width-source) Slice 1 pixel wide
 											asset.height, // (height-source) height of our test image
 											renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
-											(offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+											((offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 											renderStep + 2, // (width-destination) Draw the sliced image as 1 pixel wide
 											renderWallHeight / renderHeightFactor, // (height-destination) Draw the sliced image as tall as the wall height
 										);
@@ -1337,7 +1348,7 @@ class VideoMainEngine {
 									asset.width, // (width-source) width of our image
 									asset.height, // (height-source) height of our image
 									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
-									(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+									((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 									renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
 									renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 								);
@@ -1453,7 +1464,7 @@ class VideoMainEngine {
 									asset.width, // (width-source) width of our image
 									asset.height, // (height-source) height of our image
 									renderSpriteXFactor * offscreenCanvasWidthPx - renderWallHeightHalf / renderHeightFactor, // (x-destination) Draw sliced image at pixel
-									(offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset, // (y-destination) how far off the ground to start drawing
+									((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 									renderWallHeightFactored, // (width-destination) Draw the sliced image as wide as the wall height
 									renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 								);
@@ -1508,28 +1519,10 @@ class VideoMainEngine {
 				}
 
 				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight);
-
-				// Hit & Death
-				if (VideoMainEngine.hitNew === true) {
-					VideoMainEngine.hitNew = false;
-					timers.clear(renderOverlayHitTimer);
-					console.log('HIT', VideoMainEngine.hit);
-
-					offscreenCanvasOverlayContext.fillStyle = 'rgba(255,0,0,.25)';
-					offscreenCanvasOverlayContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
-
-					timers.add(
-						() => {
-							offscreenCanvasOverlayContext.clearRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
-						},
-						100,
-						renderOverlayHitTimer,
-					);
-				}
 			}
 
 			// Stats: sent once per second
-			if (renderEnable === true && timestampNow - timestampFPS > 999) {
+			if (timestampNow - timestampFPS > 999) {
 				timestampFPS = timestampNow;
 
 				// Output

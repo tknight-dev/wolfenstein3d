@@ -31,6 +31,7 @@ var config = {
 		'calc-path.engine': 'src/workers/calc-path/calc-path.engine.ts', // Worker entry point
 		'video-editor.engine': 'src/workers/video-editor/video-editor.engine.ts', // Worker entry point
 		'video-main.engine': 'src/workers/video-main/video-main.engine.ts', // Worker entry point
+		'video-overlay.engine': 'src/workers/video-overlay/video-overlay.engine.ts', // Worker entry point
 	},
 	loader: {
 		'.html': 'copy',
