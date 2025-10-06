@@ -383,9 +383,9 @@ class VideoOverlayEngine {
 						// Death
 						if (renderDeadFadeOut === false || renderGameOver === true) {
 							if (timestampNow - renderDeadTimestamp < CalcMainBusPlayerDeadFallDurationInMS / 2) {
-								offscreenCanvasContext.fillStyle = 'rgba(225,0,0, 0.025)'; // bright red
+								offscreenCanvasContext.fillStyle = 'rgba(225,0,0, 0.01)'; // bright red
 							} else {
-								offscreenCanvasContext.fillStyle = 'rgba(125,0,0, 0.05)'; // dark red
+								offscreenCanvasContext.fillStyle = 'rgba(125,0,0, 0.075)'; // dark red
 							}
 							for (let x = 0; x < offscreenCanvasWidthPx; x += offscreenCanvasWidthPx / 64) {
 								for (let y = 0; y < offscreenCanvasHeightPx; y += offscreenCanvasWidthPx / 64) {

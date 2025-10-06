@@ -21,10 +21,10 @@ export class Settings {
 		Game.settingAudioVolume = 0.8; // def: 0.8
 		Game.settingAudioVolumeEffect = 0.8; // def: 0.8
 		Game.settingAudioVolumeMusic = 0.8; // def: 0.8
-		Game.settingDebug = true; // def: false
+		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true
-		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
+		Game.settingGamePlayer1InputDevice = InputDevice.KEYBOARD; // def: KEYBOARD
 		Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		// Game.settingGraphicsResolution = 320;
 		Game.settingIntro = true;
@@ -203,7 +203,7 @@ export class Settings {
 			Game.settingAudioVolumeEffect = Number(DOM.elSettingsValueAudioVolumeEffect.value);
 			Game.settingAudioVolumeMusic = Number(DOM.elSettingsValueAudioVolumeMusic.value);
 			Game.settingDebug = DOM.elSettingsValueGameDebug.checked;
-			Game.settingGamePlayer2InputDevice = Number(DOM.elSettingsValueGamePlayer2InputDevice.value);
+			Game.settingGamePlayer1InputDevice = Number(DOM.elSettingsValueGamePlayer1InputDevice.value);
 			Game.settingGraphicsDPISupport = DOM.elSettingsValueGraphicsDPI.checked;
 			Game.settingGraphicsFPSDisplay = DOM.elSettingsValueGraphicsFPSShow.checked;
 
@@ -270,7 +270,7 @@ export class Settings {
 			DOM.elSettingsValueGameDebug.checked = Game.settingDebug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settingsCalcMain.difficulty);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settingsCalcMain.player2Enable;
-			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);
+			DOM.elSettingsValueGamePlayer1InputDevice.value = String(Game.settingGamePlayer1InputDevice);
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settingsVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
 			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalcMain.fov * 180) / GamingCanvasConstPI_1_000);

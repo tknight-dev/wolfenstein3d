@@ -765,11 +765,12 @@ class CalcMainEngine {
 					// Respawn
 					setTimeout(
 						() => {
+							characterPlayer.ammo = 8;
 							characterPlayer.camera.r = gameMap.position.r;
 							characterPlayer.camera.x = gameMap.position.x;
 							characterPlayer.camera.y = gameMap.position.y;
 							characterPlayer.camera.z = gameMap.position.z;
-							characterPlayer.ammo = 8;
+							characterPlayer.gridIndex = (gameMap.position.x | 0) * gameMapSideLength + (gameMap.position.y + 0);
 							characterPlayer.health = 100;
 							respawn = true;
 
@@ -821,10 +822,7 @@ class CalcMainEngine {
 								gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 								if (gameMapNPCPath.length === 1) {
 									for (characterPlayer2 of characterPlayers) {
-										if (
-											characterPlayer2.health > 0 &&
-											<number>characterNPC.seenDistanceById.get(characterPlayer2.id) < characterNPCDistance
-										) {
+										if (characterPlayer2.gridIndex === gameMapNPCPath[0] && characterPlayer2.health > 0) {
 											characterNPCReset = false;
 										}
 									}
@@ -1040,19 +1038,21 @@ class CalcMainEngine {
 					characterPlayerChangedMetaReport[1] = true;
 				}
 
-				switch (weapon) {
-					case CharacterWeapon.MACHINE_GUN:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
-						break;
-					case CharacterWeapon.PISTOL:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_PISTOL);
-						break;
-					case CharacterWeapon.SUB_MACHINE_GUN:
-						audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN);
-						break;
-				}
+				if (characterPlayer.health !== 0) {
+					switch (weapon) {
+						case CharacterWeapon.MACHINE_GUN:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN);
+							break;
+						case CharacterWeapon.PISTOL:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_PISTOL);
+							break;
+						case CharacterWeapon.SUB_MACHINE_GUN:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN);
+							break;
+					}
 
-				actionWeaponFireHitDetection(characterPlayer, weapon);
+					actionWeaponFireHitDetection(characterPlayer, weapon);
+				}
 			}
 
 			timers.add(
@@ -1074,7 +1074,7 @@ class CalcMainEngine {
 								switch (weapon) {
 									case CharacterWeapon.MACHINE_GUN:
 									case CharacterWeapon.SUB_MACHINE_GUN:
-										if (characterPlayer1Input.fire === true && characterPlayer1.ammo !== 0) {
+										if (characterPlayer1Input.fire === true && characterPlayer1.ammo !== 0 && characterPlayer1.health !== 0) {
 											actionWeaponFire(player1, weapon);
 											characterPlayerChangedMetaReport[0] = true;
 											return;
@@ -1085,7 +1085,7 @@ class CalcMainEngine {
 								switch (weapon) {
 									case CharacterWeapon.MACHINE_GUN:
 									case CharacterWeapon.SUB_MACHINE_GUN:
-										if (characterPlayer2Input.fire === true && characterPlayer2.ammo !== 0) {
+										if (characterPlayer2Input.fire === true && characterPlayer2.ammo !== 0 && characterPlayer2.health !== 0) {
 											actionWeaponFire(player1, weapon);
 											return;
 										}
@@ -1153,13 +1153,25 @@ class CalcMainEngine {
 				characterNPC2: CharacterNPC | undefined,
 				characterNPCId: number,
 				gridIndex: number,
+				fov: number = characterPlayer.fov,
+				fovDistanceMax: number = characterPlayer.fovDistanceMax,
 				seen: boolean;
 
 			// Look
+			if (weapon === CharacterWeapon.KNIFE) {
+				console.log(characterPlayer.fov);
+				characterPlayer.fov = 30;
+				characterPlayer.fovDistanceMax = 1;
+			}
 			GamingCanvasGridCharacterLook(gameMapNPCById.values(), [characterPlayer], gameMapGrid, gameMapLookPlayerBlocking);
+			if (weapon === CharacterWeapon.KNIFE) {
+				characterPlayer.fov = fov;
+				characterPlayer.fovDistanceMax = fovDistanceMax;
+			}
 
 			// Did the weapon "see" anybody?
 			for ([characterNPCId, seen] of characterPlayer.seenLOSById.entries()) {
+				characterNPCDistance = GamingCanvasConstIntegerMaxSafe;
 				characterNPC2 = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 				if (
@@ -1168,6 +1180,7 @@ class CalcMainEngine {
 					seen === true &&
 					<number>characterPlayer.seenDistanceById.get(characterNPCId) < characterNPCDistance
 				) {
+					characterNPCDistance = <number>characterPlayer.seenDistanceById.get(characterNPCId);
 					characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 				}
 			}
@@ -1868,10 +1881,6 @@ class CalcMainEngine {
 								characterNPCState = characterNPCStates.get(characterNPC.id);
 								characterNPC.timestamp = timestampNow;
 
-								if (characterNPC.id === 7323) {
-									// console.log('los', characterNPC.seenLOSById);
-								}
-
 								// Closest visible player or if player 1 block away
 								characterNPCDistance = GamingCanvasConstIntegerMaxSafe;
 								characterPlayerId = -100;
@@ -1881,8 +1890,8 @@ class CalcMainEngine {
 										characterNPC.seenLOSById.get(characterPlayer.id) === true &&
 										<number>characterNPC.seenDistanceById.get(characterPlayer.id) < characterNPCDistance
 									) {
-										characterNPCDistance = <number>characterNPC.seenDistanceById.get(characterPlayer.id);
-										characterPlayerId = characterPlayer.id;
+										characterNPCDistance = (<number>characterNPC.seenDistanceById.get(characterPlayer.id)).valueOf();
+										characterPlayerId = characterPlayer.id.valueOf();
 									}
 								}
 
@@ -1891,12 +1900,9 @@ class CalcMainEngine {
 									gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 									if (gameMapNPCPath.length === 1) {
 										for (characterPlayer of characterPlayers) {
-											if (
-												characterPlayer.health > 0 &&
-												<number>characterNPC.seenDistanceById.get(characterPlayer.id) < characterNPCDistance
-											) {
-												characterNPCDistance = <number>characterNPC.seenDistanceById.get(characterPlayer.id);
-												characterPlayerId = characterPlayer.id;
+											if (characterPlayer.gridIndex === gameMapNPCPath[0] && characterPlayer.health > 0) {
+												characterNPCDistance = (<number>characterNPC.seenDistanceById.get(characterPlayer.id)).valueOf();
+												characterPlayerId = characterPlayer.id.valueOf();
 											}
 										}
 									}

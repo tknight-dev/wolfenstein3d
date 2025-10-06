@@ -356,6 +356,7 @@ class VideoEditorEngine {
 			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
+			state: boolean,
 			testImage: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			timestampDelta: number,
 			timestampFPS: number = 0,
@@ -364,6 +365,10 @@ class VideoEditorEngine {
 			value: number,
 			x: number,
 			y: number;
+
+		for (gameMapNPC of gameMapNPCById.values()) {
+			gameMapNPCByGridIndex.set(gameMapNPC.gridIndex, gameMapNPC);
+		}
 
 		// Warm cache
 		for (assetId of assetImages.keys()) {
@@ -798,6 +803,14 @@ class VideoEditorEngine {
 							} else {
 								offscreenCanvasContext.fillStyle = 'rgba(255, 255, 0, 0.5)';
 								offscreenCanvasContext.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+
+								for (state of gameMapNPC.seenLOSById.values()) {
+									if (state === true) {
+										offscreenCanvasContext.fillStyle = 'rgba(0, 255, 0, 0.5)';
+										offscreenCanvasContext.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+										break;
+									}
+								}
 							}
 
 							offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;

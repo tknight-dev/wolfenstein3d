@@ -145,7 +145,7 @@ export class DOM {
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
-	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
+	public static elSettingsValueGamePlayer1InputDevice: HTMLInputElement;
 	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
 	public static elSettingsValueGraphicsFOV: HTMLInputElement;
@@ -388,7 +388,7 @@ export class DOM {
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
-		DOM.elSettingsValueGamePlayer2InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player2-input');
+		DOM.elSettingsValueGamePlayer1InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player1-input');
 		DOM.elSettingsValueGraphicsAntialias = <HTMLInputElement>document.getElementById('settings-value-graphics-antialias');
 		DOM.elSettingsValueGraphicsDPI = <HTMLInputElement>document.getElementById('settings-value-graphics-dpi');
 		DOM.elSettingsValueGraphicsFOV = <HTMLInputElement>document.getElementById('settings-value-graphics-fov');

@@ -32,6 +32,7 @@ export enum VideoMainBusInputCmd {
 export interface VideoMainBusInputDataCalculations {
 	camera: Float64Array;
 	cameraAlt?: Float64Array;
+	edit?: boolean;
 	rays: Float64Array;
 	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	raysMapKeysSorted: Float64Array;

@@ -119,7 +119,7 @@ export class Game {
 	public static settingGraphicsDPISupport: boolean;
 	public static settingGraphicsFOV: number;
 	public static settingGraphicsFPSDisplay: boolean;
-	public static settingGamePlayer2InputDevice: InputDevice;
+	public static settingGamePlayer1InputDevice: InputDevice;
 	public static settingGraphicsResolution: Resolution;
 	public static settingIntro: boolean;
 	public static settingsCalcMain: CalcMainBusInputDataSettings;
@@ -797,6 +797,11 @@ export class Game {
 		}
 
 		// Report
+		GamingCanvas.setCallbackVisibility((state: boolean) => {
+			if (state !== true) {
+				DOM.elInfoSettings.click();
+			}
+		});
 		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
 			Game.report = report;
 			Game.reportNew = true;
@@ -963,12 +968,14 @@ export class Game {
 			// Second: VideoMain
 			VideoMainBus.outputCalculations(true, {
 				camera: Float64Array.from(data.camera),
+				edit: true,
 				rays: Float64Array.from(data.rays),
 				raysMap: data.raysMap,
 				raysMapKeysSorted: Float64Array.from(data.raysMapKeysSorted),
 			});
 			VideoMainBus.outputCalculations(false, {
 				camera: data.camera,
+				edit: true,
 				rays: data.rays,
 				raysMap: data.raysMap,
 				raysMapKeysSorted: data.raysMapKeysSorted,
@@ -1154,8 +1161,8 @@ export class Game {
 			}
 		}, 100);
 
-		const cheatCodeCheck = (player1: boolean) => {
-			if (cheatCode.get('i') === true && cheatCode.get('l') === true && cheatCode.get('m') === true) {
+		const cheatCodeCheck = (player1: boolean, gamepad?: boolean) => {
+			if (gamepad === true || (cheatCode.get('i') === true && cheatCode.get('l') === true && cheatCode.get('m') === true)) {
 				CalcMainBus.outputCheatCode(player1);
 			}
 		};
@@ -1434,17 +1441,18 @@ export class Game {
 		const processorGamepad = (input: GamingCanvasInputGamepad) => {
 			if (modeEdit !== true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
-						characterPlayerInputPlayer = characterPlayerInput.player2;
-						player1 = false;
-					} else {
+					if (Game.settingGamePlayer1InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player1;
 						player1 = true;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player2;
+						player1 = false;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
 					player1 = true;
 				}
+				characterPlayerInputPlayer.type === GamingCanvasInputType.GAMEPAD;
 
 				if (input.propriatary.axes !== undefined) {
 					characterPlayerInputPlayer.x = input.propriatary.axes[0];
@@ -1453,17 +1461,34 @@ export class Game {
 				}
 
 				if (input.propriatary.buttons !== undefined) {
-					characterPlayerInputPlayer.action = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__LEFT] || false;
-					characterPlayerInputPlayer.fire = input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] || false;
+					if (
+						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] === true &&
+						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.B__O] === true &&
+						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.X__TRIANGE] === true &&
+						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.Y__SQUARE] === true
+					) {
+						cheatCodeCheck(player1, true);
+					} else {
+						characterPlayerInputPlayer.action =
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] ||
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__LEFT] ||
+							false;
+						characterPlayerInputPlayer.fire =
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] ||
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__RIGHT] ||
+							false;
 
-					if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__DOWN] === true) {
-						CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
-					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__LEFT] === true) {
-						CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
-					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__RIGHT] === true) {
-						CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
-					} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
-						CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+						if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__DOWN] === true) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__LEFT] === true) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__RIGHT] === true) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
+							CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.MENU__OPTIONS] === true) {
+							DOM.elInfoSettings.click();
+						}
 					}
 				}
 
@@ -1476,17 +1501,18 @@ export class Game {
 
 			if (modeEdit !== true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
-						characterPlayerInputPlayer = characterPlayerInput.player2;
-						player1 = false;
-					} else {
+					if (Game.settingGamePlayer1InputDevice === InputDevice.KEYBOARD) {
 						characterPlayerInputPlayer = characterPlayerInput.player1;
 						player1 = true;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player2;
+						player1 = false;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
 					player1 = true;
 				}
+				characterPlayerInputPlayer.type === GamingCanvasInputType.KEYBOARD;
 
 				switch (input.propriatary.action.code) {
 					case 'ArrowDown':
@@ -1542,6 +1568,9 @@ export class Game {
 						if (down) {
 							CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
 						}
+						break;
+					case 'Escape':
+						DOM.elInfoSettings.click();
 						break;
 					case 'KeyA':
 						if (down) {
