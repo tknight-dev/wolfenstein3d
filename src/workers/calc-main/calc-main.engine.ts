@@ -15,6 +15,7 @@ import {
 	CalcMainBusFOVByDifficulty,
 	CalcMainBusInputCmd,
 	CalcMainBusInputDataAudio,
+	CalcMainBusInputDataCamera,
 	CalcMainBusInputDataInit,
 	CalcMainBusInputDataPlayerInput,
 	CalcMainBusInputDataSettings,
@@ -103,7 +104,7 @@ self.onmessage = (event: MessageEvent) => {
 			CalcMainEngine.inputAudio(false, <CalcMainBusInputDataAudio>payload.data);
 			break;
 		case CalcMainBusInputCmd.CAMERA:
-			CalcMainEngine.inputCamera(<Float64Array>payload.data);
+			CalcMainEngine.inputCamera(<CalcMainBusInputDataCamera>payload.data);
 			break;
 		case CalcMainBusInputCmd.CHARACTER_INPUT:
 			CalcMainEngine.inputCharacterInput(<CalcMainBusInputDataPlayerInput>payload.data);
@@ -144,7 +145,7 @@ interface AudioInstance {
 
 class CalcMainEngine {
 	private static audio: Map<number, AudioInstance> = new Map();
-	private static camera: Float64Array;
+	private static camera: CalcMainBusInputDataCamera;
 	private static cameraNew: boolean;
 	private static cheatCodeNew: boolean;
 	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
@@ -259,7 +260,7 @@ class CalcMainEngine {
 		}
 	}
 
-	public static inputCamera(data: Float64Array): void {
+	public static inputCamera(data: CalcMainBusInputDataCamera): void {
 		CalcMainEngine.camera = data;
 		CalcMainEngine.cameraNew = true;
 	}
@@ -374,6 +375,7 @@ class CalcMainEngine {
 			cameraEncoded: Float64Array,
 			cameraInstance: GamingCanvasGridICamera,
 			cameraMode: boolean = false,
+			cameraModeInput: boolean,
 			cameraUpdated: boolean = true,
 			cellSide: GamingCanvasGridRaycastCellSide,
 			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
@@ -765,7 +767,7 @@ class CalcMainEngine {
 					// Respawn
 					setTimeout(
 						() => {
-							characterPlayer.ammo = 8;
+							characterPlayer.ammo = Math.max(8, characterPlayer.ammo);
 							characterPlayer.camera.r = gameMap.position.r;
 							characterPlayer.camera.x = gameMap.position.x;
 							characterPlayer.camera.y = gameMap.position.y;
@@ -1447,9 +1449,19 @@ class CalcMainEngine {
 				if (CalcMainEngine.cameraNew) {
 					CalcMainEngine.cameraNew = false;
 
-					camera = GamingCanvasGridCamera.from(CalcMainEngine.camera);
+					camera = GamingCanvasGridCamera.from(CalcMainEngine.camera.camera);
 					cameraMode = true; // Snap back to camera
 					cameraUpdated = true;
+
+					if (CalcMainEngine.camera.input !== undefined) {
+						cameraModeInput = true;
+						characterPlayer1Input = CalcMainEngine.camera.input.player1;
+					} else {
+						cameraModeInput = false;
+						characterPlayer1Input.r = 0;
+						characterPlayer1Input.x = 0;
+						characterPlayer1Input.y = 0;
+					}
 				}
 
 				if (CalcMainEngine.cheatCodeNew === true) {
@@ -1777,6 +1789,10 @@ class CalcMainEngine {
 									case AssetIdImg.SPRITE_AMMO:
 										characterPlayer.ammo += 8;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+										break;
+									case AssetIdImg.SPRITE_EXTRA_LIFE:
+										characterPlayer.lives++;
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE);
 										break;
 									case AssetIdImg.SPRITE_AMMO_DROPPED:
 										characterPlayer.ammo += 4;
@@ -2408,13 +2424,31 @@ class CalcMainEngine {
 							}
 						}
 					}
-				} else if (cameraUpdated) {
+				} else if (cameraUpdated === true || cameraModeInput === true) {
 					// Camera mode means we only need one raycast no matter how many players
-					characterPlayer1Raycast = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE, raycastOptions);
-					characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
-					characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
-					characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
-					characterPlayer2Raycast = undefined;
+					cameraInstance = characterPlayer1.camera;
+					characterPlayer1.camera = camera;
+					characterPlayerChanged[0] = GamingCanvasGridCharacterControl(
+						characterPlayer1,
+						characterPlayer1Input,
+						gameMapGrid,
+						0x00,
+						characterControlOptions,
+					);
+					characterPlayer1.camera = cameraInstance;
+
+					if (cameraUpdated === true || characterPlayerChanged[0] === true) {
+						characterPlayer1Raycast = GamingCanvasGridRaycast(
+							camera,
+							gameMapGrid,
+							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+							raycastOptions,
+						);
+						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
+						characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
+						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
+						characterPlayer2Raycast = undefined;
+					}
 				} else {
 					characterPlayer1Raycast = undefined;
 					characterPlayer2Raycast = undefined;

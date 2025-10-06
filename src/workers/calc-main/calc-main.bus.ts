@@ -17,6 +17,7 @@ import {
 	CalcMainBusOutputDataWeaponSelect,
 	CalcMainBusOutputDataWeaponFire,
 	CalcMainBusOutputDataPlayerHit,
+	CalcMainBusInputDataCamera,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -153,13 +154,13 @@ export class CalcMainBus {
 		});
 	}
 
-	public static outputCamera(camera: Float64Array): void {
+	public static outputCamera(data: CalcMainBusInputDataCamera): void {
 		CalcMainBus.worker.postMessage(
 			{
 				cmd: CalcMainBusInputCmd.CAMERA,
-				data: camera,
+				data: data,
 			},
-			[camera.buffer],
+			[data.camera.buffer],
 		);
 	}
 

@@ -85,6 +85,11 @@ export interface CalcMainBusInputDataAudio {
 	request?: number; // unique to calc engine
 }
 
+export interface CalcMainBusInputDataCamera {
+	camera: Float64Array;
+	input?: CalcMainBusInputDataPlayerInput;
+}
+
 export interface CalcMainBusInputDataInit extends CalcMainBusInputDataSettings {
 	gameMap: GameMap;
 	report: GamingCanvasReport;
@@ -116,6 +121,7 @@ export interface CalcMainBusInputPayload {
 	data:
 		| boolean
 		| CalcMainBusInputDataAudio
+		| CalcMainBusInputDataCamera
 		| CalcMainBusInputDataInit
 		| CalcMainBusInputDataPlayerInput
 		| CalcMainBusInputDataSettings

@@ -272,15 +272,15 @@ export class Game {
 		DOM.elButtonEye.onclick = () => {
 			if (DOM.elButtonEye.classList.contains('active') === true) {
 				DOM.elButtonEye.classList.remove('active');
-				DOM.elCanvases[2].classList.add('hide');
+				DOM.elCanvases[4].classList.add('hide');
 
 				DOM.elButtonMove.click();
-				Game.editorHide = false;
+				Game.editorHide = true;
 			} else {
 				DOM.elButtonEye.classList.add('active');
-				DOM.elCanvases[2].classList.remove('hide');
+				DOM.elCanvases[4].classList.remove('hide');
 
-				Game.editorHide = true;
+				Game.editorHide = false;
 			}
 		};
 
@@ -881,7 +881,9 @@ export class Game {
 			report: GamingCanvasReport = Game.report,
 			updated: boolean,
 			updatedR: boolean,
-			viewport: GamingCanvasGridViewport = Game.viewport;
+			viewport: GamingCanvasGridViewport = Game.viewport,
+			x: number,
+			y: number;
 
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
@@ -956,6 +958,8 @@ export class Game {
 
 		// Calc: Camera Mode
 		CalcMainBus.setCallbackCamera((data: CalcMainBusOutputDataCamera) => {
+			camera.decode(data.camera);
+
 			// First: VideoEditor
 			VideoEditorBus.outputCalculations({
 				camera: camera.encode(),
@@ -1126,18 +1130,31 @@ export class Game {
 				report = Game.report;
 
 				if (modeEdit === true) {
-					// Zoom
-					if (camera.z !== cameraZoom) {
-						camera.z = cameraZoom;
-						viewport.applyZ(camera, report);
-					} else if (updated === true || updatedR !== true) {
-						camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
-						camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
-					}
-					viewport.apply(camera);
-
 					// Calc: Camera Mode
-					CalcMainBus.outputCamera(camera.encode());
+					if (Game.editorHide === true) {
+						CalcMainBus.outputCamera({
+							camera: camera.encode(),
+							input: characterPlayerInput,
+						});
+					} else {
+						// Zoom
+						if (camera.z !== cameraZoom) {
+							camera.z = cameraZoom;
+							viewport.applyZ(camera, report);
+						} else if (updated === true || updatedR !== true) {
+							camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
+							camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
+						}
+						viewport.apply(camera);
+
+						CalcMainBus.outputCamera({
+							camera: camera.encode(),
+						});
+
+						characterPlayerInput.player1.r = 0;
+						characterPlayerInput.player1.x = 0;
+						characterPlayerInput.player1.y = 0;
+					}
 				} else {
 					// Calc: Game Mode
 					CalcMainBus.outputCharacterInput(characterPlayerInput);
@@ -1499,7 +1516,7 @@ export class Game {
 		const processorKeyboard = (input: GamingCanvasInputKeyboard) => {
 			down = input.propriatary.down;
 
-			if (modeEdit !== true) {
+			if (modeEdit !== true || Game.editorHide === true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
 					if (Game.settingGamePlayer1InputDevice === InputDevice.KEYBOARD) {
 						characterPlayerInputPlayer = characterPlayerInput.player1;
@@ -1702,8 +1719,6 @@ export class Game {
 					if (modeEdit === true) {
 						if (modeEditType === EditType.PAN_ZOOM) {
 							if (downMode === true) {
-								// USE Game.editorHide to move relative to the camera angle when not viewing the editor
-
 								cameraMoveX = 1 - position1.xRelative;
 								cameraMoveY = 1 - position1.yRelative;
 								updated = true;
@@ -1874,6 +1889,7 @@ export class Game {
 			Game.modeEditType = EditType.PAN_ZOOM;
 
 			// Overlay
+			Game.editorHide = false;
 			DOM.elPlayerOverlay1.style.display = 'none';
 			DOM.elPlayerOverlay2.style.display = 'none';
 
