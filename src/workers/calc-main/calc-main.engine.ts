@@ -1159,7 +1159,6 @@ class CalcMainEngine {
 
 			// Look
 			if (weapon === CharacterWeapon.KNIFE) {
-				console.log(characterPlayer.fov);
 				characterPlayer.fov = 30;
 				characterPlayer.fovDistanceMax = 1;
 			}
