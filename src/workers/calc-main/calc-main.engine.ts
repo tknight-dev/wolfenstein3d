@@ -182,9 +182,9 @@ class CalcMainEngine {
 			id: -1,
 			lives: 3,
 			player1: true,
-			seenAngle: new Map(),
-			seenDistance: new Map(),
-			seenLOS: new Map(),
+			seenAngleById: new Map(),
+			seenDistanceById: new Map(),
+			seenLOSById: new Map(),
 			score: 0,
 			size: 0.25,
 			weapon: CharacterWeapon.PISTOL,
@@ -206,9 +206,9 @@ class CalcMainEngine {
 			id: -2,
 			lives: 3,
 			player1: true,
-			seenAngle: new Map(),
-			seenDistance: new Map(),
-			seenLOS: new Map(),
+			seenAngleById: new Map(),
+			seenDistanceById: new Map(),
+			seenLOSById: new Map(),
 			score: CalcMainEngine.characterPlayer1.score,
 			size: CalcMainEngine.characterPlayer1.size,
 			weapon: CalcMainEngine.characterPlayer1.weapon,
@@ -809,8 +809,8 @@ class CalcMainEngine {
 							for (characterPlayer2 of characterPlayers) {
 								if (
 									characterPlayer2.health > 0 &&
-									characterNPC.seenLOS.get(characterPlayer2.id) === true &&
-									<number>characterNPC.seenDistance.get(characterPlayer2.id) < characterNPCDistance
+									characterNPC.seenLOSById.get(characterPlayer2.id) === true &&
+									<number>characterNPC.seenDistanceById.get(characterPlayer2.id) < characterNPCDistance
 								) {
 									characterNPCReset = false;
 								}
@@ -821,7 +821,10 @@ class CalcMainEngine {
 								gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 								if (gameMapNPCPath.length === 1) {
 									for (characterPlayer2 of characterPlayers) {
-										if (characterPlayer2.health > 0 && <number>characterNPC.seenDistance.get(characterPlayer2.id) < characterNPCDistance) {
+										if (
+											characterPlayer2.health > 0 &&
+											<number>characterNPC.seenDistanceById.get(characterPlayer2.id) < characterNPCDistance
+										) {
 											characterNPCReset = false;
 										}
 									}
@@ -1156,14 +1159,14 @@ class CalcMainEngine {
 			GamingCanvasGridCharacterLook(gameMapNPCById.values(), [characterPlayer], gameMapGrid, gameMapLookPlayerBlocking);
 
 			// Did the weapon "see" anybody?
-			for ([characterNPCId, seen] of characterPlayer.seenLOS.entries()) {
+			for ([characterNPCId, seen] of characterPlayer.seenLOSById.entries()) {
 				characterNPC2 = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 				if (
 					characterNPC2.difficulty <= settingsDifficulty &&
 					characterNPC2.health !== 0 &&
 					seen === true &&
-					<number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance
+					<number>characterPlayer.seenDistanceById.get(characterNPCId) < characterNPCDistance
 				) {
 					characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 				}
@@ -1866,7 +1869,7 @@ class CalcMainEngine {
 								characterNPC.timestamp = timestampNow;
 
 								if (characterNPC.id === 7323) {
-									// console.log('los', characterNPC.seenLOS);
+									// console.log('los', characterNPC.seenLOSById);
 								}
 
 								// Closest visible player or if player 1 block away
@@ -1875,10 +1878,10 @@ class CalcMainEngine {
 								for (characterPlayer of characterPlayers) {
 									if (
 										characterPlayer.health > 0 &&
-										characterNPC.seenLOS.get(characterPlayer.id) === true &&
-										<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance
+										characterNPC.seenLOSById.get(characterPlayer.id) === true &&
+										<number>characterNPC.seenDistanceById.get(characterPlayer.id) < characterNPCDistance
 									) {
-										characterNPCDistance = <number>characterNPC.seenDistance.get(characterPlayer.id);
+										characterNPCDistance = <number>characterNPC.seenDistanceById.get(characterPlayer.id);
 										characterPlayerId = characterPlayer.id;
 									}
 								}
@@ -1890,9 +1893,9 @@ class CalcMainEngine {
 										for (characterPlayer of characterPlayers) {
 											if (
 												characterPlayer.health > 0 &&
-												<number>characterNPC.seenDistance.get(characterPlayer.id) < characterNPCDistance
+												<number>characterNPC.seenDistanceById.get(characterPlayer.id) < characterNPCDistance
 											) {
-												characterNPCDistance = <number>characterNPC.seenDistance.get(characterPlayer.id);
+												characterNPCDistance = <number>characterNPC.seenDistanceById.get(characterPlayer.id);
 												characterPlayerId = characterPlayer.id;
 											}
 										}
@@ -2393,7 +2396,7 @@ class CalcMainEngine {
 						if (CalcMainEngine.characterPlayer2Firing !== true) {
 							if (characterPlayer2Input.fire === true) {
 								if (characterPlayer2FiringLocked !== true) {
-									actionWeapon(false, characterPlayer1.weapon);
+									actionWeapon(false, characterPlayer2.weapon);
 								}
 							} else {
 								characterPlayer2FiringLocked = false;

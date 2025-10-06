@@ -96,9 +96,6 @@ export class Settings {
 				case 'dpi':
 					Game.settingGraphicsDPISupport = String(value).toLowerCase() === 'true';
 					break;
-				case 'effects':
-					Game.settingAudioVolumeEffect = Math.max(0, Math.min(1, Number(value)));
-					break;
 				case 'fps':
 					Game.settingGraphicsFPSDisplay = String(value).toLowerCase() === 'true';
 					break;
@@ -133,6 +130,9 @@ export class Settings {
 								break;
 						}
 					}
+					break;
+				case 'volume':
+					Game.settingAudioVolume = Math.max(0, Math.min(1, Number(value)));
 					break;
 			}
 		}

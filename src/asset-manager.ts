@@ -710,6 +710,7 @@ const assetIdImgCharacterMovementAllFilePrefixes: string[] = ['e', 'n', 'ne', 'n
 
 export enum AssetIdImgCharacterType {
 	GUARD,
+	OFFICER,
 }
 
 export enum AssetIdMap {
@@ -787,6 +788,11 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 					cDir = 'guard';
 					cHide = false;
 					cName = 'Guard';
+					break;
+				case AssetIdImgCharacterType.OFFICER:
+					cDir = 'officer';
+					cHide = true;
+					cName = 'Officer';
 					break;
 			}
 

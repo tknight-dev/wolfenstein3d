@@ -992,6 +992,7 @@ export class Game {
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
 					camera: camera.encode(),
+					cameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					rays: <Float64Array>data.characterPlayer1Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer1RaysMapKeysSorted,
@@ -1000,8 +1001,8 @@ export class Game {
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
-					player1Camera: data.characterPlayer1Camera,
-					player2Camera: data.characterPlayer2Camera ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
+					player1Camera: Float64Array.from(data.characterPlayer1Camera),
+					player2Camera: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
 				});
@@ -1011,7 +1012,7 @@ export class Game {
 				// Second: VideoEditor
 				VideoEditorBus.outputCalculations({
 					camera: camera.encode(),
-					player2Camera: data.characterPlayer2Camera ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
+					player2Camera: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
 				});
@@ -1024,6 +1025,7 @@ export class Game {
 
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
+					cameraAlt: data.characterPlayer1Camera,
 					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
@@ -1199,9 +1201,9 @@ export class Game {
 						health: 100,
 						id: id,
 						runningSpeed: 0.00055,
-						seenAngle: new Map(),
-						seenDistance: new Map(),
-						seenLOS: new Map(),
+						seenAngleById: new Map(),
+						seenDistanceById: new Map(),
+						seenLOSById: new Map(),
 						size: 0.25,
 						timestamp: 0,
 						timestampPrevious: 0,

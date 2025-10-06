@@ -440,6 +440,8 @@ export class DOM {
 					case AssetIdImgCharacterType.GUARD:
 						elementContainer = DOM.elEditorContainerCharactersGuardContent;
 						break;
+					case AssetIdImgCharacterType.OFFICER:
+						continue;
 				}
 
 				elementContent = document.createElement('div');

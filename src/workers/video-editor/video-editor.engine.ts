@@ -325,6 +325,7 @@ class VideoEditorEngine {
 			characterNPCId: number,
 			characterNPCUpdate: CharacterNPCUpdate = <any>{},
 			characterNPCUpdateEncoded: Float32Array,
+			characterPlayer: GamingCanvasGridCamera,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,
@@ -757,34 +758,31 @@ class VideoEditorEngine {
 					}
 
 					// Draw NPC LOS on players
-					// for (characterNPC of gameMapNPCs.values()) {
-					// 	if (characterNPC.playerLOS === undefined) {
-					// 		// console.log('undefined', characterNPC);
-					// 		continue;
-					// 	}
+					if (settingsDebug === true) {
+						for (gameMapNPC of gameMapNPCById.values()) {
+							offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
+							for (i = settingsPlayer2Enabled === true ? -2 : -1; i < 0; i++) {
+								if (gameMapNPC.seenLOSById.get(i) === true) {
+									offscreenCanvasContext.strokeStyle = 'green';
+								} else {
+									offscreenCanvasContext.strokeStyle = 'red';
+								}
 
-					// 	offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
-					// 	for (i = 0; i < (settingsPlayer2Enabled === true ? 2 : 1); i++) {
-					// 		if (characterNPC.playerLOS[i] === true) {
-					// 			offscreenCanvasContext.strokeStyle = 'green';
-					// 		} else {
-					// 			offscreenCanvasContext.strokeStyle = 'red';
-					// 		}
-
-					// 		offscreenCanvasContext.beginPath();
-					// 		offscreenCanvasContext.moveTo(
-					// 			(characterNPC.camera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-					// 			(characterNPC.camera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-					// 		);
-					// 		offscreenCanvasContext.lineTo(
-					// 			calculationsViewportCellSizePx *
-					// 				(Math.cos(characterNPC.playerAngle[i]) + (characterNPC.camera.x - calculationsViewportWidthStart)),
-					// 			calculationsViewportCellSizePx *
-					// 				(-Math.sin(characterNPC.playerAngle[i]) + (characterNPC.camera.y - calculationsViewportHeightStart)),
-					// 		);
-					// 		offscreenCanvasContext.stroke();
-					// 	}
-					// }
+								offscreenCanvasContext.beginPath();
+								offscreenCanvasContext.moveTo(
+									(gameMapNPC.camera.x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+									(gameMapNPC.camera.y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+								);
+								offscreenCanvasContext.lineTo(
+									calculationsViewportCellSizePx *
+										(Math.cos(<number>gameMapNPC.seenAngleById.get(i)) + (gameMapNPC.camera.x - calculationsViewportWidthStart)),
+									calculationsViewportCellSizePx *
+										(-Math.sin(<number>gameMapNPC.seenAngleById.get(i)) + (gameMapNPC.camera.y - calculationsViewportHeightStart)),
+								);
+								offscreenCanvasContext.stroke();
+							}
+						}
+					}
 
 					// Draw NPC Path
 					if (settingsDebug === true && pathByNPCId !== undefined) {
