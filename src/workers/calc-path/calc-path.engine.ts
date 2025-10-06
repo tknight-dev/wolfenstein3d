@@ -293,6 +293,7 @@ class CalcPathEngine {
 					if (CalcPathEngine.playerUpdate.player2GridIndex !== undefined) {
 						characterPlayer2GridIndex = CalcPathEngine.playerUpdate.player2GridIndex;
 					}
+					// console.log(characterPlayer1GridIndex, characterPlayer2GridIndex);
 				}
 
 				if (CalcPathEngine.settingsNew === true) {
@@ -309,10 +310,14 @@ class CalcPathEngine {
 					if (settingsPlayer2Enable !== true) {
 						gameMapGridIndex = characterPlayer1GridIndex;
 					} else {
-						gameMapGridIndex = Math.min(
-							GamingCanvasGridUtilDistance(characterPlayer1GridIndex, characterNPC.gridIndex, gameMapGrid),
-							GamingCanvasGridUtilDistance(characterPlayer2GridIndex, characterNPC.gridIndex, gameMapGrid),
-						);
+						if (
+							GamingCanvasGridUtilDistance(characterPlayer1GridIndex, characterNPC.gridIndex, gameMapGrid) <
+							GamingCanvasGridUtilDistance(characterPlayer2GridIndex, characterNPC.gridIndex, gameMapGrid)
+						) {
+							gameMapGridIndex = characterPlayer1GridIndex;
+						} else {
+							gameMapGridIndex = characterPlayer2GridIndex;
+						}
 					}
 
 					// Calc path

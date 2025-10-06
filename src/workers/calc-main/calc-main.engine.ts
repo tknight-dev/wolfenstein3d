@@ -397,6 +397,10 @@ class CalcMainEngine {
 			characterNPCUpdates: Float32Array[] = [],
 			characterNPCUpdated: Set<number> = new Set(),
 			characterNPCWaypoint: boolean,
+			characterPlayerChanged: boolean[] = new Array(2).fill(false),
+			characterPlayerChangedMetaPickup: boolean,
+			characterPlayerChangedMetaReport: boolean[] = new Array(2).fill(false),
+			characterPlayerGridIndex: number,
 			characterPlayerInputNone: CharacterInput = {
 				action: false,
 				fire: false,
@@ -414,9 +418,6 @@ class CalcMainEngine {
 			characterPlayer1: Character = CalcMainEngine.characterPlayer1,
 			characterPlayer1Action: boolean = false,
 			characterPlayer1CameraEncoded: Float64Array | undefined,
-			characterPlayer1Changed: boolean,
-			characterPlayer1ChangedMetaPickup: boolean,
-			characterPlayer1ChangedMetaReport: boolean = false,
 			characterPlayer1FiringLocked: boolean = false,
 			characterPlayer1GridIndex: number,
 			characterPlayer1MetaEncoded: Uint16Array | undefined,
@@ -434,9 +435,6 @@ class CalcMainEngine {
 			characterPlayer2: Character = CalcMainEngine.characterPlayer2,
 			characterPlayer2Action: boolean = false,
 			characterPlayer2CameraEncoded: Float64Array | undefined,
-			characterPlayer2Changed: boolean,
-			characterPlayer2ChangedMetaPickup: boolean,
-			characterPlayer2ChangedMetaReport: boolean = false,
 			characterPlayer2FiringLocked: boolean = false,
 			characterPlayer2GridIndex: number,
 			characterPlayer2MetaEncoded: Uint16Array | undefined,
@@ -525,6 +523,7 @@ class CalcMainEngine {
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
+			i: number,
 			pause: boolean = CalcMainEngine.pause,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
@@ -535,6 +534,7 @@ class CalcMainEngine {
 			report: GamingCanvasReport = CalcMainEngine.report,
 			reportOrientation: GamingCanvasOrientation = CalcMainEngine.report.orientation,
 			reportOrientationForce: boolean = true,
+			respawn: boolean = true,
 			settingsDebug: boolean = CalcMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
 			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
@@ -733,15 +733,15 @@ class CalcMainEngine {
 		const actionPlayerHit = (player1: boolean, angle: number, distance: number, distanceMax: number, _weapon: CharacterWeapon) => {
 			if (player1 === true) {
 				characterPlayer = CalcMainEngine.characterPlayer1;
-				characterPlayer1ChangedMetaReport = true;
+				characterPlayerChangedMetaReport[0] = true;
 			} else {
 				characterPlayer = CalcMainEngine.characterPlayer2;
-				characterPlayer2ChangedMetaReport = true;
+				characterPlayerChangedMetaReport[1] = true;
 			}
 
 			if (characterPlayer.health <= 0) {
-				characterPlayer1ChangedMetaReport = false;
-				characterPlayer2ChangedMetaReport = false;
+				characterPlayerChangedMetaReport[0] = false;
+				characterPlayerChangedMetaReport[1] = false;
 				return;
 			}
 
@@ -750,6 +750,7 @@ class CalcMainEngine {
 				Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
 
 			if (characterPlayer.health <= 0) {
+				characterPlayer.health = 0;
 				characterPlayer.lives--;
 
 				if (characterPlayer.lives <= 0) {
@@ -774,11 +775,12 @@ class CalcMainEngine {
 							characterPlayer.camera.z = gameMap.position.z;
 							characterPlayer.ammo = 8;
 							characterPlayer.health = 100;
+							respawn = true;
 
 							if (player1 === true) {
-								characterPlayer1ChangedMetaReport = true;
+								characterPlayerChangedMetaReport[0] = true;
 							} else {
-								characterPlayer2ChangedMetaReport = true;
+								characterPlayerChangedMetaReport[1] = true;
 							}
 						},
 						((CalcMainBusPlayerDeadFadeDurationInMS / 2) | 0) + CalcMainBusPlayerDeadFallDurationInMS,
@@ -1034,9 +1036,9 @@ class CalcMainEngine {
 			if (weapon !== CharacterWeapon.KNIFE) {
 				characterPlayer.ammo--;
 				if (player1 === true) {
-					characterPlayer1ChangedMetaReport = true;
+					characterPlayerChangedMetaReport[0] = true;
 				} else {
-					characterPlayer2ChangedMetaReport = true;
+					characterPlayerChangedMetaReport[1] = true;
 				}
 
 				switch (weapon) {
@@ -1075,7 +1077,7 @@ class CalcMainEngine {
 									case CharacterWeapon.SUB_MACHINE_GUN:
 										if (characterPlayer1Input.fire === true && characterPlayer1.ammo !== 0) {
 											actionWeaponFire(player1, weapon);
-											characterPlayer1ChangedMetaReport = true;
+											characterPlayerChangedMetaReport[0] = true;
 											return;
 										}
 										break;
@@ -1108,10 +1110,10 @@ class CalcMainEngine {
 
 										if (player1 === true) {
 											characterPlayer1FiringLocked = true;
-											characterPlayer1ChangedMetaReport = true;
+											characterPlayerChangedMetaReport[0] = true;
 										} else {
 											characterPlayer2FiringLocked = true;
-											characterPlayer2ChangedMetaReport = true;
+											characterPlayerChangedMetaReport[1] = true;
 										}
 
 										CalcMainEngine.post([
@@ -1425,10 +1427,11 @@ class CalcMainEngine {
 				cycleCount++;
 				cameraUpdated = false;
 				characterPlayer1.timestamp = timestampNow;
-				characterPlayer1Changed = false;
+				characterPlayerChanged[0];
+				characterPlayerChanged[0] = false;
 
 				characterPlayer2.timestamp = timestampNow;
-				characterPlayer2Changed = false;
+				characterPlayerChanged[1] = false;
 
 				if (CalcMainEngine.cameraNew) {
 					CalcMainEngine.cameraNew = false;
@@ -1441,8 +1444,8 @@ class CalcMainEngine {
 				if (CalcMainEngine.cheatCodeNew === true) {
 					CalcMainEngine.cheatCodeNew = false;
 
-					characterPlayer1ChangedMetaReport = true;
-					characterPlayer2ChangedMetaReport = true;
+					characterPlayerChangedMetaReport[0] = true;
+					characterPlayerChangedMetaReport[1] = true;
 				}
 
 				if (CalcMainEngine.gameMapNew === true) {
@@ -1548,7 +1551,7 @@ class CalcMainEngine {
 
 						// Player 1: Position
 						if (characterPlayer1.health > 0) {
-							characterPlayer1Changed = GamingCanvasGridCharacterControl(
+							characterPlayerChanged[0] = GamingCanvasGridCharacterControl(
 								characterPlayer1,
 								characterPlayer1Input,
 								gameMapGrid,
@@ -1563,12 +1566,12 @@ class CalcMainEngine {
 								gameMapControlBlocking,
 								characterControlOptions,
 							);
-							characterPlayer1Changed = true;
+							characterPlayerChanged[0] = true;
 						}
 					}
 
 					// Player 1: Raycast
-					if (characterPlayer1Changed === true || reportOrientationForce === true) {
+					if (characterPlayerChanged[0] === true || reportOrientationForce === true || respawn === true) {
 						characterPlayer1Raycast = GamingCanvasGridRaycast(
 							characterPlayer1.camera,
 							gameMapGrid,
@@ -1592,7 +1595,7 @@ class CalcMainEngine {
 						if (pause !== true) {
 							// Player 2: Position
 							if (characterPlayer2.health > 0) {
-								characterPlayer2Changed = GamingCanvasGridCharacterControl(
+								characterPlayerChanged[1] = GamingCanvasGridCharacterControl(
 									characterPlayer2,
 									characterPlayer2Input,
 									gameMapGrid,
@@ -1607,12 +1610,12 @@ class CalcMainEngine {
 									gameMapControlBlocking,
 									characterControlOptions,
 								);
-								characterPlayer2Changed = true;
+								characterPlayerChanged[1] = true;
 							}
 						}
 
 						// Player 2: Raycast
-						if (characterPlayer2Changed === true || reportOrientationForce === true) {
+						if (characterPlayerChanged[1] === true || reportOrientationForce === true || respawn === true) {
 							characterPlayer2Raycast = GamingCanvasGridRaycast(
 								characterPlayer2.camera,
 								gameMapGrid,
@@ -1644,7 +1647,7 @@ class CalcMainEngine {
 						if (characterPlayer1Action === false && characterPlayer1Input.action === true) {
 							cameraInstance = characterPlayer1.camera;
 							characterPlayer1Action = true;
-							characterPlayer1GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
+							characterPlayerGridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
 							// 45deg = GamingCanvasConstPI_0_250 (NE)
 							// 135deg = GamingCanvasConstPI_0_750 (NW)
@@ -1652,16 +1655,16 @@ class CalcMainEngine {
 							// 315deg = GamingCanvasConstPI_1_750 (SE)
 							if (cameraInstance.r > GamingCanvasConstPI_1_750 || cameraInstance.r < GamingCanvasConstPI_0_250) {
 								cellSide = GamingCanvasGridRaycastCellSide.WEST;
-								gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
+								gameMapIndexEff = characterPlayerGridIndex + gameMapSideLength;
 							} else if (cameraInstance.r < GamingCanvasConstPI_0_750) {
 								cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
-								gameMapIndexEff = characterPlayer1GridIndex - 1;
+								gameMapIndexEff = characterPlayerGridIndex - 1;
 							} else if (cameraInstance.r < GamingCanvasConstPI_1_250) {
 								cellSide = GamingCanvasGridRaycastCellSide.EAST;
-								gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
+								gameMapIndexEff = characterPlayerGridIndex - gameMapSideLength;
 							} else {
 								cellSide = GamingCanvasGridRaycastCellSide.NORTH;
-								gameMapIndexEff = characterPlayer1GridIndex + 1;
+								gameMapIndexEff = characterPlayerGridIndex + 1;
 							}
 
 							gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
@@ -1690,24 +1693,24 @@ class CalcMainEngine {
 							if (characterPlayer2Action === false && characterPlayer2Input.action === true) {
 								cameraInstance = characterPlayer2.camera;
 								characterPlayer2Action = true;
-								characterPlayer2GridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
+								characterPlayerGridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
 
 								// 45deg = GamingCanvasConstPI_0_250rad (NE)
 								// 135deg = GamingCanvasConstPI_0_750rad (NW)
 								// 225deg = GamingCanvasConstPI_1_2500rad (SW)
 								// 315deg = GamingCanvasConstPI_1_750rad (SE)
-								if (cameraInstance.r > GamingCanvasConstPI_0_250 && cameraInstance.r < GamingCanvasConstPI_0_750) {
+								if (cameraInstance.r > GamingCanvasConstPI_1_750 || cameraInstance.r < GamingCanvasConstPI_0_250) {
 									cellSide = GamingCanvasGridRaycastCellSide.WEST;
-									gameMapIndexEff = characterPlayer1GridIndex - gameMapSideLength;
-								} else if (cameraInstance.r > GamingCanvasConstPI_1_250 && cameraInstance.r < GamingCanvasConstPI_1_750) {
-									cellSide = GamingCanvasGridRaycastCellSide.EAST;
-									gameMapIndexEff = characterPlayer1GridIndex + gameMapSideLength;
-								} else if (cameraInstance.r > GamingCanvasConstPI_0_750 && cameraInstance.r < GamingCanvasConstPI_1_250) {
+									gameMapIndexEff = characterPlayerGridIndex + gameMapSideLength;
+								} else if (cameraInstance.r < GamingCanvasConstPI_0_750) {
 									cellSide = GamingCanvasGridRaycastCellSide.SOUTH;
-									gameMapIndexEff = characterPlayer1GridIndex + 1;
+									gameMapIndexEff = characterPlayerGridIndex - 1;
+								} else if (cameraInstance.r < GamingCanvasConstPI_1_250) {
+									cellSide = GamingCanvasGridRaycastCellSide.EAST;
+									gameMapIndexEff = characterPlayerGridIndex - gameMapSideLength;
 								} else {
 									cellSide = GamingCanvasGridRaycastCellSide.NORTH;
-									gameMapIndexEff = characterPlayer1GridIndex - 1;
+									gameMapIndexEff = characterPlayerGridIndex + 1;
 								}
 
 								gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
@@ -1740,27 +1743,39 @@ class CalcMainEngine {
 					 * Human - Pickup
 					 */
 					if (pause !== true) {
-						if (characterPlayer1Changed === true) {
-							characterPlayer1GridIndex = (characterPlayer1.camera.x | 0) * gameMapSideLength + (characterPlayer1.camera.y | 0);
+						for (i = 0; i < characterPlayerChanged.length; i++) {
+							if (characterPlayerChanged[i] === false) {
+								continue;
+							} else if (i === 0) {
+								characterPlayer = characterPlayer1;
+							} else {
+								characterPlayer = characterPlayer2;
 
-							if ((gameMapGridData[characterPlayer1GridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
-								characterPlayer1ChangedMetaPickup = true;
+								if (settingsPlayer2Enable !== true) {
+									continue;
+								}
+							}
+							cameraInstance = characterPlayer.camera;
+							characterPlayerGridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
+
+							if ((gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
+								characterPlayerChangedMetaPickup = true;
 
 								// Character
-								switch (gameMapGridData[characterPlayer1GridIndex] & GameGridCellMasksAndValues.ID_MASK) {
+								switch (gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.ID_MASK) {
 									case AssetIdImg.SPRITE_AMMO:
-										characterPlayer1.ammo += 8;
+										characterPlayer.ammo += 8;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
 										break;
 									case AssetIdImg.SPRITE_AMMO_DROPPED:
-										characterPlayer1.ammo += 4;
+										characterPlayer.ammo += 4;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
 										break;
 									case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
-										characterPlayer1.ammo += 6;
-										if (characterPlayer1.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
-											characterPlayer1.weapon = CharacterWeapon.SUB_MACHINE_GUN;
-											characterPlayer1.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
+										characterPlayer.ammo += 6;
+										if (characterPlayer.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
+											characterPlayer.weapon = CharacterWeapon.SUB_MACHINE_GUN;
+											characterPlayer.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
 
 											CalcMainEngine.post([
@@ -1768,155 +1783,64 @@ class CalcMainEngine {
 													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
 													data: {
 														player1: true,
-														weapon: characterPlayer1.weapon,
+														weapon: characterPlayer.weapon,
 													},
 												},
 											]);
 										}
 										break;
 									case AssetIdImg.SPRITE_MEDKIT:
-										if (characterPlayer1.health !== 100) {
-											characterPlayer1.health = Math.min(100, characterPlayer1.health + 15);
+										if (characterPlayer.health !== 100) {
+											characterPlayer.health = Math.min(100, characterPlayer.health + 15);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
 										} else {
-											characterPlayer1ChangedMetaPickup = false;
+											characterPlayerChangedMetaPickup = false;
 										}
 										break;
 									case AssetIdImg.SPRITE_FOOD:
-										if (characterPlayer1.health !== 100) {
-											characterPlayer1.health = Math.min(100, characterPlayer1.health + 10);
+										if (characterPlayer.health !== 100) {
+											characterPlayer.health = Math.min(100, characterPlayer.health + 10);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
 										} else {
-											characterPlayer1ChangedMetaPickup = false;
+											characterPlayerChangedMetaPickup = false;
 										}
 										break;
 									case AssetIdImg.SPRITE_FOOD_DOG:
-										if (characterPlayer1.health !== 100) {
-											characterPlayer1.health = Math.min(100, characterPlayer1.health + 4);
+										if (characterPlayer.health !== 100) {
+											characterPlayer.health = Math.min(100, characterPlayer.health + 4);
 											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
 										} else {
-											characterPlayer1ChangedMetaPickup = false;
+											characterPlayerChangedMetaPickup = false;
 										}
 										break;
 									case AssetIdImg.SPRITE_TREASURE_CHEST:
-										characterPlayer1.score += 1000;
+										characterPlayer.score += 1000;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
 										break;
 									case AssetIdImg.SPRITE_TREASURE_CROSS:
-										characterPlayer1.score += 100;
+										characterPlayer.score += 100;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
 										break;
 									case AssetIdImg.SPRITE_TREASURE_CROWN:
-										characterPlayer1.score += 5000;
+										characterPlayer.score += 5000;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
 										break;
 									case AssetIdImg.SPRITE_TREASURE_CUP:
-										characterPlayer1.score += 500;
+										characterPlayer.score += 500;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
 										break;
 									default:
-										characterPlayer1ChangedMetaPickup = false;
+										characterPlayerChangedMetaPickup = false;
 										break;
 								}
 
 								// Map
-								if (characterPlayer1ChangedMetaPickup === true) {
-									characterPlayer1ChangedMetaReport = true;
+								if (characterPlayerChangedMetaPickup === true) {
+									characterPlayerChangedMetaReport[i] = true;
 
-									gameMapGridData[characterPlayer1GridIndex] = GameGridCellMasksAndValues.FLOOR;
+									gameMapGridData[characterPlayerGridIndex] = GameGridCellMasksAndValues.FLOOR;
 
-									gameMapUpdate[gameMapUpdateIndex++] = characterPlayer1GridIndex;
-									gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
-								}
-							}
-						}
-
-						if (characterPlayer2Changed === true) {
-							characterPlayer2GridIndex = (characterPlayer2.camera.x | 0) * gameMapSideLength + (characterPlayer2.camera.y | 0);
-
-							if ((gameMapGridData[characterPlayer2GridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
-								characterPlayer2ChangedMetaPickup = true;
-
-								// Character
-								switch (gameMapGridData[characterPlayer2GridIndex] & GameGridCellMasksAndValues.ID_MASK) {
-									case AssetIdImg.SPRITE_AMMO:
-										characterPlayer2.ammo += 8;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
-										break;
-									case AssetIdImg.SPRITE_AMMO_DROPPED:
-										characterPlayer2.ammo += 4;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
-										break;
-									case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
-										characterPlayer2.ammo += 6;
-										if (characterPlayer2.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
-											characterPlayer2.weapon = CharacterWeapon.SUB_MACHINE_GUN;
-											characterPlayer2.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
-
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
-													data: {
-														player1: false,
-														weapon: characterPlayer2.weapon,
-													},
-												},
-											]);
-										}
-										break;
-									case AssetIdImg.SPRITE_MEDKIT:
-										if (characterPlayer2.health !== 100) {
-											characterPlayer2.health = Math.min(100, characterPlayer2.health + 15);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
-										} else {
-											characterPlayer2ChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_FOOD:
-										if (characterPlayer2.health !== 100) {
-											characterPlayer2.health = Math.min(100, characterPlayer2.health + 10);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
-										} else {
-											characterPlayer2ChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_FOOD_DOG:
-										if (characterPlayer2.health !== 100) {
-											characterPlayer2.health = Math.min(100, characterPlayer2.health + 4);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
-										} else {
-											characterPlayer2ChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CHEST:
-										characterPlayer2.score += 1000;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CROSS:
-										characterPlayer2.score += 100;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CROWN:
-										characterPlayer2.score += 5000;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CUP:
-										characterPlayer2.score += 500;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
-										break;
-									default:
-										characterPlayer2ChangedMetaPickup = false;
-										break;
-								}
-
-								// Map
-								if (characterPlayer2ChangedMetaPickup === true) {
-									characterPlayer2ChangedMetaReport = true;
-
-									gameMapGridData[characterPlayer2GridIndex] = GameGridCellMasksAndValues.FLOOR;
-
-									gameMapUpdate[gameMapUpdateIndex++] = characterPlayer1GridIndex;
+									gameMapUpdate[gameMapUpdateIndex++] = characterPlayerGridIndex;
 									gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
 								}
 							}
@@ -1945,10 +1869,17 @@ class CalcMainEngine {
 								characterNPCState = characterNPCStates.get(characterNPC.id);
 								characterNPC.timestamp = timestampNow;
 
+								if (characterNPC.id === 7323) {
+									// console.log('los', characterNPC.seenLOS);
+								}
+
 								// Closest visible player or if player 1 block away
 								characterNPCDistance = GamingCanvasConstIntegerMaxSafe;
 								characterPlayerId = -100;
 								for (characterPlayer of characterPlayers) {
+									if (characterNPC.seenLOS.get(characterPlayer.id) === true) {
+										console.log('seen', characterPlayer.id);
+									}
 									if (
 										characterPlayer.health > 0 &&
 										characterNPC.seenLOS.get(characterPlayer.id) === true &&
@@ -2496,6 +2427,10 @@ class CalcMainEngine {
 				for (characterNPC of gameMapNPC.values()) {
 					characterNPC.timestampPrevious = timestampNow;
 				}
+
+				if (respawn === true) {
+					respawn = false;
+				}
 			}
 
 			/**
@@ -2649,14 +2584,14 @@ class CalcMainEngine {
 				}
 
 				// Character
-				if (characterPlayer1ChangedMetaReport === true || characterPlayer2ChangedMetaReport === true) {
+				if (characterPlayerChangedMetaReport[0] === true || characterPlayerChangedMetaReport[1] === true) {
 					buffers.length = 0;
 
-					if (characterPlayer1ChangedMetaReport === true) {
+					if (characterPlayerChangedMetaReport[0] === true) {
 						characterPlayer1MetaEncoded = CharacterMetaEncode(characterPlayer1);
 						buffers.push(characterPlayer1MetaEncoded.buffer);
 					}
-					if (characterPlayer2ChangedMetaReport === true) {
+					if (characterPlayerChangedMetaReport[1] === true) {
 						characterPlayer2MetaEncoded = CharacterMetaEncode(characterPlayer2);
 						buffers.push(characterPlayer2MetaEncoded.buffer);
 					}
@@ -2674,9 +2609,9 @@ class CalcMainEngine {
 						buffers,
 					);
 
-					characterPlayer1ChangedMetaReport = false;
+					characterPlayerChangedMetaReport[0] = false;
 					characterPlayer1MetaEncoded = undefined;
-					characterPlayer2ChangedMetaReport = false;
+					characterPlayerChangedMetaReport[1] = false;
 					characterPlayer2MetaEncoded = undefined;
 				}
 

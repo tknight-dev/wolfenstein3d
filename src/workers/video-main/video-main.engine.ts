@@ -1518,7 +1518,7 @@ class VideoMainEngine {
 					offscreenCanvasContext.filter = renderFilter;
 				}
 
-				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight);
+				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight * renderTilt);
 			}
 
 			// Stats: sent once per second
