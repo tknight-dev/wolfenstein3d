@@ -50,11 +50,16 @@ export class Assets {
 
 		map.grid = GamingCanvasGridUint16Array.from(<Uint16Array>map.grid.data);
 
-		if (map.npc !== undefined) {
-			if (map.npc instanceof Map !== true) {
+		// if ((<any>map).npc !== undefined) {
+		// 	map.npcById = (<any>map).npc;
+		// 	delete (<any>map).npc;
+		// }
+
+		if (map.npcById !== undefined) {
+			if (map.npcById instanceof Map !== true) {
 				npc = new Map();
 
-				for ([key, value] of Object.entries(map.npc)) {
+				for ([key, value] of Object.entries(map.npcById)) {
 					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
 					value.fov = (120 * Math.PI) / 180;
 					value.seenAngle = new Map();
@@ -69,7 +74,7 @@ export class Assets {
 					npc.set(Number(key), value);
 				}
 
-				map.npc = npc;
+				map.npcById = npc;
 			}
 		}
 

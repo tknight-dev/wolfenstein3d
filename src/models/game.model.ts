@@ -49,6 +49,6 @@ export enum GameDifficulty {
  */
 export interface GameMap {
 	grid: GamingCanvasGridUint16Array;
-	npc: Map<number, CharacterNPC>; // number is id
+	npcById: Map<number, CharacterNPC>; // number is id
 	position: GamingCanvasGridICamera;
 }

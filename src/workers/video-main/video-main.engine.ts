@@ -538,9 +538,9 @@ class VideoMainEngine {
 			gameMapGridIndex: number,
 			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
-			gameMapNPC: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npc,
+			gameMapNPCById: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npcById,
 			gameMapNPCDead: Set<number> = new Set(),
-			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
+			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
@@ -716,12 +716,12 @@ class VideoMainEngine {
 
 					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
-					gameMapNPC = VideoMainEngine.gameMap.npc;
+					gameMapNPCById = VideoMainEngine.gameMap.npcById;
 
 					gameMapNPCDead.clear();
-					gameMapNPCIdByGridIndex.clear();
-					for (characterNPC of gameMapNPC.values()) {
-						gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
+					gameMapNPCByGridIndex.clear();
+					for (characterNPC of gameMapNPCById.values()) {
+						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 					}
 				}
 
@@ -740,14 +740,14 @@ class VideoMainEngine {
 					for (characterNPCUpdateEncoded of VideoMainEngine.npcUpdate) {
 						// Reference
 						characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
-						characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+						characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 						if (characterNPC === undefined) {
 							continue;
 						}
 
 						// Prepare
-						gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
+						gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
 
 						// Update
 						x = characterNPC.assetId;
@@ -774,7 +774,7 @@ class VideoMainEngine {
 						}
 
 						// Apply
-						gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
+						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 					}
 				}
 
@@ -1358,10 +1358,8 @@ class VideoMainEngine {
 						/**
 						 * Draw: Sprites - Characters
 						 */
-						renderCharacterNPCId = <number>gameMapNPCIdByGridIndex.get(gameMapGridIndex);
-						if (renderCharacterNPCId !== undefined) {
-							renderCharacterNPC = <CharacterNPC>gameMapNPC.get(renderCharacterNPCId);
-
+						renderCharacterNPC = <CharacterNPC>gameMapNPCByGridIndex.get(gameMapGridIndex);
+						if (renderCharacterNPC !== undefined) {
 							if (renderCharacterNPC.difficulty <= settingsDifficulty) {
 								assetImageCharacterInstance = <any>assetImageCharacters.get(renderCharacterNPC.type);
 

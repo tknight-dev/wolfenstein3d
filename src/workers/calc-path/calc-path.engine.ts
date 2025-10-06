@@ -20,6 +20,7 @@ import { GamingCanvasGridPathAStar, GamingCanvasGridUint16Array } from '@tknight
 import { Assets } from '../../modules/assets.js';
 import { CalcMainBusActionWallMoveStateChangeDurationInMS, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 import { GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
+import { AssetIdImgCharacter } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -197,8 +198,7 @@ class CalcPathEngine {
 				// pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL,
 			},
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
-			gameMapNPCs: Map<number, CharacterNPC> = CalcPathEngine.gameMap.npc,
-			gameMapNPCsById: Map<number, CharacterNPC> = new Map(),
+			gameMapNPCById: Map<number, CharacterNPC> = CalcPathEngine.gameMap.npcById,
 			pathBlocking = (cell: number, gridIndex: number) => {
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					return false;
@@ -223,10 +223,6 @@ class CalcPathEngine {
 
 		characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
 		characterPlayer2GridIndex = characterPlayer1GridIndex;
-
-		for (characterNPC of gameMapNPCs.values()) {
-			gameMapNPCsById.set(characterNPC.id, characterNPC);
-		}
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
@@ -254,7 +250,7 @@ class CalcPathEngine {
 
 					gameMap = CalcPathEngine.gameMap;
 					gameMapGrid = CalcPathEngine.gameMap.grid;
-					gameMapNPCs = CalcPathEngine.gameMap.npc;
+					gameMapNPCById = CalcPathEngine.gameMap.npcById;
 
 					characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
 					characterPlayer2GridIndex = characterPlayer1GridIndex;
@@ -266,20 +262,14 @@ class CalcPathEngine {
 					for (characterNPCUpdateEncoded of CalcPathEngine.npcUpdate) {
 						// Reference
 						characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
-						characterNPC = <CharacterNPC>gameMapNPCsById.get(characterNPCId);
+						characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 						if (characterNPC === undefined) {
 							continue;
 						}
 
-						// Prepare
-						gameMapNPCs.delete(characterNPC.gridIndex);
-
 						// Update
 						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, 0);
-
-						// Apply
-						gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
 					}
 				}
 
@@ -306,7 +296,11 @@ class CalcPathEngine {
 				/**
 				 * Paths
 				 */
-				for (characterNPC of gameMapNPCs.values()) {
+				for (characterNPC of gameMapNPCById.values()) {
+					if (characterNPC.assetId === AssetIdImgCharacter.CORPSE) {
+						continue;
+					}
+
 					if (settingsPlayer2Enable !== true) {
 						gameMapGridIndex = characterPlayer1GridIndex;
 					} else {
@@ -335,14 +329,12 @@ class CalcPathEngine {
 					characterNPCPathById.set(characterNPC.id, gameMapGridPathResult.path || []);
 				}
 
-				if (settingsDebug === true) {
-					CalcPathEngine.post([
-						{
-							cmd: CalcPathBusOutputCmd.PATH_UPDATE,
-							data: characterNPCPathById,
-						},
-					]);
-				}
+				CalcPathEngine.post([
+					{
+						cmd: CalcPathBusOutputCmd.PATH_UPDATE,
+						data: characterNPCPathById,
+					},
+				]);
 			}
 		};
 		CalcPathEngine.go = go;

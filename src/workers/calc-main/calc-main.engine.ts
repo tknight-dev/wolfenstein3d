@@ -458,13 +458,9 @@ class CalcMainEngine {
 			gameMapIndexEff: number,
 			gameMapControlBlocking = (cell: number, gridIndex: number) => {
 				// Can Player walk here?
-				characterNPCId = <number>gameMapNPCIdByGridIndex.get(gridIndex);
-				if (characterNPCId !== undefined) {
-					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
-
-					if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
-						return true;
-					}
+				characterNPC = <CharacterNPC>gameMapNPCByGridIndex.get(gridIndex);
+				if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
+					return true;
 				}
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
@@ -512,9 +508,9 @@ class CalcMainEngine {
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
 			},
-			gameMapNPC: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npc,
+			gameMapNPCById: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npcById,
 			gameMapNPCDead: Set<number> = new Set(),
-			gameMapNPCIdByGridIndex: Map<number, number> = new Map(),
+			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapNPCPath: number[],
 			gameMapNPCPathInstance: number,
 			gameMapNPCPaths: Map<number, number[]>,
@@ -638,7 +634,7 @@ class CalcMainEngine {
 			} else if (
 				CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
 				CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
-				gameMapNPCIdByGridIndex.has(gridIndex) === true
+				gameMapNPCByGridIndex.has(gridIndex) === true
 			) {
 				// Someone/something is in the way
 				return;
@@ -696,7 +692,7 @@ class CalcMainEngine {
 				if (
 					CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
 					CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
-					gameMapNPCIdByGridIndex.has(gridIndex) === true
+					gameMapNPCByGridIndex.has(gridIndex) === true
 				) {
 					// Someone/something is in the way
 					actionDoorAutoClose(gridIndex, state);
@@ -795,8 +791,8 @@ class CalcMainEngine {
 					]);
 
 					// NPC Update
-					GamingCanvasGridCharacterLook(characterPlayers, gameMapNPC.values(), gameMapGrid, gameMapLookBlocking);
-					for (characterNPC of gameMapNPC.values()) {
+					GamingCanvasGridCharacterLook(characterPlayers, gameMapNPCById.values(), gameMapGrid, gameMapLookBlocking);
+					for (characterNPC of gameMapNPCById.values()) {
 						if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
 							continue;
 						}
@@ -1157,11 +1153,11 @@ class CalcMainEngine {
 				seen: boolean;
 
 			// Look
-			GamingCanvasGridCharacterLook(gameMapNPC.values(), [characterPlayer], gameMapGrid, gameMapLookPlayerBlocking);
+			GamingCanvasGridCharacterLook(gameMapNPCById.values(), [characterPlayer], gameMapGrid, gameMapLookPlayerBlocking);
 
 			// Did the weapon "see" anybody?
 			for ([characterNPCId, seen] of characterPlayer.seenLOS.entries()) {
-				characterNPC2 = <CharacterNPC>gameMapNPC.get(characterNPCId);
+				characterNPC2 = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 				if (
 					characterNPC2.difficulty <= settingsDifficulty &&
@@ -1169,7 +1165,7 @@ class CalcMainEngine {
 					seen === true &&
 					<number>characterPlayer.seenDistance.get(characterNPCId) < characterNPCDistance
 				) {
-					characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+					characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 				}
 			}
 
@@ -1245,7 +1241,7 @@ class CalcMainEngine {
 
 			// Did the anybody hear the shot?
 			if (weapon !== CharacterWeapon.KNIFE) {
-				for (characterNPC of gameMapNPC.values()) {
+				for (characterNPC of gameMapNPCById.values()) {
 					if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
 						continue;
 					}
@@ -1457,7 +1453,7 @@ class CalcMainEngine {
 					gameMap = CalcMainEngine.gameMap;
 					gameMapGrid = CalcMainEngine.gameMap.grid;
 					gameMapGridData = CalcMainEngine.gameMap.grid.data;
-					gameMapNPC = CalcMainEngine.gameMap.npc;
+					gameMapNPCById = CalcMainEngine.gameMap.npcById;
 					gameMapSideLength = CalcMainEngine.gameMap.grid.sideLength;
 
 					characterPlayer1.camera.r = gameMap.position.r;
@@ -1472,11 +1468,11 @@ class CalcMainEngine {
 					characterNPCPathById.clear();
 					characterNPCStates.clear();
 					gameMapNPCDead.clear();
-					gameMapNPCIdByGridIndex.clear();
+					gameMapNPCByGridIndex.clear();
 					gameMapNPCShootAt.clear();
-					for (characterNPC of gameMapNPC.values()) {
+					for (characterNPC of gameMapNPCById.values()) {
 						characterNPC.timestampUnixState = timestampUnixEff;
-						gameMapNPCIdByGridIndex.set(characterNPC.id, characterNPC.gridIndex);
+						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
 						if (characterNPC.walking === true) {
 							characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
@@ -1851,7 +1847,7 @@ class CalcMainEngine {
 					 * NPC
 					 */
 					if (pause !== true) {
-						if (gameMapNPC.size !== 0) {
+						if (gameMapNPCById.size !== 0) {
 							if (settingsPlayer2Enable === true) {
 								characterPlayers = characterPlayerMulti;
 							} else {
@@ -1859,9 +1855,9 @@ class CalcMainEngine {
 							}
 
 							// Calc: Angle, Distance, and Line-of-Sight state
-							GamingCanvasGridCharacterLook(characterPlayers, gameMapNPC.values(), gameMapGrid, gameMapLookBlocking);
+							GamingCanvasGridCharacterLook(characterPlayers, gameMapNPCById.values(), gameMapGrid, gameMapLookBlocking);
 
-							for (characterNPC of gameMapNPC.values()) {
+							for (characterNPC of gameMapNPCById.values()) {
 								if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
 									// Dead men tell no tales
 									continue;
@@ -1877,9 +1873,6 @@ class CalcMainEngine {
 								characterNPCDistance = GamingCanvasConstIntegerMaxSafe;
 								characterPlayerId = -100;
 								for (characterPlayer of characterPlayers) {
-									if (characterNPC.seenLOS.get(characterPlayer.id) === true) {
-										console.log('seen', characterPlayer.id);
-									}
 									if (
 										characterPlayer.health > 0 &&
 										characterNPC.seenLOS.get(characterPlayer.id) === true &&
@@ -2023,21 +2016,21 @@ class CalcMainEngine {
 										// console.log(AssetIdImgCharacter[characterNPC.assetId], cameraInstance.r);
 
 										// Move
-										// characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
-										// gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
-										// characterNPCInputChanged = GamingCanvasGridCharacterControl(
-										// 	characterNPC,
-										// 	characterNPCInput,
-										// 	gameMapGrid,
-										// 	gameMapControlNPCBlocking,
-										// 	{
-										// 		clip: true,
-										// 		factorPosition: characterNPC.runningSpeed,
-										// 		factorRotation: 0.00225,
-										// 		style: GamingCanvasGridCharacterControlStyle.FIXED,
-										// 	},
-										// );
-										// gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
+										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
+										gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+										characterNPCInputChanged = GamingCanvasGridCharacterControl(
+											characterNPC,
+											characterNPCInput,
+											gameMapGrid,
+											gameMapControlNPCBlocking,
+											{
+												clip: true,
+												factorPosition: characterNPC.runningSpeed,
+												factorRotation: 0.00225,
+												style: GamingCanvasGridCharacterControlStyle.FIXED,
+											},
+										);
+										gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
 										if (characterNPCDistance !== GamingCanvasConstIntegerMaxSafe) {
 											if (timestampUnix - characterNPC.timestampUnixState > 1000) {
@@ -2146,7 +2139,7 @@ class CalcMainEngine {
 									case CharacterNPCState.WALKING:
 										// Move
 										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
-										gameMapNPCIdByGridIndex.delete(characterNPC.gridIndex);
+										gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
 										characterNPCInputChanged = GamingCanvasGridCharacterControl(
 											characterNPC,
 											characterNPCInput,
@@ -2159,7 +2152,7 @@ class CalcMainEngine {
 												style: GamingCanvasGridCharacterControlStyle.FIXED,
 											},
 										);
-										gameMapNPCIdByGridIndex.set(characterNPC.gridIndex, characterNPC.id);
+										gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
 										// Position
 										gameMapGridDataCell = gameMapGridData[characterNPC.gridIndex];
@@ -2424,7 +2417,7 @@ class CalcMainEngine {
 				characterPlayer1.timestampPrevious = timestampNow;
 				characterPlayer2.timestampPrevious = timestampNow;
 
-				for (characterNPC of gameMapNPC.values()) {
+				for (characterNPC of gameMapNPCById.values()) {
 					characterNPC.timestampPrevious = timestampNow;
 				}
 
@@ -2637,7 +2630,7 @@ class CalcMainEngine {
 					characterNPCUpdates.length = 0;
 
 					for (characterNPCId of characterNPCUpdated) {
-						characterNPC = <CharacterNPC>gameMapNPC.get(characterNPCId);
+						characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 						if (characterNPC === undefined) {
 							continue;

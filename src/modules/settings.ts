@@ -36,7 +36,7 @@ export class Settings {
 			audioNoAction: false,
 			audioWallCollisions: false,
 			debug: Game.settingDebug,
-			difficulty: GameDifficulty.EASY,
+			difficulty: GameDifficulty.INSANE,
 			fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,

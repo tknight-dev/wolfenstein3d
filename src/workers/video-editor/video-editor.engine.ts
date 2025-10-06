@@ -333,8 +333,10 @@ class VideoEditorEngine {
 			characterPlayer2YEff: number,
 			gameMapGridData: Uint16Array = VideoEditorEngine.gameMap.grid.data,
 			gameMapGridSideLength: number = VideoEditorEngine.gameMap.grid.sideLength,
-			gameMapNPCs: Map<number, CharacterNPC> = VideoEditorEngine.gameMap.npc,
-			gameMapNPCsById: Map<number, CharacterNPC> = new Map(),
+			gameMapNPC: CharacterNPC,
+			gameMapNPCId: number,
+			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
+			gameMapNPCById: Map<number, CharacterNPC> = VideoEditorEngine.gameMap.npcById,
 			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
 			offscreenCanvasInstance: OffscreenCanvas,
@@ -349,6 +351,7 @@ class VideoEditorEngine {
 			renderCellOutlineOffset: number,
 			renderCellOutlineWidth: number,
 			report: GamingCanvasReport = VideoEditorEngine.report,
+			settingsDebug: boolean = VideoEditorEngine.settings.debug,
 			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
@@ -360,10 +363,6 @@ class VideoEditorEngine {
 			value: number,
 			x: number,
 			y: number;
-
-		for (characterNPC of gameMapNPCs.values()) {
-			gameMapNPCsById.set(characterNPC.id, characterNPC);
-		}
 
 		// Warm cache
 		for (assetId of assetImages.keys()) {
@@ -416,12 +415,7 @@ class VideoEditorEngine {
 
 						gameMapGridData = VideoEditorEngine.gameMap.grid.data;
 						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
-						gameMapNPCs = VideoEditorEngine.gameMap.npc;
-
-						gameMapNPCsById.clear();
-						for (characterNPC of gameMapNPCs.values()) {
-							gameMapNPCsById.set(characterNPC.id, characterNPC);
-						}
+						gameMapNPCById = VideoEditorEngine.gameMap.npcById;
 					}
 
 					if (VideoEditorEngine.npcUpdateNew === true) {
@@ -430,20 +424,20 @@ class VideoEditorEngine {
 						for (characterNPCUpdateEncoded of VideoEditorEngine.npcUpdate) {
 							// Reference
 							characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
-							characterNPC = <CharacterNPC>gameMapNPCsById.get(characterNPCId);
+							characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 							if (characterNPC === undefined) {
 								continue;
 							}
 
 							// Prepare
-							gameMapNPCs.delete(characterNPC.gridIndex);
+							gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
 
 							// Update
 							CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
 
 							// Apply
-							gameMapNPCs.set(characterNPC.gridIndex, characterNPC);
+							gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 						}
 					}
 
@@ -503,6 +497,7 @@ class VideoEditorEngine {
 						}
 
 						// Settings
+						settingsDebug = VideoEditorEngine.settings.debug;
 						settingsGridDraw = VideoEditorEngine.settings.gridDraw;
 						settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
 						settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
@@ -656,7 +651,7 @@ class VideoEditorEngine {
 								}
 
 								// Character
-								characterNPC = gameMapNPCs.get(i);
+								characterNPC = gameMapNPCByGridIndex.get(i);
 								if (characterNPC !== undefined) {
 									offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
 									offscreenCanvasContext.drawImage(
@@ -792,17 +787,25 @@ class VideoEditorEngine {
 					// }
 
 					// Draw NPC Path
-					if (pathByNPCId !== undefined) {
-						for (path of pathByNPCId.values()) {
+					if (settingsDebug === true && pathByNPCId !== undefined) {
+						for ([gameMapNPCId, path] of pathByNPCId.entries()) {
 							if (path.length === 0) {
 								continue;
 							}
+							gameMapNPC = <CharacterNPC>gameMapNPCById.get(gameMapNPCId);
+
+							if (gameMapNPC.assetId === AssetIdImgCharacter.CORPSE) {
+								offscreenCanvasContext.fillStyle = 'rgba(255, 0, 0, 0.5)';
+								offscreenCanvasContext.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+							} else {
+								offscreenCanvasContext.fillStyle = 'rgba(255, 255, 0, 0.5)';
+								offscreenCanvasContext.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+							}
 
 							offscreenCanvasContext.lineWidth = calculationsViewportCellSizePx / 5;
-							offscreenCanvasContext.strokeStyle = 'rgba(255, 255, 0, 0.5)';
 							offscreenCanvasContext.beginPath();
 
-							for (i = 0; i < path.length; i++) {
+							for (i = 1; i < path.length; i++) {
 								characterNPCGridIndex = path[i];
 								y = characterNPCGridIndex % gameMapGridSideLength;
 								x = (characterNPCGridIndex - y) / gameMapGridSideLength;
@@ -819,8 +822,17 @@ class VideoEditorEngine {
 									);
 								}
 							}
-
 							offscreenCanvasContext.stroke();
+
+							offscreenCanvasContext.beginPath();
+							offscreenCanvasContext.arc(
+								(x - calculationsViewportWidthStart + 0.5) * calculationsViewportCellSizePx,
+								(y - calculationsViewportHeightStart + 0.5) * calculationsViewportCellSizePx,
+								calculationsViewportCellSizePx / 4,
+								0,
+								GamingCanvasConstPI_2_000,
+							);
+							offscreenCanvasContext.fill();
 						}
 					}
 

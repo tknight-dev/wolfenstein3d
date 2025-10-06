@@ -220,17 +220,17 @@ export class Game {
 
 			setTimeout(() => {
 				// Convert map
-				let npc: Map<number, CharacterNPC> = Game.map.npc;
-				Game.map.npc = <any>{};
-				for (let [i, value] of npc.entries()) {
-					(<any>Game.map.npc)[String(i)] = value;
+				let npcById: Map<number, CharacterNPC> = Game.map.npcById;
+				Game.map.npcById = <any>{};
+				for (let [i, value] of npcById.entries()) {
+					(<any>Game.map.npcById)[String(i)] = value;
 				}
 
 				const a: HTMLAnchorElement = document.createElement('a'),
 					downloadData = 'data:text/json;charset=utf-8,' + btoa(JSON.stringify(Game.map));
 
 				// Restore map
-				Game.map.npc = npc;
+				Game.map.npcById = npcById;
 
 				a.classList.add('hidden');
 				a.download = 'blockenstein.map';
@@ -424,17 +424,17 @@ export class Game {
 
 		DOM.elEditorCommandResetMap.onclick = () => {
 			// Convert map
-			let npc: Map<number, CharacterNPC> = Game.mapBackup.npc;
-			Game.mapBackup.npc = <any>{};
-			for (let [i, value] of npc.entries()) {
-				(<any>Game.mapBackup.npc)[String(i)] = value;
+			let npcById: Map<number, CharacterNPC> = Game.mapBackup.npcById;
+			Game.mapBackup.npcById = <any>{};
+			for (let [i, value] of npcById.entries()) {
+				(<any>Game.mapBackup.npcById)[String(i)] = value;
 			}
 
 			const parsed: GameMap = Assets.parseMap(JSON.parse(JSON.stringify(Game.mapBackup)));
 
 			// Restore map
 			Game.gameOver = false;
-			Game.mapBackup.npc = npc;
+			Game.mapBackup.npcById = npcById;
 
 			Game.camera.r = parsed.position.r;
 			Game.camera.x = parsed.position.x + 0.5;
@@ -1163,7 +1163,7 @@ export class Game {
 
 			if (erase === true) {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
-					map.npc.delete(cooridnate.x * map.grid.sideLength + cooridnate.y);
+					map.npcById.delete(cooridnate.x * map.grid.sideLength + cooridnate.y);
 				} else {
 					map.grid.setBasic(cooridnate, 0);
 				}
@@ -1188,7 +1188,7 @@ export class Game {
 							break;
 					}
 
-					map.npc.set(id, {
+					map.npcById.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
@@ -1226,7 +1226,7 @@ export class Game {
 			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
-				const characterNPC: CharacterNPC | undefined = map.npc.get(coordinate.x * map.grid.sideLength + coordinate.y);
+				const characterNPC: CharacterNPC | undefined = map.npcById.get(coordinate.x * map.grid.sideLength + coordinate.y);
 
 				if (characterNPC === undefined) {
 					DOM.elEditorSectionObjects.click();
