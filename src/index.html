@@ -319,7 +319,10 @@
 									<tbody>
 										<tr>
 											<td>Volume</td>
-											<td><input autocomplete="off" id="settings-value-audio-volume" max="1" min="0" step="0.05" type="range" /></td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-audio-volume" max="1" min="0" step="0.05" type="range" />
+												<input autocomplete="off" id="settings-value-audio-volume-readout" disabled readonly />
+											</td>
 										</tr>
 										<tr>
 											<td></td>
@@ -327,11 +330,17 @@
 										</tr>
 										<tr>
 											<td>Effect Volume</td>
-											<td><input autocomplete="off" id="settings-value-audio-volume-effect" max="1" min="0" step="0.05" type="range" /></td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-audio-volume-effect" max="1" min="0" step="0.05" type="range" />
+												<input autocomplete="off" id="settings-value-audio-volume-effect-readout" disabled readonly />
+											</td>
 										</tr>
 										<tr>
 											<td>Music Volume</td>
-											<td><input autocomplete="off" id="settings-value-audio-volume-music" max="1" min="0" step="0.05" type="range" /></td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-audio-volume-music" max="1" min="0" step="0.05" type="range" />
+												<input autocomplete="off" id="settings-value-audio-volume-music-readout" disabled readonly />
+											</td>
 										</tr>
 										<tr>
 											<td>No Action Sound</td>
@@ -414,7 +423,10 @@
 										</tr>
 										<tr>
 											<td>FOV</td>
-											<td><input autocomplete="off" id="settings-value-graphics-fov" min="30" max="120" step="1" type="range" /></td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-graphics-fov" min="30" max="120" step="1" type="range" />
+												<input autocomplete="off" id="settings-value-graphics-fov-readout" disabled readonly />
+											</td>
 										</tr>
 										<tr>
 											<td>FPS: Show</td>
@@ -422,7 +434,10 @@
 										</tr>
 										<tr>
 											<td>Gamma Correction</td>
-											<td><input autocomplete="off" id="settings-value-graphics-gamma" min="0" max="2" step="0.1" type="range" /></td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-graphics-gamma" min="0" max="2" step="0.1" type="range" />
+												<input autocomplete="off" id="settings-value-graphics-gamma-readout" disabled readonly />
+											</td>
 										</tr>
 										<tr>
 											<td>Grayscale</td>

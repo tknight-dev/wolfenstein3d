@@ -711,12 +711,16 @@ export class Game {
 		};
 		DOM.elSettingsValueAudioVolume.oninput = () => {
 			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolume.value), GamingCanvasAudioType.ALL);
+			DOM.elSettingsValueAudioVolumeReadout.value = (Number(DOM.elSettingsValueAudioVolume.value) * 100).toFixed(0) + '%';
 		};
 		DOM.elSettingsValueAudioVolumeEffect.oninput = () => {
 			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeEffect.value), GamingCanvasAudioType.EFFECT);
+			DOM.elSettingsValueAudioVolumeEffectReadout.value = (Number(DOM.elSettingsValueAudioVolumeEffect.value) * 100).toFixed(0) + '%';
+			console.log('B', DOM.elSettingsValueAudioVolumeEffectReadout.value);
 		};
 		DOM.elSettingsValueAudioVolumeMusic.oninput = () => {
 			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeMusic.value), GamingCanvasAudioType.MUSIC);
+			DOM.elSettingsValueAudioVolumeMusicReadout.value = (Number(DOM.elSettingsValueAudioVolumeMusic.value) * 100).toFixed(0) + '%';
 		};
 
 		DOM.elSettingsSubEditor.onclick = () => {

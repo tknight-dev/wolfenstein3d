@@ -135,8 +135,13 @@ export class DOM {
 	public static elSettingsSubGame: HTMLElement;
 	public static elSettingsSubGraphics: HTMLElement;
 	public static elSettingsValueAudioVolume: HTMLInputElement;
+	public static elSettingsValueAudioVolumeReadout: HTMLInputElement;
 	public static elSettingsValueAudioVolumeEffect: HTMLInputElement;
+	public static elSettingsValueAudioVolumeEffectReadout: HTMLInputElement;
+	public static elSettingsValueAudioVolumeEffect2: HTMLInputElement;
+	public static elSettingsValueAudioVolumeEffect2Readout: HTMLInputElement;
 	public static elSettingsValueAudioVolumeMusic: HTMLInputElement;
+	public static elSettingsValueAudioVolumeMusicReadout: HTMLInputElement;
 	public static elSettingsValueAudioNoAction: HTMLInputElement;
 	public static elSettingsValueAudioWallCollisions: HTMLInputElement;
 	public static elSettingsValueEditorDrawGrid: HTMLInputElement;
@@ -147,9 +152,11 @@ export class DOM {
 	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
 	public static elSettingsValueGraphicsFOV: HTMLInputElement;
+	public static elSettingsValueGraphicsFOVReadout: HTMLInputElement;
 	public static elSettingsValueGraphicsFPS: HTMLInputElement;
 	public static elSettingsValueGraphicsFPSShow: HTMLInputElement;
 	public static elSettingsValueGraphicsGamma: HTMLInputElement;
+	public static elSettingsValueGraphicsGammaReadout: HTMLInputElement;
 	public static elSettingsValueGraphicsGrayscale: HTMLInputElement;
 	public static elSettingsValueGraphicsLightingQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsRaycastQuality: HTMLInputElement;
@@ -378,8 +385,14 @@ export class DOM {
 		DOM.elSettingsSubGraphics = <HTMLElement>document.getElementById('settings-sub-graphics');
 
 		DOM.elSettingsValueAudioVolume = <HTMLInputElement>document.getElementById('settings-value-audio-volume');
+		DOM.elSettingsValueAudioVolumeReadout = <HTMLInputElement>document.getElementById('settings-value-audio-volume-readout');
+
 		DOM.elSettingsValueAudioVolumeEffect = <HTMLInputElement>document.getElementById('settings-value-audio-volume-effect');
+		DOM.elSettingsValueAudioVolumeEffectReadout = <HTMLInputElement>document.getElementById('settings-value-audio-volume-effect-readout');
+
 		DOM.elSettingsValueAudioVolumeMusic = <HTMLInputElement>document.getElementById('settings-value-audio-volume-music');
+		DOM.elSettingsValueAudioVolumeMusicReadout = <HTMLInputElement>document.getElementById('settings-value-audio-volume-music-readout');
+
 		DOM.elSettingsValueAudioNoAction = <HTMLInputElement>document.getElementById('settings-value-audio-no-action');
 		DOM.elSettingsValueAudioWallCollisions = <HTMLInputElement>document.getElementById('settings-value-audio-wall-collision');
 		DOM.elSettingsValueEditorDrawGrid = <HTMLInputElement>document.getElementById('settings-value-editor-cell-draw-grid');
@@ -389,10 +402,22 @@ export class DOM {
 		DOM.elSettingsValueGamePlayer1InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player1-input');
 		DOM.elSettingsValueGraphicsAntialias = <HTMLInputElement>document.getElementById('settings-value-graphics-antialias');
 		DOM.elSettingsValueGraphicsDPI = <HTMLInputElement>document.getElementById('settings-value-graphics-dpi');
+
 		DOM.elSettingsValueGraphicsFOV = <HTMLInputElement>document.getElementById('settings-value-graphics-fov');
+		DOM.elSettingsValueGraphicsFOV.oninput = () => {
+			DOM.elSettingsValueGraphicsFOVReadout.value = DOM.elSettingsValueGraphicsFOV.value + '°';
+		};
+		DOM.elSettingsValueGraphicsFOVReadout = <HTMLInputElement>document.getElementById('settings-value-graphics-fov-readout');
+
 		DOM.elSettingsValueGraphicsFPS = <HTMLInputElement>document.getElementById('settings-value-graphics-fps');
 		DOM.elSettingsValueGraphicsFPSShow = <HTMLInputElement>document.getElementById('settings-value-graphics-fps-show');
+
 		DOM.elSettingsValueGraphicsGamma = <HTMLInputElement>document.getElementById('settings-value-graphics-gamma');
+		DOM.elSettingsValueGraphicsGamma.oninput = () => {
+			DOM.elSettingsValueGraphicsGammaReadout.value = (Number(DOM.elSettingsValueGraphicsGamma.value) - 1).toFixed(1).padStart(4, ' ');
+		};
+		DOM.elSettingsValueGraphicsGammaReadout = <HTMLInputElement>document.getElementById('settings-value-graphics-gamma-readout');
+
 		DOM.elSettingsValueGraphicsGrayscale = <HTMLInputElement>document.getElementById('settings-value-graphics-grayscale');
 		DOM.elSettingsValueGraphicsLightingQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-lighting');
 		DOM.elSettingsValueGraphicsRaycastQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-raycast-quality');

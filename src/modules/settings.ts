@@ -261,8 +261,11 @@ export class Settings {
 			VideoOverlayBus.outputSettings(Game.settingsVideoMain);
 		} else {
 			DOM.elSettingsValueAudioVolume.value = String(Game.settingAudioVolume);
+			DOM.elSettingsValueAudioVolumeReadout.value = (Number(DOM.elSettingsValueAudioVolume.value) * 100).toFixed(0) + '%';
 			DOM.elSettingsValueAudioVolumeEffect.value = String(Game.settingAudioVolumeEffect);
+			DOM.elSettingsValueAudioVolumeEffectReadout.value = (Number(DOM.elSettingsValueAudioVolumeEffect.value) * 100).toFixed(0) + '%';
 			DOM.elSettingsValueAudioVolumeMusic.value = String(Game.settingAudioVolumeMusic);
+			DOM.elSettingsValueAudioVolumeMusicReadout.value = (Number(DOM.elSettingsValueAudioVolumeMusic.value) * 100).toFixed(0) + '%';
 			DOM.elSettingsValueAudioNoAction.checked = Game.settingsCalcMain.audioNoAction;
 			DOM.elSettingsValueAudioWallCollisions.checked = Game.settingsCalcMain.audioWallCollisions;
 			DOM.elSettingsValueEditorDrawGrid.checked = Game.settingsVideoEditor.gridDraw;
@@ -273,9 +276,12 @@ export class Settings {
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settingsVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
 			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalcMain.fov * 180) / GamingCanvasConstPI_1_000);
+			DOM.elSettingsValueGraphicsFOVReadout.value = DOM.elSettingsValueGraphicsFOV.value + '°';
+			DOM.elSettingsValueGraphicsFOVReadout.value = DOM.elSettingsValueGraphicsFOV.value + '°';
 			DOM.elSettingsValueGraphicsFPS.value = String(Game.settingsCalcMain.fps);
 			DOM.elSettingsValueGraphicsFPSShow.checked = Game.settingGraphicsFPSDisplay;
 			DOM.elSettingsValueGraphicsGamma.value = String(Game.settingsVideoMain.gamma);
+			DOM.elSettingsValueGraphicsGammaReadout.value = (Number(DOM.elSettingsValueGraphicsGamma.value) - 1).toFixed(1).padStart(4, ' ');
 			DOM.elSettingsValueGraphicsGrayscale.checked = Game.settingsVideoMain.grayscale;
 			DOM.elSettingsValueGraphicsLightingQuality.value = String(Game.settingsVideoMain.lightingQuality);
 			DOM.elSettingsValueGraphicsRaycastQuality.value = String(Game.settingsVideoMain.raycastQuality);

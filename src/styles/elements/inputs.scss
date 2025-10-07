@@ -85,6 +85,10 @@ input[type='radio'] {
 	width: calc(var(--global-input-height) / 1.5);
 }
 
+input[type='range'] {
+	cursor: pointer;
+}
+
 .input-toggle {
 	background-color: rgba(0, 0, 0, 0.3);
 	border: 2px solid rgba(var(--global-color-menu-border-rgb), 0.5);

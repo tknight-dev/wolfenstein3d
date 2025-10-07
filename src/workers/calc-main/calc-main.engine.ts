@@ -591,10 +591,6 @@ class CalcMainEngine {
 			y: 0,
 		});
 
-		setTimeout(() => {
-			reportOrientationForce = false;
-		}, 1000);
-
 		const actionDoor = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number) => {
 			let state: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex),
 				durationEff: number;
@@ -2456,6 +2452,7 @@ class CalcMainEngine {
 				cameraUpdated = false;
 				characterPlayer1.timestampPrevious = timestampNow;
 				characterPlayer2.timestampPrevious = timestampNow;
+				reportOrientationForce = false;
 
 				for (characterNPC of gameMapNPCById.values()) {
 					characterNPC.timestampPrevious = timestampNow;
