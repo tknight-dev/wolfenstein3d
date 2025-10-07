@@ -9,21 +9,8 @@ import {
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
-import {
-	Character,
-	CharacterNPC,
-	CharacterNPCUpdate,
-	CharacterNPCUpdateDecodeAndApply,
-	CharacterNPCUpdateDecodeId,
-	CharacterWeapon,
-} from '../../models/character.model.js';
-import {
-	GamingCanvasGridCamera,
-	GamingCanvasGridICamera,
-	GamingCanvasGridRaycastTestImageCreate,
-	GamingCanvasGridUint16Array,
-	GamingCanvasGridViewport,
-} from '@tknight-dev/gaming-canvas/grid';
+import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
+import { GamingCanvasGridCamera, GamingCanvasGridRaycastTestImageCreate, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 import {
 	AssetIdImg,
 	AssetIdImgCharacter,
@@ -319,13 +306,10 @@ class VideoEditorEngine {
 			cacheCanvasImagesContext: Map<AssetIdImg, OffscreenCanvasRenderingContext2D> = new Map(),
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheCellSizePx: number = -1,
-			camera: GamingCanvasGridCamera,
 			characterNPC: CharacterNPC | undefined,
 			characterNPCGridIndex: number,
 			characterNPCId: number,
-			characterNPCUpdate: CharacterNPCUpdate = <any>{},
 			characterNPCUpdateEncoded: Float32Array,
-			characterPlayer: GamingCanvasGridCamera,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
 			characterPlayer1XEff: number,
 			characterPlayer1YEff: number,

@@ -31,7 +31,7 @@ import {
 	CalcMainBusPlayerDeadFallDurationInMS,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
-import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
+import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -60,7 +60,6 @@ import {
 import {
 	GamingCanvasGridCamera,
 	GamingCanvasGridInputOverlaySnapPxTopLeft,
-	GamingCanvasGridUint16Array,
 	GamingCanvasGridViewport,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridInputToCoordinate,
@@ -131,8 +130,6 @@ export class Game {
 	public static viewport: GamingCanvasGridViewport;
 
 	private static cellApply(): void {
-		let element: HTMLInputElement;
-
 		Game.editorCellValue = Game.editorAssetIdImg;
 
 		DOM.elEditorPropertiesCellInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);

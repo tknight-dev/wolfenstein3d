@@ -7,11 +7,9 @@ import {
 	AssetIdImgMenu,
 	AssetImgCategory,
 	AssetPropertiesAudio,
-	AssetPropertiesCharacter,
 	AssetPropertiesImage,
 	assetsImages,
 	assetsImageCharacters,
-	assetsImageMenus,
 } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 

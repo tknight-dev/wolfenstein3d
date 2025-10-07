@@ -20,7 +20,6 @@ export enum VideoMainBusInputCmd {
 	INIT,
 	MAP,
 	MAP_UPDATE,
-	MODE_EDIT,
 	NPC_UPDATE,
 	PAUSE,
 	PLAYER_DEAD,

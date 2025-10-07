@@ -14,6 +14,8 @@ import { GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 import { AssetIdAudio, AssetPropertiesAudio, assetsAudio, initializeAssetManager } from './asset-manager.js';
 import { VideoOverlayBus } from './workers/video-overlay/video-overlay.bus.js';
 import { VideoOverlayBusOutputDataStats } from './workers/video-overlay/video-overlay.model.js';
+import { CalcPathBusOutputDataStats } from './workers/calc-path/calc-path.model.js';
+import { CalcMainBusOutputDataStats } from './workers/calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -34,14 +36,16 @@ class Blockenstein {
 		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
 	}
 
-	private static initializeWorkerCallbacks(): void {
+	private static initializeStatCallbacks(): void {
 		/**
-		 * Calc
+		 * Calc: Main
 		 */
+		CalcMainBus.setCallbackStats((stats: CalcMainBusOutputDataStats) => {});
 
 		/**
-		 * GamingCanvas
+		 * Calc: Path
 		 */
+		CalcPathBus.setCallbackStats((stats: CalcPathBusOutputDataStats) => {});
 
 		/**
 		 * Video: Editor
@@ -174,7 +178,7 @@ class Blockenstein {
 			/**
 			 * WebWorkers
 			 */
-			Blockenstein.initializeWorkerCallbacks();
+			Blockenstein.initializeStatCallbacks();
 			await Blockenstein.initializeWorkers();
 
 			/**

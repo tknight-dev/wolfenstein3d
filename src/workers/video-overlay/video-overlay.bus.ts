@@ -1,5 +1,4 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
 import {
 	VideoOverlayBusInputCmd,
 	VideoOverlayBusInputDataInit,
@@ -8,7 +7,6 @@ import {
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
-import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev

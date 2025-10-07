@@ -555,7 +555,6 @@ class VideoMainEngine {
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
 			renderBrightness: number,
 			renderCharacterNPC: CharacterNPC | undefined,
-			renderCharacterNPCId: number,
 			renderCharacterNPCState: number,
 			renderDead: boolean = VideoMainEngine.dead,
 			renderDeadTimerId: number = VideoMainEngine.deadTimerId,
@@ -943,7 +942,7 @@ class VideoMainEngine {
 				offscreenCanvasContext.filter = renderFilter;
 
 				// Render: Backgrounds
-				if (renderLightingQuality >= LightingQuality.FULL) {
+				if (renderLightingQuality === LightingQuality.FULL) {
 					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx * renderTilt);
 				} else {
 					// Ceiling
