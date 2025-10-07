@@ -26,7 +26,6 @@ export class Settings {
 		Game.settingGraphicsFPSDisplay = true; // def: true
 		Game.settingGamePlayer1InputDevice = InputDevice.KEYBOARD; // def: KEYBOARD
 		Game.settingGraphicsResolution = GamingCanvas.isMobileOrTablet() ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
-		// Game.settingGraphicsResolution = 320;
 		Game.settingIntro = true;
 
 		/**
@@ -36,7 +35,7 @@ export class Settings {
 			audioNoAction: false,
 			audioWallCollisions: false,
 			debug: Game.settingDebug,
-			difficulty: GameDifficulty.INSANE,
+			difficulty: GameDifficulty.NORMAL,
 			fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
 			fps: FPS._60,
 			player2Enable: false,

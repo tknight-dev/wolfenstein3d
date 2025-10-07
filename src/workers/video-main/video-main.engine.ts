@@ -576,6 +576,7 @@ class VideoMainEngine {
 			renderHeightFactor: number,
 			renderHeightOffset: number,
 			renderLightingQuality: LightingQuality,
+			renderModeEdit: boolean | undefined,
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 			renderRayIndex: number,
 			renderSkip: boolean,
@@ -710,6 +711,8 @@ class VideoMainEngine {
 						calculationsCameraAltGridIndex =
 							(calculationsCameraAlt.x | 0) * VideoMainEngine.gameMap.grid.sideLength + (calculationsCameraAlt.y | 0);
 					}
+
+					renderModeEdit = VideoMainEngine.calculations.edit;
 				}
 
 				if (VideoMainEngine.dead !== renderDead) {
@@ -1595,51 +1598,59 @@ class VideoMainEngine {
 				}
 
 				// Weapon
-				renderWeaponFire = false;
-				switch (renderWeapon) {
-					case CharacterWeapon.KNIFE:
-						asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderImageTest;
-						break;
-					case CharacterWeapon.MACHINE_GUN:
-						asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+				if (renderModeEdit !== true) {
+					renderWeaponFire = false;
+					switch (renderWeapon) {
+						case CharacterWeapon.KNIFE:
+							asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderImageTest;
+							break;
+						case CharacterWeapon.MACHINE_GUN:
+							asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
 
-						if (VideoMainEngine.weaponFrame === 2 || VideoMainEngine.weaponFrame === 3) {
-							renderWeaponFire = true;
-						}
-						break;
-					case CharacterWeapon.PISTOL:
-						asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderImageTest;
-						if (VideoMainEngine.weaponFrame === 2) {
-							renderWeaponFire = true;
-						}
-						break;
-					case CharacterWeapon.SUB_MACHINE_GUN:
-						asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
-						if (VideoMainEngine.weaponFrame === 2) {
-							renderWeaponFire = true;
-						}
-						break;
-				}
-
-				// Render: Lighting
-				if (renderLightingQuality !== LightingQuality.NONE) {
-					renderBrightness = 0;
-
-					if (renderWeaponFire === true) {
-						renderBrightness = 0.1;
-					} else if ((gameMapGridData[calculationsCameraGridIndex] & GameGridCellMasksAndValues.LIGHT) !== 0) {
-						renderBrightness = 0;
-					} else {
-						renderBrightness = -0.1;
+							if (VideoMainEngine.weaponFrame === 2 || VideoMainEngine.weaponFrame === 3) {
+								renderWeaponFire = true;
+							}
+							break;
+						case CharacterWeapon.PISTOL:
+							asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderImageTest;
+							if (VideoMainEngine.weaponFrame === 2) {
+								renderWeaponFire = true;
+							}
+							break;
+						case CharacterWeapon.SUB_MACHINE_GUN:
+							asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+							if (VideoMainEngine.weaponFrame === 2) {
+								renderWeaponFire = true;
+							}
+							break;
 					}
 
-					// Filter: End
-					offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
-				} else {
-					offscreenCanvasContext.filter = renderFilter;
-				}
+					// Render: Lighting
+					if (renderLightingQuality !== LightingQuality.NONE) {
+						renderBrightness = 0;
 
-				offscreenCanvasContext.drawImage(asset, renderWeaponWidthOffset, renderWeaponHeightOffset, renderWeaponWidth, renderWeaponHeight * renderTilt);
+						if (renderWeaponFire === true) {
+							renderBrightness = 0.1;
+						} else if ((gameMapGridData[calculationsCameraGridIndex] & GameGridCellMasksAndValues.LIGHT) !== 0) {
+							renderBrightness = 0;
+						} else {
+							renderBrightness = -0.1;
+						}
+
+						// Filter: End
+						offscreenCanvasContext.filter = `brightness(${Math.max(0, Math.min(2, renderGamma + renderBrightness))}) ${renderGrayscale === true ? renderGrayscaleFilter : ''}`;
+					} else {
+						offscreenCanvasContext.filter = renderFilter;
+					}
+
+					offscreenCanvasContext.drawImage(
+						asset,
+						renderWeaponWidthOffset,
+						renderWeaponHeightOffset,
+						renderWeaponWidth,
+						renderWeaponHeight * renderTilt,
+					);
+				}
 			}
 
 			// Stats: sent once per second
