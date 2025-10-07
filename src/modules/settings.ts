@@ -150,6 +150,7 @@ export class Settings {
 			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
 			inputMouseEnable: true,
+			inputTouchEnable: true,
 			orientationCanvasRotateEnable: false,
 			renderStyle: Game.settingsVideoEditor.antialias === true ? GamingCanvasRenderStyle.ANTIALIAS : GamingCanvasRenderStyle.PIXELATED,
 			resolutionWidthPx: Game.settingGraphicsResolution,

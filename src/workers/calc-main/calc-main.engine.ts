@@ -1434,7 +1434,6 @@ class CalcMainEngine {
 				cycleCount++;
 				cameraUpdated = false;
 				characterPlayer1.timestamp = timestampNow;
-				characterPlayerChanged[0];
 				characterPlayerChanged[0] = false;
 
 				characterPlayer2.timestamp = timestampNow;
