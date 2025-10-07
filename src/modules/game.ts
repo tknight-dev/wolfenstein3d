@@ -53,6 +53,7 @@ import {
 	GamingCanvasInputPositionClone,
 	GamingCanvasInputPositionDistance,
 	GamingCanvasInputPositionOverlay,
+	GamingCanvasInputPositionsClone,
 	GamingCanvasInputTouch,
 	GamingCanvasInputTouchAction,
 	GamingCanvasInputType,
@@ -276,11 +277,20 @@ export class Game {
 
 				DOM.elButtonMove.click();
 				Game.editorHide = true;
+
+				DOM.elEditor.style.display = 'none';
+				DOM.elEditorProperties.style.display = 'none';
 			} else {
 				DOM.elButtonEye.classList.add('active');
 				DOM.elCanvases[4].classList.remove('hide');
 
 				Game.editorHide = false;
+
+				DOM.elPlayerJoystick1.classList.remove('show');
+				DOM.elPlayerJoystick2.classList.remove('show');
+
+				DOM.elEditor.style.display = 'flex';
+				DOM.elEditorProperties.style.display = 'flex';
 			}
 		};
 
@@ -878,15 +888,32 @@ export class Game {
 			player1: boolean,
 			position1: GamingCanvasInputPosition,
 			position2: GamingCanvasInputPosition,
-			positions: GamingCanvasInputPosition[] | undefined,
+			positions: GamingCanvasInputPosition[],
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
 			queueInput: GamingCanvasInput | undefined,
 			queueInputOverlay: GamingCanvasInputPosition,
+			queueInputOverlays: GamingCanvasInputPosition[],
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
 			touchAdded: boolean,
 			touchDistancePrevious: number,
 			touchDistance: number,
+			touchJoystickDeadBand: number = 0.1,
+			touchJoystickSize: number = 100,
+			touchJoystickSizeHalf: number = touchJoystickSize / 2,
+			touchJoystickSizeQuarter: number = touchJoystickSize / 4,
+			touchJoystick1Show: boolean,
+			touchJoystick1TimestampHide: number,
+			touchJoystick1TimestampShow: number,
+			touchJoystick1X: number,
+			touchJoystick1XThumb: number,
+			touchJoystick1Y: number,
+			touchJoystick1YThumb: number,
+			touchJoystick2Show: boolean,
+			touchJoystick2X: number,
+			touchJoystick2XThumb: number,
+			touchJoystick2Y: number,
+			touchJoystick2YThumb: number,
 			updated: boolean,
 			updatedR: boolean,
 			viewport: GamingCanvasGridViewport = Game.viewport,
@@ -1454,8 +1481,9 @@ export class Game {
 							processorMouse(queueInput, queueInputOverlay);
 							break;
 						case GamingCanvasInputType.TOUCH:
+							queueInputOverlays = GamingCanvasInputPositionsClone(queueInput.propriatary.positions);
 							GamingCanvas.relativizeInputToCanvas(queueInput);
-							processorTouch(queueInput);
+							processorTouch(queueInput, queueInputOverlays);
 							break;
 					}
 				}
@@ -1790,102 +1818,213 @@ export class Game {
 			}
 		};
 
-		const processorTouch = (input: GamingCanvasInputTouch) => {
+		const processorTouch = (input: GamingCanvasInputTouch, inputOverlayPositions: GamingCanvasInputPosition[]) => {
 			elEditStyle.display = 'none';
 			positions = input.propriatary.positions;
 			if (input.propriatary.down !== undefined) {
 				down = input.propriatary.down;
 			}
 
-			switch (input.propriatary.action) {
-				case GamingCanvasInputTouchAction.ACTIVE:
-					if (modeEdit === true) {
-						touchAdded = false;
-						touchDistancePrevious = -1;
+			if (modeEdit === false || Game.editorHide === true) {
+				characterPlayerInputPlayer = characterPlayerInput.player1;
+				characterPlayerInputPlayer.type === GamingCanvasInputType.TOUCH;
+				player1 = true;
 
-						if (down === true && positions !== undefined && positions.length === 1) {
-							position1 = positions[0];
-							positionMeta(position1);
+				// Left Joystick
+				position1 = <any>undefined;
+				if (inputOverlayPositions.length !== 0 && inputOverlayPositions[0].xRelative < 0.5) {
+					position1 = inputOverlayPositions[0];
+				} else if (inputOverlayPositions.length > 1 && inputOverlayPositions[1].xRelative < 0.5) {
+					position1 = inputOverlayPositions[1];
+				}
 
-							cameraMoveXOriginal = 1 - position1.xRelative;
-							cameraMoveYOriginal = 1 - position1.yRelative;
-							cameraXOriginal = camera.x;
-							cameraYOriginal = camera.y;
+				if (position1 !== undefined) {
+					if (touchJoystick1Show !== true) {
+						touchJoystick1X = position1.x;
+						touchJoystick1Y = position1.y;
+
+						DOM.elPlayerJoystick1.style.left = touchJoystick1X - touchJoystickSizeHalf + 'px';
+						DOM.elPlayerJoystick1.style.top = touchJoystick1Y - touchJoystickSizeHalf + 'px';
+					} else {
+						touchJoystick1XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.x - touchJoystick1X));
+						touchJoystick1YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.y - touchJoystick1Y));
+
+						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1XThumb + touchJoystickSizeQuarter + 'px';
+						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1YThumb + touchJoystickSizeQuarter + 'px';
+
+						characterPlayerInputPlayer.x = (((touchJoystick1XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						if (characterPlayerInputPlayer.x > -touchJoystickDeadBand && characterPlayerInputPlayer.x < touchJoystickDeadBand) {
+							characterPlayerInputPlayer.x = 0;
 						}
-						downMode = down;
+
+						characterPlayerInputPlayer.y = (((touchJoystick1YThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						if (characterPlayerInputPlayer.y > -touchJoystickDeadBand && characterPlayerInputPlayer.y < touchJoystickDeadBand) {
+							characterPlayerInputPlayer.y = 0;
+						}
+
+						updated = true;
 					}
-					break;
-				case GamingCanvasInputTouchAction.MOVE:
-					if (modeEdit === true) {
-						if (positions !== undefined) {
-							position1 = positions[0];
-							positionMeta(position1);
 
-							if (modeEditType === EditType.PAN_ZOOM) {
-								if (position1.out === true) {
-									down = false;
-								}
+					DOM.elPlayerJoystick1.classList.add('show');
+					touchJoystick1Show = true;
+				} else {
+					characterPlayerInputPlayer.action = false;
+					characterPlayerInputPlayer.x = 0;
+					characterPlayerInputPlayer.y = 0;
+					updated = true;
 
-								if (positions.length !== 1) {
-									// Zoom
-									if (down === true) {
-										position2 = positions[1];
+					DOM.elPlayerJoystick1.classList.remove('show');
+					touchJoystick1Show = false;
+				}
 
-										DOM.elEditorPropertiesCellOutputAssetId.innerText = 'ZOOM';
+				// Right Joystick
+				position2 = <any>undefined;
+				if (inputOverlayPositions.length !== 0 && inputOverlayPositions[0].xRelative >= 0.5) {
+					position2 = inputOverlayPositions[0];
+				} else if (inputOverlayPositions.length > 1 && inputOverlayPositions[1].xRelative >= 0.5) {
+					position2 = inputOverlayPositions[1];
+				}
 
-										if (touchDistancePrevious !== -1) {
-											touchDistance = GamingCanvasInputPositionDistance(position1, position2) - touchDistancePrevious;
-											if (Math.abs(touchDistance) > 20) {
-												cameraZoomPrevious = cameraZoom;
-												cameraZoom = Math.max(
-													cameraZoomMin,
-													Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
-												);
-												if (cameraZoom !== cameraZoomPrevious) {
-													updated = true;
+				if (position2 !== undefined) {
+					if (touchJoystick2Show !== true) {
+						touchJoystick2X = position2.x;
+						touchJoystick2Y = position2.y;
+
+						DOM.elPlayerJoystick2.style.left = touchJoystick2X - touchJoystickSizeHalf + 'px';
+						DOM.elPlayerJoystick2.style.top = touchJoystick2Y - touchJoystickSizeHalf + 'px';
+					} else {
+						touchJoystick2XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.x - touchJoystick2X));
+						touchJoystick2YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.y - touchJoystick2Y));
+
+						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2XThumb + touchJoystickSizeQuarter + 'px';
+						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2YThumb + touchJoystickSizeQuarter + 'px';
+
+						characterPlayerInputPlayer.r = (((touchJoystick2XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						if (characterPlayerInputPlayer.r > -touchJoystickDeadBand && characterPlayerInputPlayer.r < touchJoystickDeadBand) {
+							characterPlayerInputPlayer.r = 0;
+						}
+
+						DOM.elEditorPropertiesCellOutputAssetId.innerText = `${(touchJoystick2YThumb / touchJoystickSizeHalf) * 2}`;
+						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === 2) {
+							characterPlayerInputPlayer.action = true;
+							DOM.elPlayerJoystick2Thumb.classList.add('press-green');
+						} else {
+							characterPlayerInputPlayer.action = false;
+							DOM.elPlayerJoystick2Thumb.classList.remove('press-green');
+						}
+
+						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === -1) {
+							characterPlayerInputPlayer.fire = true;
+							DOM.elPlayerJoystick2Thumb.classList.add('press-red');
+						} else {
+							characterPlayerInputPlayer.fire = false;
+							DOM.elPlayerJoystick2Thumb.classList.remove('press-red');
+						}
+
+						updated = true;
+					}
+
+					DOM.elPlayerJoystick2.classList.add('show');
+					touchJoystick2Show = true;
+				} else {
+					characterPlayerInputPlayer.action = false;
+					characterPlayerInputPlayer.fire = false;
+					characterPlayerInputPlayer.r = 0;
+					updated = true;
+
+					DOM.elPlayerJoystick2Thumb.classList.remove('press-green');
+					DOM.elPlayerJoystick2Thumb.classList.remove('press-red');
+					DOM.elPlayerJoystick2.classList.remove('show');
+					touchJoystick2Show = false;
+				}
+			} else {
+				switch (input.propriatary.action) {
+					case GamingCanvasInputTouchAction.ACTIVE:
+						if (modeEdit === true) {
+							touchAdded = false;
+							touchDistancePrevious = -1;
+
+							if (down === true && positions.length === 1) {
+								position1 = positions[0];
+								positionMeta(position1);
+
+								cameraMoveXOriginal = 1 - position1.xRelative;
+								cameraMoveYOriginal = 1 - position1.yRelative;
+								cameraXOriginal = camera.x;
+								cameraYOriginal = camera.y;
+							}
+							downMode = down;
+						}
+						break;
+					case GamingCanvasInputTouchAction.MOVE:
+						if (modeEdit === true) {
+							if (positions.length !== 0) {
+								position1 = positions[0];
+								positionMeta(position1);
+
+								DOM.elPlayerJoystick1.classList.remove('show');
+								DOM.elPlayerJoystick2.classList.remove('show');
+								touchJoystick1Show = false;
+								touchJoystick2Show = false;
+
+								if (modeEditType === EditType.PAN_ZOOM) {
+									if (position1.out === true) {
+										down = false;
+									}
+
+									if (positions.length !== 1) {
+										// Zoom
+										if (down === true) {
+											position2 = positions[1];
+
+											if (touchDistancePrevious !== -1) {
+												touchDistance = GamingCanvasInputPositionDistance(position1, position2) - touchDistancePrevious;
+												if (Math.abs(touchDistance) > 20) {
+													cameraZoomPrevious = cameraZoom;
+													cameraZoom = Math.max(
+														cameraZoomMin,
+														Math.min(cameraZoomMax, cameraZoom + (touchDistance > 0 ? cameraZoomStep : -cameraZoomStep)),
+													);
+													if (cameraZoom !== cameraZoomPrevious) {
+														updated = true;
+													}
+													touchDistancePrevious = touchDistance + touchDistancePrevious;
 												}
-												touchDistancePrevious = touchDistance + touchDistancePrevious;
+											} else {
+												touchDistancePrevious = GamingCanvasInputPositionDistance(position1, position2);
 											}
 										} else {
-											touchDistancePrevious = GamingCanvasInputPositionDistance(position1, position2);
+											touchDistancePrevious = -1;
 										}
 									} else {
 										touchDistancePrevious = -1;
 									}
-								} else {
-									touchDistancePrevious = -1;
-								}
 
-								// Move
-								if (downMode === true) {
-									cameraMoveX = 1 - position1.xRelative;
-									cameraMoveY = 1 - position1.yRelative;
-									updated = true;
-								}
-							} else {
-								if (downMode === true) {
-									switch (modeEditType) {
-										case EditType.APPLY:
-											dataApply(position1);
-											break;
-										case EditType.ERASE:
-											dataApply(position1, true);
-											break;
-										case EditType.INSPECT:
-											inspect(position1);
-											break;
+									// Move
+									if (downMode === true) {
+										cameraMoveX = 1 - position1.xRelative;
+										cameraMoveY = 1 - position1.yRelative;
+										updated = true;
+									}
+								} else {
+									if (downMode === true) {
+										switch (modeEditType) {
+											case EditType.APPLY:
+												dataApply(position1);
+												break;
+											case EditType.ERASE:
+												dataApply(position1, true);
+												break;
+											case EditType.INSPECT:
+												inspect(position1);
+												break;
+										}
 									}
 								}
 							}
 						}
-					} else if (Game.editorHide === true) {
-						characterPlayerInputPlayer = characterPlayerInput.player1;
-						characterPlayerInputPlayer.type === GamingCanvasInputType.TOUCH;
-						player1 = true;
-
-						// BUILD IT OUT!!!
-					}
-					break;
+						break;
+				}
 			}
 		};
 	}

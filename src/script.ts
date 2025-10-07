@@ -257,8 +257,8 @@ class Blockenstein {
 				document.addEventListener('click', click);
 				document.addEventListener('keydown', click);
 			} else {
-				Game.viewEditor();
-				// Game.viewGame();
+				// Game.viewEditor();
+				Game.viewGame();
 				DOM.elScreenActive.style.display = 'none';
 				Game.inputSuspend = false;
 

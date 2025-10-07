@@ -107,6 +107,12 @@ export class DOM {
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
+	public static elPlayerJoystick1: HTMLElement;
+	public static elPlayerJoystick1Thumb: HTMLElement;
+	public static elPlayerJoystick1Wrapper: HTMLElement;
+	public static elPlayerJoystick2: HTMLElement;
+	public static elPlayerJoystick2Thumb: HTMLElement;
+	public static elPlayerJoystick2Wrapper: HTMLElement;
 	public static elPlayerOverlay1: HTMLElement;
 	public static elPlayerOverlay1Ammo: HTMLElement;
 	public static elPlayerOverlay1Health: HTMLElement;
@@ -354,6 +360,28 @@ export class DOM {
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
+
+		DOM.elPlayerJoystick1 = document.createElement('div');
+		DOM.elPlayerJoystick1.className = 'joystick';
+		DOM.elPlayerJoystick1.id = 'joystick1';
+		DOM.elPlayerJoystick1Thumb = document.createElement('div');
+		DOM.elPlayerJoystick1Thumb.className = 'thumb';
+		DOM.elPlayerJoystick1Thumb.id = 'joystick1-thumb';
+		DOM.elPlayerJoystick1Wrapper = document.createElement('div');
+		DOM.elPlayerJoystick1Wrapper.className = 'wrapper';
+		DOM.elPlayerJoystick1.appendChild(DOM.elPlayerJoystick1Wrapper);
+		DOM.elPlayerJoystick1Wrapper.appendChild(DOM.elPlayerJoystick1Thumb);
+
+		DOM.elPlayerJoystick2 = document.createElement('div');
+		DOM.elPlayerJoystick2.className = 'joystick';
+		DOM.elPlayerJoystick2.id = 'joystick2';
+		DOM.elPlayerJoystick2Thumb = document.createElement('div');
+		DOM.elPlayerJoystick2Thumb.className = 'thumb';
+		DOM.elPlayerJoystick2Thumb.id = 'joystick2-thumb';
+		DOM.elPlayerJoystick2Wrapper = document.createElement('div');
+		DOM.elPlayerJoystick2Wrapper.className = 'wrapper';
+		DOM.elPlayerJoystick2.appendChild(DOM.elPlayerJoystick2Wrapper);
+		DOM.elPlayerJoystick2Wrapper.appendChild(DOM.elPlayerJoystick2Thumb);
 
 		DOM.elPlayerOverlay1 = <HTMLElement>document.getElementById('player-overlay-1');
 		DOM.elPlayerOverlay1Ammo = <HTMLElement>document.getElementById('player-overlay-1-ammo');

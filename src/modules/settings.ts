@@ -146,7 +146,7 @@ export class Settings {
 			canvasSplitLandscapeVertical: true,
 			dpiSupportEnable: Game.settingGraphicsDPISupport,
 			elementInteractive: DOM.elVideoInteractive,
-			elementInjectAsOverlay: [DOM.elEdit],
+			elementInjectAsOverlay: [DOM.elEdit, DOM.elPlayerJoystick1, DOM.elPlayerJoystick2],
 			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
 			inputMouseEnable: true,
