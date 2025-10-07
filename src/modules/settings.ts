@@ -298,13 +298,7 @@ export class Settings {
 		}
 
 		if (Game.modeEdit === false) {
-			if (Game.gameOver !== true) {
-				CalcMainBus.outputPause(false);
-				CalcPathBus.outputPause(false);
-				GamingCanvas.audioControlPauseAll(false);
-				VideoMainBus.outputPause(false);
-			}
-			VideoOverlayBus.outputPause(false);
+			Game.pause(false);
 		}
 	}
 

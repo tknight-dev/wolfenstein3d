@@ -603,6 +603,11 @@ export enum AssetIdImgMenu {
 	RATING,
 	SCREEN_STATS,
 	SCREEN_TITLE,
+	WEAPONS_BACKGROUND,
+	WEAPONS_1,
+	WEAPONS_2,
+	WEAPONS_3,
+	WEAPONS_4,
 }
 
 export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
@@ -2131,6 +2136,51 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/screen_title.png',
 			title: 'Screen Title',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.WEAPONS_BACKGROUND, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/weapons_background.png',
+			title: 'Weapons Background',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.WEAPONS_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/weapon_knife.png',
+			title: 'Weapon Knife',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.WEAPONS_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/weapon_pistol.png',
+			title: 'Weapon Pistol',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.WEAPONS_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/weapon_sub_machine_gun.png',
+			title: 'Weapon Sub Machine Gun',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.WEAPONS_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/weapon_machine_gun.png',
+			title: 'Weapon Machine Gun',
 		});
 	}
 };

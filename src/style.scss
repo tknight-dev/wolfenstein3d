@@ -17,6 +17,7 @@ $main-z-index-error: 150;
 $main-z-index-icons: 85;
 $main-z-index-menus: 100;
 $main-z-index-player-overlays: 49;
+$main-z-index-weapons: 50;
 $main-z-index-screen: 90;
 $main-z-index-video-interactive: 50;
 
@@ -173,7 +174,8 @@ $main-z-index-video-interactive: 50;
 		.screen,
 		.spinner,
 		.video,
-		.video-interactive {
+		.video-interactive,
+		.weapons {
 			position: absolute;
 			z-index: 1;
 
@@ -1129,6 +1131,53 @@ $main-z-index-video-interactive: 50;
 
 			&.cursor-pointer {
 				cursor: pointer;
+			}
+		}
+
+		.weapons {
+			background-position: center !important;
+			background-repeat: no-repeat !important;
+			background-size: contain !important;
+			box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.25);
+			display: none;
+			height: 96px;
+			left: calc(50% - 96px);
+			top: calc(50% - 48px);
+			width: 192px;
+			z-index: $main-z-index-weapons;
+
+			.weapon {
+				background-position: center !important;
+				background-repeat: no-repeat !important;
+				background-size: contain !important;
+				cursor: pointer;
+				height: 45%;
+				position: absolute;
+				width: 45%;
+			}
+
+			#weapon1 {
+				left: 5px;
+				top: 5px;
+			}
+
+			#weapon2 {
+				right: 5px;
+				top: 5px;
+			}
+
+			#weapon3 {
+				left: 5px;
+				bottom: 5px;
+			}
+
+			#weapon4 {
+				bottom: 5px;
+				right: 5px;
+			}
+
+			&.show {
+				display: block;
 			}
 		}
 	}

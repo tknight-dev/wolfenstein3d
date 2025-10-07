@@ -659,11 +659,7 @@ export class Game {
 			Game.inputSuspend = true;
 
 			if (Game.modeEdit === false) {
-				CalcMainBus.outputPause(true);
-				CalcPathBus.outputPause(true);
-				GamingCanvas.audioControlPauseAll(true);
-				VideoMainBus.outputPause(true);
-				VideoOverlayBus.outputPause(true);
+				Game.pause(true);
 			}
 		};
 
@@ -1483,7 +1479,7 @@ export class Game {
 						case GamingCanvasInputType.TOUCH:
 							queueInputOverlays = GamingCanvasInputPositionsClone(queueInput.propriatary.positions);
 							GamingCanvas.relativizeInputToCanvas(queueInput);
-							processorTouch(queueInput, queueInputOverlays);
+							processorTouch(queueInput, queueInputOverlays, timestampNow);
 							break;
 					}
 				}
@@ -1818,14 +1814,14 @@ export class Game {
 			}
 		};
 
-		const processorTouch = (input: GamingCanvasInputTouch, inputOverlayPositions: GamingCanvasInputPosition[]) => {
+		const processorTouch = (input: GamingCanvasInputTouch, inputOverlayPositions: GamingCanvasInputPosition[], timestampNow: number) => {
 			elEditStyle.display = 'none';
 			positions = input.propriatary.positions;
 			if (input.propriatary.down !== undefined) {
 				down = input.propriatary.down;
 			}
 
-			if (modeEdit === false || Game.editorHide === true) {
+			if (Game.gameOver !== true && (modeEdit === false || Game.editorHide === true)) {
 				characterPlayerInputPlayer = characterPlayerInput.player1;
 				characterPlayerInputPlayer.type === GamingCanvasInputType.TOUCH;
 				player1 = true;
@@ -1845,6 +1841,38 @@ export class Game {
 
 						DOM.elPlayerJoystick1.style.left = touchJoystick1X - touchJoystickSizeHalf + 'px';
 						DOM.elPlayerJoystick1.style.top = touchJoystick1Y - touchJoystickSizeHalf + 'px';
+
+						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1X + 'px';
+						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1Y + 'px';
+
+						if (timestampNow - touchJoystick1TimestampHide + timestampNow - touchJoystick1TimestampShow < 1000) {
+							Game.pause(true);
+							DOM.elWeapons.classList.add('show');
+
+							DOM.elWeapon1.onclick = () => {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+								DOM.elWeapons.classList.remove('show');
+								Game.pause(false);
+							};
+
+							DOM.elWeapon2.onclick = () => {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+								DOM.elWeapons.classList.remove('show');
+								Game.pause(false);
+							};
+
+							DOM.elWeapon3.onclick = () => {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+								DOM.elWeapons.classList.remove('show');
+								Game.pause(false);
+							};
+
+							DOM.elWeapon4.onclick = () => {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+								DOM.elWeapons.classList.remove('show');
+								Game.pause(false);
+							};
+						}
 					} else {
 						touchJoystick1XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.x - touchJoystick1X));
 						touchJoystick1YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.y - touchJoystick1Y));
@@ -1867,6 +1895,7 @@ export class Game {
 
 					DOM.elPlayerJoystick1.classList.add('show');
 					touchJoystick1Show = true;
+					touchJoystick1TimestampShow = timestampNow;
 				} else {
 					characterPlayerInputPlayer.action = false;
 					characterPlayerInputPlayer.x = 0;
@@ -1875,6 +1904,7 @@ export class Game {
 
 					DOM.elPlayerJoystick1.classList.remove('show');
 					touchJoystick1Show = false;
+					touchJoystick1TimestampHide = timestampNow;
 				}
 
 				// Right Joystick
@@ -1892,6 +1922,9 @@ export class Game {
 
 						DOM.elPlayerJoystick2.style.left = touchJoystick2X - touchJoystickSizeHalf + 'px';
 						DOM.elPlayerJoystick2.style.top = touchJoystick2Y - touchJoystickSizeHalf + 'px';
+
+						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2X + 'px';
+						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2Y + 'px';
 					} else {
 						touchJoystick2XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.x - touchJoystick2X));
 						touchJoystick2YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.y - touchJoystick2Y));
@@ -2029,16 +2062,29 @@ export class Game {
 		};
 	}
 
-	public static viewEditor(): void {
-		if (Game.modeEdit !== true) {
-			Game.modeEdit = true;
-
-			// Game
+	public static pause(state: boolean): void {
+		if (state === true) {
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
 			GamingCanvas.audioControlPauseAll(true);
 			VideoMainBus.outputPause(true);
 			VideoOverlayBus.outputPause(true);
+		} else {
+			if (Game.gameOver !== true) {
+				CalcMainBus.outputPause(false);
+				CalcPathBus.outputPause(false);
+				GamingCanvas.audioControlPauseAll(false);
+				VideoMainBus.outputPause(false);
+			}
+		}
+	}
+
+	public static viewEditor(): void {
+		if (Game.modeEdit !== true) {
+			Game.modeEdit = true;
+
+			// Game
+			Game.pause(true);
 
 			// DOM
 			DOM.elButtonApply.classList.remove('active');
@@ -2125,13 +2171,7 @@ export class Game {
 
 				setTimeout(() => {
 					// Game
-					if (Game.gameOver !== true) {
-						CalcMainBus.outputPause(false);
-						CalcPathBus.outputPause(false);
-						GamingCanvas.audioControlPauseAll(false);
-						VideoMainBus.outputPause(false);
-					}
-					VideoOverlayBus.outputPause(false);
+					Game.pause(false);
 				}, 500);
 			});
 			CalcMainBus.outputCharacterInput({

@@ -172,6 +172,11 @@ export class DOM {
 	public static elVideo: HTMLElement;
 	public static elVideoInteractive: HTMLElement;
 	public static elVersion: HTMLAnchorElement;
+	public static elWeapons: HTMLElement;
+	public static elWeapon1: HTMLElement;
+	public static elWeapon2: HTMLElement;
+	public static elWeapon3: HTMLElement;
+	public static elWeapon4: HTMLElement;
 	private static timeoutError: ReturnType<typeof setTimeout>;
 	private static timeoutScreen: ReturnType<typeof setTimeout>;
 	private static timeoutSpinner: ReturnType<typeof setTimeout>;
@@ -458,6 +463,12 @@ export class DOM {
 		DOM.elVideoInteractive = <HTMLElement>document.getElementById('video-interactive');
 		DOM.elVersion = <HTMLAnchorElement>document.getElementById('version');
 
+		DOM.elWeapons = <HTMLElement>document.getElementById('weapons');
+		DOM.elWeapon1 = <HTMLElement>document.getElementById('weapon1');
+		DOM.elWeapon2 = <HTMLElement>document.getElementById('weapon2');
+		DOM.elWeapon3 = <HTMLElement>document.getElementById('weapon3');
+		DOM.elWeapon4 = <HTMLElement>document.getElementById('weapon4');
+
 		// Done
 		DOM.elVersion.innerText = packageJSON.version;
 	}
@@ -470,8 +481,6 @@ export class DOM {
 			character: AssetIdImgCharacter,
 			characterMenu: AssetIdImgCharacter[] = assetIdImgCharacterMenu,
 			characterType: AssetIdImgCharacterType,
-			data: string | ImageBitmap,
-			element: HTMLElement,
 			elementContainer: HTMLElement,
 			elementContent: HTMLElement,
 			elementContentImage: HTMLImageElement,
@@ -567,6 +576,12 @@ export class DOM {
 		DOM.elScreenRating.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.RATING)})`;
 		DOM.elScreenStats.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_STATS)})`;
 		DOM.elScreenTitle.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_TITLE)})`;
+
+		DOM.elWeapons.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.WEAPONS_BACKGROUND)})`;
+		DOM.elWeapon1.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.WEAPONS_1)})`;
+		DOM.elWeapon2.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.WEAPONS_2)})`;
+		DOM.elWeapon3.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.WEAPONS_3)})`;
+		DOM.elWeapon4.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.WEAPONS_4)})`;
 	}
 
 	public static screenControl(screen: HTMLElement): void {
