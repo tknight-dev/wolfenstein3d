@@ -25,6 +25,7 @@
 					</div>
 					<div class="content" id="menu-content">
 						<span class="hyperlink menu" id="info-menu"></span>
+						<span class="hyperlink menu-item" id="info-controls">Controls</span>
 						<span class="hyperlink menu-item" id="info-settings">Settings</span>
 					</div>
 				</div>
@@ -37,6 +38,8 @@
 						<span class="button" id="button-play"><span class="main-icon play"></span></span>
 						<span class="spacer-thin"></span>
 						<span class="button" id="button-edit"><span class="main-icon edit"></span></span>
+						<span class="spacer-thin"></span>
+						<span class="button" id="button-performance"><span class="main-icon chart"></span></span>
 						<span class="spacer"></span>
 						<span class="button active" id="button-mute"><span class="main-icon volume"></span></span>
 					</div>
@@ -48,6 +51,167 @@
 						<span class="button" id="button-eraser"><span class="main-icon eraser"></span></span>
 						<span class="button" id="button-download"><span class="main-icon download"></span></span>
 						<span class="button" id="button-upload"><span class="main-icon upload"></span></span>
+					</div>
+					<div class="controls" id="controls">
+						<div class="wrapper">
+							<div class="header">Controls</div>
+							<div class="header-sub">
+								<div class="hyperlink" id="controls-sub-gamepad">Gamepad</div>
+								<div class="hyperlink" id="controls-sub-keyboard">Keyboard</div>
+								<div class="hyperlink" id="controls-sub-touch">Touch</div>
+							</div>
+							<div class="body" id="controls-body-gamepad">
+								<div class="image-container"><div class="image gamepad"></div></div>
+								<table>
+									<tbody>
+										<tr>
+											<td>Action</td>
+											<td><input autocomplete="off" disabled readonly value = "0" /></td>
+										</tr>
+										<tr>
+											<td>Action</td>
+											<td><input autocomplete="off" disabled readonly value = "10" /></td>
+										</tr>
+										<tr>
+											<td>Pause</td>
+											<td><input autocomplete="off" disabled readonly value = "9" /></td>
+										</tr>
+										<tr>
+											<td>Shoot</td>
+											<td><input autocomplete="off" disabled readonly value = "5" /></td>
+										</tr>
+										<tr>
+											<td>Shoot</td>
+											<td><input autocomplete="off" disabled readonly value = "11" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Knife</td>
+											<td><input autocomplete="off" disabled readonly value = "13" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Pistol</td>
+											<td><input autocomplete="off" disabled readonly value = "12" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Sub Machine Gun</td>
+											<td><input autocomplete="off" disabled readonly value = "14" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Machine Gun</td>
+											<td><input autocomplete="off" disabled readonly value = "15" /></td>
+										</tr>
+										<tr>
+											<td>Cheat Code</td>
+											<td><input autocomplete="off" disabled readonly value = "0 + 1 + 2 + 3" /></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="body" id="controls-body-keyboard">
+								<table>
+									<tbody>
+										<tr>
+											<td>Action</td>
+											<td><input autocomplete="off" disabled readonly value = "Arrow Down" /></td>
+										</tr>
+										<tr>
+											<td>Action</td>
+											<td><input autocomplete="off" disabled readonly value = "Spacebar" /></td>
+										</tr>
+										<tr>
+											<td>Look Left</td>
+											<td><input autocomplete="off" disabled readonly value = "Arrow Left" /></td>
+										</tr>
+										<tr>
+											<td>Look Right</td>
+											<td><input autocomplete="off" disabled readonly value = "Arrow Right" /></td>
+										</tr>
+										<tr>
+											<td>Move Forward</td>
+											<td><input autocomplete="off" disabled readonly value = "W" /></td>
+										</tr>
+										<tr>
+											<td>Move Backward</td>
+											<td><input autocomplete="off" disabled readonly value = "S" /></td>
+										</tr>
+										<tr>
+											<td>Move Left</td>
+											<td><input autocomplete="off" disabled readonly value = "A" /></td>
+										</tr>
+										<tr>
+											<td>Move Right</td>
+											<td><input autocomplete="off" disabled readonly value = "D" /></td>
+										</tr>
+										<tr>
+											<td>Pause</td>
+											<td><input autocomplete="off" disabled readonly value = "Escape" /></td>
+										</tr>
+										<tr>
+											<td>Shoot</td>
+											<td><input autocomplete="off" disabled readonly value = "Arrow Up" /></td>
+										</tr>
+										<tr>
+											<td>Shoot</td>
+											<td><input autocomplete="off" disabled readonly value = "Left Shift" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Knife</td>
+											<td><input autocomplete="off" disabled readonly value = "1" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Pistol</td>
+											<td><input autocomplete="off" disabled readonly value = "2" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Sub Machine Gun</td>
+											<td><input autocomplete="off" disabled readonly value = "3" /></td>
+										</tr>
+										<tr>
+											<td>Weapon: Machine Gun</td>
+											<td><input autocomplete="off" disabled readonly value = "4" /></td>
+										</tr>
+										<tr>
+											<td>Cheat Code</td>
+											<td><input autocomplete="off" disabled readonly value = "i + l + m" /></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="body" id="controls-body-touch">
+								<div class="image-container"><div class="image touch"></div></div>
+								<table>
+									<tbody>
+										<tr>
+											<td>Action</td>
+											<td><input autocomplete="off" disabled readonly value = "R y-axis down" /></td>
+										</tr>
+										<tr>
+											<td>Move</td>
+											<td><input autocomplete="off" disabled readonly value = "L" /></td>
+										</tr>
+										<tr>
+											<td>Look</td>
+											<td><input autocomplete="off" disabled readonly value = "R x-axis" /></td>
+										</tr>
+										<tr>
+											<td>Shoot</td>
+											<td><input autocomplete="off" disabled readonly value = "R y-axis up" /></td>
+										</tr>
+										<tr>
+											<td>Weapons</td>
+											<td><input autocomplete="off" disabled readonly value = "Double tap L" /></td>
+										</tr>
+										<tr>
+											<td>Cheat Code</td>
+											<td><input autocomplete="off" disabled readonly value = "3 touch inputs" /></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="buttons">
+								<button class="cancel" id="controls-close">Close</button>
+							</div>
+						</div>
 					</div>
 					<div class="editor hide offset" id="editor">
 						<div class="wrapper">

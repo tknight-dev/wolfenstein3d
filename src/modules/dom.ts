@@ -30,6 +30,14 @@ export class DOM {
 	public static elButtonPlay: HTMLElement;
 	public static elButtonUpload: HTMLElement;
 	public static elCanvases: HTMLCanvasElement[];
+	public static elControls: HTMLElement;
+	public static elControlsBodyGamepad: HTMLElement;
+	public static elControlsBodyKeyboard: HTMLElement;
+	public static elControlsBodyTouch: HTMLElement;
+	public static elControlsClose: HTMLElement;
+	public static elControlsSubGamepad: HTMLElement;
+	public static elControlsSubKeyboard: HTMLElement;
+	public static elControlsSubTouch: HTMLElement;
 	public static elEdit: HTMLElement;
 	public static elEditor: HTMLElement;
 	public static elEditorCommandFindAndReplace: HTMLElement;
@@ -96,6 +104,7 @@ export class DOM {
 	public static elGame: HTMLElement;
 	public static elIconsBottom: HTMLElement;
 	public static elIconsTop: HTMLElement;
+	public static elInfoControls: HTMLElement;
 	public static elInfoMenu: HTMLElement;
 	public static elInfoSettings: HTMLElement;
 	public static elLogo: HTMLElement;
@@ -193,6 +202,15 @@ export class DOM {
 		DOM.elButtonMute = <HTMLElement>document.getElementById('button-mute');
 		DOM.elButtonPlay = <HTMLElement>document.getElementById('button-play');
 		DOM.elButtonUpload = <HTMLElement>document.getElementById('button-upload');
+
+		DOM.elControls = <HTMLElement>document.getElementById('controls');
+		DOM.elControlsBodyGamepad = <HTMLElement>document.getElementById('controls-body-gamepad');
+		DOM.elControlsBodyKeyboard = <HTMLElement>document.getElementById('controls-body-keyboard');
+		DOM.elControlsBodyTouch = <HTMLElement>document.getElementById('controls-body-touch');
+		DOM.elControlsClose = <HTMLElement>document.getElementById('controls-close');
+		DOM.elControlsSubGamepad = <HTMLElement>document.getElementById('controls-sub-gamepad');
+		DOM.elControlsSubKeyboard = <HTMLElement>document.getElementById('controls-sub-keyboard');
+		DOM.elControlsSubTouch = <HTMLElement>document.getElementById('controls-sub-touch');
 
 		DOM.elEdit = document.createElement('div');
 		DOM.elEdit.className = 'edit';
@@ -353,6 +371,7 @@ export class DOM {
 		DOM.elGame = <HTMLElement>document.getElementById('game');
 		DOM.elIconsBottom = <HTMLElement>document.getElementById('icons-bottom');
 		DOM.elIconsTop = <HTMLElement>document.getElementById('icons-top');
+		DOM.elInfoControls = <HTMLElement>document.getElementById('info-controls');
 		DOM.elInfoMenu = <HTMLElement>document.getElementById('info-menu');
 		DOM.elInfoSettings = <HTMLElement>document.getElementById('info-settings');
 		DOM.elLogo = <HTMLElement>document.getElementById('logo');

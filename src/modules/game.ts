@@ -193,6 +193,54 @@ export class Game {
 			Game.viewGame();
 		};
 
+		// Controls
+		DOM.elControlsClose.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'none';
+			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyTouch.style.display = 'none';
+
+			DOM.elControlsSubGamepad.classList.remove('active');
+			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubTouch.classList.remove('active');
+
+			DOM.elControls.style.display = 'none';
+
+			Game.inputSuspend = false;
+			if (Game.modeEdit === false) {
+				Game.pause(false);
+			}
+		};
+
+		DOM.elControlsSubGamepad.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'block';
+			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyTouch.style.display = 'none';
+
+			DOM.elControlsSubGamepad.classList.add('active');
+			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubTouch.classList.remove('active');
+		};
+
+		DOM.elControlsSubKeyboard.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'none';
+			DOM.elControlsBodyKeyboard.style.display = 'block';
+			DOM.elControlsBodyTouch.style.display = 'none';
+
+			DOM.elControlsSubGamepad.classList.remove('active');
+			DOM.elControlsSubKeyboard.classList.add('active');
+			DOM.elControlsSubTouch.classList.remove('active');
+		};
+
+		DOM.elControlsSubTouch.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'none';
+			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyTouch.style.display = 'block';
+
+			DOM.elControlsSubGamepad.classList.remove('active');
+			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubTouch.classList.add('active');
+		};
+
 		// Editor buttons
 		DOM.elButtonApply.onclick = () => {
 			if (DOM.elButtonEye.classList.contains('active') !== true) {
@@ -646,6 +694,23 @@ export class Game {
 		});
 
 		// Menu
+		DOM.elInfoControls.onclick = () => {
+			DOM.elLogo.classList.remove('open');
+			DOM.elMenuContent.classList.remove('open');
+
+			if (GamingCanvas.detectDevice(true, true) === true) {
+				DOM.elControlsSubTouch.click();
+			} else {
+				DOM.elControlsSubKeyboard.click();
+			}
+
+			DOM.elControls.style.display = 'block';
+			Game.inputSuspend = true;
+
+			if (Game.modeEdit === false) {
+				Game.pause(true);
+			}
+		};
 		DOM.elInfoMenu.onclick = () => {
 			DOM.elLogo.classList.toggle('open');
 			DOM.elMenuContent.classList.toggle('open');
@@ -891,16 +956,13 @@ export class Game {
 			queueInputOverlays: GamingCanvasInputPosition[],
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
-			touchAdded: boolean,
 			touchDistancePrevious: number,
 			touchDistance: number,
 			touchJoystickDeadBand: number = 0.1,
-			touchJoystickSize: number = 100,
+			touchJoystickSize: number = 120,
 			touchJoystickSizeHalf: number = touchJoystickSize / 2,
 			touchJoystickSizeQuarter: number = touchJoystickSize / 4,
 			touchJoystick1Show: boolean,
-			touchJoystick1TimestampHide: number,
-			touchJoystick1TimestampShow: number,
 			touchJoystick1X: number,
 			touchJoystick1XThumb: number,
 			touchJoystick1Y: number,
@@ -1479,7 +1541,7 @@ export class Game {
 						case GamingCanvasInputType.TOUCH:
 							queueInputOverlays = GamingCanvasInputPositionsClone(queueInput.propriatary.positions);
 							GamingCanvas.relativizeInputToCanvas(queueInput);
-							processorTouch(queueInput, queueInputOverlays, timestampNow);
+							processorTouch(queueInput, queueInputOverlays);
 							break;
 					}
 				}
@@ -1814,7 +1876,7 @@ export class Game {
 			}
 		};
 
-		const processorTouch = (input: GamingCanvasInputTouch, inputOverlayPositions: GamingCanvasInputPosition[], timestampNow: number) => {
+		const processorTouch = (input: GamingCanvasInputTouch, inputOverlayPositions: GamingCanvasInputPosition[]) => {
 			elEditStyle.display = 'none';
 			positions = input.propriatary.positions;
 			if (input.propriatary.down !== undefined) {
@@ -1836,7 +1898,7 @@ export class Game {
 
 				if (position1 !== undefined) {
 					if (touchJoystick1Show !== true) {
-						touchJoystick1X = position1.x;
+						touchJoystick1X = Math.max(touchJoystickSizeHalf, position1.x);
 						touchJoystick1Y = position1.y;
 
 						DOM.elPlayerJoystick1.style.left = touchJoystick1X - touchJoystickSizeHalf + 'px';
@@ -1844,35 +1906,6 @@ export class Game {
 
 						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1X + 'px';
 						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1Y + 'px';
-
-						if (timestampNow - touchJoystick1TimestampHide + timestampNow - touchJoystick1TimestampShow < 1000) {
-							Game.pause(true);
-							DOM.elWeapons.classList.add('show');
-
-							DOM.elWeapon1.onclick = () => {
-								CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
-								DOM.elWeapons.classList.remove('show');
-								Game.pause(false);
-							};
-
-							DOM.elWeapon2.onclick = () => {
-								CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
-								DOM.elWeapons.classList.remove('show');
-								Game.pause(false);
-							};
-
-							DOM.elWeapon3.onclick = () => {
-								CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
-								DOM.elWeapons.classList.remove('show');
-								Game.pause(false);
-							};
-
-							DOM.elWeapon4.onclick = () => {
-								CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
-								DOM.elWeapons.classList.remove('show');
-								Game.pause(false);
-							};
-						}
 					} else {
 						touchJoystick1XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.x - touchJoystick1X));
 						touchJoystick1YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.y - touchJoystick1Y));
@@ -1895,7 +1928,6 @@ export class Game {
 
 					DOM.elPlayerJoystick1.classList.add('show');
 					touchJoystick1Show = true;
-					touchJoystick1TimestampShow = timestampNow;
 				} else {
 					characterPlayerInputPlayer.action = false;
 					characterPlayerInputPlayer.x = 0;
@@ -1904,7 +1936,6 @@ export class Game {
 
 					DOM.elPlayerJoystick1.classList.remove('show');
 					touchJoystick1Show = false;
-					touchJoystick1TimestampHide = timestampNow;
 				}
 
 				// Right Joystick
@@ -1917,7 +1948,7 @@ export class Game {
 
 				if (position2 !== undefined) {
 					if (touchJoystick2Show !== true) {
-						touchJoystick2X = position2.x;
+						touchJoystick2X = Math.min(report.canvasWidth * report.scaler - touchJoystickSizeHalf, position2.x);
 						touchJoystick2Y = position2.y;
 
 						DOM.elPlayerJoystick2.style.left = touchJoystick2X - touchJoystickSizeHalf + 'px';
@@ -1970,11 +2001,45 @@ export class Game {
 					DOM.elPlayerJoystick2.classList.remove('show');
 					touchJoystick2Show = false;
 				}
+
+				// Weapon Select
+				if (inputOverlayPositions.length === 3) {
+					Game.pause(true);
+					DOM.elWeapons.classList.add('show');
+
+					DOM.elWeapon1.onclick = () => {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+						DOM.elWeapons.classList.remove('show');
+						Game.pause(false);
+					};
+
+					DOM.elWeapon2.onclick = () => {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+						DOM.elWeapons.classList.remove('show');
+						Game.pause(false);
+					};
+
+					DOM.elWeapon3.onclick = () => {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+						DOM.elWeapons.classList.remove('show');
+						Game.pause(false);
+					};
+
+					DOM.elWeapon4.onclick = () => {
+						CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+						DOM.elWeapons.classList.remove('show');
+						Game.pause(false);
+					};
+				}
+
+				// Cheat Code
+				if (inputOverlayPositions.length === 4) {
+					cheatCodeCheck(player1, true);
+				}
 			} else {
 				switch (input.propriatary.action) {
 					case GamingCanvasInputTouchAction.ACTIVE:
 						if (modeEdit === true) {
-							touchAdded = false;
 							touchDistancePrevious = -1;
 
 							if (down === true && positions.length === 1) {

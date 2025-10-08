@@ -36,6 +36,7 @@ var config = {
 	loader: {
 		'.html': 'copy',
 		'.ico': 'copy',
+		'.svg': 'file',
 	},
 	format: 'esm',
 	metafile: true,
