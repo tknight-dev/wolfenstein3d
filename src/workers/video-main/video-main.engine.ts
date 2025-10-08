@@ -612,7 +612,7 @@ class VideoMainEngine {
 			settingsDebug: boolean = VideoMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = VideoMainEngine.settings.difficulty,
 			settingsFOV: number = VideoMainEngine.settings.fov,
-			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
+			settingsFPMS: number = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
 			statAll: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.ALL],
@@ -704,7 +704,11 @@ class VideoMainEngine {
 			// Main code
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
-				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
 				countFrame++;
 
 				/*
@@ -826,7 +830,7 @@ class VideoMainEngine {
 					settingsDebug = VideoMainEngine.settings.debug;
 					settingsDifficulty = VideoMainEngine.settings.difficulty;
 					settingsFOV = VideoMainEngine.settings.fov;
-					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
+					settingsFPMS = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0;
 					renderGamma = VideoMainEngine.settings.gamma;
 					renderGrayscale = VideoMainEngine.settings.grayscale;
 					renderLightingQuality = VideoMainEngine.settings.lightingQuality;

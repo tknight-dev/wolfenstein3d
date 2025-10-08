@@ -541,7 +541,7 @@ class CalcMainEngine {
 			respawn: boolean = true,
 			settingsDebug: boolean = CalcMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
-			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
+			settingsFPMS: number = CalcMainEngine.settings.fps !== 0 ? 1000 / CalcMainEngine.settings.fps : 0,
 			settingsPlayer2Enable: boolean = CalcMainEngine.settings.player2Enable,
 			statAll: GamingCanvasStat = CalcMainEngine.stats[CalcMainBusStats.ALL],
 			statAllRaw: Float32Array,
@@ -1535,7 +1535,7 @@ class CalcMainEngine {
 					raycastOptions.rayFOV = CalcMainEngine.settings.fov;
 					settingsDebug = CalcMainEngine.settings.debug;
 					settingsDifficulty = CalcMainEngine.settings.difficulty;
-					settingsFPMS = 1000 / CalcMainEngine.settings.fps;
+					settingsFPMS = CalcMainEngine.settings.fps !== 0 ? 1000 / CalcMainEngine.settings.fps : 0;
 					settingsPlayer2Enable = CalcMainEngine.settings.player2Enable;
 
 					characterPlayer1.fov = <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty); // WeaponFOV
@@ -2578,7 +2578,11 @@ class CalcMainEngine {
 			timestampFPSDelta = timestampNow - timestampFPSThen;
 			if (timestampFPSDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
-				timestampFPSThen = timestampNow - (timestampFPSDelta % settingsFPMS);
+				if (settingsFPMS === 0) {
+					timestampFPSThen = timestampNow - timestampFPSDelta;
+				} else {
+					timestampFPSThen = timestampNow - (timestampFPSDelta % settingsFPMS);
+				}
 
 				// Cameras
 				if (cameraMode === true) {

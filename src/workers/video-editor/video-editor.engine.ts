@@ -344,7 +344,7 @@ class VideoEditorEngine {
 			report: GamingCanvasReport = VideoEditorEngine.report,
 			settingsDebug: boolean = VideoEditorEngine.settings.debug,
 			settingsGridDraw: boolean = VideoEditorEngine.settings.gridDraw,
-			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
+			settingsFPMS: number = VideoEditorEngine.settings.fps !== 0 ? 1000 / VideoEditorEngine.settings.fps : 0,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
 			state: boolean,
 			statAll: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.ALL],
@@ -406,7 +406,11 @@ class VideoEditorEngine {
 
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
-				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
 				frameCount++;
 
 				if (VideoEditorEngine.enable === true || true) {
@@ -500,7 +504,7 @@ class VideoEditorEngine {
 						// Settings
 						settingsDebug = VideoEditorEngine.settings.debug;
 						settingsGridDraw = VideoEditorEngine.settings.gridDraw;
-						settingsFPMS = 1000 / VideoEditorEngine.settings.fps;
+						settingsFPMS = VideoEditorEngine.settings.fps !== 0 ? 1000 / VideoEditorEngine.settings.fps : 0;
 						settingsPlayer2Enabled = VideoEditorEngine.settings.player2Enable;
 
 						if (VideoEditorEngine.settings.antialias === true) {

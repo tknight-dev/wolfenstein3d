@@ -8,6 +8,7 @@ export enum FPS {
 	_60 = 60,
 	_120 = 120,
 	_144 = 144,
+	unlimited = 0,
 }
 
 export enum LightingQuality {

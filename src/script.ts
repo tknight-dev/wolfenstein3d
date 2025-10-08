@@ -155,31 +155,31 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 		return new Promise<void>((resolve: any) => {
 			CalcMainBus.initialize(Game.settingsCalcMain, gameMap, () => {
 				// Done
-				console.log('CalcMainEngine Loaded in', performance.now() - then, 'ms');
+				console.log('CalcMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 				// Load video-editor
 				then = performance.now();
 				CalcPathBus.initialize(Game.settingsCalcPath, gameMap, () => {
 					// Done
-					console.log('CalcPathEngine Loaded in', performance.now() - then, 'ms');
+					console.log('CalcPathEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 					// Load video-main
 					then = performance.now();
 					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], gameMap, Game.settingsVideoEditor, viewport, () => {
 						// Done
-						console.log('VideoEditorEngine Loaded in', performance.now() - then, 'ms');
+						console.log('VideoEditorEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 						// Load video-main
 						then = performance.now();
 						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
 							// Done
-							console.log('VideoMainEngine Loaded in', performance.now() - then, 'ms');
+							console.log('VideoMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 							// Load video-overlay
 							then = performance.now();
 							VideoOverlayBus.initialize(GamingCanvas.getCanvases()[2], GamingCanvas.getCanvases()[3], Game.settingsVideoOverlay, () => {
 								// Done
-								console.log('VideoOverlayEngine Loaded in', performance.now() - then, 'ms');
+								console.log('VideoOverlayEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 								// Resolve initial promise
 								resolve();
@@ -248,7 +248,7 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 			Blockenstein.settingsApply();
 
 			// Loading complete
-			console.log('System Loaded in', performance.now() - then, 'ms');
+			console.log('System Loaded in', (performance.now() - then) | 0, 'ms');
 
 			// Start the game!
 			if (Game.settingIntro === true) {
