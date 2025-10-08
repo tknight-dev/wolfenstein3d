@@ -6,6 +6,14 @@ import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 
 /*
+ * Stats
+ */
+export enum CalcPathBusStats {
+	ALL,
+	PATH,
+}
+
+/*
  * Input
  */
 export enum CalcPathBusInputCmd {
@@ -55,7 +63,11 @@ export enum CalcPathBusOutputCmd {
 	STATS,
 }
 
-export interface CalcPathBusOutputDataStats {}
+export interface CalcPathBusOutputDataStats {
+	all: Float32Array;
+	path: Float32Array;
+	pathCount: number;
+}
 
 export interface CalcPathBusOutputPayload {
 	cmd: CalcPathBusOutputCmd;

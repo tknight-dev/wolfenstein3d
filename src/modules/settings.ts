@@ -24,7 +24,7 @@ export class Settings {
 		Game.settingDebug = false; // def: false
 		Game.settingGraphicsDPISupport = false; // def: false
 		Game.settingGraphicsFPSDisplay = true; // def: true
-		Game.settingGamePlayer1InputDevice = InputDevice.KEYBOARD; // def: KEYBOARD
+		Game.settingGamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
 		Game.settingGraphicsResolution = GamingCanvas.detectDevice(true, true) ? 320 : 640; // def: 320 for mobile/table & 640 for the rest
 		Game.settingIntro = true;
 
@@ -175,6 +175,13 @@ export class Settings {
 		 * HTML
 		 */
 		Settings.set(false);
+
+		// Performance
+		if (Game.settingsCalcMain.player2Enable === true) {
+			DOM.elPerformanceVideoPlayer2.style.display = 'block';
+		} else {
+			DOM.elPerformanceVideoPlayer2.style.display = 'none';
+		}
 	}
 
 	/**
@@ -203,7 +210,7 @@ export class Settings {
 			Game.settingAudioVolumeEffect = Number(DOM.elSettingsValueAudioVolumeEffect.value);
 			Game.settingAudioVolumeMusic = Number(DOM.elSettingsValueAudioVolumeMusic.value);
 			Game.settingDebug = DOM.elSettingsValueGameDebug.checked;
-			Game.settingGamePlayer1InputDevice = Number(DOM.elSettingsValueGamePlayer1InputDevice.value);
+			Game.settingGamePlayer2InputDevice = Number(DOM.elSettingsValueGamePlayer2InputDevice.value);
 			Game.settingGraphicsDPISupport = DOM.elSettingsValueGraphicsDPI.checked;
 			Game.settingGraphicsFPSDisplay = DOM.elSettingsValueGraphicsFPSShow.checked;
 
@@ -260,6 +267,13 @@ export class Settings {
 			VideoEditorBus.outputSettings(Game.settingsVideoEditor);
 			VideoMainBus.outputSettings(Game.settingsVideoMain);
 			VideoOverlayBus.outputSettings(Game.settingsVideoMain);
+
+			// Performance
+			if (Game.settingsCalcMain.player2Enable === true) {
+				DOM.elPerformanceVideoPlayer2.style.display = 'block';
+			} else {
+				DOM.elPerformanceVideoPlayer2.style.display = 'none';
+			}
 		} else {
 			DOM.elSettingsValueAudioVolume.value = String(Game.settingAudioVolume);
 			DOM.elSettingsValueAudioVolumeReadout.value = (Number(DOM.elSettingsValueAudioVolume.value) * 100).toFixed(0) + '%';
@@ -273,7 +287,7 @@ export class Settings {
 			DOM.elSettingsValueGameDebug.checked = Game.settingDebug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settingsCalcMain.difficulty);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settingsCalcMain.player2Enable;
-			DOM.elSettingsValueGamePlayer1InputDevice.value = String(Game.settingGamePlayer1InputDevice);
+			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settingGamePlayer2InputDevice);
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settingsVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settingGraphicsDPISupport;
 			DOM.elSettingsValueGraphicsFOV.value = String((Game.settingsCalcMain.fov * 180) / GamingCanvasConstPI_1_000);

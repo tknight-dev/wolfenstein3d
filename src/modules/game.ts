@@ -110,6 +110,7 @@ export class Game {
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
+	public static modePerformance: boolean;
 	public static musicInstance: number | null;
 	public static position: GamingCanvasInputPositionBasic;
 	public static positionCellHighlight: GamingCanvasInputPositionOverlay;
@@ -122,7 +123,7 @@ export class Game {
 	public static settingGraphicsDPISupport: boolean;
 	public static settingGraphicsFOV: number;
 	public static settingGraphicsFPSDisplay: boolean;
-	public static settingGamePlayer1InputDevice: InputDevice;
+	public static settingGamePlayer2InputDevice: InputDevice;
 	public static settingGraphicsResolution: Resolution;
 	public static settingIntro: boolean;
 	public static settingsCalcMain: CalcMainBusInputDataSettings;
@@ -187,6 +188,10 @@ export class Game {
 	public static initializeDomInteractive(): void {
 		DOM.elButtonEdit.onclick = () => {
 			Game.viewEditor();
+		};
+
+		DOM.elButtonPerformance.onclick = () => {
+			Game.viewPerformance();
 		};
 
 		DOM.elButtonPlay.onclick = () => {
@@ -704,6 +709,8 @@ export class Game {
 				DOM.elControlsSubKeyboard.click();
 			}
 
+			DOM.elSettingsCancel.click();
+
 			DOM.elControls.style.display = 'block';
 			Game.inputSuspend = true;
 
@@ -718,6 +725,8 @@ export class Game {
 		DOM.elInfoSettings.onclick = () => {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');
+
+			DOM.elControls.style.display = 'none';
 
 			DOM.elSettingsSubGame.click();
 			DOM.elSettings.style.display = 'block';
@@ -1552,12 +1561,12 @@ export class Game {
 		const processorGamepad = (input: GamingCanvasInputGamepad) => {
 			if (modeEdit !== true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer1InputDevice === InputDevice.GAMEPAD) {
-						characterPlayerInputPlayer = characterPlayerInput.player1;
-						player1 = true;
-					} else {
+					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 						player1 = false;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player1;
+						player1 = true;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
@@ -1612,12 +1621,12 @@ export class Game {
 
 			if (modeEdit !== true || Game.editorHide === true) {
 				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer1InputDevice === InputDevice.KEYBOARD) {
-						characterPlayerInputPlayer = characterPlayerInput.player1;
-						player1 = true;
-					} else {
+					if (Game.settingGamePlayer2InputDevice === InputDevice.KEYBOARD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 						player1 = false;
+					} else {
+						characterPlayerInputPlayer = characterPlayerInput.player1;
+						player1 = true;
 					}
 				} else {
 					characterPlayerInputPlayer = characterPlayerInput.player1;
@@ -2145,8 +2154,9 @@ export class Game {
 	}
 
 	public static viewEditor(): void {
-		if (Game.modeEdit !== true) {
+		if (Game.modeEdit !== true || Game.modePerformance === true) {
 			Game.modeEdit = true;
+			Game.modePerformance = false;
 
 			// Game
 			Game.pause(true);
@@ -2157,6 +2167,7 @@ export class Game {
 			DOM.elButtonInspect.classList.remove('active');
 			DOM.elButtonMove.classList.add('active');
 			DOM.elButtonEdit.classList.add('active');
+			DOM.elButtonPerformance.classList.remove('active');
 			DOM.elButtonPlay.classList.remove('active');
 			DOM.elCanvases[4].classList.remove('hide');
 			DOM.elEditor.classList.remove('hide');
@@ -2167,6 +2178,8 @@ export class Game {
 			DOM.elIconsBottom.classList.remove('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
+			DOM.elPerformance.style.display = 'none';
+			DOM.elPerformanceVideoEditor.style.display = 'flex';
 
 			DOM.elVideoInteractive.classList.add('cursor-grab');
 			DOM.elVideoInteractive.classList.remove('cursor-pointer');
@@ -2184,11 +2197,13 @@ export class Game {
 	}
 
 	public static viewGame(): void {
-		if (Game.modeEdit !== false) {
+		if (Game.modeEdit !== false || Game.modePerformance === true) {
 			Game.modeEdit = false;
+			Game.modePerformance = false;
 
 			// DOM
 			DOM.elButtonEdit.classList.remove('active');
+			DOM.elButtonPerformance.classList.remove('active');
 			DOM.elButtonPlay.classList.add('active');
 			DOM.elCanvases[4].classList.add('hide');
 			DOM.elEditor.classList.add('hide');
@@ -2199,6 +2214,8 @@ export class Game {
 			DOM.elIconsBottom.classList.add('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
+			DOM.elPerformance.style.display = 'none';
+			DOM.elPerformanceVideoEditor.style.display = 'none';
 
 			// DOM: Editor
 			if (DOM.elEditorItemActive !== undefined) {
@@ -2257,6 +2274,46 @@ export class Game {
 			});
 			Settings.singleVideoFeedOverride(false);
 			VideoEditorBus.outputEnable(false);
+		}
+	}
+
+	public static viewPerformance(): void {
+		if (Game.modePerformance !== true) {
+			Game.modeEdit = false;
+			Game.modePerformance = true;
+
+			// Game
+			// Game.pause(true);
+
+			// DOM
+			DOM.elButtonEdit.classList.remove('active');
+			DOM.elButtonPerformance.classList.add('active');
+			DOM.elButtonPlay.classList.remove('active');
+			DOM.elIconsTop.style.display = 'flex';
+
+			// DOM: Editor
+			if (DOM.elEditorItemActive !== undefined) {
+				DOM.elEditorItemActive.classList.remove('active');
+				DOM.elEditorItemActive = undefined;
+
+				Game.editorCellHighlightEnable = false;
+			}
+			DOM.elEdit.style.display = 'none';
+
+			DOM.elVideoInteractive.classList.remove('cursor-grab');
+			DOM.elVideoInteractive.classList.remove('cursor-pointer');
+			Game.modeEditType = EditType.PAN_ZOOM;
+
+			let element: HTMLInputElement;
+			for (element of DOM.elEditorPropertiesCellExtendedInputs) {
+				element.checked = false;
+			}
+			for (element of DOM.elEditorPropertiesCellInputs) {
+				element.checked = false;
+			}
+
+			// Overlay
+			DOM.elPerformance.style.display = 'flex';
 		}
 	}
 }

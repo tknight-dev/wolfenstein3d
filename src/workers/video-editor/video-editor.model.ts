@@ -8,6 +8,14 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
  */
 
 /*
+ * Stats
+ */
+export enum VideoEditorBusStats {
+	ALL,
+	CELLS,
+}
+
+/*
  * Input
  */
 export enum VideoEditorBusInputCmd {
@@ -71,6 +79,8 @@ export enum VideoEditorBusOutputCmd {
 }
 
 export interface VideoEditorBusOutputDataStats {
+	all: Float32Array;
+	cells: Float32Array;
 	fps: number;
 }
 

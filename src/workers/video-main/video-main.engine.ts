@@ -30,6 +30,7 @@ import {
 	GamingCanvasReport,
 	GamingCanvasRenderStyle,
 	GamingCanvasUtilTimers,
+	GamingCanvasStat,
 } from '@tknight-dev/gaming-canvas';
 import {
 	GameDifficulty,
@@ -47,6 +48,7 @@ import {
 	VideoMainBusInputPayload,
 	VideoMainBusOutputCmd,
 	VideoMainBusOutputPayload,
+	VideoMainBusStats,
 } from './video-main.model.js';
 import {
 	GamingCanvasConstPI_1_875,
@@ -72,6 +74,7 @@ import {
 	CalcMainBusActionDoorStateChangeDurationInMS,
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusDieFrameDurationInMS,
+	CalcMainBusFOVByDifficulty,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusPlayerDeadFadeDurationInMS,
@@ -163,6 +166,7 @@ class VideoMainEngine {
 	private static request: number;
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static stats: { [key: number]: GamingCanvasStat } = {};
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 	private static weapon: CharacterWeapon = CharacterWeapon.PISTOL;
 	private static weaponFrame: number = 0;
@@ -262,6 +266,11 @@ class VideoMainEngine {
 
 		// Config: Settings
 		VideoMainEngine.inputSettings(data as VideoMainBusInputDataSettings);
+
+		// Stats
+		VideoMainEngine.stats[VideoMainBusStats.ALL] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.RAY] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.SPRITE] = new GamingCanvasStat(50);
 
 		// Start
 		if (VideoMainEngine.offscreenCanvasContext === null) {
@@ -521,7 +530,6 @@ class VideoMainEngine {
 			assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImagesInvertHorizontal,
 			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
 			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
-			calculationsCameraAltPrevious: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAltGridIndex: number,
 			calculationsCameraGridIndex: number = (calculationsCamera.x | 0) * VideoMainEngine.gameMap.grid.sideLength + (calculationsCamera.y | 0),
 			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
@@ -531,13 +539,15 @@ class VideoMainEngine {
 			characterNPC: CharacterNPC,
 			characterNPCId: number,
 			characterNPCUpdateEncoded: Float32Array,
+			countFrame: number = 0,
+			countRays: number = 0,
+			countSprites: number = 0,
 			offscreenCanvas: OffscreenCanvas = VideoMainEngine.offscreenCanvas,
 			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoMainEngine.offscreenCanvasContext,
 			offscreenCanvasHeightPx: number = VideoMainEngine.report.canvasHeightSplit,
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
-			frameCount: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
 			gameMapGridIndex: number,
@@ -550,6 +560,8 @@ class VideoMainEngine {
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
 			pause: boolean = VideoMainEngine.pause,
+			renderAltStand: boolean,
+			renderAltStandTimerId: number = -42,
 			renderAngle: number,
 			renderAssetId: number,
 			renderAssets: Map<AssetIdImg, OffscreenCanvas>,
@@ -597,11 +609,18 @@ class VideoMainEngine {
 			renderWeaponHeightOffset: number,
 			renderWeaponWidth: number,
 			renderWeaponWidthOffset: number,
+			settingsDebug: boolean = VideoMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = VideoMainEngine.settings.difficulty,
 			settingsFOV: number = VideoMainEngine.settings.fov,
 			settingsFPMS: number = 1000 / VideoMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = VideoMainEngine.settings.player2Enable,
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
+			statAll: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.ALL],
+			statAllRaw: Float32Array,
+			statRay: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.RAY],
+			statRayRaw: Float32Array,
+			statSprite: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.SPRITE],
+			statSpriteRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
 			timestampDelta: number,
 			timestampFPS: number = 0,
@@ -686,7 +705,7 @@ class VideoMainEngine {
 			if (timestampDelta > settingsFPMS) {
 				// More accurately calculate for more stable FPS
 				timestampThen = timestampNow - (timestampDelta % settingsFPMS);
-				frameCount++;
+				countFrame++;
 
 				/*
 				 * Modifiers
@@ -702,13 +721,15 @@ class VideoMainEngine {
 					calculationsRaysMapKeysSorted = VideoMainEngine.calculations.raysMapKeysSorted;
 
 					if (VideoMainEngine.calculations.cameraAlt !== undefined) {
-						calculationsCameraAltPrevious.r = calculationsCameraAlt.r;
-						calculationsCameraAltPrevious.x = calculationsCameraAlt.x;
-						calculationsCameraAltPrevious.y = calculationsCameraAlt.y;
-
 						calculationsCameraAlt.decode(VideoMainEngine.calculations.cameraAlt);
 						calculationsCameraAltGridIndex =
 							(calculationsCameraAlt.x | 0) * VideoMainEngine.gameMap.grid.sideLength + (calculationsCameraAlt.y | 0);
+
+						renderAltStand = false;
+						timers.clear(renderAltStandTimerId);
+						timers.add(() => {
+							renderAltStand = true;
+						}, 250);
 					}
 
 					renderModeEdit = VideoMainEngine.calculations.edit;
@@ -802,6 +823,7 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {
 					// Settings
+					settingsDebug = VideoMainEngine.settings.debug;
 					settingsDifficulty = VideoMainEngine.settings.difficulty;
 					settingsFOV = VideoMainEngine.settings.fov;
 					settingsFPMS = 1000 / VideoMainEngine.settings.fps;
@@ -889,6 +911,8 @@ class VideoMainEngine {
 				}
 
 				// Don't render a second screen if it's not even enabled
+				countRays = 0;
+				countSprites = 0;
 				if (calculationsRays === undefined) {
 					return;
 				}
@@ -896,6 +920,8 @@ class VideoMainEngine {
 				/*
 				 * Render
 				 */
+
+				statAll.watchStart();
 
 				// Render: Aspect ratios and positional offsets
 				if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
@@ -964,6 +990,8 @@ class VideoMainEngine {
 					 * Draw: Ray
 					 */
 					if (renderRayDistanceMapInstance.rayIndex !== undefined) {
+						statRay.watchStart();
+						countRays++;
 						renderRayIndex = renderRayDistanceMapInstance.rayIndex;
 						gameMapGridIndex = calculationsRays[renderRayIndex + 4];
 
@@ -1043,12 +1071,15 @@ class VideoMainEngine {
 							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 						);
+						statRay.watchStop();
 					}
 
 					/**
 					 * Draw: Sprites
 					 */
 					if (renderRayDistanceMapInstance.cellIndex !== undefined) {
+						countSprites++;
+						statSprite.watchStart();
 						gameMapGridIndex = renderRayDistanceMapInstance.cellIndex;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 						renderSkip = false;
@@ -1424,7 +1455,7 @@ class VideoMainEngine {
 							}
 
 							// Calc: Movement
-							if (calculationsCameraAltPrevious.x !== calculationsCameraAlt.x || calculationsCameraAltPrevious.y !== calculationsCameraAlt.y) {
+							if (renderAltStand !== true) {
 								renderCharacterNPCState = (((timestampNow % 400) / 100) | 0) + 1;
 							} else {
 								renderCharacterNPCState = 0;
@@ -1593,11 +1624,22 @@ class VideoMainEngine {
 								);
 							}
 						}
+						statSprite.watchStop();
 					}
 				}
 
 				// Weapon
 				if (renderModeEdit !== true) {
+					if (settingsDebug === true) {
+						x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV;
+						offscreenCanvasContext.strokeStyle = 'rgba(255,255,0,0.75)';
+						offscreenCanvasContext.beginPath();
+						offscreenCanvasContext.moveTo(offscreenCanvasWidthPxHalf - x, 0);
+						offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf, offscreenCanvasHeightPx);
+						offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf + x, 0);
+						offscreenCanvasContext.stroke();
+					}
+
 					renderWeaponFire = false;
 					switch (renderWeapon) {
 						case CharacterWeapon.KNIFE:
@@ -1650,22 +1692,36 @@ class VideoMainEngine {
 						renderWeaponHeight * renderTilt,
 					);
 				}
+
+				statAll.watchStop();
 			}
 
 			// Stats: sent once per second
 			if (timestampNow - timestampFPS > 999) {
 				timestampFPS = timestampNow;
 
+				statAllRaw = <Float32Array>statAll.encode();
+				statRayRaw = <Float32Array>statRay.encode();
+				statSpriteRaw = <Float32Array>statSprite.encode();
+
 				// Output
-				VideoMainEngine.post([
-					{
-						cmd: VideoMainBusOutputCmd.STATS,
-						data: {
-							fps: frameCount,
+				VideoMainEngine.post(
+					[
+						{
+							cmd: VideoMainBusOutputCmd.STATS,
+							data: {
+								all: statAllRaw,
+								countRays: countRays,
+								countSprites: countSprites,
+								fps: countFrame,
+								ray: statRayRaw,
+								sprite: statSpriteRaw,
+							},
 						},
-					},
-				]);
-				frameCount = 0;
+					],
+					[statAllRaw.buffer, statRayRaw.buffer, statSpriteRaw.buffer],
+				);
+				countFrame = 0;
 			}
 		};
 		VideoMainEngine.go = go;

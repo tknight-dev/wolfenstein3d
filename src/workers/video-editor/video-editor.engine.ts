@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasConstPI_2_000, GamingCanvasReport, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasConstPI_2_000, GamingCanvasReport, GamingCanvasRenderStyle, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
@@ -8,6 +8,7 @@ import {
 	VideoEditorBusInputPayload,
 	VideoEditorBusOutputCmd,
 	VideoEditorBusOutputPayload,
+	VideoEditorBusStats,
 } from './video-editor.model.js';
 import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridRaycastTestImageCreate, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
@@ -83,6 +84,7 @@ class VideoEditorEngine {
 	private static request: number;
 	private static settings: VideoEditorBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static stats: { [key: number]: GamingCanvasStat } = {};
 
 	public static async initialize(data: VideoEditorBusInputDataInit): Promise<void> {
 		// Assets
@@ -173,6 +175,10 @@ class VideoEditorEngine {
 
 		// Config: Settings
 		VideoEditorEngine.inputSettings(data as VideoEditorBusInputDataSettings);
+
+		// Stats
+		VideoEditorEngine.stats[VideoEditorBusStats.ALL] = new GamingCanvasStat(50);
+		VideoEditorEngine.stats[VideoEditorBusStats.CELLS] = new GamingCanvasStat(50);
 
 		// Start
 		if (VideoEditorEngine.offscreenCanvasContext === null) {
@@ -341,6 +347,10 @@ class VideoEditorEngine {
 			settingsFPMS: number = 1000 / VideoEditorEngine.settings.fps,
 			settingsPlayer2Enabled: boolean = VideoEditorEngine.settings.player2Enable,
 			state: boolean,
+			statAll: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.ALL],
+			statAllRaw: Float32Array,
+			statCells: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.CELLS],
+			statCellsRaw: Float32Array,
 			testImage: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			timestampDelta: number,
 			timestampFPS: number = 0,
@@ -400,6 +410,7 @@ class VideoEditorEngine {
 				frameCount++;
 
 				if (VideoEditorEngine.enable === true || true) {
+					statAll.watchStart();
 					if (VideoEditorEngine.gameMapNew === true) {
 						VideoEditorEngine.gameMapNew = false;
 
@@ -584,6 +595,7 @@ class VideoEditorEngine {
 					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
 					// Draw: Cells
+					statCells.watchStart();
 					for ([i, value] of gameMapGridData.entries()) {
 						y = i % gameMapGridSideLength;
 
@@ -659,6 +671,7 @@ class VideoEditorEngine {
 							}
 						}
 					}
+					statCells.watchStop();
 
 					// Draw: Map - Grid
 					if (settingsGridDraw === true) {
@@ -860,7 +873,7 @@ class VideoEditorEngine {
 						offscreenCanvasContext.fill();
 					}
 
-					// statDrawAvg.watchStop();
+					statAll.watchStop();
 				}
 			}
 
@@ -868,15 +881,23 @@ class VideoEditorEngine {
 			if (timestampNow - timestampFPS > 999) {
 				timestampFPS = timestampNow;
 
+				statAllRaw = <Float32Array>statAll.encode();
+				statCellsRaw = <Float32Array>statCells.encode();
+
 				// Output
-				VideoEditorEngine.post([
-					{
-						cmd: VideoEditorBusOutputCmd.STATS,
-						data: {
-							fps: frameCount,
+				VideoEditorEngine.post(
+					[
+						{
+							cmd: VideoEditorBusOutputCmd.STATS,
+							data: {
+								all: statAllRaw,
+								cells: statCellsRaw,
+								fps: frameCount,
+							},
 						},
-					},
-				]);
+					],
+					[statCellsRaw.buffer],
+				);
 				frameCount = 0;
 			}
 		};

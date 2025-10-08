@@ -26,6 +26,7 @@ import {
 	CalcMainBusPlayerDamageByDifficulty,
 	CalcMainBusPlayerDeadFadeDurationInMS,
 	CalcMainBusPlayerDeadFallDurationInMS,
+	CalcMainBusStats,
 	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
@@ -56,6 +57,7 @@ import {
 	GamingCanvasConstPI_2_000,
 	GamingCanvasOrientation,
 	GamingCanvasReport,
+	GamingCanvasStat,
 	GamingCanvasUtilScale,
 	GamingCanvasUtilTimers,
 } from '@tknight-dev/gaming-canvas';
@@ -165,6 +167,7 @@ class CalcMainEngine {
 	private static request: number;
 	private static settings: CalcMainBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static stats: { [key: number]: GamingCanvasStat } = {};
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcMainBusInputDataInit): Promise<void> {
@@ -236,6 +239,10 @@ class CalcMainEngine {
 				data: true,
 			},
 		]);
+
+		// Stats
+		CalcMainEngine.stats[CalcMainBusStats.ALL] = new GamingCanvasStat(50);
+		CalcMainEngine.stats[CalcMainBusStats.AUDIO] = new GamingCanvasStat(50);
 
 		// Start rendering thread
 		CalcMainEngine.go__funcForward();
@@ -448,6 +455,7 @@ class CalcMainEngine {
 			characterPlayers: Character[],
 			characterPlayerSingle: Character[] = [characterPlayer1],
 			cycleCount: number = 0,
+			cycleCountReported: number = 0,
 			cycleMinMs: number = 10,
 			distance: number,
 			distance2: number,
@@ -535,11 +543,16 @@ class CalcMainEngine {
 			settingsDifficulty: GameDifficulty = CalcMainEngine.settings.difficulty,
 			settingsFPMS: number = 1000 / CalcMainEngine.settings.fps,
 			settingsPlayer2Enable: boolean = CalcMainEngine.settings.player2Enable,
+			statAll: GamingCanvasStat = CalcMainEngine.stats[CalcMainBusStats.ALL],
+			statAllRaw: Float32Array,
+			statAudio: GamingCanvasStat = CalcMainEngine.stats[CalcMainBusStats.AUDIO],
+			statAudioRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = CalcMainEngine.timers,
 			timestampAudio: number = 0,
 			timestampDelta: number,
 			timestampFPSDelta: number,
 			timestampFPSThen: number = 0,
+			timestampStats: number = 0,
 			timestampThen: number = 0,
 			timestampUnix: number = Date.now(),
 			timestampUnixEff: number = Date.now(),
@@ -1427,6 +1440,7 @@ class CalcMainEngine {
 			if (timestampDelta > cycleMinMs) {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
+				statAll.watchStart();
 
 				/**
 				 * Calc: Environment
@@ -1584,31 +1598,8 @@ class CalcMainEngine {
 							);
 							characterPlayerChanged[0] = true;
 						}
-					}
 
-					// Player 1: Raycast
-					if (characterPlayerChanged[0] === true || reportOrientationForce === true || respawn === true) {
-						characterPlayer1Raycast = GamingCanvasGridRaycast(
-							characterPlayer1.camera,
-							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
-							raycastOptions,
-						);
-						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
-						characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
-						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
-					} else {
-						characterPlayer1Raycast = undefined;
-
-						if (audioEnableWallCollisions === true) {
-							if (characterPlayer1Input.x !== 0 || characterPlayer1Input.y !== 0) {
-								cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
-							}
-						}
-					}
-
-					if (settingsPlayer2Enable === true) {
-						if (pause !== true) {
+						if (settingsPlayer2Enable === true) {
 							// Player 2: Position
 							if (characterPlayer2.health > 0) {
 								characterPlayerChanged[1] = GamingCanvasGridCharacterControl(
@@ -1628,32 +1619,59 @@ class CalcMainEngine {
 								);
 								characterPlayerChanged[1] = true;
 							}
-						}
 
-						// Player 2: Raycast
-						if (characterPlayerChanged[1] === true || reportOrientationForce === true || respawn === true) {
-							characterPlayer2Raycast = GamingCanvasGridRaycast(
-								characterPlayer2.camera,
-								gameMapGrid,
-								GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
-								raycastOptions,
-							);
-							characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
-								characterPlayer2Raycast.distanceMap
-							);
-							characterPlayer2RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer2Raycast.distanceMapKeysSorted;
-							characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
-						} else {
-							characterPlayer2Raycast = undefined;
+							// Player 2: Raycast
+							if (
+								characterPlayerChanged[0] === true ||
+								characterPlayerChanged[1] === true ||
+								reportOrientationForce === true ||
+								respawn === true
+							) {
+								characterPlayer2Raycast = GamingCanvasGridRaycast(
+									characterPlayer2.camera,
+									gameMapGrid,
+									GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+									raycastOptions,
+								);
+								characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
+									characterPlayer2Raycast.distanceMap
+								);
+								characterPlayer2RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer2Raycast.distanceMapKeysSorted;
+								characterPlayer2RaycastRays = characterPlayer2Raycast.rays;
+							} else {
+								characterPlayer2Raycast = undefined;
 
-							if (audioEnableWallCollisions === true) {
-								if (characterPlayer2Input.x !== 0 || characterPlayer2Input.y !== 0) {
-									cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
+								if (audioEnableWallCollisions === true) {
+									if (characterPlayer2Input.x !== 0 || characterPlayer2Input.y !== 0) {
+										cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
+									}
 								}
 							}
+						} else {
+							characterPlayer2Raycast = undefined;
+							characterPlayerChanged[1] = false;
 						}
+					}
+
+					// Player 1: Raycast
+					if (characterPlayerChanged[0] === true || characterPlayerChanged[1] === true || reportOrientationForce === true || respawn === true) {
+						characterPlayer1Raycast = GamingCanvasGridRaycast(
+							characterPlayer1.camera,
+							gameMapGrid,
+							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+							raycastOptions,
+						);
+						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
+						characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
+						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;
 					} else {
-						characterPlayer2Raycast = undefined;
+						characterPlayer1Raycast = undefined;
+
+						if (audioEnableWallCollisions === true) {
+							if (characterPlayer1Input.x !== 0 || characterPlayer1Input.y !== 0) {
+								cycleCount % 4 === 0 && audioPlay(AssetIdAudio.AUDIO_EFFECT_WALL_HIT);
+							}
+						}
 					}
 
 					/**
@@ -2460,12 +2478,15 @@ class CalcMainEngine {
 				if (respawn === true) {
 					respawn = false;
 				}
+
+				statAll.watchStop();
 			}
 
 			/**
 			 * Audio (Pan and Volume)
 			 */
 			if (timestampNow - timestampAudio > 20) {
+				statAudio.watchStart();
 				audioPostStack = new Array();
 				timestampAudio = timestampNow;
 
@@ -2520,6 +2541,35 @@ class CalcMainEngine {
 					// Push to audio engine thread
 					CalcMainEngine.post(audioPostStack);
 				}
+
+				statAudio.watchStop();
+			}
+
+			/**
+			 * Stats
+			 */
+			// Stats: sent once per second
+			if (timestampNow - timestampStats > 999) {
+				timestampStats = timestampNow;
+
+				statAllRaw = <Float32Array>statAll.encode();
+				statAudioRaw = <Float32Array>statAudio.encode();
+
+				// Output
+				CalcMainEngine.post(
+					[
+						{
+							cmd: CalcMainBusOutputCmd.STATS,
+							data: {
+								all: statAllRaw,
+								audio: statAudioRaw,
+								cps: cycleCount - cycleCountReported,
+							},
+						},
+					],
+					[statAllRaw.buffer, statAudioRaw.buffer],
+				);
+				cycleCountReported = cycleCount;
 			}
 
 			/**

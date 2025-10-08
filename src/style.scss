@@ -175,6 +175,7 @@ $main-z-index-video-interactive: 50;
 		.fps,
 		.icons,
 		.meta,
+		.performance,
 		.player-overlay,
 		.settings,
 		.screen,
@@ -859,6 +860,114 @@ $main-z-index-video-interactive: 50;
 				div {
 					text-align: center;
 					width: 65px;
+				}
+			}
+		}
+
+		.performance {
+			align-items: top;
+			background-color: rgba(0, 0, 0, 0.5);
+			bottom: 0px;
+			display: none;
+			flex-wrap: wrap;
+			justify-content: center;
+			left: 0;
+			overflow-y: auto;
+			padding-bottom: 15px;
+			padding-top: 40px;
+			right: 0;
+			@include scrollbar();
+			top: 60px;
+			z-index: $main-z-index-screen;
+
+			.performance-title {
+				align-items: center;
+				display: flex;
+				font-size: 22px;
+				font-weight: bold;
+				height: 40px;
+				justify-content: center;
+				left: 0;
+				pointer-events: none;
+				position: absolute;
+				right: 0;
+				top: 0;
+				touch-action: none;
+			}
+
+			.category {
+				border: 1px solid white;
+				border-radius: 20px;
+				flex: 1;
+				margin: 5px;
+				width: 235px;
+				max-width: 235px;
+				min-width: 235px;
+
+				.wrapper {
+					align-items: center;
+					display: flex;
+					flex-direction: column;
+					justify-content: center;
+
+					.body,
+					.title {
+						width: 100%;
+					}
+
+					.body {
+						background-color: rgba(0, 0, 0, 0.75);
+						border-bottom-left-radius: 20px;
+						border-bottom-right-radius: 20px;
+						flex-grow: 1;
+
+						table {
+							height: auto !important;
+							width: 100%;
+
+							tr {
+								border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+								height: 40px;
+
+								&:nth-child(even) {
+									background-color: rgba(128, 128, 128, 0.1);
+								}
+
+								td {
+									color: #dddddd;
+									font-family: monospace;
+									font-size: 14px;
+									font-style: italic;
+									font-weight: bold;
+									height: 40px;
+									padding: 5px;
+									text-align: right;
+									min-width: 100px;
+
+									&:last-child {
+										border-left: 1px solid rgba(128, 128, 128, 0.25);
+										color: white;
+										font-style: normal;
+										text-align: left;
+										width: 100%;
+									}
+								}
+							}
+						}
+					}
+
+					.title {
+						align-items: center;
+						background-color: white;
+						border-top-left-radius: 20px;
+						border-top-right-radius: 20px;
+						color: black;
+						display: flex;
+						font-size: 20px;
+						font-weight: bold;
+						height: 40px;
+						justify-content: center;
+					}
 				}
 			}
 		}

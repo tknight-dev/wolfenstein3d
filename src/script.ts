@@ -5,7 +5,7 @@ import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
 import { Game } from './modules/game.js';
 import { GameMap } from './models/game.model.js';
-import { GamingCanvas, GamingCanvasAudioType } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasStat, GamingCanvasStatCalcType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
 import { VideoMainBus } from './workers/video-main/video-main.bus.js';
@@ -37,30 +37,70 @@ class Blockenstein {
 	}
 
 	private static initializeStatCallbacks(): void {
+		const displayNumber = Blockenstein.displayNumber,
+			displayNumberAll = Blockenstein.displayNumberAll,
+			precision: number = 2;
+
 		/**
 		 * Calc: Main
 		 */
-		CalcMainBus.setCallbackStats((stats: CalcMainBusOutputDataStats) => {});
+		CalcMainBus.setCallbackStats((stats: CalcMainBusOutputDataStats) => {
+			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
+				audio: GamingCanvasStat = GamingCanvasStat.decode(stats.audio);
+
+			DOM.elPerformanceCalcMainAll.innerHTML = displayNumberAll(all, precision);
+			DOM.elPerformanceCalcMainAudio.innerHTML = displayNumber(<number>GamingCanvasStat.calc(audio), precision, 'avg');
+			DOM.elPerformanceCalcMainCPS.innerText = String(stats.cps);
+		});
 
 		/**
 		 * Calc: Path
 		 */
-		CalcPathBus.setCallbackStats((stats: CalcPathBusOutputDataStats) => {});
+		CalcPathBus.setCallbackStats((stats: CalcPathBusOutputDataStats) => {
+			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
+				path: GamingCanvasStat = GamingCanvasStat.decode(stats.path);
+
+			DOM.elPerformanceCalcPathAll.innerHTML = displayNumberAll(all, precision);
+			DOM.elPerformanceCalcPathIndividual.innerHTML = `Count ${String(stats.pathCount).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(path, precision)}`;
+		});
 
 		/**
 		 * Video: Editor
 		 */
 		VideoEditorBus.setCallbackStats((stats: VideoEditorBusOutputDataStats) => {
+			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
+				cells: GamingCanvasStat = GamingCanvasStat.decode(stats.cells);
+
 			Blockenstein.statFPS['video-editor'] = stats.fps;
-			Blockenstein.displayStatFPS();
+			Blockenstein.displayStatFPS(DOM.elStatFPS);
+
+			DOM.elPerformanceVideoEditorAll.innerHTML = displayNumberAll(all, precision);
+			DOM.elPerformanceVideoEditorCells.innerHTML = displayNumber(<number>GamingCanvasStat.calc(cells), precision, 'avg');
+			Blockenstein.displayStatFPS(DOM.elPerformanceVideoEditorFPS, stats.fps);
 		});
 
 		/**
 		 * Video: Main
 		 */
 		VideoMainBus.setCallbackStats((player1: boolean, stats: VideoMainBusOutputDataStats) => {
+			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
+				ray: GamingCanvasStat = GamingCanvasStat.decode(stats.ray),
+				sprite: GamingCanvasStat = GamingCanvasStat.decode(stats.sprite);
+
 			Blockenstein.statFPS['video-main-player' + (player1 === true ? '1' : '2')] = stats.fps;
-			Blockenstein.displayStatFPS();
+			Blockenstein.displayStatFPS(DOM.elStatFPS);
+
+			if (player1 === true) {
+				DOM.elPerformanceVideoPlayer1All.innerHTML = displayNumberAll(all, precision);
+				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer1FPS, stats.fps);
+				DOM.elPerformanceVideoPlayer1Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
+				DOM.elPerformanceVideoPlayer1Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
+			} else {
+				DOM.elPerformanceVideoPlayer2All.innerHTML = displayNumberAll(all, precision);
+				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer2FPS, stats.fps);
+				DOM.elPerformanceVideoPlayer2Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
+				DOM.elPerformanceVideoPlayer2Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
+			}
 		});
 
 		/**
@@ -69,20 +109,41 @@ class Blockenstein {
 		VideoOverlayBus.setCallbackStats((player1: boolean, stats: VideoOverlayBusOutputDataStats) => {});
 	}
 
-	private static displayStatFPS(): void {
-		let value: number = Infinity;
+	private static displayNumber(value: number, precision: number, prefix: string, postfix: string = 'ms'): string {
+		return prefix.padStart(3, '#').replaceAll('#', '&nbsp;') + ' ' + value.toFixed(precision).padStart(8, '#').replaceAll('#', '&nbsp;') + postfix;
+	}
 
-		for (let fps of Object.values(Blockenstein.statFPS)) {
-			value = Math.min(value, fps);
+	private static displayNumberAll(stat: GamingCanvasStat, precision: number): string {
+		const displayNumber = Blockenstein.displayNumber;
+		return `${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MAX), precision, 'max')}<br>
+${displayNumber(<number>GamingCanvasStat.calc(stat), precision, 'avg')}<br>
+${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.STD_DEV), precision, 'σ')}<br>
+${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN), precision, 'min')}`;
+	}
+
+	private static displayStatFPS(element: HTMLElement, value: number = Infinity, hardLimit?: boolean): void {
+		if (value === Infinity) {
+			let fps: number;
+			for (fps of Object.values(Blockenstein.statFPS)) {
+				value = Math.min(value, fps);
+			}
 		}
 
-		DOM.elStatFPS.innerText = String(value);
-		if (value < Game.settingsVideoMain.fps * 0.8) {
-			DOM.elStatFPS.style.color = 'red';
-		} else if (value < Game.settingsVideoMain.fps * 0.9) {
-			DOM.elStatFPS.style.color = 'yellow';
+		element.innerText = String(value);
+		if (hardLimit === true) {
+			if (value < Game.settingsVideoMain.fps) {
+				element.style.color = 'red';
+			} else {
+				element.style.color = 'green';
+			}
 		} else {
-			DOM.elStatFPS.style.color = 'green';
+			if (value < Game.settingsVideoMain.fps * 0.8) {
+				element.style.color = 'red';
+			} else if (value < Game.settingsVideoMain.fps * 0.9) {
+				element.style.color = 'yellow';
+			} else {
+				element.style.color = 'green';
+			}
 		}
 	}
 
@@ -259,6 +320,7 @@ class Blockenstein {
 			} else {
 				// Game.viewEditor();
 				Game.viewGame();
+				// Game.viewPerformance();
 				DOM.elScreenActive.style.display = 'none';
 				Game.inputSuspend = false;
 

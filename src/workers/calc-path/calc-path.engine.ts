@@ -7,8 +7,9 @@ import {
 	CalcPathBusInputPayload,
 	CalcPathBusOutputCmd,
 	CalcPathBusOutputPayload,
+	CalcPathBusStats,
 } from './calc-path.model.js';
-import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
 import {
 	GamingCanvasGridPathAStarResult,
 	GamingCanvasGridPathAStarOptions,
@@ -19,7 +20,7 @@ import {
 import { GamingCanvasGridPathAStar, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 import { Assets } from '../../modules/assets.js';
 import { CalcMainBusActionWallMoveStateChangeDurationInMS, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
-import { GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasStat, GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
 import { AssetIdImgCharacter } from '../../asset-manager.js';
 
 /**
@@ -68,6 +69,7 @@ class CalcPathEngine {
 	private static request: number;
 	private static settings: CalcPathBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static stats: { [key: number]: GamingCanvasStat } = {};
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcPathBusInputDataInit): Promise<void> {
@@ -76,6 +78,10 @@ class CalcPathEngine {
 
 		// Config: Settings
 		CalcPathEngine.inputSettings(data as CalcPathBusInputDataSettings);
+
+		// Stats
+		CalcPathEngine.stats[CalcPathBusStats.ALL] = new GamingCanvasStat(50);
+		CalcPathEngine.stats[CalcPathBusStats.PATH] = new GamingCanvasStat(50);
 
 		// Start
 		CalcPathEngine.post([
@@ -189,6 +195,7 @@ class CalcPathEngine {
 			characterNPCUpdateEncoded: Float32Array,
 			characterPlayer1GridIndex: number = 0,
 			characterPlayer2GridIndex: number = 0,
+			count: number = 0,
 			gameMap: GameMap = CalcPathEngine.gameMap,
 			gameMapGrid: GamingCanvasGridUint16Array = CalcPathEngine.gameMap.grid,
 			gameMapGridIndex: number,
@@ -216,9 +223,15 @@ class CalcPathEngine {
 			},
 			pause: boolean = CalcPathEngine.pause,
 			settingsDebug: boolean = CalcPathEngine.settings.debug,
+			settingsDifficulty: GameDifficulty = CalcPathEngine.settings.difficulty,
 			settingsPlayer2Enable: boolean = CalcPathEngine.settings.player2Enable,
+			statAll: GamingCanvasStat = CalcPathEngine.stats[CalcPathBusStats.ALL],
+			statAllRaw: Float32Array,
+			statPath: GamingCanvasStat = CalcPathEngine.stats[CalcPathBusStats.PATH],
+			statPathRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = CalcPathEngine.timers,
 			timestampDelta: number,
+			timestampStats: number = 0,
 			timestampThen: number = 0;
 
 		characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
@@ -244,6 +257,7 @@ class CalcPathEngine {
 
 			if (timestampDelta > 1000) {
 				timestampThen = timestampNow;
+				statAll.watchStart();
 
 				if (CalcPathEngine.gameMapNew === true) {
 					CalcPathEngine.gameMapNew = false;
@@ -290,16 +304,19 @@ class CalcPathEngine {
 					CalcPathEngine.settingsNew = false;
 
 					settingsDebug = CalcPathEngine.settings.debug;
+					settingsDifficulty = CalcPathEngine.settings.difficulty;
 					settingsPlayer2Enable = CalcPathEngine.settings.player2Enable;
 				}
 
 				/**
 				 * Paths
 				 */
+				count = 0;
 				for (characterNPC of gameMapNPCById.values()) {
-					if (characterNPC.assetId === AssetIdImgCharacter.CORPSE) {
+					if (characterNPC.assetId === AssetIdImgCharacter.CORPSE || characterNPC.difficulty > settingsDifficulty) {
 						continue;
 					}
+					count++;
 
 					if (settingsPlayer2Enable !== true) {
 						gameMapGridIndex = characterPlayer1GridIndex;
@@ -315,6 +332,7 @@ class CalcPathEngine {
 					}
 
 					// Calc path
+					statPath.watchStart();
 					gameMapGridPathResult = GamingCanvasGridPathAStar(
 						characterNPC.gridIndex,
 						gameMapGridIndex,
@@ -323,6 +341,7 @@ class CalcPathEngine {
 						pathWeight,
 						gameMapGridPathOptions,
 					);
+					statPath.watchStop();
 					gameMapGridPathOptions.memory = gameMapGridPathResult.memory;
 
 					// Set path
@@ -335,6 +354,30 @@ class CalcPathEngine {
 						data: characterNPCPathById,
 					},
 				]);
+				statAll.watchStop();
+			}
+
+			// Stats: sent once per second
+			if (timestampNow - timestampStats > 999) {
+				timestampStats = timestampNow;
+
+				statPathRaw = <Float32Array>statPath.encode();
+				statAllRaw = <Float32Array>statAll.encode();
+
+				// Output
+				CalcPathEngine.post(
+					[
+						{
+							cmd: CalcPathBusOutputCmd.STATS,
+							data: {
+								all: statAllRaw,
+								path: statPathRaw,
+								pathCount: count,
+							},
+						},
+					],
+					[statAllRaw.buffer, statPathRaw.buffer],
+				);
 			}
 		};
 		CalcPathEngine.go = go;

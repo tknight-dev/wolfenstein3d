@@ -9,6 +9,14 @@ import { CharacterInput, CharacterWeapon } from '../../models/character.model.js
  */
 
 /*
+ * Stats
+ */
+export enum CalcMainBusStats {
+	ALL,
+	AUDIO,
+}
+
+/*
  * Actions
  */
 
@@ -205,7 +213,11 @@ export interface CalcMainBusOutputDataPlayerHit {
 	player1: boolean;
 }
 
-export interface CalcMainBusOutputDataStats {}
+export interface CalcMainBusOutputDataStats {
+	all: Float32Array;
+	audio: Float32Array;
+	cps: number;
+}
 
 export interface CalcMainBusOutputDataWeaponFire {
 	player1: boolean;
@@ -228,7 +240,9 @@ export interface CalcMainBusOutputPayload {
 		| CalcMainBusOutputDataCamera
 		| CalcMainBusOutputDataCalculations
 		| CalcMainBusOutputDataCharacterMeta
+		| CalcMainBusOutputDataPlayerHit
 		| CalcMainBusOutputDataStats
+		| CalcMainBusOutputDataWeaponFire
 		| CalcMainBusOutputDataWeaponSelect
 		| Float32Array[]
 		| Map<number, number[]>

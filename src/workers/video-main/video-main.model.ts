@@ -10,6 +10,15 @@ import { CharacterWeapon } from '../../models/character.model.js';
  */
 
 /*
+ * Stats
+ */
+export enum VideoMainBusStats {
+	ALL,
+	RAY,
+	SPRITE,
+}
+
+/*
  * Input
  */
 export enum VideoMainBusInputCmd {
@@ -86,7 +95,12 @@ export enum VideoMainBusOutputCmd {
 }
 
 export interface VideoMainBusOutputDataStats {
+	all: Float32Array;
+	countRays: number;
+	countSprites: number;
 	fps: number;
+	ray: Float32Array;
+	sprite: Float32Array;
 }
 
 export interface VideoMainBusOutputPayload {

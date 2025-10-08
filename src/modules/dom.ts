@@ -27,6 +27,7 @@ export class DOM {
 	public static elButtonInspect: HTMLElement;
 	public static elButtonMove: HTMLElement;
 	public static elButtonMute: HTMLElement;
+	public static elButtonPerformance: HTMLElement;
 	public static elButtonPlay: HTMLElement;
 	public static elButtonUpload: HTMLElement;
 	public static elCanvases: HTMLCanvasElement[];
@@ -116,6 +117,28 @@ export class DOM {
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
+	public static elPerformance: HTMLElement;
+	public static elPerformanceCalcMain: HTMLElement;
+	public static elPerformanceCalcMainAll: HTMLElement;
+	public static elPerformanceCalcMainAudio: HTMLElement;
+	public static elPerformanceCalcMainCPS: HTMLElement;
+	public static elPerformanceCalcPath: HTMLElement;
+	public static elPerformanceCalcPathAll: HTMLElement;
+	public static elPerformanceCalcPathIndividual: HTMLElement;
+	public static elPerformanceVideoEditor: HTMLElement;
+	public static elPerformanceVideoEditorAll: HTMLElement;
+	public static elPerformanceVideoEditorCells: HTMLElement;
+	public static elPerformanceVideoEditorFPS: HTMLElement;
+	public static elPerformanceVideoPlayer1: HTMLElement;
+	public static elPerformanceVideoPlayer1All: HTMLElement;
+	public static elPerformanceVideoPlayer1FPS: HTMLElement;
+	public static elPerformanceVideoPlayer1Ray: HTMLElement;
+	public static elPerformanceVideoPlayer1Sprite: HTMLElement;
+	public static elPerformanceVideoPlayer2: HTMLElement;
+	public static elPerformanceVideoPlayer2All: HTMLElement;
+	public static elPerformanceVideoPlayer2FPS: HTMLElement;
+	public static elPerformanceVideoPlayer2Ray: HTMLElement;
+	public static elPerformanceVideoPlayer2Sprite: HTMLElement;
 	public static elPlayerJoystick1: HTMLElement;
 	public static elPlayerJoystick1Thumb: HTMLElement;
 	public static elPlayerJoystick1Wrapper: HTMLElement;
@@ -163,7 +186,7 @@ export class DOM {
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
-	public static elSettingsValueGamePlayer1InputDevice: HTMLInputElement;
+	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
 	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
 	public static elSettingsValueGraphicsFOV: HTMLInputElement;
@@ -200,6 +223,7 @@ export class DOM {
 		DOM.elButtonInspect = <HTMLElement>document.getElementById('button-inspect');
 		DOM.elButtonMove = <HTMLElement>document.getElementById('button-move');
 		DOM.elButtonMute = <HTMLElement>document.getElementById('button-mute');
+		DOM.elButtonPerformance = <HTMLElement>document.getElementById('button-performance');
 		DOM.elButtonPlay = <HTMLElement>document.getElementById('button-play');
 		DOM.elButtonUpload = <HTMLElement>document.getElementById('button-upload');
 
@@ -385,6 +409,29 @@ export class DOM {
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
 
+		DOM.elPerformance = <HTMLElement>document.getElementById('performance');
+		DOM.elPerformanceCalcMain = <HTMLElement>document.getElementById('performance-calc-main');
+		DOM.elPerformanceCalcMainAll = <HTMLElement>document.getElementById('performance-calc-main-all');
+		DOM.elPerformanceCalcMainAudio = <HTMLElement>document.getElementById('performance-calc-main-audio');
+		DOM.elPerformanceCalcMainCPS = <HTMLElement>document.getElementById('performance-calc-main-cps');
+		DOM.elPerformanceCalcPath = <HTMLElement>document.getElementById('performance-calc-path');
+		DOM.elPerformanceCalcPathAll = <HTMLElement>document.getElementById('performance-calc-path-all');
+		DOM.elPerformanceCalcPathIndividual = <HTMLElement>document.getElementById('performance-calc-path-individual');
+		DOM.elPerformanceVideoEditor = <HTMLElement>document.getElementById('performance-video-editor');
+		DOM.elPerformanceVideoEditorAll = <HTMLElement>document.getElementById('performance-video-editor-all');
+		DOM.elPerformanceVideoEditorCells = <HTMLElement>document.getElementById('performance-video-editor-cells');
+		DOM.elPerformanceVideoEditorFPS = <HTMLElement>document.getElementById('performance-video-editor-fps');
+		DOM.elPerformanceVideoPlayer1 = <HTMLElement>document.getElementById('performance-video-player1');
+		DOM.elPerformanceVideoPlayer1All = <HTMLElement>document.getElementById('performance-video-player1-all');
+		DOM.elPerformanceVideoPlayer1FPS = <HTMLElement>document.getElementById('performance-video-player1-fps');
+		DOM.elPerformanceVideoPlayer1Ray = <HTMLElement>document.getElementById('performance-video-player1-ray');
+		DOM.elPerformanceVideoPlayer1Sprite = <HTMLElement>document.getElementById('performance-video-player1-sprite');
+		DOM.elPerformanceVideoPlayer2 = <HTMLElement>document.getElementById('performance-video-player2');
+		DOM.elPerformanceVideoPlayer2All = <HTMLElement>document.getElementById('performance-video-player2-all');
+		DOM.elPerformanceVideoPlayer2FPS = <HTMLElement>document.getElementById('performance-video-player2-fps');
+		DOM.elPerformanceVideoPlayer2Ray = <HTMLElement>document.getElementById('performance-video-player2-ray');
+		DOM.elPerformanceVideoPlayer2Sprite = <HTMLElement>document.getElementById('performance-video-player2-sprite');
+
 		DOM.elPlayerJoystick1 = document.createElement('div');
 		DOM.elPlayerJoystick1.className = 'joystick';
 		DOM.elPlayerJoystick1.id = 'joystick1';
@@ -451,7 +498,7 @@ export class DOM {
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
-		DOM.elSettingsValueGamePlayer1InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player1-input');
+		DOM.elSettingsValueGamePlayer2InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player2-input');
 		DOM.elSettingsValueGraphicsAntialias = <HTMLInputElement>document.getElementById('settings-value-graphics-antialias');
 		DOM.elSettingsValueGraphicsDPI = <HTMLInputElement>document.getElementById('settings-value-graphics-dpi');
 

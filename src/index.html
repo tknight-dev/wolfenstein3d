@@ -422,6 +422,102 @@
 							</div>
 						</div>
 					</div>
+					<div class="performance" id="performance">
+						<div class="performance-title">Threads (WebWorkers)</div>
+						<div class="category" id="performance-calc-main">
+							<div class="wrapper">
+								<div class="title">Calc Main</div>
+								<div class="body">
+									<table>
+										<tr>
+											<td>All</td><td id="performance-calc-main-all"></td>
+										</tr>
+										<tr>
+											<td>Audio</td><td id="performance-calc-main-audio"></td>
+										</tr>
+										<tr>
+											<td>CPS</td><td id="performance-calc-main-cps"></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="category" id="performance-calc-path">
+							<div class="wrapper">
+								<div class="title">Calc Path (A*)</div>
+								<div class="body">
+									<table>
+										<tr>
+											<td>All</td><td id="performance-calc-path-all"></td>
+										</tr>
+										<tr>
+											<td>Individual</td><td id="performance-calc-path-individual"></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="category" id="performance-video-editor">
+							<div class="wrapper">
+								<div class="title">Video Editor</div>
+								<div class="body">
+									<table>
+										<tr>
+											<td>All</td><td id="performance-video-editor-all"></td>
+										</tr>
+										<tr>
+											<td>Cells/Tiles</td><td id="performance-video-editor-cells"></td>
+										</tr>
+										<tr>
+											<td>FPS</td><td id="performance-video-editor-fps"></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="category" id="performance-video-player1">
+							<div class="wrapper">
+								<div class="title">Video Player1</div>
+								<div class="body">
+									<table>
+										<tr>
+											<td>All</td><td id="performance-video-player1-all"></td>
+										</tr>
+										<tr>
+											<td>FPS</td><td id="performance-video-player1-fps"></td>
+										</tr>
+										<tr>
+											<td>Raycast</td><td id="performance-video-player1-ray"></td>
+										</tr>
+										<tr>
+											<td>Sprites</td><td id="performance-video-player1-sprite"></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="category" id="performance-video-player2">
+							<div class="wrapper">
+								<div class="title">Video Player2</div>
+								<div class="body">
+									<table>
+										<tr>
+											<td>All</td><td id="performance-video-player2-all"></td>
+										</tr>
+										<tr>
+											<td>FPS</td><td id="performance-video-player2-fps"></td>
+										</tr>
+										<tr>
+											<td>Raycast</td><td id="performance-video-player2-ray"></td>
+										</tr>
+										<tr>
+											<td>Sprites</td><td id="performance-video-player2-sprite"></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
 					<div class="player-overlay player1" id="player-overlay-1">
 						<div class="section">
 							<div class="title">LIVES</div>
@@ -552,7 +648,13 @@
 										<tr>
 											<td>Player1 Input Device</td>
 											<td>
-												<select autocomplete="off" id="settings-value-game-player1-input">
+												<i>Touch Inputs or Not player2's Input Device</i>
+											</td>
+										</tr>
+										<tr>
+											<td>Player2 Input Device</td>
+											<td>
+												<select autocomplete="off" id="settings-value-game-player2-input">
 													<option autocomplete="off" value="0">Gamepad</option>
 													<option autocomplete="off" value="1">Keyboard</option>
 												</select>
