@@ -2009,7 +2009,6 @@ export class Game {
 							characterPlayerInputPlayer.r = 0;
 						}
 
-						DOM.elEditorPropertiesCellOutputAssetId.innerText = `${(touchJoystick2XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf - 1}`;
 						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === 2) {
 							characterPlayerInputPlayer.action = true;
 							DOM.elPlayerJoystick2Thumb.classList.add('press-green');

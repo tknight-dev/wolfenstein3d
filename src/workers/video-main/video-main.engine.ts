@@ -66,7 +66,6 @@ import {
 	GamingCanvasGridRaycastTestImageCreate,
 	GamingCanvasGridRaycastCellSide,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
-	GamingCanvasGridUtilDistanceSort,
 } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import {
@@ -932,7 +931,7 @@ class VideoMainEngine {
 
 					if (settingsPlayer2Enable === true) {
 						renderHeightFactor = 2;
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2 + 10;
+						renderHeightOffset = offscreenCanvasWidthPxHalf / 1.7777;
 					} else {
 						renderHeightFactor = 1;
 						renderHeightOffset = 0;
@@ -941,10 +940,10 @@ class VideoMainEngine {
 					renderHeightFactor = 2;
 
 					if (settingsPlayer2Enable === true) {
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2 - 10;
+						renderHeightOffset = offscreenCanvasWidthPxHalf / 2.2222;
 						renderWallHeightFactor = 2;
 					} else {
-						renderHeightOffset = offscreenCanvasWidthPxHalf - 20;
+						renderHeightOffset = offscreenCanvasWidthPxHalf * 0.8888;
 						renderWallHeightFactor = 1;
 					}
 				}
