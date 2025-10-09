@@ -1054,11 +1054,15 @@ export class Game {
 					request: data.request,
 				});
 			} else if (data.instance !== undefined) {
-				if (data.pan !== undefined) {
-					GamingCanvas.audioControlPan(data.instance, data.pan);
-				}
-				if (data.volume !== undefined) {
-					GamingCanvas.audioControlVolume(data.instance, data.volume);
+				if (data.stop === true) {
+					GamingCanvas.audioControlStop(data.instance);
+				} else {
+					if (data.pan !== undefined) {
+						GamingCanvas.audioControlPan(data.instance, data.pan);
+					}
+					if (data.volume !== undefined) {
+						GamingCanvas.audioControlVolume(data.instance, data.volume);
+					}
 				}
 			}
 		});

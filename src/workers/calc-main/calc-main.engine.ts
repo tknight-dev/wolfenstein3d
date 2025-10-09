@@ -371,6 +371,7 @@ class CalcMainEngine {
 			audioDistanceMax: number = 25,
 			audioInstance: AudioInstance,
 			audioPostStack: CalcMainBusOutputPayload[],
+			audioRequest: number | null,
 			audioRequestCounter: number = 0,
 			buffers: ArrayBufferLike[] = [],
 			camera: GamingCanvasGridCamera = new GamingCanvasGridCamera(
@@ -516,6 +517,7 @@ class CalcMainEngine {
 
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
 			},
+			gameMapNPCAudioSurpiseRequestById: Map<number, number | null> = new Map(),
 			gameMapNPCById: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npcById,
 			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
@@ -1217,6 +1219,7 @@ class CalcMainEngine {
 
 					characterNPC.health -= <number>CalcMainBusWeaponDamage.get(weapon) * angle;
 				}
+				characterNPC.health = 0;
 				characterNPC.timestampUnixState = timestampUnix;
 
 				if (characterNPC.health <= 0) {
@@ -1224,6 +1227,23 @@ class CalcMainEngine {
 					characterNPC.health = 0;
 					characterNPCStates.set(characterNPC.id, CharacterNPCState.CORPSE);
 					gridIndex = characterNPC.gridIndex;
+
+					audioRequest = <number>gameMapNPCAudioSurpiseRequestById.get(characterNPC.id);
+					if (audioRequest !== undefined && audioRequest !== null) {
+						audioInstance = <AudioInstance>audio.get(audioRequest);
+						if (audioInstance !== undefined) {
+							// Buffer for audio engine thread push
+							CalcMainEngine.post([
+								{
+									cmd: CalcMainBusOutputCmd.AUDIO,
+									data: {
+										instance: audioInstance.instance,
+										stop: true,
+									},
+								},
+							]);
+						}
+					}
 
 					switch (Math.floor(Math.random() * 5) + 1) {
 						case 1:
@@ -1299,7 +1319,7 @@ class CalcMainEngine {
 							}
 
 							// Enemy contact!
-							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex);
+							gameMapNPCAudioSurpiseRequestById.set(characterNPC.id, audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex));
 
 							characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
 							characterNPC.running = true;
@@ -1501,6 +1521,7 @@ class CalcMainEngine {
 
 					characterNPCPathById.clear();
 					characterNPCStates.clear();
+					gameMapNPCAudioSurpiseRequestById.clear();
 					gameMapNPCDead.clear();
 					gameMapNPCByGridIndex.clear();
 					gameMapNPCShootAt.clear();
@@ -2396,7 +2417,10 @@ class CalcMainEngine {
 									// Wait for "reflex" time (guard turns, relex delay, spot!)
 									if (timestampUnix - characterNPC.timestampUnixState > 300) {
 										// Enemy contact!
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex);
+										gameMapNPCAudioSurpiseRequestById.set(
+											characterNPC.id,
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_SURPRISE, characterNPC.gridIndex),
+										);
 
 										characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
 										characterNPC.running = true;

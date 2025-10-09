@@ -179,6 +179,7 @@ export interface CalcMainBusOutputDataAudio {
 	assetId?: number; // no assetId is modify existing instance
 	instance?: number; // assetId and instance is stop old instance; assetId and no instance is play new asset
 	pan?: number;
+	stop?: boolean;
 	volume?: number;
 	request?: number; // unique to calc engine
 }
