@@ -1390,7 +1390,7 @@ class VideoMainEngine {
 
 									// Filter: Start
 									if (renderLightingQuality === LightingQuality.FULL) {
-										renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+										renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
 									}
 
 									// Filter: End
@@ -1490,7 +1490,7 @@ class VideoMainEngine {
 
 								// Filter: Start
 								if (renderLightingQuality === LightingQuality.FULL) {
-									renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+									renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
 								}
 
 								// Filter: End
@@ -1603,7 +1603,7 @@ class VideoMainEngine {
 
 									// Filter: Start
 									if (renderLightingQuality === LightingQuality.FULL) {
-										renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+										renderBrightness -= Math.min(0.75, renderDistance / 20); // no min is lantern light
 									}
 
 									// Filter: End
