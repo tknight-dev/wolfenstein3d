@@ -2026,6 +2026,12 @@ class CalcMainEngine {
 										// Path
 										gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 										gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 1];
+
+										// Select the next path cell if already in the current one
+										if (gameMapNPCPathInstance === characterNPC.gridIndex && gameMapNPCPath.length > 1) {
+											gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 2];
+										}
+
 										y = (gameMapNPCPathInstance % gameMapSideLength) + 0.5;
 										x = (gameMapNPCPathInstance - y) / gameMapSideLength + 0.5;
 
