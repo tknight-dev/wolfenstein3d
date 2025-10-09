@@ -967,10 +967,11 @@ export class Game {
 			report: GamingCanvasReport = Game.report,
 			touchDistancePrevious: number,
 			touchDistance: number,
-			touchJoystickDeadBand: number = 0.1,
-			touchJoystickSize: number = 120,
+			touchJoystickDeadBand: number = 0.2,
+			touchJoystickSize: number = 150,
 			touchJoystickSizeHalf: number = touchJoystickSize / 2,
 			touchJoystickSizeQuarter: number = touchJoystickSize / 4,
+			touchJoystickSizeEighth: number = touchJoystickSize / 8,
 			touchJoystick1Show: boolean,
 			touchJoystick1X: number,
 			touchJoystick1XThumb: number,
@@ -997,7 +998,10 @@ export class Game {
 			VideoMainBus.outputActionSwitch(data);
 
 			Game.inputSuspend = true;
-			Game.pause(true);
+			CalcMainBus.outputPause(true);
+			CalcPathBus.outputPause(true);
+			VideoMainBus.outputPause(true);
+			VideoOverlayBus.outputPause(true);
 
 			setTimeout(() => {
 				DOM.screenControl(DOM.elScreenLevelEnd);
@@ -1238,6 +1242,10 @@ export class Game {
 			if (updated === true || updatedR === true || Game.reportNew === true || Game.mapBackupRestored === true) {
 				Game.mapBackupRestored = false;
 				report = Game.report;
+
+				if (Game.reportNew === true) {
+					viewport.updateReport(report);
+				}
 
 				if (modeEdit === true) {
 					// Calc: Camera Mode
@@ -1881,6 +1889,7 @@ export class Game {
 			if (Game.editorCellHighlightEnable === true) {
 				setTimeout(() => {
 					Game.positionCellHighlight = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport, Game.positionCellHighlight);
+					console.log(Game.positionCellHighlight.left, report.canvasWidth * report.scaler, report.canvasHeight * report.scaler);
 
 					elEditStyle.display = 'block';
 					elEditStyle.height = Game.positionCellHighlight.cellSizePx + 'px';
@@ -1916,13 +1925,13 @@ export class Game {
 				if (position1 !== undefined) {
 					if (touchJoystick1Show !== true) {
 						touchJoystick1X = Math.max(touchJoystickSizeHalf, position1.x);
-						touchJoystick1Y = position1.y;
+						touchJoystick1Y = Math.min(report.canvasHeight * report.scaler - touchJoystickSizeHalf, position1.y);
 
 						DOM.elPlayerJoystick1.style.left = touchJoystick1X - touchJoystickSizeHalf + 'px';
 						DOM.elPlayerJoystick1.style.top = touchJoystick1Y - touchJoystickSizeHalf + 'px';
 
-						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1X + 'px';
-						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1Y + 'px';
+						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1X + touchJoystickSizeQuarter + 'px';
+						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1Y + touchJoystickSizeQuarter + 'px';
 					} else {
 						touchJoystick1XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.x - touchJoystick1X));
 						touchJoystick1YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position1.y - touchJoystick1Y));
@@ -1930,12 +1939,14 @@ export class Game {
 						DOM.elPlayerJoystick1Thumb.style.left = touchJoystick1XThumb + touchJoystickSizeQuarter + 'px';
 						DOM.elPlayerJoystick1Thumb.style.top = touchJoystick1YThumb + touchJoystickSizeQuarter + 'px';
 
-						characterPlayerInputPlayer.x = (((touchJoystick1XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						characterPlayerInputPlayer.x = (touchJoystick1XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf;
+						// DOM.elDebug.innerText = `${((touchJoystick1XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
 						if (characterPlayerInputPlayer.x > -touchJoystickDeadBand && characterPlayerInputPlayer.x < touchJoystickDeadBand) {
 							characterPlayerInputPlayer.x = 0;
 						}
 
-						characterPlayerInputPlayer.y = (((touchJoystick1YThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						characterPlayerInputPlayer.y = (touchJoystick1YThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf;
+						// DOM.elDebug.innerText += `x${((touchJoystick1YThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
 						if (characterPlayerInputPlayer.y > -touchJoystickDeadBand && characterPlayerInputPlayer.y < touchJoystickDeadBand) {
 							characterPlayerInputPlayer.y = 0;
 						}
@@ -1966,13 +1977,18 @@ export class Game {
 				if (position2 !== undefined) {
 					if (touchJoystick2Show !== true) {
 						touchJoystick2X = Math.min(report.canvasWidth * report.scaler - touchJoystickSizeHalf, position2.x);
-						touchJoystick2Y = position2.y;
+						touchJoystick2Y = Math.min(report.canvasHeight * report.scaler - touchJoystickSizeHalf, position2.y);
+						// touchJoystick2X = position2.x;
+						// touchJoystick2Y = position2.y;
+
+						// DOM.elDebug.innerText = `${position2.x.toFixed(3)}x${position2.y.toFixed(3)}`;
+						// DOM.elDebug.innerHTML += `<br>${(report.canvasWidth * report.scaler).toFixed(3)}x${(report.canvasHeight * report.scaler).toFixed(3)}`;
 
 						DOM.elPlayerJoystick2.style.left = touchJoystick2X - touchJoystickSizeHalf + 'px';
 						DOM.elPlayerJoystick2.style.top = touchJoystick2Y - touchJoystickSizeHalf + 'px';
 
-						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2X + 'px';
-						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2Y + 'px';
+						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2X + touchJoystickSizeQuarter + 'px';
+						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2Y + touchJoystickSizeQuarter + 'px';
 					} else {
 						touchJoystick2XThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.x - touchJoystick2X));
 						touchJoystick2YThumb = Math.max(-touchJoystickSizeQuarter, Math.min(touchJoystickSizeHalf, position2.y - touchJoystick2Y));
@@ -1980,12 +1996,14 @@ export class Game {
 						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2XThumb + touchJoystickSizeQuarter + 'px';
 						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2YThumb + touchJoystickSizeQuarter + 'px';
 
-						characterPlayerInputPlayer.r = (((touchJoystick2XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf) * 2 - 1) * 0.8;
+						characterPlayerInputPlayer.r = (touchJoystick2XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf;
+						// DOM.elDebug.innerHTML += `<br>${((touchJoystick2XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
+						// DOM.elDebug.innerText += `x${((touchJoystick2YThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
 						if (characterPlayerInputPlayer.r > -touchJoystickDeadBand && characterPlayerInputPlayer.r < touchJoystickDeadBand) {
 							characterPlayerInputPlayer.r = 0;
 						}
 
-						DOM.elEditorPropertiesCellOutputAssetId.innerText = `${(touchJoystick2YThumb / touchJoystickSizeHalf) * 2}`;
+						DOM.elEditorPropertiesCellOutputAssetId.innerText = `${(touchJoystick2XThumb + touchJoystickSizeQuarter) / touchJoystickSizeHalf - 1}`;
 						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === 2) {
 							characterPlayerInputPlayer.action = true;
 							DOM.elPlayerJoystick2Thumb.classList.add('press-green');

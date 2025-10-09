@@ -842,12 +842,6 @@ class VideoMainEngine {
 					settingsPlayer2Enable = VideoMainEngine.settings.player2Enable;
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
-					if (VideoMainEngine.settings.antialias === true) {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
-					} else {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
-					}
-
 					renderGammaFilter = `brightness(${renderGamma})`;
 
 					// Report
@@ -867,6 +861,12 @@ class VideoMainEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
+
+					if (VideoMainEngine.settings.antialias === true) {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+					} else {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+					}
 
 					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
 

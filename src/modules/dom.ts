@@ -39,6 +39,7 @@ export class DOM {
 	public static elControlsSubGamepad: HTMLElement;
 	public static elControlsSubKeyboard: HTMLElement;
 	public static elControlsSubTouch: HTMLElement;
+	public static elDebug: HTMLElement;
 	public static elEdit: HTMLElement;
 	public static elEditor: HTMLElement;
 	public static elEditorCommandFindAndReplace: HTMLElement;
@@ -238,6 +239,8 @@ export class DOM {
 		DOM.elControlsSubGamepad = <HTMLElement>document.getElementById('controls-sub-gamepad');
 		DOM.elControlsSubKeyboard = <HTMLElement>document.getElementById('controls-sub-keyboard');
 		DOM.elControlsSubTouch = <HTMLElement>document.getElementById('controls-sub-touch');
+
+		DOM.elDebug = <HTMLElement>document.getElementById('debug');
 
 		DOM.elEdit = document.createElement('div');
 		DOM.elEdit.className = 'edit';
