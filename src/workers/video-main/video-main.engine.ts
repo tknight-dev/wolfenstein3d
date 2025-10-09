@@ -899,19 +899,13 @@ class VideoMainEngine {
 					renderGradientCanvas.width = offscreenCanvasWidthPx;
 
 					if (renderLightingQuality >= LightingQuality.FULL) {
-						// Ceiling
-						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPxHalf); // Ceiling
+						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx); // Ceiling
 						renderGradientCanvasGradient.addColorStop(0, '#383838');
-						renderGradientCanvasGradient.addColorStop(1, '#181818');
-						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
-						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
-
-						// Floor
-						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, offscreenCanvasHeightPxHalf, 0, offscreenCanvasHeightPx); // Floor
-						renderGradientCanvasGradient.addColorStop(0, '#313131');
+						renderGradientCanvasGradient.addColorStop(0.5, '#181818');
+						renderGradientCanvasGradient.addColorStop(0.5, '#313131');
 						renderGradientCanvasGradient.addColorStop(1, '#717171');
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
-						renderGradientCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
+						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 					}
 				}
 
