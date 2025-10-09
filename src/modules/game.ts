@@ -1194,6 +1194,9 @@ export class Game {
 		CalcMainBus.setCallbackGameover(() => {
 			Game.gameOver = true;
 
+			DOM.elPlayerJoystick1.classList.remove('show');
+			DOM.elPlayerJoystick2.classList.remove('show');
+
 			if (Game.musicInstance !== null) {
 				GamingCanvas.audioControlVolume(Game.musicInstance, 0, (CalcMainBusPlayerDeadFallDurationInMS / 2) | 0, (instance: number) => {
 					GamingCanvas.audioControlStop(instance);
