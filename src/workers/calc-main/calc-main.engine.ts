@@ -1219,7 +1219,6 @@ class CalcMainEngine {
 
 					characterNPC.health -= <number>CalcMainBusWeaponDamage.get(weapon) * angle;
 				}
-				characterNPC.health = 0;
 				characterNPC.timestampUnixState = timestampUnix;
 
 				if (characterNPC.health <= 0) {
