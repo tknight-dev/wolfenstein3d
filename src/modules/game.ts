@@ -997,6 +997,7 @@ export class Game {
 			VideoMainBus.outputActionSwitch(data);
 
 			Game.inputSuspend = true;
+			Game.pause(true);
 
 			setTimeout(() => {
 				DOM.screenControl(DOM.elScreenLevelEnd);
