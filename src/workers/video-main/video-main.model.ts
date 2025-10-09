@@ -14,6 +14,7 @@ import { CharacterWeapon } from '../../models/character.model.js';
  */
 export enum VideoMainBusStats {
 	ALL,
+	C_V,
 	RAY,
 	SPRITE,
 }
@@ -45,6 +46,7 @@ export interface VideoMainBusInputDataCalculations {
 	rays: Float64Array;
 	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	raysMapKeysSorted: Float64Array;
+	timestampUnix: number;
 }
 
 export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
@@ -98,6 +100,7 @@ export interface VideoMainBusOutputDataStats {
 	all: Float32Array;
 	countRays: number;
 	countSprites: number;
+	c_v: Float32Array;
 	fps: number;
 	ray: Float32Array;
 	sprite: Float32Array;

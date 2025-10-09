@@ -171,6 +171,10 @@ class CalcMainEngine {
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcMainBusInputDataInit): Promise<void> {
+		// Stats
+		CalcMainEngine.stats[CalcMainBusStats.ALL] = new GamingCanvasStat(50);
+		CalcMainEngine.stats[CalcMainBusStats.AUDIO] = new GamingCanvasStat(50);
+
 		// Asset
 		await initializeAssetManager(true);
 
@@ -239,10 +243,6 @@ class CalcMainEngine {
 				data: true,
 			},
 		]);
-
-		// Stats
-		CalcMainEngine.stats[CalcMainBusStats.ALL] = new GamingCanvasStat(50);
-		CalcMainEngine.stats[CalcMainBusStats.AUDIO] = new GamingCanvasStat(50);
 
 		// Start rendering thread
 		CalcMainEngine.go__funcForward();
@@ -456,7 +456,7 @@ class CalcMainEngine {
 			characterPlayerSingle: Character[] = [characterPlayer1],
 			cycleCount: number = 0,
 			cycleCountReported: number = 0,
-			cycleMinMs: number = 10,
+			cycleMinMs: number = 14,
 			distance: number,
 			distance2: number,
 			gameMap: GameMap = CalcMainEngine.gameMap,
@@ -2602,6 +2602,7 @@ class CalcMainEngine {
 										rays: characterPlayer1RaycastRays,
 										raysMap: characterPlayer1RaycastDistanceMap,
 										raysMapKeysSorted: characterPlayer1RaycastDistanceMapKeysSorted,
+										timestampUnix: timestampUnix,
 									},
 								},
 							],
@@ -2653,6 +2654,7 @@ class CalcMainEngine {
 										characterPlayer2Rays: characterPlayer2RaycastRays,
 										characterPlayer2RaysMap: characterPlayer2RaycastDistanceMap,
 										characterPlayer2RaysMapKeysSorted: characterPlayer2RaycastDistanceMapKeysSorted,
+										timestampUnix: timestampUnix,
 									},
 								},
 							],

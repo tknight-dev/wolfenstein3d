@@ -190,6 +190,7 @@ export interface CalcMainBusOutputDataCamera {
 	rays: Float64Array;
 	raysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	raysMapKeysSorted: Float64Array;
+	timestampUnix: number;
 }
 
 export interface CalcMainBusOutputDataCharacterMeta {
@@ -206,6 +207,7 @@ export interface CalcMainBusOutputDataCalculations {
 	characterPlayer2Rays?: Float64Array;
 	characterPlayer2RaysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	characterPlayer2RaysMapKeysSorted?: Float64Array;
+	timestampUnix: number;
 }
 
 export interface CalcMainBusOutputDataPlayerHit {

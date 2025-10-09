@@ -73,15 +73,15 @@ class CalcPathEngine {
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: CalcPathBusInputDataInit): Promise<void> {
+		// Stats
+		CalcPathEngine.stats[CalcPathBusStats.ALL] = new GamingCanvasStat(50);
+		CalcPathEngine.stats[CalcPathBusStats.PATH] = new GamingCanvasStat(50);
+
 		// Config: Game Map
 		CalcPathEngine.inputMap(data.gameMap);
 
 		// Config: Settings
 		CalcPathEngine.inputSettings(data as CalcPathBusInputDataSettings);
-
-		// Stats
-		CalcPathEngine.stats[CalcPathBusStats.ALL] = new GamingCanvasStat(50);
-		CalcPathEngine.stats[CalcPathBusStats.PATH] = new GamingCanvasStat(50);
 
 		// Start
 		CalcPathEngine.post([

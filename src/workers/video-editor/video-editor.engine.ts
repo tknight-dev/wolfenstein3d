@@ -87,6 +87,11 @@ class VideoEditorEngine {
 	private static stats: { [key: number]: GamingCanvasStat } = {};
 
 	public static async initialize(data: VideoEditorBusInputDataInit): Promise<void> {
+		// Stats
+		VideoEditorEngine.stats[VideoEditorBusStats.ALL] = new GamingCanvasStat(50);
+		VideoEditorEngine.stats[VideoEditorBusStats.CELLS] = new GamingCanvasStat(50);
+		VideoEditorEngine.stats[VideoEditorBusStats.C_V] = new GamingCanvasStat(50);
+
 		// Assets
 		await initializeAssetManager();
 		let assetCanvas: OffscreenCanvas,
@@ -176,10 +181,6 @@ class VideoEditorEngine {
 		// Config: Settings
 		VideoEditorEngine.inputSettings(data as VideoEditorBusInputDataSettings);
 
-		// Stats
-		VideoEditorEngine.stats[VideoEditorBusStats.ALL] = new GamingCanvasStat(50);
-		VideoEditorEngine.stats[VideoEditorBusStats.CELLS] = new GamingCanvasStat(50);
-
 		// Start
 		if (VideoEditorEngine.offscreenCanvasContext === null) {
 			console.error('VideoEditorEngine: failed acquire context');
@@ -208,9 +209,9 @@ class VideoEditorEngine {
 	 */
 
 	public static inputCalculations(data: VideoEditorBusInputDataCalculations): void {
-		VideoEditorEngine.calculations = data;
+		VideoEditorEngine.stats[VideoEditorBusStats.C_V].add(Date.now() - data.timestampUnix);
 
-		// Last
+		VideoEditorEngine.calculations = data;
 		VideoEditorEngine.calculationsNew = true;
 	}
 
@@ -351,6 +352,8 @@ class VideoEditorEngine {
 			statAllRaw: Float32Array,
 			statCells: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.CELLS],
 			statCellsRaw: Float32Array,
+			statCV: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.C_V],
+			statCVRaw: Float32Array,
 			testImage: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
 			timestampDelta: number,
 			timestampFPS: number = 0,
@@ -887,6 +890,7 @@ class VideoEditorEngine {
 
 				statAllRaw = <Float32Array>statAll.encode();
 				statCellsRaw = <Float32Array>statCells.encode();
+				statCVRaw = <Float32Array>statCV.encode();
 
 				// Output
 				VideoEditorEngine.post(
@@ -896,11 +900,12 @@ class VideoEditorEngine {
 							data: {
 								all: statAllRaw,
 								cells: statCellsRaw,
+								cv: statCVRaw,
 								fps: frameCount,
 							},
 						},
 					],
-					[statCellsRaw.buffer],
+					[statCellsRaw.buffer, statCVRaw.buffer],
 				);
 				frameCount = 0;
 			}

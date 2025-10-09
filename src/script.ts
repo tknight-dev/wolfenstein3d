@@ -69,13 +69,15 @@ class Blockenstein {
 		 */
 		VideoEditorBus.setCallbackStats((stats: VideoEditorBusOutputDataStats) => {
 			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
-				cells: GamingCanvasStat = GamingCanvasStat.decode(stats.cells);
+				cells: GamingCanvasStat = GamingCanvasStat.decode(stats.cells),
+				cv: GamingCanvasStat = GamingCanvasStat.decode(stats.cv);
 
 			Blockenstein.statFPS['video-editor'] = stats.fps;
 			Blockenstein.displayStatFPS(DOM.elStatFPS);
 
 			DOM.elPerformanceVideoEditorAll.innerHTML = displayNumberAll(all, precision);
 			DOM.elPerformanceVideoEditorCells.innerHTML = displayNumber(<number>GamingCanvasStat.calc(cells), precision, 'avg');
+			DOM.elPerformanceVideoEditorCV.innerHTML = displayNumberAll(cv, precision);
 			Blockenstein.displayStatFPS(DOM.elPerformanceVideoEditorFPS, stats.fps);
 		});
 
@@ -84,6 +86,7 @@ class Blockenstein {
 		 */
 		VideoMainBus.setCallbackStats((player1: boolean, stats: VideoMainBusOutputDataStats) => {
 			const all: GamingCanvasStat = GamingCanvasStat.decode(stats.all),
+				cv: GamingCanvasStat = GamingCanvasStat.decode(stats.c_v),
 				ray: GamingCanvasStat = GamingCanvasStat.decode(stats.ray),
 				sprite: GamingCanvasStat = GamingCanvasStat.decode(stats.sprite);
 
@@ -92,11 +95,13 @@ class Blockenstein {
 
 			if (player1 === true) {
 				DOM.elPerformanceVideoPlayer1All.innerHTML = displayNumberAll(all, precision);
+				DOM.elPerformanceVideoPlayer1CV.innerHTML = displayNumberAll(cv, precision);
 				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer1FPS, stats.fps);
 				DOM.elPerformanceVideoPlayer1Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
 				DOM.elPerformanceVideoPlayer1Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
 			} else {
 				DOM.elPerformanceVideoPlayer2All.innerHTML = displayNumberAll(all, precision);
+				DOM.elPerformanceVideoPlayer2CV.innerHTML = displayNumberAll(cv, precision);
 				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer2FPS, stats.fps);
 				DOM.elPerformanceVideoPlayer2Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
 				DOM.elPerformanceVideoPlayer2Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;

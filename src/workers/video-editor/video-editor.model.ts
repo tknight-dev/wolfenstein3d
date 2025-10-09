@@ -13,6 +13,7 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
 export enum VideoEditorBusStats {
 	ALL,
 	CELLS,
+	C_V,
 }
 
 /*
@@ -38,6 +39,7 @@ export interface VideoEditorBusInputDataCalculations {
 	raysMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 	raysMapKeysSorted?: Float64Array;
 	viewport: Float64Array;
+	timestampUnix: number;
 }
 
 export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalculations, VideoEditorBusInputDataSettings {
@@ -81,6 +83,7 @@ export enum VideoEditorBusOutputCmd {
 export interface VideoEditorBusOutputDataStats {
 	all: Float32Array;
 	cells: Float32Array;
+	cv: Float32Array;
 	fps: number;
 }
 

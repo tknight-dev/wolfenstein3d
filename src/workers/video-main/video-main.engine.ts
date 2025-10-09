@@ -173,6 +173,12 @@ class VideoMainEngine {
 	private static weaponTimerId: number = -1;
 
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
+		// Stats
+		VideoMainEngine.stats[VideoMainBusStats.ALL] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.C_V] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.RAY] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.SPRITE] = new GamingCanvasStat(50);
+
 		// Assets
 		await initializeAssetManager();
 		let assetCanvas: OffscreenCanvas,
@@ -259,6 +265,7 @@ class VideoMainEngine {
 			rays: new Float64Array(),
 			raysMap: new Map(),
 			raysMapKeysSorted: new Float64Array(),
+			timestampUnix: Date.now(),
 		});
 
 		// Config: Report
@@ -266,11 +273,6 @@ class VideoMainEngine {
 
 		// Config: Settings
 		VideoMainEngine.inputSettings(data as VideoMainBusInputDataSettings);
-
-		// Stats
-		VideoMainEngine.stats[VideoMainBusStats.ALL] = new GamingCanvasStat(50);
-		VideoMainEngine.stats[VideoMainBusStats.RAY] = new GamingCanvasStat(50);
-		VideoMainEngine.stats[VideoMainBusStats.SPRITE] = new GamingCanvasStat(50);
 
 		// Start
 		if (VideoMainEngine.offscreenCanvasContext === null) {
@@ -399,6 +401,8 @@ class VideoMainEngine {
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
+		VideoMainEngine.stats[VideoMainBusStats.C_V].add(Date.now() - data.timestampUnix);
+
 		VideoMainEngine.calculations = data;
 		VideoMainEngine.calculationsNew = true;
 	}
@@ -617,6 +621,8 @@ class VideoMainEngine {
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
 			statAll: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.ALL],
 			statAllRaw: Float32Array,
+			statCV: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.C_V],
+			statCVRaw: Float32Array,
 			statRay: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.RAY],
 			statRayRaw: Float32Array,
 			statSprite: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.SPRITE],
@@ -714,7 +720,6 @@ class VideoMainEngine {
 				/*
 				 * Modifiers
 				 */
-
 				if (VideoMainEngine.calculationsNew === true) {
 					VideoMainEngine.calculationsNew = false;
 
@@ -1072,7 +1077,7 @@ class VideoMainEngine {
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 6) * settingsRaycastQuality) / 7, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
-							settingsRaycastQuality, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
+							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 						statRay.watchStop();
@@ -1086,6 +1091,7 @@ class VideoMainEngine {
 						statSprite.watchStart();
 						gameMapGridIndex = renderRayDistanceMapInstance.cellIndex;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
+						renderGlobalShadow = false;
 						renderSkip = false;
 
 						if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) === 0) {
@@ -1102,8 +1108,6 @@ class VideoMainEngine {
 							gameMapGridCell !== GameGridCellMasksAndValues.NULL &&
 							gameMapGridCell !== GameGridCellMasksAndValues.FLOOR
 						) {
-							renderGlobalShadow = false;
-
 							/**
 							 * Draw: Sprites - Fixed
 							 */
@@ -1152,6 +1156,7 @@ class VideoMainEngine {
 										) {
 											x += renderSpriteFixedDoorOffset;
 										} else {
+											renderGlobalShadow = true;
 											y += renderSpriteFixedDoorOffset;
 										}
 									}
@@ -1242,6 +1247,7 @@ class VideoMainEngine {
 										) {
 											x -= renderSpriteFixedDoorOffset;
 										} else {
+											renderGlobalShadow = true;
 											y -= renderSpriteFixedDoorOffset;
 										}
 									}
@@ -1385,14 +1391,6 @@ class VideoMainEngine {
 									// Filter: Start
 									if (renderLightingQuality === LightingQuality.FULL) {
 										renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
-
-										// if (renderGlobalShadow === true) {
-										// 	renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
-										// }
-									} else if (renderLightingQuality === LightingQuality.BASIC) {
-										// if (renderGlobalShadow === true) {
-										// 	renderBrightness -= 0.3;
-										// }
 									}
 
 									// Filter: End
@@ -1705,6 +1703,7 @@ class VideoMainEngine {
 				timestampFPS = timestampNow;
 
 				statAllRaw = <Float32Array>statAll.encode();
+				statCVRaw = <Float32Array>statCV.encode();
 				statRayRaw = <Float32Array>statRay.encode();
 				statSpriteRaw = <Float32Array>statSprite.encode();
 
@@ -1717,13 +1716,14 @@ class VideoMainEngine {
 								all: statAllRaw,
 								countRays: countRays,
 								countSprites: countSprites,
+								c_v: statCVRaw,
 								fps: countFrame,
 								ray: statRayRaw,
 								sprite: statSpriteRaw,
 							},
 						},
 					],
-					[statAllRaw.buffer, statRayRaw.buffer, statSpriteRaw.buffer],
+					[statAllRaw.buffer, statCVRaw.buffer, statRayRaw.buffer, statSpriteRaw.buffer],
 				);
 				countFrame = 0;
 			}

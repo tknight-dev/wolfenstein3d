@@ -1069,6 +1069,7 @@ export class Game {
 				player2Camera: data.player2Camera,
 				gameMode: false,
 				viewport: viewport.encode(),
+				timestampUnix: data.timestampUnix,
 			});
 
 			// Second: VideoMain
@@ -1078,6 +1079,7 @@ export class Game {
 				rays: Float64Array.from(data.rays),
 				raysMap: data.raysMap,
 				raysMapKeysSorted: Float64Array.from(data.raysMapKeysSorted),
+				timestampUnix: data.timestampUnix,
 			});
 			VideoMainBus.outputCalculations(false, {
 				camera: data.camera,
@@ -1085,6 +1087,7 @@ export class Game {
 				rays: data.rays,
 				raysMap: data.raysMap,
 				raysMapKeysSorted: data.raysMapKeysSorted,
+				timestampUnix: data.timestampUnix,
 			});
 		});
 
@@ -1109,6 +1112,7 @@ export class Game {
 					rays: <Float64Array>data.characterPlayer1Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer1RaysMapKeysSorted,
+					timestampUnix: data.timestampUnix,
 				});
 
 				// Second: VideoEditor
@@ -1118,6 +1122,7 @@ export class Game {
 					player2Camera: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
+					timestampUnix: data.timestampUnix,
 				});
 			} else {
 				gridIndexPlayer1 = undefined;
@@ -1128,6 +1133,7 @@ export class Game {
 					player2Camera: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					gameMode: true,
 					viewport: viewport.encode(),
+					timestampUnix: data.timestampUnix,
 				});
 			}
 
@@ -1142,6 +1148,7 @@ export class Game {
 					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
+					timestampUnix: data.timestampUnix,
 				});
 			} else {
 				gridIndexPlayer2 = undefined;
