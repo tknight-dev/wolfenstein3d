@@ -2179,6 +2179,7 @@ export class Game {
 				CalcPathBus.outputPause(false);
 				GamingCanvas.audioControlPauseAll(false);
 				VideoMainBus.outputPause(false);
+				VideoOverlayBus.outputPause(false);
 			}
 		}
 	}

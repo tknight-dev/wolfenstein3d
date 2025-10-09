@@ -292,12 +292,6 @@ class VideoOverlayEngine {
 					renderGrayscale = VideoOverlayEngine.settings.grayscale;
 					settingsPlayer2Enable = VideoOverlayEngine.settings.player2Enable;
 
-					if (VideoOverlayEngine.settings.antialias === true) {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
-					} else {
-						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
-					}
-
 					// Report
 					if (VideoOverlayEngine.settings.player2Enable === true) {
 						offscreenCanvasHeightPx = VideoOverlayEngine.report.canvasHeightSplit;
@@ -315,6 +309,12 @@ class VideoOverlayEngine {
 
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
+
+					if (VideoOverlayEngine.settings.antialias === true) {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+					} else {
+						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+					}
 				}
 
 				// Background cache

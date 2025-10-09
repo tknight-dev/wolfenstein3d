@@ -366,9 +366,11 @@ class CalcMainEngine {
 			actionDoorState: CalcMainBusActionDoorState,
 			assetId: number,
 			audio: Map<number, AudioInstance> = CalcMainEngine.audio,
+			audioDeath: number = -1,
+			audioDeathLast: number = audioDeath,
+			audioDistanceMax: number = 25,
 			audioEnableNoAction: boolean = CalcMainEngine.settings.audioNoAction,
 			audioEnableWallCollisions: boolean = CalcMainEngine.settings.audioWallCollisions,
-			audioDistanceMax: number = 25,
 			audioInstance: AudioInstance,
 			audioPostStack: CalcMainBusOutputPayload[],
 			audioRequest: number | null,
@@ -1244,7 +1246,11 @@ class CalcMainEngine {
 						}
 					}
 
-					switch (Math.floor(Math.random() * 5) + 1) {
+					// Audio
+					while (audioDeath === audioDeathLast) {
+						audioDeath = Math.floor(Math.random() * 5) + 1;
+					}
+					switch (audioDeath) {
 						case 1:
 							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH, gridIndex);
 							break;
@@ -1261,6 +1267,7 @@ class CalcMainEngine {
 							audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_DEATH5, gridIndex);
 							break;
 					}
+					audioDeathLast = audioDeath;
 
 					// Spawn ammo drop
 					if (gameMapGridData[gridIndex] === GameGridCellMasksAndValues.FLOOR) {
