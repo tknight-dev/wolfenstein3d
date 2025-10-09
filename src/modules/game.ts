@@ -1896,7 +1896,6 @@ export class Game {
 			if (Game.editorCellHighlightEnable === true) {
 				setTimeout(() => {
 					Game.positionCellHighlight = GamingCanvasGridInputOverlaySnapPxTopLeft(position, report, viewport, Game.positionCellHighlight);
-					console.log(Game.positionCellHighlight.left, report.canvasWidth * report.scaler, report.canvasHeight * report.scaler);
 
 					elEditStyle.display = 'block';
 					elEditStyle.height = Game.positionCellHighlight.cellSizePx + 'px';

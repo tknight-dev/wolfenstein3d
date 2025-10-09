@@ -932,7 +932,7 @@ class VideoMainEngine {
 
 					if (settingsPlayer2Enable === true) {
 						renderHeightFactor = 2;
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2;
+						renderHeightOffset = offscreenCanvasWidthPxHalf / 2 + 10;
 					} else {
 						renderHeightFactor = 1;
 						renderHeightOffset = 0;
@@ -941,10 +941,10 @@ class VideoMainEngine {
 					renderHeightFactor = 2;
 
 					if (settingsPlayer2Enable === true) {
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2;
+						renderHeightOffset = offscreenCanvasWidthPxHalf / 2 - 10;
 						renderWallHeightFactor = 2;
 					} else {
-						renderHeightOffset = offscreenCanvasWidthPxHalf;
+						renderHeightOffset = offscreenCanvasWidthPxHalf - 20;
 						renderWallHeightFactor = 1;
 					}
 				}
