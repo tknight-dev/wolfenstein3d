@@ -1677,6 +1677,7 @@ class CalcMainEngine {
 					}
 
 					cameraUpdated = true;
+					reportOrientationForce = true;
 				}
 
 				if (CalcMainEngine.pathsNew === true) {

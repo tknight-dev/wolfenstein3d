@@ -105,6 +105,7 @@ export class DOM {
 	public static elFile: HTMLElement;
 	public static elGame: HTMLElement;
 	public static elGameMenu: HTMLElement;
+	public static elGameMenuBack: HTMLElement;
 	public static elGameMenuBanners: HTMLElement;
 	public static elGameMenuBannersGameLoad: HTMLImageElement;
 	public static elGameMenuBannersGameSave: HTMLImageElement;
@@ -126,6 +127,7 @@ export class DOM {
 	public static elIconsTop: HTMLElement;
 	public static elInfoControls: HTMLElement;
 	public static elInfoMenu: HTMLElement;
+	public static elInfoGameMenu: HTMLElement;
 	public static elInfoSettings: HTMLElement;
 	public static elLogo: HTMLElement;
 	public static elMenuContent: HTMLElement;
@@ -418,6 +420,7 @@ export class DOM {
 		DOM.elFile = <HTMLElement>document.getElementById('file');
 		DOM.elGame = <HTMLElement>document.getElementById('game');
 		DOM.elGameMenu = <HTMLElement>document.getElementById('game-menu');
+		DOM.elGameMenuBack = <HTMLElement>document.getElementById('game-menu-back');
 		DOM.elGameMenuBanners = <HTMLElement>document.getElementById('game-menu-banners');
 		DOM.elGameMenuBannersGameLoad = <HTMLImageElement>document.getElementById('game-menu-banners-game-load');
 		DOM.elGameMenuBannersGameSave = <HTMLImageElement>document.getElementById('game-menu-banners-game-save');
@@ -441,6 +444,7 @@ export class DOM {
 		DOM.elIconsBottom = <HTMLElement>document.getElementById('icons-bottom');
 		DOM.elIconsTop = <HTMLElement>document.getElementById('icons-top');
 		DOM.elInfoControls = <HTMLElement>document.getElementById('info-controls');
+		DOM.elInfoGameMenu = <HTMLElement>document.getElementById('info-game-menu');
 		DOM.elInfoMenu = <HTMLElement>document.getElementById('info-menu');
 		DOM.elInfoSettings = <HTMLElement>document.getElementById('info-settings');
 		DOM.elLogo = <HTMLElement>document.getElementById('logo');

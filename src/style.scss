@@ -723,6 +723,13 @@ $main-z-index-video-interactive: 50;
 						width: 75%;
 						min-width: 280px;
 
+						#game-menu-back {
+							cursor: pointer;
+							position: absolute;
+							right: 0;
+							top: 100%;
+						}
+
 						#game-menu-pistol {
 							animation-name: animationGameMenuPistol;
 							animation-duration: 1.5s;
@@ -761,6 +768,7 @@ $main-z-index-video-interactive: 50;
 
 								td {
 									color: #8e8e8e;
+									cursor: pointer;
 									font-family: monospace;
 									font-size: 32px;
 									font-weight: bold;
@@ -775,9 +783,23 @@ $main-z-index-video-interactive: 50;
 
 									&.disable {
 										color: #710000;
+										cursor: default;
+									}
+
+									&:hover {
+										color: #c0c0c0;
+
+										&.active {
+											color: white;
+										}
+
+										&.disable {
+											color: #710000;
+										}
 									}
 
 									&.pistol {
+										cursor: default;
 										width: 90px;
 										max-width: 90px;
 										min-width: 90px;
@@ -821,6 +843,8 @@ $main-z-index-video-interactive: 50;
 									}
 
 									&.empty {
+										cursor: default;
+
 										.screenshot {
 											background-color: transparent;
 										}
