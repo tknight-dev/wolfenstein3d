@@ -353,17 +353,32 @@ export class Game {
 			if (Game.gameMenuSlotSave === true) {
 				const blob: Blob | null = await GamingCanvas.screenshot(Game.modeEdit === true ? [] : [3]);
 
-				localStorage.setItem(
-					Game.gameMenuSlotSavePrefix + '-desc-' + id,
-					JSON.stringify({
-						image: blob !== null ? Array.from(await blob.bytes()) : '',
-						imageType: blob !== null ? blob.type : '',
-						mapId: Game.map.id,
-						timestamp: Date.now(),
-					}),
-				);
-				Game.gameMenuSlotSaveId = id;
-				CalcMainBus.outputSave();
+				if (blob !== null) {
+					const fileReader: FileReader = new FileReader();
+					fileReader.onload = function (e) {
+						localStorage.setItem(
+							Game.gameMenuSlotSavePrefix + '-desc-' + id,
+							JSON.stringify({
+								image: (<any>e.target).result,
+								mapId: Game.map.id,
+								timestamp: Date.now(),
+							}),
+						);
+						Game.gameMenuSlotSaveId = id;
+						CalcMainBus.outputSave();
+					};
+					fileReader.readAsDataURL(blob);
+				} else {
+					localStorage.setItem(
+						Game.gameMenuSlotSavePrefix + '-desc-' + id,
+						JSON.stringify({
+							mapId: Game.map.id,
+							timestamp: Date.now(),
+						}),
+					);
+					Game.gameMenuSlotSaveId = id;
+					CalcMainBus.outputSave();
+				}
 			} else {
 				const rawMap: string | null = localStorage.getItem(Game.gameMenuSlotSavePrefix + id),
 					rawMeta: string | null = localStorage.getItem(Game.gameMenuSlotSavePrefix + 'meta-' + id);
@@ -423,14 +438,11 @@ export class Game {
 				}
 
 				data = JSON.parse(raw);
+				date = new Date(data.timestamp);
 				element.classList.remove('empty');
 
 				(<HTMLElement>element.children[0]).innerText = AssetIdMap[data.mapId].replaceAll('_', ' ');
-				(<HTMLElement>element.children[1]).style.backgroundImage = `url(${`data:${data.imageType};base64,${btoa(
-					Uint8Array.from(<[]>data.image).reduce((acc, i) => (acc += String.fromCharCode.apply(null, [i])), ''),
-				)}`})`;
-
-				date = new Date(data.timestamp);
+				(<HTMLElement>element.children[1]).style.backgroundImage = data.image !== undefined ? `url(${data.image})` : '';
 				(<HTMLElement>element.children[2]).innerText =
 					`${date.getFullYear()}/${date.getMonth() + 1}/${date.getDay()} ${date.toLocaleString('en-US', { minute: 'numeric', hour: 'numeric', hour12: true })}`;
 			}
