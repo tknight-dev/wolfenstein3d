@@ -832,8 +832,10 @@ $main-z-index-video-interactive: 50;
 										background-position: center !important;
 										background-repeat: no-repeat !important;
 										background-size: contain !important;
+										border-radius: 5px;
 										bottom: 0;
 										left: 0;
+										overflow: hidden;
 										top: 0;
 										width: 80px;
 									}
@@ -858,9 +860,27 @@ $main-z-index-video-interactive: 50;
 							&.big {
 								tr {
 									height: 80px;
+									position: relative;
+
+									&:nth-child(even) {
+										td {
+											background-color: rgba(0, 0, 0, 0.125);
+										}
+									}
+
+									&:nth-child(odd) {
+										td {
+											background-color: rgba(0, 0, 0, 0.125);
+										}
+									}
 
 									td {
+										border-radius: 5px;
 										height: 80px;
+
+										&.pistol {
+											background-color: transparent;
+										}
 									}
 								}
 							}

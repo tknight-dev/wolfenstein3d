@@ -284,15 +284,12 @@ export class Game {
 							break;
 					}
 				} else {
-					if ((await Game.gameMenuActionSlot(Game.gameMenuIndex)) === true) {
-						mute !== true && Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-						if (Game.gameMenuSlotSave === true) {
-							Game.gameMenuAction(GameMenuAction.ESC, true);
-						} else {
-							Game.started = true;
-							DOM.elGameMenuMainGameSave.classList.remove('disable');
-						}
+					if (Game.gameMenuIndex === 0) {
+						DOM.elGameMenuSlots1.click();
+					} else if (Game.gameMenuIndex === 1) {
+						DOM.elGameMenuSlots2.click();
+					} else {
+						DOM.elGameMenuSlots3.click();
 					}
 				}
 				break;
@@ -417,7 +414,11 @@ export class Game {
 				raw = localStorage.getItem(Game.gameMenuSlotSavePrefix + '-desc-' + i);
 
 				if (raw === null) {
-					element.classList.add('empty');
+					(<HTMLElement>element.children[0]).innerText = 'Empty';
+
+					if (Game.gameMenuSlotSave === false) {
+						element.classList.add('empty');
+					}
 					continue;
 				}
 
@@ -459,6 +460,7 @@ export class Game {
 			Game.gameMenuSlotSave = false;
 
 			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
+			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('empty'));
 			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
 			DOM.elGameMenuPistol.style.top = '0';
 
@@ -503,12 +505,17 @@ export class Game {
 		};
 
 		DOM.elGameMenuMainGameSave.onclick = () => {
+			if (DOM.elGameMenuMainGameSave.classList.contains('disable') === true) {
+				return;
+			}
+
 			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 			Game.gameMenuIndex = 0;
 			Game.gameMenuSize = 3;
 			Game.gameMenuSlotSave = true;
 
 			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
+			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('empty'));
 			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
 			DOM.elGameMenuPistol.style.top = '0';
 
@@ -522,7 +529,8 @@ export class Game {
 			DOM.elGameMenuSlots.style.display = 'block';
 		};
 
-		DOM.elGameMenuSlots1.onclick = () => async () => {
+		DOM.elGameMenuSlots1.onclick = async () => {
+			Game.gameMenuIndex = 1;
 			if ((await Game.gameMenuActionSlot(0)) === true) {
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 
@@ -535,7 +543,8 @@ export class Game {
 			}
 		};
 
-		DOM.elGameMenuSlots2.onclick = () => async () => {
+		DOM.elGameMenuSlots2.onclick = async () => {
+			Game.gameMenuIndex = 1;
 			if ((await Game.gameMenuActionSlot(1)) === true) {
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 
@@ -549,6 +558,7 @@ export class Game {
 		};
 
 		DOM.elGameMenuSlots3.onclick = async () => {
+			Game.gameMenuIndex = 2;
 			if ((await Game.gameMenuActionSlot(2)) === true) {
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 
