@@ -355,11 +355,11 @@ export class Game {
 
 				if (blob !== null) {
 					const fileReader: FileReader = new FileReader();
-					fileReader.onload = function (e) {
+					fileReader.onload = async (event: ProgressEvent) => {
 						localStorage.setItem(
 							Game.gameMenuSlotSavePrefix + '-desc-' + id,
 							JSON.stringify({
-								image: (<any>e.target).result,
+								image: (<any>event.target).result,
 								mapId: Game.map.id,
 								timestamp: Date.now(),
 							}),
@@ -442,7 +442,7 @@ export class Game {
 				element.classList.remove('empty');
 
 				(<HTMLElement>element.children[0]).innerText = AssetIdMap[data.mapId].replaceAll('_', ' ');
-				(<HTMLElement>element.children[1]).style.backgroundImage = data.image !== undefined ? `url(${data.image})` : '';
+				(<HTMLElement>element.children[1]).style.backgroundImage = data.image !== undefined ? `url(${data.image})` : 'none';
 				(<HTMLElement>element.children[2]).innerText =
 					`${date.getFullYear()}/${date.getMonth() + 1}/${date.getDay()} ${date.toLocaleString('en-US', { minute: 'numeric', hour: 'numeric', hour12: true })}`;
 			}
