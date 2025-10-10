@@ -1119,6 +1119,10 @@ class CalcMainEngine {
 				},
 				(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
 			);
+
+			setTimeout(() => {
+				reportOrientationForce = true;
+			}, cycleMinMs * 3);
 		};
 
 		const actionWeapon = (player1: boolean, weapon: CharacterWeapon) => {
@@ -1691,6 +1695,7 @@ class CalcMainEngine {
 
 					characterPlayerChangedMetaReport[0] = true;
 					characterPlayerChangedMetaReport[1] = true;
+					reportOrientationForce = true;
 				}
 
 				if (CalcMainEngine.reportNew === true || CalcMainEngine.settingsNew === true) {

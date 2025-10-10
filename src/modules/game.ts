@@ -226,137 +226,25 @@ export class Game {
 		Game.gameMenuIndex = 0;
 
 		if (enable === true) {
+			DOM.elIconsTop.classList.add('intro');
 			DOM.elGameMenu.classList.add('show');
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
 			Game.pause(true);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
+			DOM.elIconsTop.classList.remove('intro');
 			DOM.elGameMenu.classList.remove('show');
 			Game.gameMenuActive = false;
 			Game.pause(false);
 		} else {
+			DOM.elIconsTop.classList.add('intro');
 			DOM.elGameMenu.classList.add('show');
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
 			Game.pause(true);
 		}
-	}
-
-	public static gameMenuInitialize(): void {
-		DOM.elGameMenuBack.onclick = () => {
-			Game.gameMenuAction(GameMenuAction.ESC);
-		};
-
-		DOM.elGameMenuMainContinue.onclick = () => {
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-			setTimeout(() => {
-				Game.gameMenu(false);
-			}, 200);
-		};
-
-		DOM.elGameMenuMainGameLoad.onclick = () => {
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-			Game.gameMenuIndex = 0;
-			Game.gameMenuSize = 3;
-			Game.gameMenuSlotSave = false;
-
-			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
-			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
-			DOM.elGameMenuPistol.style.top = '0';
-
-			Game.gameMenuActionSlotsLoad();
-
-			DOM.elGameMenuBannersGameLoad.style.display = 'block';
-			DOM.elGameMenuBannersGameSave.style.display = 'none';
-			DOM.elGameMenuBannersOptions.style.display = 'none';
-
-			DOM.elGameMenuMain.style.display = 'none';
-			DOM.elGameMenuSlots.style.display = 'block';
-		};
-
-		DOM.elGameMenuMainGameNew.onclick = () => {
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
-
-			// GameMap
-			Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-			Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-
-			Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
-
-			Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-			Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-			Game.viewport.apply(Game.camera, false);
-
-			CalcMainBus.outputMap(Game.mapBackup);
-			CalcPathBus.outputMap(Game.mapBackup);
-			VideoEditorBus.outputMap(Game.mapBackup);
-			VideoMainBus.outputMap(Game.mapBackup);
-			VideoOverlayBus.outputReset();
-
-			// End menu
-			setTimeout(() => {
-				CalcMainBus.outputMetaReset();
-
-				Game.gameMenu(false);
-				Game.started = true;
-				DOM.elGameMenuMainGameSave.classList.remove('disable');
-			}, 200);
-		};
-
-		DOM.elGameMenuMainGameSave.onclick = () => {
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-			Game.gameMenuIndex = 0;
-			Game.gameMenuSize = 3;
-			Game.gameMenuSlotSave = true;
-
-			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
-			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
-			DOM.elGameMenuPistol.style.top = '0';
-
-			Game.gameMenuActionSlotsLoad();
-
-			DOM.elGameMenuBannersGameLoad.style.display = 'none';
-			DOM.elGameMenuBannersGameSave.style.display = 'block';
-			DOM.elGameMenuBannersOptions.style.display = 'none';
-
-			DOM.elGameMenuMain.style.display = 'none';
-			DOM.elGameMenuSlots.style.display = 'block';
-		};
-
-		DOM.elGameMenuSlots1.onclick = () => async () => {
-			if ((await Game.gameMenuActionSlot(0)) === true) {
-				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-				if (Game.gameMenuSlotSave === true) {
-					Game.gameMenuAction(GameMenuAction.ESC, true);
-				}
-			}
-		};
-
-		DOM.elGameMenuSlots2.onclick = () => async () => {
-			if ((await Game.gameMenuActionSlot(1)) === true) {
-				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-				if (Game.gameMenuSlotSave === true) {
-					Game.gameMenuAction(GameMenuAction.ESC, true);
-				}
-			}
-		};
-
-		DOM.elGameMenuSlots3.onclick = async () => {
-			if ((await Game.gameMenuActionSlot(2)) === true) {
-				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-
-				if (Game.gameMenuSlotSave === true) {
-					Game.gameMenuAction(GameMenuAction.ESC, true);
-				}
-			}
-		};
 	}
 
 	public static async gameMenuAction(action: GameMenuAction, mute?: boolean): Promise<void> {
@@ -401,6 +289,9 @@ export class Game {
 
 						if (Game.gameMenuSlotSave === true) {
 							Game.gameMenuAction(GameMenuAction.ESC, true);
+						} else {
+							Game.started = true;
+							DOM.elGameMenuMainGameSave.classList.remove('disable');
 						}
 					}
 				}
@@ -545,6 +436,130 @@ export class Game {
 		} catch (error) {
 			console.error('gameMenuActionSlotsLoad: failed with', error);
 		}
+	}
+
+	public static gameMenuInitialize(): void {
+		DOM.elGameMenuBack.onclick = () => {
+			Game.gameMenuAction(GameMenuAction.ESC);
+		};
+
+		DOM.elGameMenuMainContinue.onclick = () => {
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+
+			setTimeout(() => {
+				Game.gameMenu(false);
+			}, 200);
+		};
+
+		DOM.elGameMenuMainGameLoad.onclick = () => {
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+
+			Game.gameMenuIndex = 0;
+			Game.gameMenuSize = 3;
+			Game.gameMenuSlotSave = false;
+
+			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
+			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
+			DOM.elGameMenuPistol.style.top = '0';
+
+			Game.gameMenuActionSlotsLoad();
+
+			DOM.elGameMenuBannersGameLoad.style.display = 'block';
+			DOM.elGameMenuBannersGameSave.style.display = 'none';
+			DOM.elGameMenuBannersOptions.style.display = 'none';
+
+			DOM.elGameMenuMain.style.display = 'none';
+			DOM.elGameMenuSlots.style.display = 'block';
+		};
+
+		DOM.elGameMenuMainGameNew.onclick = () => {
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+			// GameMap
+			Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+			Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+
+			Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+
+			Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+			Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+			Game.viewport.apply(Game.camera, false);
+
+			CalcMainBus.outputMap(Game.mapBackup);
+			CalcPathBus.outputMap(Game.mapBackup);
+			VideoEditorBus.outputMap(Game.mapBackup);
+			VideoMainBus.outputMap(Game.mapBackup);
+			VideoOverlayBus.outputReset();
+
+			// End menu
+			setTimeout(() => {
+				CalcMainBus.outputMetaReset();
+
+				Game.gameMenu(false);
+				Game.started = true;
+				DOM.elGameMenuMainGameSave.classList.remove('disable');
+			}, 200);
+		};
+
+		DOM.elGameMenuMainGameSave.onclick = () => {
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+			Game.gameMenuIndex = 0;
+			Game.gameMenuSize = 3;
+			Game.gameMenuSlotSave = true;
+
+			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
+			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
+			DOM.elGameMenuPistol.style.top = '0';
+
+			Game.gameMenuActionSlotsLoad();
+
+			DOM.elGameMenuBannersGameLoad.style.display = 'none';
+			DOM.elGameMenuBannersGameSave.style.display = 'block';
+			DOM.elGameMenuBannersOptions.style.display = 'none';
+
+			DOM.elGameMenuMain.style.display = 'none';
+			DOM.elGameMenuSlots.style.display = 'block';
+		};
+
+		DOM.elGameMenuSlots1.onclick = () => async () => {
+			if ((await Game.gameMenuActionSlot(0)) === true) {
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+
+				if (Game.gameMenuSlotSave === true) {
+					Game.gameMenuAction(GameMenuAction.ESC, true);
+				} else {
+					Game.started = true;
+					DOM.elGameMenuMainGameSave.classList.remove('disable');
+				}
+			}
+		};
+
+		DOM.elGameMenuSlots2.onclick = () => async () => {
+			if ((await Game.gameMenuActionSlot(1)) === true) {
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+
+				if (Game.gameMenuSlotSave === true) {
+					Game.gameMenuAction(GameMenuAction.ESC, true);
+				} else {
+					Game.started = true;
+					DOM.elGameMenuMainGameSave.classList.remove('disable');
+				}
+			}
+		};
+
+		DOM.elGameMenuSlots3.onclick = async () => {
+			if ((await Game.gameMenuActionSlot(2)) === true) {
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+
+				if (Game.gameMenuSlotSave === true) {
+					Game.gameMenuAction(GameMenuAction.ESC, true);
+				} else {
+					Game.started = true;
+					DOM.elGameMenuMainGameSave.classList.remove('disable');
+				}
+			}
+		};
 	}
 
 	private static gameMenuActionPlay(assetId: AssetIdAudio): void {
@@ -1058,8 +1073,10 @@ export class Game {
 		DOM.elButtonFullscreen.onclick = async () => {
 			if (DOM.elButtonFullscreen.classList.contains('active') === true) {
 				await GamingCanvas.setFullscreen(false);
+				await GamingCanvas.wakeLock(false);
 			} else {
 				await GamingCanvas.setFullscreen(true, DOM.elGame);
+				await GamingCanvas.wakeLock(true);
 			}
 		};
 		GamingCanvas.setCallbackFullscreen((state: boolean) => {
@@ -1096,6 +1113,7 @@ export class Game {
 				Game.pause(true);
 			}
 		};
+
 		DOM.elInfoGameMenu.onclick = () => {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');
@@ -1105,10 +1123,12 @@ export class Game {
 
 			Game.gameMenu(true);
 		};
+
 		DOM.elInfoMenu.onclick = () => {
 			DOM.elLogo.classList.toggle('open');
 			DOM.elMenuContent.classList.toggle('open');
 		};
+
 		DOM.elInfoSettings.onclick = () => {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');

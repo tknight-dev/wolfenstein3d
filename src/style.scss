@@ -721,13 +721,16 @@ $main-z-index-video-interactive: 50;
 						position: relative;
 						transition: width 0.125s linear;
 						width: 75%;
-						min-width: 280px;
+						min-width: 400px;
 
 						#game-menu-back {
 							cursor: pointer;
+							margin-top: 5px;
 							position: absolute;
-							right: 0;
+							right: calc(50% - 50px);
+							text-align: center;
 							top: 100%;
+							width: 100px;
 						}
 
 						#game-menu-pistol {
@@ -864,7 +867,22 @@ $main-z-index-video-interactive: 50;
 						}
 
 						@media only screen and (max-width: 510px) {
-							width: 95%;
+							min-width: 300px;
+							width: calc(100% - 10px);
+
+							#game-menu-pistol {
+								display: none;
+							}
+
+							table {
+								tr {
+									td {
+										&.pistol {
+											display: none;
+										}
+									}
+								}
+							}
 						}
 					}
 				}
