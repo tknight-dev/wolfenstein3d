@@ -50,8 +50,6 @@ export interface VideoMainBusInputDataCalculations {
 }
 
 export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings {
-	camera: Float64Array;
-	gameMap: GameMap;
 	offscreenCanvas: OffscreenCanvas;
 	player1: boolean;
 	report: GamingCanvasReport;

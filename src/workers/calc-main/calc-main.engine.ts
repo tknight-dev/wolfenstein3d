@@ -117,6 +117,12 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcMainBusInputCmd.MAP:
 			CalcMainEngine.inputMap(<GameMap>payload.data);
 			break;
+		case CalcMainBusInputCmd.META:
+			CalcMainEngine.inputMeta(<string>payload.data);
+			break;
+		case CalcMainBusInputCmd.META_RESET:
+			CalcMainEngine.inputMetaReset();
+			break;
 		case CalcMainBusInputCmd.INIT:
 			CalcMainEngine.initialize(<CalcMainBusInputDataInit>payload.data);
 			break;
@@ -128,6 +134,9 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case CalcMainBusInputCmd.REPORT:
 			CalcMainEngine.inputReport(<GamingCanvasReport>payload.data);
+			break;
+		case CalcMainBusInputCmd.SAVE:
+			CalcMainEngine.inputSave();
 			break;
 		case CalcMainBusInputCmd.SETTINGS:
 			CalcMainEngine.inputSettings(<CalcMainBusInputDataSettings>payload.data);
@@ -149,9 +158,9 @@ class CalcMainEngine {
 	private static audio: Map<number, AudioInstance> = new Map();
 	private static camera: CalcMainBusInputDataCamera;
 	private static cameraNew: boolean;
-	private static cheatCodeNew: boolean;
 	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
+	private static characterPlayerMetaReport: boolean;
 	private static characterPlayer1: Character;
 	private static characterPlayer1Firing: boolean;
 	private static characterPlayer2: Character;
@@ -181,11 +190,11 @@ class CalcMainEngine {
 		// Config: Character
 		CalcMainEngine.characterPlayer1 = {
 			ammo: 8,
-			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
+			camera: new GamingCanvasGridCamera(),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			fov: 0,
 			fovDistanceMax: 30, // WeaponFOVDistanceMax
-			gridIndex: data.gameMap.position.x * data.gameMap.grid.sideLength + data.gameMap.position.y,
+			gridIndex: 0,
 			health: 100,
 			id: -1,
 			lives: 3,
@@ -205,7 +214,7 @@ class CalcMainEngine {
 
 		CalcMainEngine.characterPlayer2 = {
 			ammo: CalcMainEngine.characterPlayer1.ammo,
-			camera: new GamingCanvasGridCamera(data.gameMap.position.r, data.gameMap.position.x + 0.5, data.gameMap.position.y + 0.5, 1),
+			camera: new GamingCanvasGridCamera(),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			fov: CalcMainEngine.characterPlayer1.fov,
 			fovDistanceMax: CalcMainEngine.characterPlayer1.fovDistanceMax,
@@ -226,9 +235,6 @@ class CalcMainEngine {
 			timestampUnixState: 0,
 			type: CalcMainEngine.characterPlayer1.type,
 		};
-
-		// Config: Game Map
-		CalcMainEngine.inputMap(data.gameMap);
 
 		// Config: Report
 		CalcMainEngine.inputReport(data.report);
@@ -280,27 +286,118 @@ class CalcMainEngine {
 	public static inputCheatCode(player1: boolean): void {
 		let characterPlayer: Character = player1 === true ? CalcMainEngine.characterPlayer1 : CalcMainEngine.characterPlayer2;
 
-		characterPlayer.ammo = 99;
+		characterPlayer.ammo = Math.max(99, characterPlayer.ammo);
 		characterPlayer.health = 100;
-		characterPlayer.lives = 3;
-		characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
-		characterPlayer.weapons = [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL, CharacterWeapon.SUB_MACHINE_GUN, CharacterWeapon.MACHINE_GUN];
+		characterPlayer.lives = Math.max(3, characterPlayer.lives);
 
-		CalcMainEngine.cheatCodeNew = true;
-		CalcMainEngine.post([
-			{
-				cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
-				data: {
-					player1: player1,
-					weapon: characterPlayer.weapon,
+		if (characterPlayer.weapons.length !== 4) {
+			characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
+			characterPlayer.weapons = [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL, CharacterWeapon.SUB_MACHINE_GUN, CharacterWeapon.MACHINE_GUN];
+
+			CalcMainEngine.characterPlayerMetaReport = true;
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+					data: {
+						player1: player1,
+						weapon: characterPlayer.weapon,
+					},
 				},
-			},
-		]);
+			]);
+		}
 	}
 
 	public static inputMap(data: GameMap): void {
 		CalcMainEngine.gameMap = Assets.parseMap(data);
 		CalcMainEngine.gameMapNew = true;
+	}
+
+	public static inputMeta(data: string): void {
+		try {
+			const meta: any = JSON.parse(data);
+
+			CalcMainEngine.characterPlayer1.ammo = meta[0].ammo;
+			CalcMainEngine.characterPlayer1.camera.r = meta[0].cameraR;
+			CalcMainEngine.characterPlayer1.camera.x = meta[0].cameraX;
+			CalcMainEngine.characterPlayer1.camera.y = meta[0].cameraY;
+			CalcMainEngine.characterPlayer1.health = meta[0].health;
+			CalcMainEngine.characterPlayer1.lives = meta[0].lives;
+			CalcMainEngine.characterPlayer1.score = meta[0].score;
+			CalcMainEngine.characterPlayer1.weapon = meta[0].weapon;
+			CalcMainEngine.characterPlayer1.weapons = meta[0].weapons;
+
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+					data: {
+						player1: true,
+						weapon: CalcMainEngine.characterPlayer1.weapon,
+					},
+				},
+			]);
+
+			CalcMainEngine.characterPlayer2.ammo = meta[1].ammo;
+			CalcMainEngine.characterPlayer2.camera.r = meta[1].cameraR;
+			CalcMainEngine.characterPlayer2.camera.x = meta[1].cameraX;
+			CalcMainEngine.characterPlayer2.camera.y = meta[1].cameraY;
+			CalcMainEngine.characterPlayer2.health = meta[1].health;
+			CalcMainEngine.characterPlayer2.lives = meta[1].lives;
+			CalcMainEngine.characterPlayer2.score = meta[1].score;
+			CalcMainEngine.characterPlayer2.weapon = meta[1].weapon;
+			CalcMainEngine.characterPlayer2.weapons = meta[1].weapons;
+
+			CalcMainEngine.post([
+				{
+					cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+					data: {
+						player1: false,
+						weapon: CalcMainEngine.characterPlayer2.weapon,
+					},
+				},
+			]);
+
+			CalcMainEngine.characterPlayerMetaReport = true;
+		} catch (error) {
+			console.error('CalcMainEngine > inputMeta: failed to parse with', error);
+		}
+	}
+
+	public static inputMetaReset(): void {
+		CalcMainEngine.characterPlayer1.ammo = 8;
+		CalcMainEngine.characterPlayer1.health = 100;
+		CalcMainEngine.characterPlayer1.lives = 3;
+		CalcMainEngine.characterPlayer1.score = 0;
+		CalcMainEngine.characterPlayer1.weapon = CharacterWeapon.PISTOL;
+		CalcMainEngine.characterPlayer1.weapons = [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL];
+
+		CalcMainEngine.post([
+			{
+				cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+				data: {
+					player1: true,
+					weapon: CalcMainEngine.characterPlayer1.weapon,
+				},
+			},
+		]);
+
+		CalcMainEngine.characterPlayer2.ammo = CalcMainEngine.characterPlayer1.ammo;
+		CalcMainEngine.characterPlayer2.health = CalcMainEngine.characterPlayer1.health;
+		CalcMainEngine.characterPlayer2.lives = CalcMainEngine.characterPlayer1.lives;
+		CalcMainEngine.characterPlayer2.score = CalcMainEngine.characterPlayer1.score;
+		CalcMainEngine.characterPlayer2.weapon = CalcMainEngine.characterPlayer1.weapon;
+		CalcMainEngine.characterPlayer2.weapons = CalcMainEngine.characterPlayer1.weapons;
+
+		CalcMainEngine.post([
+			{
+				cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+				data: {
+					player1: false,
+					weapon: CalcMainEngine.characterPlayer2.weapon,
+				},
+			},
+		]);
+
+		CalcMainEngine.characterPlayerMetaReport = true;
 	}
 
 	public static inputPath(data: Map<number, number[]>): void {
@@ -315,6 +412,49 @@ class CalcMainEngine {
 	public static inputReport(report: GamingCanvasReport): void {
 		CalcMainEngine.report = report;
 		CalcMainEngine.reportNew = true;
+	}
+
+	public static inputSave(): void {
+		let npcById: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npcById;
+		CalcMainEngine.gameMap.npcById = <any>{};
+		for (let [i, value] of npcById.entries()) {
+			(<any>CalcMainEngine.gameMap.npcById)[String(i)] = value;
+		}
+
+		CalcMainEngine.post([
+			{
+				cmd: CalcMainBusOutputCmd.SAVE,
+				data: {
+					mapRaw: JSON.stringify(CalcMainEngine.gameMap),
+					metaRaw: JSON.stringify([
+						{
+							ammo: CalcMainEngine.characterPlayer1.ammo,
+							cameraR: CalcMainEngine.characterPlayer1.camera.r,
+							cameraX: CalcMainEngine.characterPlayer1.camera.x,
+							cameraY: CalcMainEngine.characterPlayer1.camera.y,
+							health: CalcMainEngine.characterPlayer1.health,
+							lives: CalcMainEngine.characterPlayer1.lives,
+							score: CalcMainEngine.characterPlayer1.score,
+							weapon: CalcMainEngine.characterPlayer1.weapon,
+							weapons: CalcMainEngine.characterPlayer1.weapons,
+						},
+						{
+							ammo: CalcMainEngine.characterPlayer2.ammo,
+							cameraR: CalcMainEngine.characterPlayer2.camera.r,
+							cameraX: CalcMainEngine.characterPlayer2.camera.x,
+							cameraY: CalcMainEngine.characterPlayer2.camera.y,
+							health: CalcMainEngine.characterPlayer2.health,
+							lives: CalcMainEngine.characterPlayer2.lives,
+							score: CalcMainEngine.characterPlayer2.score,
+							weapon: CalcMainEngine.characterPlayer2.weapon,
+							weapons: CalcMainEngine.characterPlayer2.weapons,
+						},
+					]),
+				},
+			},
+		]);
+
+		CalcMainEngine.gameMap.npcById = npcById;
 	}
 
 	public static inputSettings(data: CalcMainBusInputDataSettings): void {
@@ -463,8 +603,8 @@ class CalcMainEngine {
 			distance: number,
 			distance2: number,
 			gameMap: GameMap = CalcMainEngine.gameMap,
-			gameMapGrid: GamingCanvasGridUint16Array = CalcMainEngine.gameMap.grid,
-			gameMapGridData: Uint16Array = CalcMainEngine.gameMap.grid.data,
+			gameMapGrid: GamingCanvasGridUint16Array,
+			gameMapGridData: Uint16Array,
 			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
 			gameMapControlBlocking = (cell: number, gridIndex: number) => {
@@ -520,14 +660,14 @@ class CalcMainEngine {
 				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
 			},
 			gameMapNPCAudioSurpiseRequestById: Map<number, number | null> = new Map(),
-			gameMapNPCById: Map<number, CharacterNPC> = CalcMainEngine.gameMap.npcById,
+			gameMapNPCById: Map<number, CharacterNPC>,
 			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapNPCPath: number[],
 			gameMapNPCPathInstance: number,
 			gameMapNPCPaths: Map<number, number[]>,
 			gameMapNPCShootAt: Map<number, number> = new Map(),
-			gameMapSideLength: number = CalcMainEngine.gameMap.grid.sideLength,
+			gameMapSideLength: number,
 			gameMapUpdate: number[] = new Array(50), // arbitrary size
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
@@ -1304,7 +1444,7 @@ class CalcMainEngine {
 					) {
 						gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 
-						if (gameMapNPCPath.length < 10) {
+						if (gameMapNPCPath.length < 20) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
 								if (
@@ -1466,6 +1606,7 @@ class CalcMainEngine {
 			if (timestampDelta > cycleMinMs) {
 				// Wait a small duration to not thread lock
 				timestampThen = timestampNow;
+
 				statAll.watchStart();
 
 				/**
@@ -1497,13 +1638,6 @@ class CalcMainEngine {
 					}
 				}
 
-				if (CalcMainEngine.cheatCodeNew === true) {
-					CalcMainEngine.cheatCodeNew = false;
-
-					characterPlayerChangedMetaReport[0] = true;
-					characterPlayerChangedMetaReport[1] = true;
-				}
-
 				if (CalcMainEngine.gameMapNew === true) {
 					CalcMainEngine.gameMapNew = false;
 
@@ -1517,12 +1651,12 @@ class CalcMainEngine {
 					gameMapSideLength = CalcMainEngine.gameMap.grid.sideLength;
 
 					characterPlayer1.camera.r = gameMap.position.r;
-					characterPlayer1.camera.x = gameMap.position.x + 0.5;
-					characterPlayer1.camera.y = gameMap.position.y + 0.5;
+					characterPlayer1.camera.x = gameMap.position.x;
+					characterPlayer1.camera.y = gameMap.position.y;
 					characterPlayer1.camera.z = gameMap.position.z;
 					characterPlayer2.camera.r = gameMap.position.r;
-					characterPlayer2.camera.x = gameMap.position.x + 0.5;
-					characterPlayer2.camera.y = gameMap.position.y + 0.5;
+					characterPlayer2.camera.x = gameMap.position.x;
+					characterPlayer2.camera.y = gameMap.position.y;
 					characterPlayer2.camera.z = gameMap.position.z;
 
 					characterNPCPathById.clear();
@@ -1549,6 +1683,13 @@ class CalcMainEngine {
 					CalcMainEngine.pathsNew = false;
 
 					gameMapNPCPaths = CalcMainEngine.paths;
+				}
+
+				if (CalcMainEngine.characterPlayerMetaReport === true) {
+					CalcMainEngine.characterPlayerMetaReport = false;
+
+					characterPlayerChangedMetaReport[0] = true;
+					characterPlayerChangedMetaReport[1] = true;
 				}
 
 				if (CalcMainEngine.reportNew === true || CalcMainEngine.settingsNew === true) {
@@ -1595,6 +1736,10 @@ class CalcMainEngine {
 					cameraMode = false; // Snap back to player
 					characterPlayer1Input = CalcMainEngine.characterPlayerInput.player1;
 					characterPlayer2Input = CalcMainEngine.characterPlayerInput.player2;
+				}
+
+				if (gameMap === undefined) {
+					return;
 				}
 
 				/**

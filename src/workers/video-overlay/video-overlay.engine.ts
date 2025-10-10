@@ -204,20 +204,11 @@ class VideoOverlayEngine {
 			renderGradient: CanvasGradient,
 			renderGrayscale: boolean,
 			renderGrayscaleFilter: string = 'grayscale(1)',
-			renderHeightFactor: number,
-			renderHeightOffset: number,
-			renderWallHeight: number,
-			renderWallHeightFactored: number,
-			renderWallHeightHalf: number,
-			renderWallHeightFactor: number,
-			settingsPlayer2Enable: boolean = VideoOverlayEngine.settings.player2Enable,
 			timerId: number,
 			timers: GamingCanvasUtilTimers = VideoOverlayEngine.timers,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
-			timestampUnix: number,
-			timestampUnixEff: number,
 			timestampUnixPause: number,
 			timestampUnixPauseDelta: number,
 			x: number,
@@ -231,9 +222,6 @@ class VideoOverlayEngine {
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
 
-			if (timestampDelta !== 0) {
-				timestampUnix = Date.now();
-			}
 			if (VideoOverlayEngine.pause !== pause) {
 				pause = VideoOverlayEngine.pause;
 
@@ -251,10 +239,7 @@ class VideoOverlayEngine {
 
 				VideoOverlayEngine.pauseTimestampUnix = timestampUnixPause;
 			}
-			if (pause === true) {
-				timestampUnixEff = timestampUnixPause;
-			} else {
-				timestampUnixEff = timestampUnix;
+			if (pause !== true) {
 				timers.tick(timestampNow);
 			}
 
@@ -290,7 +275,6 @@ class VideoOverlayEngine {
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew === true) {
 					// Settings
 					renderGrayscale = VideoOverlayEngine.settings.grayscale;
-					settingsPlayer2Enable = VideoOverlayEngine.settings.player2Enable;
 
 					// Report
 					if (VideoOverlayEngine.settings.player2Enable === true) {
@@ -339,29 +323,6 @@ class VideoOverlayEngine {
 				/*
 				 * Render
 				 */
-
-				// Render: Aspect ratios and positional offsets
-				if (VideoOverlayEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
-					renderWallHeightFactor = 1.5;
-
-					if (settingsPlayer2Enable === true) {
-						renderHeightFactor = 2;
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2;
-					} else {
-						renderHeightFactor = 1;
-						renderHeightOffset = 0;
-					}
-				} else {
-					renderHeightFactor = 2;
-
-					if (settingsPlayer2Enable === true) {
-						renderHeightOffset = offscreenCanvasWidthPxHalf / 2;
-						renderWallHeightFactor = 2;
-					} else {
-						renderHeightOffset = offscreenCanvasWidthPxHalf;
-						renderWallHeightFactor = 1;
-					}
-				}
 
 				// Render: Lighting
 				if (renderGrayscale === true) {

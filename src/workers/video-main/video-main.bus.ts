@@ -34,7 +34,6 @@ export class VideoMainBus {
 	public static initialize(
 		canvasPlayer1: HTMLCanvasElement,
 		canvasPlayer2: HTMLCanvasElement,
-		gameMap: GameMap,
 		settings: VideoMainBusInputDataSettings,
 		callback: (status: boolean) => void,
 	): void {
@@ -61,7 +60,6 @@ export class VideoMainBus {
 
 			const payload: VideoMainBusInputDataInit = <VideoMainBusInputDataInit>Object.assign(
 				{
-					gameMap: gameMap,
 					player1: true,
 					report: GamingCanvas.getReport(),
 				},
@@ -69,7 +67,6 @@ export class VideoMainBus {
 			);
 
 			// Init: Player 1
-			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer1;
 			payload.player1 = true;
 			VideoMainBus.workerPlayer1.postMessage(
@@ -77,11 +74,10 @@ export class VideoMainBus {
 					cmd: VideoMainBusInputCmd.INIT,
 					data: payload,
 				},
-				[payload.camera.buffer, payload.offscreenCanvas],
+				[payload.offscreenCanvas],
 			);
 
 			// Init: Player 2
-			payload.camera = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			payload.offscreenCanvas = offscreenCanvasPlayer2;
 			payload.player1 = false;
 			VideoMainBus.workerPlayer2.postMessage(
@@ -89,7 +85,7 @@ export class VideoMainBus {
 					cmd: VideoMainBusInputCmd.INIT,
 					data: payload,
 				},
-				[payload.camera.buffer, payload.offscreenCanvas],
+				[payload.offscreenCanvas],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');

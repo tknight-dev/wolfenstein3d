@@ -21,7 +21,6 @@ export class VideoEditorBus {
 
 	public static initialize(
 		canvas: HTMLCanvasElement,
-		gameMap: GameMap,
 		settings: VideoEditorBusInputDataSettings,
 		viewport: GamingCanvasGridViewport,
 		callback: (status: boolean) => void,
@@ -39,7 +38,6 @@ export class VideoEditorBus {
 			VideoEditorBus.input();
 
 			// Init the webworker
-			const cameraEncoded: Float64Array = GamingCanvasGridCamera.encodeSingle(gameMap.position);
 			const offscreenCanvas: OffscreenCanvas = canvas.transferControlToOffscreen();
 			const viewportEncoded: Float64Array = viewport.encode();
 			VideoEditorBus.worker.postMessage(
@@ -47,8 +45,6 @@ export class VideoEditorBus {
 					cmd: VideoEditorBusInputCmd.INIT,
 					data: Object.assign(
 						{
-							camera: cameraEncoded,
-							gameMap: gameMap,
 							offscreenCanvas: offscreenCanvas,
 							rays: new Float64Array(),
 							report: GamingCanvas.getReport(),
@@ -57,7 +53,7 @@ export class VideoEditorBus {
 						settings,
 					),
 				},
-				[cameraEncoded.buffer, offscreenCanvas, viewportEncoded.buffer],
+				[offscreenCanvas, viewportEncoded.buffer],
 			);
 		} else {
 			alert('Web Workers are not supported by your browser');

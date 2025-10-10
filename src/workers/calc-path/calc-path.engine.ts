@@ -77,9 +77,6 @@ class CalcPathEngine {
 		CalcPathEngine.stats[CalcPathBusStats.ALL] = new GamingCanvasStat(50);
 		CalcPathEngine.stats[CalcPathBusStats.PATH] = new GamingCanvasStat(50);
 
-		// Config: Game Map
-		CalcPathEngine.inputMap(data.gameMap);
-
 		// Config: Settings
 		CalcPathEngine.inputSettings(data as CalcPathBusInputDataSettings);
 
@@ -196,8 +193,8 @@ class CalcPathEngine {
 			characterPlayer1GridIndex: number = 0,
 			characterPlayer2GridIndex: number = 0,
 			count: number = 0,
-			gameMap: GameMap = CalcPathEngine.gameMap,
-			gameMapGrid: GamingCanvasGridUint16Array = CalcPathEngine.gameMap.grid,
+			gameMap: GameMap,
+			gameMapGrid: GamingCanvasGridUint16Array,
 			gameMapGridIndex: number,
 			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
 				// pathClosest: false,
@@ -205,7 +202,7 @@ class CalcPathEngine {
 				// pathHeuristic: GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL,
 			},
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
-			gameMapNPCById: Map<number, CharacterNPC> = CalcPathEngine.gameMap.npcById,
+			gameMapNPCById: Map<number, CharacterNPC>,
 			pathBlocking = (cell: number, gridIndex: number) => {
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					return false;
@@ -233,9 +230,6 @@ class CalcPathEngine {
 			timestampDelta: number,
 			timestampStats: number = 0,
 			timestampThen: number = 0;
-
-		characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
-		characterPlayer2GridIndex = characterPlayer1GridIndex;
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
@@ -312,6 +306,11 @@ class CalcPathEngine {
 				 * Paths
 				 */
 				count = 0;
+
+				if (gameMap === undefined) {
+					return;
+				}
+
 				for (characterNPC of gameMapNPCById.values()) {
 					if (characterNPC.assetId === AssetIdImgCharacter.CORPSE || characterNPC.difficulty > settingsDifficulty) {
 						continue;

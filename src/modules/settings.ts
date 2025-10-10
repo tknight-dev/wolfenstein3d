@@ -319,8 +319,8 @@ export class Settings {
 	public static setMetaMap(apply: boolean): void {
 		if (apply === true) {
 			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
-			Game.map.position.x = Number(DOM.elMetaMapValueStartingPositionX.value) | 0;
-			Game.map.position.y = Number(DOM.elMetaMapValueStartingPositionY.value) | 0;
+			Game.map.position.x = (Number(DOM.elMetaMapValueStartingPositionX.value) | 0) + 0.5;
+			Game.map.position.y = (Number(DOM.elMetaMapValueStartingPositionY.value) | 0) + 0.5;
 		} else {
 			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);

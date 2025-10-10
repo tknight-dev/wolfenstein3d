@@ -42,8 +42,7 @@ export interface VideoEditorBusInputDataCalculations {
 	timestampUnix: number;
 }
 
-export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataCalculations, VideoEditorBusInputDataSettings {
-	gameMap: GameMap;
+export interface VideoEditorBusInputDataInit extends VideoEditorBusInputDataSettings {
 	offscreenCanvas: OffscreenCanvas;
 	report: GamingCanvasReport;
 }

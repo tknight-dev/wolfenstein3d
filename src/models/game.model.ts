@@ -1,5 +1,6 @@
 import { GamingCanvasGridUint16Array, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterNPC } from './character.model.js';
+import { AssetIdMap } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -48,6 +49,7 @@ export enum GameDifficulty {
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
+	id: AssetIdMap;
 	grid: GamingCanvasGridUint16Array;
 	npcById: Map<number, CharacterNPC>; // number is id
 	position: GamingCanvasGridICamera;

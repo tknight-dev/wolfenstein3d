@@ -434,8 +434,8 @@ export enum AssetIdImg {
 	SPRITE_AMMO = 57,
 	SPRITE_AMMO_DROPPED = 20,
 	SPRITE_ARMOR = 58,
-	SPRITE_BARREL_GREEN = 59,
-	SPRITE_BARREL_WOOD = 60,
+	SPRITE_BANNER_BARREL_GREEN = 59,
+	SPRITE_BANNER_BARREL_WOOD = 60,
 	SPRITE_BASKET = 61,
 	SPRITE_BONE_PILE = 62,
 	SPRITE_EXTRA_LIFE = 63,
@@ -595,11 +595,15 @@ export enum AssetIdImgCharacter {
 }
 
 export enum AssetIdImgMenu {
+	BANNER_BAR,
+	BANNER_GAME_LOAD,
+	BANNER_GAME_SAVE,
+	BANNER_OPTIONS,
 	END_LEVEL_PISTOL_1,
 	END_LEVEL_PISTOL_2,
 	GET_PSYCHED,
+	KEYS,
 	MENU_PISTOL,
-	MENU_PISTOL_DARK,
 	RATING,
 	SCREEN_STATS,
 	SCREEN_TITLE,
@@ -1153,7 +1157,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/menu_select_double.mp3',
 		title: 'Menu Select Double',
-		volume: 0.4,
+		volume: 0.25,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO, {
@@ -1397,7 +1401,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Bone Pile',
 		});
 
-		assetsImages.set(AssetIdImg.SPRITE_BARREL_GREEN, {
+		assetsImages.set(AssetIdImg.SPRITE_BANNER_BARREL_GREEN, {
 			alpha: true,
 			author: 'Id Software',
 			blocking: true,
@@ -1407,7 +1411,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Barrel Green',
 		});
 
-		assetsImages.set(AssetIdImg.SPRITE_BARREL_WOOD, {
+		assetsImages.set(AssetIdImg.SPRITE_BANNER_BARREL_WOOD, {
 			alpha: true,
 			author: 'Id Software',
 			blocking: true,
@@ -2066,6 +2070,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		/**
 		 * Assets: Images - Menu
 		 */
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_BAR, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/bar.png',
+			title: 'Bar',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_1, {
 			alpha: true,
 			author: 'Id Software',
@@ -2084,6 +2097,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Pistol 2',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_LOAD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/game_load.png',
+			title: 'Game Load',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_SAVE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/game_save.png',
+			title: 'Game Save',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_OPTIONS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/options.png',
+			title: 'Options',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.GET_PSYCHED, {
 			alpha: true,
 			author: 'Id Software',
@@ -2093,21 +2133,21 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Get Psyched!',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.KEYS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/keys.png',
+			title: 'Menu Keys',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.MENU_PISTOL, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/menu_pistol.png',
-			title: 'Menu Pistol',
-		});
-
-		assetsImageMenus.set(AssetIdImgMenu.MENU_PISTOL_DARK, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.MENU,
-			ext: AssetExtImg.PNG,
-			file: 'img/menu/menu_pistol_dark.png',
 			title: 'Menu Pistol',
 		});
 

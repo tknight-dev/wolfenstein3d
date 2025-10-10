@@ -153,30 +153,29 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 	}
 
 	private static initializeWorkers(): Promise<void> {
-		let gameMap: GameMap = Game.map,
-			then: number = performance.now(),
+		let then: number = performance.now(),
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		return new Promise<void>((resolve: any) => {
-			CalcMainBus.initialize(Game.settingsCalcMain, gameMap, () => {
+			CalcMainBus.initialize(Game.settingsCalcMain, () => {
 				// Done
 				console.log('CalcMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 				// Load video-editor
 				then = performance.now();
-				CalcPathBus.initialize(Game.settingsCalcPath, gameMap, () => {
+				CalcPathBus.initialize(Game.settingsCalcPath, () => {
 					// Done
 					console.log('CalcPathEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], gameMap, Game.settingsVideoEditor, viewport, () => {
+					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], Game.settingsVideoEditor, viewport, () => {
 						// Done
 						console.log('VideoEditorEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 						// Load video-main
 						then = performance.now();
-						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], gameMap, Game.settingsVideoMain, () => {
+						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], Game.settingsVideoMain, () => {
 							// Done
 							console.log('VideoMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
@@ -296,10 +295,14 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 						case 2:
 							// Game.viewEditor();
 							Game.viewGame();
+
+							DOM.elIconsTop.classList.remove('intro');
 							DOM.elScreenActive.style.display = 'none';
 							Game.inputSuspend = false;
 							document.removeEventListener('click', click, true);
 							document.removeEventListener('keydown', click, true);
+
+							Game.gameMenu(true);
 
 							if (Game.musicInstance !== null) {
 								GamingCanvas.audioControlStop(Game.musicInstance);
@@ -318,7 +321,7 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 					setTimeout(() => {
 						suspend = false;
-					}, 2500);
+					}, 2000);
 				};
 				document.addEventListener('click', click);
 				document.addEventListener('keydown', click);
@@ -326,8 +329,12 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 				// Game.viewEditor();
 				Game.viewGame();
 				// Game.viewPerformance();
+
+				DOM.elIconsTop.classList.remove('intro');
 				DOM.elScreenActive.style.display = 'none';
 				Game.inputSuspend = false;
+
+				Game.gameMenu(true);
 
 				Game.musicInstance = await GamingCanvas.audioControlPlay(
 					AssetIdAudio.AUDIO_MUSIC_LVL1,

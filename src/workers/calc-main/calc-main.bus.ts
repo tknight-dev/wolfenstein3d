@@ -18,6 +18,7 @@ import {
 	CalcMainBusOutputDataWeaponFire,
 	CalcMainBusOutputDataPlayerHit,
 	CalcMainBusInputDataCamera,
+	CalcMainBusOutputDataWeaponSave,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -40,12 +41,13 @@ export class CalcMainBus {
 	private static callbackNPCUpdate: (data: Float32Array[]) => void;
 	private static callbackPlayerDied: (player1: boolean) => void;
 	private static callbackPlayerHit: (player1: CalcMainBusOutputDataPlayerHit) => void;
+	private static callbackSave: (data: CalcMainBusOutputDataWeaponSave) => void;
 	private static callbackStats: (data: CalcMainBusOutputDataStats) => void;
 	private static callbackWeaponFire: (data: CalcMainBusOutputDataWeaponFire) => void;
 	private static callbackWeaponSelect: (data: CalcMainBusOutputDataWeaponSelect) => void;
 	private static worker: Worker;
 
-	public static initialize(settings: CalcMainBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
+	public static initialize(settings: CalcMainBusInputDataSettings, callback: (status: boolean) => void): void {
 		CalcMainBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -63,7 +65,6 @@ export class CalcMainBus {
 				cmd: CalcMainBusInputCmd.INIT,
 				data: Object.assign(
 					{
-						gameMap: gameMap,
 						report: GamingCanvas.getReport(),
 					},
 					settings,
@@ -121,6 +122,9 @@ export class CalcMainBus {
 						break;
 					case CalcMainBusOutputCmd.PLAYER_HIT:
 						CalcMainBus.callbackPlayerHit(<CalcMainBusOutputDataPlayerHit>payload.data);
+						break;
+					case CalcMainBusOutputCmd.SAVE:
+						CalcMainBus.callbackSave(<CalcMainBusOutputDataWeaponSave>payload.data);
 						break;
 					case CalcMainBusOutputCmd.STATS:
 						CalcMainBus.callbackStats(<CalcMainBusOutputDataStats>payload.data);
@@ -185,6 +189,20 @@ export class CalcMainBus {
 		});
 	}
 
+	public static outputMeta(data: string): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.META,
+			data: data,
+		});
+	}
+
+	public static outputMetaReset(): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.META_RESET,
+			data: undefined,
+		});
+	}
+
 	public static outputPathUpdate(data: Map<number, number[]>): void {
 		CalcMainBus.worker.postMessage({
 			cmd: CalcMainBusInputCmd.PATH_UPDATE,
@@ -204,6 +222,13 @@ export class CalcMainBus {
 		CalcMainBus.worker.postMessage({
 			cmd: CalcMainBusInputCmd.REPORT,
 			data: report,
+		});
+	}
+
+	public static outputSave(): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.SAVE,
+			data: undefined,
 		});
 	}
 
@@ -267,6 +292,10 @@ export class CalcMainBus {
 
 	public static setCallbackPlayerHit(callbackPlayerHit: (data: CalcMainBusOutputDataPlayerHit) => void): void {
 		CalcMainBus.callbackPlayerHit = callbackPlayerHit;
+	}
+
+	public static setCallbackSave(callbackSave: (data: CalcMainBusOutputDataWeaponSave) => void): void {
+		CalcMainBus.callbackSave = callbackSave;
 	}
 
 	public static setCallbackStats(callbackStats: (data: CalcMainBusOutputDataStats) => void): void {

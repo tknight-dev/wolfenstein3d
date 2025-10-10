@@ -104,6 +104,24 @@ export class DOM {
 	public static elError: HTMLElement;
 	public static elFile: HTMLElement;
 	public static elGame: HTMLElement;
+	public static elGameMenu: HTMLElement;
+	public static elGameMenuBanners: HTMLElement;
+	public static elGameMenuBannersGameLoad: HTMLImageElement;
+	public static elGameMenuBannersGameSave: HTMLImageElement;
+	public static elGameMenuBannersOptions: HTMLImageElement;
+	public static elGameMenuInstructions: HTMLElement;
+	public static elGameMenuMain: HTMLElement;
+	public static elGameMenuMainContinue: HTMLElement;
+	public static elGameMenuMainItems: HTMLElement[];
+	public static elGameMenuMainGameLoad: HTMLElement;
+	public static elGameMenuMainGameNew: HTMLElement;
+	public static elGameMenuMainGameSave: HTMLElement;
+	public static elGameMenuPistol: HTMLElement;
+	public static elGameMenuSlots: HTMLElement;
+	public static elGameMenuSlots1: HTMLElement;
+	public static elGameMenuSlots2: HTMLElement;
+	public static elGameMenuSlots3: HTMLElement;
+	public static elGameMenuSlotsItems: HTMLElement[];
 	public static elIconsBottom: HTMLElement;
 	public static elIconsTop: HTMLElement;
 	public static elInfoControls: HTMLElement;
@@ -399,6 +417,27 @@ export class DOM {
 		DOM.elError = <HTMLElement>document.getElementById('error');
 		DOM.elFile = <HTMLElement>document.getElementById('file');
 		DOM.elGame = <HTMLElement>document.getElementById('game');
+		DOM.elGameMenu = <HTMLElement>document.getElementById('game-menu');
+		DOM.elGameMenuBanners = <HTMLElement>document.getElementById('game-menu-banners');
+		DOM.elGameMenuBannersGameLoad = <HTMLImageElement>document.getElementById('game-menu-banners-game-load');
+		DOM.elGameMenuBannersGameSave = <HTMLImageElement>document.getElementById('game-menu-banners-game-save');
+		DOM.elGameMenuBannersOptions = <HTMLImageElement>document.getElementById('game-menu-banners-options');
+		DOM.elGameMenuInstructions = <HTMLImageElement>document.getElementById('game-menu-instructions');
+
+		DOM.elGameMenuMain = <HTMLElement>document.getElementById('game-menu-main');
+		DOM.elGameMenuMainContinue = <HTMLElement>document.getElementById('game-menu-continue');
+		DOM.elGameMenuMainGameLoad = <HTMLElement>document.getElementById('game-menu-main-game-load');
+		DOM.elGameMenuMainGameNew = <HTMLElement>document.getElementById('game-menu-main-game-new');
+		DOM.elGameMenuMainGameSave = <HTMLElement>document.getElementById('game-menu-main-game-save');
+		DOM.elGameMenuMainItems = [DOM.elGameMenuMainGameNew, DOM.elGameMenuMainGameLoad, DOM.elGameMenuMainGameSave, DOM.elGameMenuMainContinue];
+
+		DOM.elGameMenuSlots = <HTMLElement>document.getElementById('game-menu-slots');
+		DOM.elGameMenuSlots1 = <HTMLElement>document.getElementById('game-menu-slot-1');
+		DOM.elGameMenuSlots2 = <HTMLElement>document.getElementById('game-menu-slot-2');
+		DOM.elGameMenuSlots3 = <HTMLElement>document.getElementById('game-menu-slot-3');
+		DOM.elGameMenuSlotsItems = [DOM.elGameMenuSlots1, DOM.elGameMenuSlots2, DOM.elGameMenuSlots3];
+
+		DOM.elGameMenuPistol = <HTMLElement>document.getElementById('game-menu-pistol');
 		DOM.elIconsBottom = <HTMLElement>document.getElementById('icons-bottom');
 		DOM.elIconsTop = <HTMLElement>document.getElementById('icons-top');
 		DOM.elInfoControls = <HTMLElement>document.getElementById('info-controls');
@@ -646,6 +685,13 @@ export class DOM {
 
 	// Assets needs to be loaded
 	public static initializeScreens(): void {
+		DOM.elGameMenuBanners.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_BAR)})`;
+		DOM.elGameMenuBannersGameLoad.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_GAME_LOAD);
+		DOM.elGameMenuBannersGameSave.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_GAME_SAVE);
+		DOM.elGameMenuBannersOptions.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_OPTIONS);
+		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
+		DOM.elGameMenuPistol.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.MENU_PISTOL)})`;
+
 		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_1);
 		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_2);
 		DOM.elScreenRating.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.RATING)})`;

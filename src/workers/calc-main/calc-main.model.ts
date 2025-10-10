@@ -81,9 +81,12 @@ export enum CalcMainBusInputCmd {
 	CHEAT_CODE,
 	INIT,
 	MAP,
+	META,
+	META_RESET,
 	PATH_UPDATE,
 	PAUSE,
 	REPORT,
+	SAVE,
 	SETTINGS,
 	WEAPON_SELECT,
 }
@@ -99,7 +102,6 @@ export interface CalcMainBusInputDataCamera {
 }
 
 export interface CalcMainBusInputDataInit extends CalcMainBusInputDataSettings {
-	gameMap: GameMap;
 	report: GamingCanvasReport;
 }
 
@@ -138,7 +140,8 @@ export interface CalcMainBusInputPayload {
 		| Float64Array
 		| GameMap
 		| GamingCanvasReport
-		| Map<number, number[]>;
+		| Map<number, number[]>
+		| string;
 }
 
 /*
@@ -159,6 +162,7 @@ export enum CalcMainBusOutputCmd {
 	PATH_UPDATE,
 	PLAYER_DIED,
 	PLAYER_HIT,
+	SAVE,
 	STATS,
 	WEAPON_FIRE,
 	WEAPON_SELECT,
@@ -227,6 +231,11 @@ export interface CalcMainBusOutputDataWeaponFire {
 	refire?: boolean;
 }
 
+export interface CalcMainBusOutputDataWeaponSave {
+	mapRaw: string;
+	metaRaw: string;
+}
+
 export interface CalcMainBusOutputDataWeaponSelect {
 	player1: boolean;
 	weapon: CharacterWeapon;
@@ -246,6 +255,7 @@ export interface CalcMainBusOutputPayload {
 		| CalcMainBusOutputDataPlayerHit
 		| CalcMainBusOutputDataStats
 		| CalcMainBusOutputDataWeaponFire
+		| CalcMainBusOutputDataWeaponSave
 		| CalcMainBusOutputDataWeaponSelect
 		| Float32Array[]
 		| Map<number, number[]>

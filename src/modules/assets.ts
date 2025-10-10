@@ -57,7 +57,11 @@ export class Assets {
 
 		if (map.npcById !== undefined) {
 			if (map.npcById instanceof Map !== true) {
+				// map.id = AssetIdMap.EPISODE_01_LEVEL01;
 				npc = new Map();
+
+				// map.position.x += 0.5;
+				// map.position.y += 0.5;
 
 				for ([key, value] of Object.entries(map.npcById)) {
 					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);

@@ -27,9 +27,7 @@ export enum CalcPathBusInputCmd {
 	UPDATE,
 }
 
-export interface CalcPathBusInputDataInit extends CalcPathBusInputDataSettings {
-	gameMap: GameMap;
-}
+export interface CalcPathBusInputDataInit extends CalcPathBusInputDataSettings {}
 
 export interface CalcPathBusInputDataPlayerUpdate {
 	player1GridIndex?: number;

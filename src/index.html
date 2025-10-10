@@ -33,7 +33,7 @@
 			<div class="game" id="game">
 				<div class="wrapper">
 					<div class="debug" id="debug"></div>
-					<div class="icons top" id="icons-top">
+					<div class="icons top intro" id="icons-top">
 						<span class="button" id="button-fullscreen"><span class="main-icon fullscreen"></span></span>
 						<span class="spacer"></span>
 						<span class="button" id="button-play"><span class="main-icon play"></span></span>
@@ -389,6 +389,60 @@
 						</div>
 					</div>
 					<div class="error" id="error"><span>Error</span><br /><br /></div>
+					<div class="game-menu" id="game-menu">
+						<div class="wrapper">
+							<div class="banners" id="game-menu-banners">
+								<img class="banner" id="game-menu-banners-game-load" />
+								<img class="banner" id="game-menu-banners-game-save" />
+								<img class="banner" id="game-menu-banners-options" />
+							</div>
+							<div class="content">
+								<div class="container">
+									<div id="game-menu-pistol"></div>
+									<table id="game-menu-main">
+										<tr>
+											<td class="pistol" rowspan="99"></td>
+											<td id="game-menu-main-game-new">New Game</td>
+										</tr>
+										<tr>
+											<td id="game-menu-main-game-load">Load Game</td>
+										</tr>
+										<tr>
+											<td class="disable" id="game-menu-main-game-save">Save Game</td>
+										</tr>
+										<tr id="game-menu-continue">
+											<td class="yellow">Continue</td>
+										</tr>
+									</table>
+									<table class="big" id="game-menu-slots">
+										<tr>
+											<td class="pistol" rowspan="99"></td>
+											<td id="game-menu-slot-1">
+												<div class="map"></div>
+												<div class="screenshot"></div>
+												<div class="timestamp"></div>
+											</td>
+										</tr>
+										<tr>
+											<td id="game-menu-slot-2">
+												<div class="map"></div>
+												<div class="screenshot"></div>
+												<div class="timestamp"></div>
+											</td>
+										</tr>
+										<tr>
+											<td id="game-menu-slot-3">
+												<div class="map"></div>
+												<div class="screenshot"></div>
+												<div class="timestamp"></div>
+											</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							<div class="instructions" id="game-menu-instructions"></div>
+						</div>
+					</div>
 					<div class="fps" id="stat-fps"></div>
 					<div class="meta map" id="meta-map">
 						<div class="wrapper">

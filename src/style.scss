@@ -15,6 +15,7 @@ $main-logo-width: 152px;
 $main-z-index-debug: 160;
 $main-z-index-editor: 80;
 $main-z-index-error: 150;
+$main-z-index-game-menu: 85;
 $main-z-index-icons: 85;
 $main-z-index-menus: 100;
 $main-z-index-player-overlays: 49;
@@ -174,6 +175,7 @@ $main-z-index-video-interactive: 50;
 		.editor,
 		.error,
 		.editor-cell-find-and-replace,
+		.game-menu,
 		.fps,
 		.icons,
 		.meta,
@@ -656,6 +658,202 @@ $main-z-index-video-interactive: 50;
 			}
 		}
 
+		.game-menu {
+			align-items: center;
+			background-color: rgba(138, 0, 0, 0.95);
+			bottom: 0;
+			display: flex;
+			left: 0;
+			justify-content: center;
+			right: 0;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.125s linear;
+			top: 0;
+			touch-action: none;
+			z-index: $main-z-index-game-menu;
+
+			&.show {
+				opacity: 1;
+				pointer-events: inherit;
+				touch-action: initial;
+			}
+
+			.wrapper {
+				.banners,
+				.content,
+				.instructions {
+					align-items: center;
+					display: flex;
+					justify-content: center;
+					left: 0;
+					position: absolute;
+					right: 0;
+				}
+
+				.banners {
+					background-repeat: repeat !important;
+					background-size: auto 100% !important;
+					height: 80px;
+					top: 60px;
+
+					.banner {
+						border-bottom-right-radius: 3px;
+						border-top-right-radius: 3px;
+						bottom: 10px;
+						box-shadow: 3px 3px 1px 2px rgba(0, 0, 0, 0.25);
+						display: none;
+						height: 80px;
+						position: relative;
+						max-width: 100%;
+					}
+				}
+
+				.content {
+					bottom: 140px;
+					top: 140px;
+
+					.container {
+						background-color: rgb(89, 0, 0);
+						border-bottom: 2px solid rgb(255, 0, 0);
+						box-shadow: inset 2px 2px 2px 2px rgba(0, 0, 0, 0.25);
+						padding: 5px;
+						position: relative;
+						transition: width 0.125s linear;
+						width: 75%;
+						min-width: 280px;
+
+						#game-menu-pistol {
+							animation-name: animationGameMenuPistol;
+							animation-duration: 1.5s;
+							animation-iteration-count: infinite;
+							background-position: center !important;
+							background-repeat: no-repeat !important;
+							background-size: contain !important;
+							filter: brightness(100%);
+							height: 35px;
+							image-rendering: pixelated;
+							left: 0;
+							margin-top: 5px;
+							position: absolute;
+							top: 0;
+							transition: top 0.125s linear;
+							width: 90px;
+						}
+
+						@keyframes animationGameMenuPistol {
+							40% {
+								filter: brightness(100%);
+							}
+							50% {
+								filter: brightness(75%);
+							}
+							60% {
+								filter: brightness(100%);
+							}
+						}
+
+						table {
+							display: none;
+
+							tr {
+								height: 40px;
+
+								td {
+									color: #8e8e8e;
+									font-family: monospace;
+									font-size: 32px;
+									font-weight: bold;
+									height: 40px;
+									position: relative;
+									white-space: nowrap;
+									width: 100%;
+
+									&.active {
+										color: white;
+									}
+
+									&.disable {
+										color: #710000;
+									}
+
+									&.pistol {
+										width: 90px;
+										max-width: 90px;
+										min-width: 90px;
+									}
+
+									&.yellow {
+										color: #b6ae00;
+									}
+
+									.map,
+									.screenshot,
+									.timestamp {
+										font-size: 22px;
+										position: absolute;
+										text-align: left;
+									}
+
+									.map {
+										height: 50%;
+										left: 85px;
+										right: 0;
+										top: 0;
+									}
+
+									.screenshot {
+										background-color: rgba(0, 0, 0, 0.25);
+										background-position: center !important;
+										background-repeat: no-repeat !important;
+										background-size: contain !important;
+										bottom: 0;
+										left: 0;
+										top: 0;
+										width: 80px;
+									}
+
+									.timestamp {
+										bottom: 0;
+										height: 50%;
+										left: 85px;
+										right: 0;
+									}
+
+									&.empty {
+										.screenshot {
+											background-color: transparent;
+										}
+									}
+								}
+							}
+
+							&.big {
+								tr {
+									height: 80px;
+
+									td {
+										height: 80px;
+									}
+								}
+							}
+						}
+
+						@media only screen and (max-width: 510px) {
+							width: 95%;
+						}
+					}
+				}
+				.instructions {
+					background-position: center !important;
+					background-repeat: no-repeat !important;
+					background-size: contain !important;
+					bottom: 5px;
+					height: 20px;
+				}
+			}
+		}
+
 		.fps {
 			font-size: 30px;
 			font-weight: bold;
@@ -673,8 +871,13 @@ $main-z-index-video-interactive: 50;
 			height: 60px;
 			justify-content: center;
 			left: 0;
+			opacity: 1;
+			padding: 0 5px;
 			right: 0;
 			top: 0;
+			transition:
+				background-color 1s linear,
+				opacity 1s linear;
 			z-index: $main-z-index-icons;
 
 			&.bottom {
@@ -690,6 +893,21 @@ $main-z-index-video-interactive: 50;
 
 				&.hide {
 					bottom: -60px;
+				}
+			}
+
+			&.intro {
+				background-color: rgba(0, 0, 0, 0);
+				display: flex;
+				justify-content: left;
+				z-index: $main-z-index-screen + 2;
+
+				& > * {
+					&:not(#button-fullscreen) {
+						opacity: 0;
+						pointer-events: none;
+						touch-action: none;
+					}
 				}
 			}
 

@@ -19,7 +19,7 @@ export class CalcPathBus {
 	private static callbackStats: (data: CalcPathBusOutputDataStats) => void;
 	private static worker: Worker;
 
-	public static initialize(settings: CalcPathBusInputDataSettings, gameMap: GameMap, callback: (status: boolean) => void): void {
+	public static initialize(settings: CalcPathBusInputDataSettings, callback: (status: boolean) => void): void {
 		CalcPathBus.callbackInitComplete = callback;
 
 		// Spawn the WebWorker
@@ -35,12 +35,7 @@ export class CalcPathBus {
 			// Init the webworker
 			CalcPathBus.worker.postMessage({
 				cmd: CalcPathBusInputCmd.INIT,
-				data: Object.assign(
-					{
-						gameMap: gameMap,
-					},
-					settings,
-				),
+				data: Object.assign({}, settings),
 			});
 		} else {
 			alert('Web Workers are not supported by your browser');

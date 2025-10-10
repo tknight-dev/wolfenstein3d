@@ -255,17 +255,7 @@ class VideoMainEngine {
 		}) as OffscreenCanvasRenderingContext2D;
 
 		// Config
-		VideoMainEngine.inputMap(data.gameMap);
 		VideoMainEngine.player1 = data.player1;
-
-		// Config: Report
-		VideoMainEngine.inputCalculations({
-			camera: data.camera,
-			rays: new Float64Array(),
-			raysMap: new Map(),
-			raysMapKeysSorted: new Float64Array(),
-			timestampUnix: Date.now(),
-		});
 
 		// Config: Report
 		VideoMainEngine.inputReport(data.report);
@@ -531,13 +521,13 @@ class VideoMainEngine {
 			assetImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, OffscreenCanvas>> = VideoMainEngine.assetImageCharacters,
 			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImages,
 			assetImagesInvertHorizontal: Map<AssetIdImg, OffscreenCanvas> = VideoMainEngine.assetImagesInvertHorizontal,
-			calculationsCamera: GamingCanvasGridCamera = GamingCanvasGridCamera.from(VideoMainEngine.calculations.camera),
+			calculationsCamera: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAltGridIndex: number,
-			calculationsCameraGridIndex: number = (calculationsCamera.x | 0) * VideoMainEngine.gameMap.grid.sideLength + (calculationsCamera.y | 0),
-			calculationsRays: Float64Array = VideoMainEngine.calculations.rays,
-			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> = VideoMainEngine.calculations.raysMap,
-			calculationsRaysMapKeysSorted: Float64Array = VideoMainEngine.calculations.raysMapKeysSorted,
+			calculationsCameraGridIndex: number,
+			calculationsRays: Float64Array,
+			calculationsRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
+			calculationsRaysMapKeysSorted: Float64Array,
 			characterIdByGridIndexSorted: number[],
 			characterNPC: CharacterNPC,
 			characterNPCId: number,
@@ -554,9 +544,9 @@ class VideoMainEngine {
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
 			gameMapGridIndex: number,
-			gameMapGridData: Uint16Array = <Uint16Array>VideoMainEngine.gameMap.grid.data,
-			gameMapGridSideLength: number = VideoMainEngine.gameMap.grid.sideLength,
-			gameMapNPCById: Map<number, CharacterNPC> = VideoMainEngine.gameMap.npcById,
+			gameMapGridData: Uint16Array,
+			gameMapGridSideLength: number,
+			gameMapNPCById: Map<number, CharacterNPC>,
 			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapUpdate: Uint16Array,
@@ -915,7 +905,7 @@ class VideoMainEngine {
 				// Don't render a second screen if it's not even enabled
 				countRays = 0;
 				countSprites = 0;
-				if (calculationsRays === undefined) {
+				if (calculationsRays === undefined || gameMapGridData === undefined) {
 					return;
 				}
 
