@@ -376,8 +376,6 @@ export class Game {
 					DOM.elGameMenuSlots.style.display = 'none';
 					DOM.elGameMenuMain.style.display = 'none';
 
-					console.log('DOM.elGameMenuEpisodesDesc.style.display', DOM.elGameMenuEpisodesDesc.style.display);
-
 					mute !== true && Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_EXIT);
 				} else if (DOM.elGameMenuMain.style.display === 'none') {
 					Game.gameMenuIndex = 0;
@@ -456,6 +454,43 @@ export class Game {
 				}
 				break;
 		}
+	}
+
+	private static gameMenuActionLoad(): void {
+		Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+		GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+		// Difficulty
+		DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
+		Settings.set(true);
+
+		// GameMap
+		switch (Game.gameMenuEpisode) {
+			case 0:
+				Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+				break;
+		}
+		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+
+		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+		Game.viewport.apply(Game.camera, false);
+
+		CalcMainBus.outputMap(Game.mapBackup);
+		CalcPathBus.outputMap(Game.mapBackup);
+		VideoEditorBus.outputMap(Game.mapBackup);
+		VideoMainBus.outputMap(Game.mapBackup);
+		VideoOverlayBus.outputReset();
+
+		// End menu
+		setTimeout(() => {
+			Game.gameMenu(false);
+			Game.started = true;
+			DOM.elGameMenuMainGameSave.classList.remove('disable');
+
+			CalcMainBus.outputMetaReset();
+		}, 200);
 	}
 
 	private static async gameMenuActionSlot(id: number): Promise<boolean> {
@@ -592,6 +627,9 @@ export class Game {
 			}
 		};
 
+		DOM.elGameMenuDifficulty1.onclick = () => {
+			Game.gameMenuActionLoad();
+		};
 		DOM.elGameMenuDifficulty1.onmouseover = () => {
 			if (Game.gameMenuIndex !== 0) {
 				Game.gameMenuIndex = 0;
@@ -605,6 +643,9 @@ export class Game {
 			}
 		};
 
+		DOM.elGameMenuDifficulty2.onclick = () => {
+			Game.gameMenuActionLoad();
+		};
 		DOM.elGameMenuDifficulty2.onmouseover = () => {
 			if (Game.gameMenuIndex !== 1) {
 				Game.gameMenuIndex = 1;
@@ -618,6 +659,9 @@ export class Game {
 			}
 		};
 
+		DOM.elGameMenuDifficulty3.onclick = () => {
+			Game.gameMenuActionLoad();
+		};
 		DOM.elGameMenuDifficulty3.onmouseover = () => {
 			if (Game.gameMenuIndex !== 2) {
 				Game.gameMenuIndex = 2;
@@ -631,6 +675,9 @@ export class Game {
 			}
 		};
 
+		DOM.elGameMenuDifficulty4.onclick = () => {
+			Game.gameMenuActionLoad();
+		};
 		DOM.elGameMenuDifficulty4.onmouseover = () => {
 			if (Game.gameMenuIndex !== 3) {
 				Game.gameMenuIndex = 3;
@@ -655,7 +702,7 @@ export class Game {
 			DOM.elGameMenuEpisodes.style.display = 'none';
 			DOM.elGameMenuEpisodesDesc.style.display = 'none';
 
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 
 			Game.gameMenuIndex = 0;
 			Game.gameMenuSize = 4;
@@ -712,9 +759,7 @@ export class Game {
 			DOM.elGameMenuEpisodes.style.display = 'block';
 			DOM.elGameMenuEpisodesDesc.style.display = 'flex';
 
-			console.log('DOM.elGameMenuEpisodesDesc.style.display', DOM.elGameMenuEpisodesDesc.style.display);
-
-			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 
 			Game.gameMenuIndex = 0;
 			Game.gameMenuSize = 6;
