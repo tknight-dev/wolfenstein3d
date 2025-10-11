@@ -1448,7 +1448,7 @@ class CalcMainEngine {
 					) {
 						gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 
-						if (gameMapNPCPath.length < 20) {
+						if (gameMapNPCPath.length < 25) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
 								if (

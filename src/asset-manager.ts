@@ -599,8 +599,18 @@ export enum AssetIdImgMenu {
 	BANNER_GAME_LOAD,
 	BANNER_GAME_SAVE,
 	BANNER_OPTIONS,
+	DIFFICULTY_EASY,
+	DIFFICULTY_NORMAL,
+	DIFFICULTY_HARD,
+	DIFFICULTY_INSANE,
 	END_LEVEL_PISTOL_1,
 	END_LEVEL_PISTOL_2,
+	EPISODE_1,
+	EPISODE_2,
+	EPISODE_3,
+	EPISODE_4,
+	EPISODE_5,
+	EPISODE_6,
 	GET_PSYCHED,
 	KEYS,
 	MENU_PISTOL,
@@ -2097,6 +2107,60 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Pistol 2',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode1.png',
+			title: 'Episode 1',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode2.png',
+			title: 'Episode 2',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode3.png',
+			title: 'Episode 3',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode4.png',
+			title: 'Episode 4',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode5.png',
+			title: 'Episode 5',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_6, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode6.png',
+			title: 'Episode 6',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_LOAD, {
 			alpha: true,
 			author: 'Id Software',
@@ -2122,6 +2186,42 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/options.png',
 			title: 'Options',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_EASY, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_easy.png',
+			title: 'Difficulty Easy',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_NORMAL, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_normal.png',
+			title: 'Difficulty Normal',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_HARD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_hard.png',
+			title: 'Difficulty Hard',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_INSANE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_insane.png',
+			title: 'Difficulty Insane',
 		});
 
 		assetsImageMenus.set(AssetIdImgMenu.GET_PSYCHED, {

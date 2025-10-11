@@ -721,7 +721,7 @@ $main-z-index-video-interactive: 50;
 						position: relative;
 						transition: width 0.125s linear;
 						width: 75%;
-						min-width: 410px;
+						min-width: 500px;
 
 						#game-menu-back {
 							cursor: pointer;
@@ -777,6 +777,7 @@ $main-z-index-video-interactive: 50;
 									font-weight: bold;
 									height: 40px;
 									position: relative;
+									text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.25);
 									transition: color 0.125s linear;
 									white-space: nowrap;
 									width: 100%;
@@ -791,8 +792,6 @@ $main-z-index-video-interactive: 50;
 									}
 
 									&:hover {
-										color: #c0c0c0;
-
 										&.active {
 											color: white;
 										}
@@ -817,19 +816,44 @@ $main-z-index-video-interactive: 50;
 										color: #b6ae00;
 									}
 
+									.image,
 									.map,
+									.name,
 									.screenshot,
 									.timestamp {
 										position: absolute;
 										text-align: left;
 									}
 
+									.image {
+										background-position: center !important;
+										background-repeat: no-repeat !important;
+										background-size: 100% !important;
+										border: 2px solid black;
+										bottom: 6px;
+										box-shadow: 2px 2px 1px 1px rgba(0, 0, 0, 0.25);
+										left: 0;
+										overflow: hidden;
+										top: 6px;
+										width: 140px;
+									}
+
 									.map {
 										font-size: 22px;
 										left: 85px;
 										right: 0;
-										text-align: center;
 										top: 15px;
+									}
+
+									.name {
+										align-items: center;
+										bottom: 0;
+										display: flex;
+										font-size: 22px;
+										justify-content: left;
+										left: 150px;
+										right: 0;
+										top: 0;
 									}
 
 									.screenshot {
@@ -850,7 +874,6 @@ $main-z-index-video-interactive: 50;
 										height: 50%;
 										left: 85px;
 										right: 0;
-										text-align: center;
 										top: 40px;
 									}
 
@@ -882,7 +905,8 @@ $main-z-index-video-interactive: 50;
 									}
 
 									td {
-										border-radius: 5px;
+										border-bottom-left-radius: 5px;
+										border-top-left-radius: 5px;
 										height: 80px;
 
 										&.pistol {
@@ -894,7 +918,7 @@ $main-z-index-video-interactive: 50;
 						}
 
 						@media only screen and (max-width: 510px) {
-							min-width: 300px;
+							min-width: 335px;
 							width: calc(100% - 10px);
 
 							#game-menu-pistol {
@@ -909,16 +933,54 @@ $main-z-index-video-interactive: 50;
 										}
 									}
 								}
+
+								&.big {
+									tr {
+										td {
+											.image {
+												bottom: 20px;
+												top: 20px;
+												width: 80px;
+											}
+
+											.name {
+												left: 85px;
+											}
+										}
+									}
+								}
 							}
 						}
 					}
 				}
+
 				.instructions {
 					background-position: center !important;
 					background-repeat: no-repeat !important;
 					background-size: contain !important;
 					bottom: 5px;
 					height: 20px;
+				}
+
+				.performance-note {
+					align-items: center;
+					color: #c0c0c0;
+					display: flex;
+					font-style: italic;
+					height: 50px;
+					justify-content: center;
+					margin-bottom: 10px;
+					pointer-events: none;
+					position: absolute;
+					left: 60px;
+					right: 60px;
+					top: 0;
+					touch-action: none;
+
+					span {
+						text-align: center;
+						text-shadow: 2px 2px 5px black;
+					}
 				}
 			}
 		}

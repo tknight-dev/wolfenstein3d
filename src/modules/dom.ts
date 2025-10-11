@@ -111,6 +111,14 @@ export class DOM {
 	public static elGameMenuBannersGameSave: HTMLImageElement;
 	public static elGameMenuBannersOptions: HTMLImageElement;
 	public static elGameMenuInstructions: HTMLElement;
+	public static elGameMenuEpisodes: HTMLElement;
+	public static elGameMenuEpisodes1: HTMLElement;
+	public static elGameMenuEpisodes2: HTMLElement;
+	public static elGameMenuEpisodes3: HTMLElement;
+	public static elGameMenuEpisodes4: HTMLElement;
+	public static elGameMenuEpisodes5: HTMLElement;
+	public static elGameMenuEpisodes6: HTMLElement;
+	public static elGameMenuEpisodesItems: HTMLElement[];
 	public static elGameMenuMain: HTMLElement;
 	public static elGameMenuMainContinue: HTMLElement;
 	public static elGameMenuMainItems: HTMLElement[];
@@ -427,6 +435,22 @@ export class DOM {
 		DOM.elGameMenuBannersOptions = <HTMLImageElement>document.getElementById('game-menu-banners-options');
 		DOM.elGameMenuInstructions = <HTMLImageElement>document.getElementById('game-menu-instructions');
 
+		DOM.elGameMenuEpisodes = <HTMLElement>document.getElementById('game-menu-episodes');
+		DOM.elGameMenuEpisodes1 = <HTMLElement>document.getElementById('game-menu-episode-1');
+		DOM.elGameMenuEpisodes2 = <HTMLElement>document.getElementById('game-menu-episode-2');
+		DOM.elGameMenuEpisodes3 = <HTMLElement>document.getElementById('game-menu-episode-3');
+		DOM.elGameMenuEpisodes4 = <HTMLElement>document.getElementById('game-menu-episode-4');
+		DOM.elGameMenuEpisodes5 = <HTMLElement>document.getElementById('game-menu-episode-5');
+		DOM.elGameMenuEpisodes6 = <HTMLElement>document.getElementById('game-menu-episode-6');
+		DOM.elGameMenuEpisodesItems = [
+			DOM.elGameMenuEpisodes1,
+			DOM.elGameMenuEpisodes2,
+			DOM.elGameMenuEpisodes3,
+			DOM.elGameMenuEpisodes4,
+			DOM.elGameMenuEpisodes5,
+			DOM.elGameMenuEpisodes6,
+		];
+
 		DOM.elGameMenuMain = <HTMLElement>document.getElementById('game-menu-main');
 		DOM.elGameMenuMainContinue = <HTMLElement>document.getElementById('game-menu-continue');
 		DOM.elGameMenuMainGameLoad = <HTMLElement>document.getElementById('game-menu-main-game-load');
@@ -694,6 +718,14 @@ export class DOM {
 		DOM.elGameMenuBannersGameSave.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_GAME_SAVE);
 		DOM.elGameMenuBannersOptions.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_OPTIONS);
 		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
+
+		(<HTMLElement>DOM.elGameMenuEpisodes1.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_1)})`;
+		(<HTMLElement>DOM.elGameMenuEpisodes2.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_2)})`;
+		(<HTMLElement>DOM.elGameMenuEpisodes3.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_3)})`;
+		(<HTMLElement>DOM.elGameMenuEpisodes4.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_4)})`;
+		(<HTMLElement>DOM.elGameMenuEpisodes5.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_5)})`;
+		(<HTMLElement>DOM.elGameMenuEpisodes6.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_6)})`;
+
 		DOM.elGameMenuPistol.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.MENU_PISTOL)})`;
 
 		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_1);
