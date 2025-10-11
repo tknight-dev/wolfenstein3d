@@ -2703,11 +2703,6 @@ export class Game {
 					if (touchJoystick2Show !== true) {
 						touchJoystick2X = Math.min(report.canvasWidth * report.scaler - touchJoystickSizeHalf, position2.x);
 						touchJoystick2Y = Math.min(report.canvasHeight * report.scaler - touchJoystickSizeHalf, position2.y);
-						// touchJoystick2X = position2.x;
-						// touchJoystick2Y = position2.y;
-
-						// DOM.elDebug.innerText = `${position2.x.toFixed(3)}x${position2.y.toFixed(3)}`;
-						// DOM.elDebug.innerHTML += `<br>${(report.canvasWidth * report.scaler).toFixed(3)}x${(report.canvasHeight * report.scaler).toFixed(3)}`;
 
 						DOM.elPlayerJoystick2.style.left = touchJoystick2X - touchJoystickSizeHalf + 'px';
 						DOM.elPlayerJoystick2.style.top = touchJoystick2Y - touchJoystickSizeHalf + 'px';
@@ -2728,7 +2723,7 @@ export class Game {
 							characterPlayerInputPlayer.r = 0;
 						}
 
-						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === 2) {
+						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 > 1.9) {
 							characterPlayerInputPlayer.action = true;
 							DOM.elPlayerJoystick2Thumb.classList.add('press-green');
 						} else {
@@ -2736,7 +2731,7 @@ export class Game {
 							DOM.elPlayerJoystick2Thumb.classList.remove('press-green');
 						}
 
-						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 === -1) {
+						if ((touchJoystick2YThumb / touchJoystickSizeHalf) * 2 < -0.9) {
 							characterPlayerInputPlayer.fire = true;
 							DOM.elPlayerJoystick2Thumb.classList.add('press-red');
 						} else {

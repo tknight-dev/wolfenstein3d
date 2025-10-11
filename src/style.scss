@@ -985,13 +985,23 @@ $main-z-index-video-interactive: 50;
 									tr {
 										td {
 											.image {
-												bottom: 20px;
-												top: 20px;
+												bottom: 10px;
+												top: 10px;
 												width: 80px;
 											}
 
 											.name {
 												left: 85px;
+											}
+										}
+									}
+
+									&.collapsable {
+										tr {
+											height: 60px;
+
+											td {
+												height: 60px;
 											}
 										}
 									}
