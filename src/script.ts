@@ -255,46 +255,35 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 			console.log('System Loaded in', (performance.now() - then) | 0, 'ms');
 
 			// Start the game!
-			if (Game.settingIntro === true) {
-				// Menu click through
-				let suspend: boolean = false,
-					state: number = 0;
-				let click = async () => {
-					if (suspend === true) {
-						return;
-					}
-					suspend = true;
+			let suspend: boolean = false,
+				state: number = 0;
+			let click = async () => {
+				if (suspend === true) {
+					return;
+				}
+				suspend = true;
 
-					switch (state) {
-						case 0:
-							DOM.screenControl(DOM.elScreenRating);
-
-							// play music
-							Game.musicInstance = await GamingCanvas.audioControlPlay(
-								AssetIdAudio.AUDIO_MUSIC_MENU,
-								GamingCanvasAudioType.MUSIC,
-								true,
-								-1,
-								0,
-								0,
+				switch (state) {
+					case 0:
+						// play music
+						Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, GamingCanvasAudioType.MUSIC, true, -1, 0, 0);
+						if (Game.musicInstance !== null) {
+							GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
+								GamingCanvas.audioControlPan(instance, 0, 5000);
+							});
+							GamingCanvas.audioControlVolume(
+								Game.musicInstance,
+								(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1,
+								5000,
 							);
-							if (Game.musicInstance !== null) {
-								GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
-									GamingCanvas.audioControlPan(instance, 0, 5000);
-								});
-								GamingCanvas.audioControlVolume(
-									Game.musicInstance,
-									(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1,
-									5000,
-								);
-							}
-							break;
-						case 1:
-							DOM.screenControl(DOM.elScreenTitle);
-							break;
-						case 2:
+						}
+
+						if (Game.settingIntro === true) {
+							DOM.screenControl(DOM.elScreenRating);
+						} else {
 							// Game.viewEditor();
 							Game.viewGame();
+							// Game.viewPerformance();
 
 							DOM.elIconsTop.classList.remove('intro');
 							DOM.elScreenActive.style.display = 'none';
@@ -303,48 +292,34 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 							document.removeEventListener('keydown', click, true);
 
 							Game.gameMenu(true);
+						}
+						break;
+					case 1:
+						DOM.screenControl(DOM.elScreenTitle);
+						break;
+					case 2:
+						// Game.viewEditor();
+						Game.viewGame();
 
-							if (Game.musicInstance !== null) {
-								GamingCanvas.audioControlStop(Game.musicInstance);
-							}
-							Game.musicInstance = await GamingCanvas.audioControlPlay(
-								AssetIdAudio.AUDIO_MUSIC_LVL1,
-								GamingCanvasAudioType.MUSIC,
-								true,
-								0,
-								0,
-								(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-							);
-							return;
-					}
-					state++;
+						DOM.elIconsTop.classList.remove('intro');
+						DOM.elScreenActive.style.display = 'none';
+						Game.inputSuspend = false;
+						document.removeEventListener('click', click, true);
+						document.removeEventListener('keydown', click, true);
 
+						Game.gameMenu(true);
+						return;
+				}
+				state++;
+
+				if (Game.settingIntro === true) {
 					setTimeout(() => {
 						suspend = false;
 					}, 2000);
-				};
-				document.addEventListener('click', click);
-				document.addEventListener('keydown', click);
-			} else {
-				// Game.viewEditor();
-				Game.viewGame();
-				// Game.viewPerformance();
-
-				DOM.elIconsTop.classList.remove('intro');
-				DOM.elScreenActive.style.display = 'none';
-				Game.inputSuspend = false;
-
-				Game.gameMenu(true);
-
-				Game.musicInstance = await GamingCanvas.audioControlPlay(
-					AssetIdAudio.AUDIO_MUSIC_LVL1,
-					GamingCanvasAudioType.MUSIC,
-					true,
-					0,
-					0,
-					(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-				);
-			}
+				}
+			};
+			document.addEventListener('click', click);
+			document.addEventListener('keydown', click);
 
 			// Done
 			setTimeout(() => {

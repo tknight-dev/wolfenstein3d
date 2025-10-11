@@ -309,40 +309,7 @@ export class Game {
 							break;
 					}
 				} else if (DOM.elGameMenuDifficulty.style.display !== 'none') {
-					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-					GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
-
-					// Difficulty
-					DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
-					Settings.set(true);
-
-					// GameMap
-					switch (Game.gameMenuEpisode) {
-						case 0:
-							Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-							Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-							break;
-					}
-					Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
-
-					Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-					Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-					Game.viewport.apply(Game.camera, false);
-
-					CalcMainBus.outputMap(Game.mapBackup);
-					CalcPathBus.outputMap(Game.mapBackup);
-					VideoEditorBus.outputMap(Game.mapBackup);
-					VideoMainBus.outputMap(Game.mapBackup);
-					VideoOverlayBus.outputReset();
-
-					// End menu
-					setTimeout(() => {
-						Game.gameMenu(false);
-						Game.started = true;
-						DOM.elGameMenuMainGameSave.classList.remove('disable');
-
-						CalcMainBus.outputMetaReset();
-					}, 200);
+					Game.gameMenuActionLoad();
 				} else if (DOM.elGameMenuEpisodes.style.display !== 'none') {
 					if (Game.gameMenuIndex === 0) {
 						DOM.elGameMenuEpisodes1.click();
@@ -456,9 +423,22 @@ export class Game {
 		}
 	}
 
-	private static gameMenuActionLoad(): void {
+	private static async gameMenuActionLoad(): Promise<void> {
 		Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 		GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+		// Music
+		if (Game.musicInstance !== null) {
+			GamingCanvas.audioControlStop(Game.musicInstance);
+		}
+		Game.musicInstance = await GamingCanvas.audioControlPlay(
+			AssetIdAudio.AUDIO_MUSIC_LVL1,
+			GamingCanvasAudioType.MUSIC,
+			true,
+			0,
+			0,
+			(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
+		);
 
 		// Difficulty
 		DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
@@ -2268,23 +2248,6 @@ export class Game {
 					updatedR = true;
 
 					Game.reportNew = true;
-				}
-
-				// Skipping the intro can cause the initial audio to not be permitted
-				if (Game.musicInstance === null && GamingCanvas.isAudioPermitted() === true) {
-					// Prevent another cycle from starting while waiting for the play to start
-					Game.musicInstance = -1;
-
-					setTimeout(async () => {
-						Game.musicInstance = await GamingCanvas.audioControlPlay(
-							AssetIdAudio.AUDIO_MUSIC_LVL1,
-							GamingCanvasAudioType.MUSIC,
-							true,
-							0,
-							0,
-							(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-						);
-					});
 				}
 
 				while (queue.length !== 0) {
