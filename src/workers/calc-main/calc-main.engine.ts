@@ -2102,7 +2102,7 @@ class CalcMainEngine {
 								// Or if player 1 block away
 								if (characterNPCDistance === GamingCanvasConstIntegerMaxSafe && gameMapNPCPaths !== undefined) {
 									gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
-									if (gameMapNPCPath.length === 1) {
+									if (gameMapNPCPath !== undefined && gameMapNPCPath.length === 1) {
 										for (characterPlayer of characterPlayers) {
 											if (characterPlayer.gridIndex === gameMapNPCPath[0] && characterPlayer.health > 0) {
 												characterNPCDistance = (<number>characterNPC.seenDistanceById.get(characterPlayer.id)).valueOf();

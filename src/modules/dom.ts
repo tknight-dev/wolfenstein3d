@@ -110,8 +110,22 @@ export class DOM {
 	public static elGameMenuBannersGameLoad: HTMLImageElement;
 	public static elGameMenuBannersGameSave: HTMLImageElement;
 	public static elGameMenuBannersOptions: HTMLImageElement;
+	public static elGameMenuContent: HTMLImageElement;
+	public static elGameMenuDifficulty: HTMLElement;
+	public static elGameMenuDifficultyDesc: HTMLElement;
+	public static elGameMenuDifficulty1: HTMLElement;
+	public static elGameMenuDifficulty2: HTMLElement;
+	public static elGameMenuDifficulty3: HTMLElement;
+	public static elGameMenuDifficulty4: HTMLElement;
+	public static elGameMenuDifficultyHead1: HTMLElement;
+	public static elGameMenuDifficultyHead2: HTMLElement;
+	public static elGameMenuDifficultyHead3: HTMLElement;
+	public static elGameMenuDifficultyHead4: HTMLElement;
+	public static elGameMenuDifficultyHeadItems: HTMLElement[];
+	public static elGameMenuDifficultyItems: HTMLElement[];
 	public static elGameMenuInstructions: HTMLElement;
 	public static elGameMenuEpisodes: HTMLElement;
+	public static elGameMenuEpisodesDesc: HTMLElement;
 	public static elGameMenuEpisodes1: HTMLElement;
 	public static elGameMenuEpisodes2: HTMLElement;
 	public static elGameMenuEpisodes3: HTMLElement;
@@ -433,9 +447,29 @@ export class DOM {
 		DOM.elGameMenuBannersGameLoad = <HTMLImageElement>document.getElementById('game-menu-banners-game-load');
 		DOM.elGameMenuBannersGameSave = <HTMLImageElement>document.getElementById('game-menu-banners-game-save');
 		DOM.elGameMenuBannersOptions = <HTMLImageElement>document.getElementById('game-menu-banners-options');
+		DOM.elGameMenuContent = <HTMLImageElement>document.getElementById('game-menu-content');
 		DOM.elGameMenuInstructions = <HTMLImageElement>document.getElementById('game-menu-instructions');
 
+		DOM.elGameMenuDifficulty = <HTMLElement>document.getElementById('game-menu-difficulty');
+		DOM.elGameMenuDifficultyDesc = <HTMLElement>document.getElementById('game-menu-difficulty-desc');
+		DOM.elGameMenuDifficulty1 = <HTMLElement>document.getElementById('game-menu-difficulty-1');
+		DOM.elGameMenuDifficulty2 = <HTMLElement>document.getElementById('game-menu-difficulty-2');
+		DOM.elGameMenuDifficulty3 = <HTMLElement>document.getElementById('game-menu-difficulty-3');
+		DOM.elGameMenuDifficulty4 = <HTMLElement>document.getElementById('game-menu-difficulty-4');
+		DOM.elGameMenuDifficultyItems = [DOM.elGameMenuDifficulty1, DOM.elGameMenuDifficulty2, DOM.elGameMenuDifficulty3, DOM.elGameMenuDifficulty4];
+		DOM.elGameMenuDifficultyHead1 = <HTMLElement>document.getElementById('game-menu-difficulty-head-1');
+		DOM.elGameMenuDifficultyHead2 = <HTMLElement>document.getElementById('game-menu-difficulty-head-2');
+		DOM.elGameMenuDifficultyHead3 = <HTMLElement>document.getElementById('game-menu-difficulty-head-3');
+		DOM.elGameMenuDifficultyHead4 = <HTMLElement>document.getElementById('game-menu-difficulty-head-4');
+		DOM.elGameMenuDifficultyHeadItems = [
+			DOM.elGameMenuDifficultyHead1,
+			DOM.elGameMenuDifficultyHead2,
+			DOM.elGameMenuDifficultyHead3,
+			DOM.elGameMenuDifficultyHead4,
+		];
+
 		DOM.elGameMenuEpisodes = <HTMLElement>document.getElementById('game-menu-episodes');
+		DOM.elGameMenuEpisodesDesc = <HTMLElement>document.getElementById('game-menu-episodes-desc');
 		DOM.elGameMenuEpisodes1 = <HTMLElement>document.getElementById('game-menu-episode-1');
 		DOM.elGameMenuEpisodes2 = <HTMLElement>document.getElementById('game-menu-episode-2');
 		DOM.elGameMenuEpisodes3 = <HTMLElement>document.getElementById('game-menu-episode-3');
@@ -717,6 +751,10 @@ export class DOM {
 		DOM.elGameMenuBannersGameLoad.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_GAME_LOAD);
 		DOM.elGameMenuBannersGameSave.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_GAME_SAVE);
 		DOM.elGameMenuBannersOptions.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.BANNER_OPTIONS);
+		DOM.elGameMenuDifficultyHead1.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_EASY)})`;
+		DOM.elGameMenuDifficultyHead2.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_NORMAL)})`;
+		DOM.elGameMenuDifficultyHead3.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_HARD)})`;
+		DOM.elGameMenuDifficultyHead4.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_INSANE)})`;
 		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
 
 		(<HTMLElement>DOM.elGameMenuEpisodes1.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_1)})`;

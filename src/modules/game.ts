@@ -111,6 +111,7 @@ export class Game {
 	public static editorHide: boolean;
 	public static gameOver: boolean;
 	public static gameMenuActive: boolean;
+	public static gameMenuEpisode: number;
 	public static gameMenuIndex: number;
 	public static gameMenuSize: number;
 	public static gameMenuSlotSave: boolean;
@@ -212,17 +213,24 @@ export class Game {
 			Game.gameMenuSize = 3;
 		}
 
+		DOM.elGameMenuContent.classList.remove('tall');
+		DOM.elGameMenuBanners.style.display = 'flex';
 		DOM.elGameMenuBannersGameLoad.style.display = 'none';
 		DOM.elGameMenuBannersGameSave.style.display = 'none';
 		DOM.elGameMenuBannersOptions.style.display = 'block';
 
+		DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+		DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
 		DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
 		DOM.elGameMenuEpisodesItems.forEach((v) => v.classList.remove('active'));
 		DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
 		DOM.elGameMenuMainItems[0].classList.add('active');
 
+		DOM.elGameMenuDifficulty.style.display = 'none';
+		DOM.elGameMenuDifficultyDesc.style.display = 'none';
 		DOM.elGameMenuMain.style.display = 'block';
 		DOM.elGameMenuEpisodes.style.display = 'none';
+		DOM.elGameMenuEpisodesDesc.style.display = 'none';
 		DOM.elGameMenuPistol.style.top = '0';
 		DOM.elGameMenuSlots.style.display = 'none';
 		Game.gameMenuIndex = 0;
@@ -264,6 +272,12 @@ export class Game {
 					DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
 					DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
 					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+				} else if (DOM.elGameMenuDifficulty.style.display !== 'none') {
+					DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+					DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+					DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+					DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
 				} else if (DOM.elGameMenuEpisodes.style.display !== 'none') {
 					while (DOM.elGameMenuEpisodesItems[Game.gameMenuIndex].classList.contains('disable') === true) {
 						Game.gameMenuIndex = (Game.gameMenuIndex + 1) % Game.gameMenuSize;
@@ -294,6 +308,41 @@ export class Game {
 							Game.gameMenu(false);
 							break;
 					}
+				} else if (DOM.elGameMenuDifficulty.style.display !== 'none') {
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+					GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+					// Difficulty
+					DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
+					Settings.set(true);
+
+					// GameMap
+					switch (Game.gameMenuEpisode) {
+						case 0:
+							Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+							Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+							break;
+					}
+					Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+
+					Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+					Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+					Game.viewport.apply(Game.camera, false);
+
+					CalcMainBus.outputMap(Game.mapBackup);
+					CalcPathBus.outputMap(Game.mapBackup);
+					VideoEditorBus.outputMap(Game.mapBackup);
+					VideoMainBus.outputMap(Game.mapBackup);
+					VideoOverlayBus.outputReset();
+
+					// End menu
+					setTimeout(() => {
+						Game.gameMenu(false);
+						Game.started = true;
+						DOM.elGameMenuMainGameSave.classList.remove('disable');
+
+						CalcMainBus.outputMetaReset();
+					}, 200);
 				} else if (DOM.elGameMenuEpisodes.style.display !== 'none') {
 					if (Game.gameMenuIndex === 0) {
 						DOM.elGameMenuEpisodes1.click();
@@ -309,7 +358,28 @@ export class Game {
 				}
 				break;
 			case GameMenuAction.ESC:
-				if (DOM.elGameMenuMain.style.display === 'none') {
+				if (DOM.elGameMenuDifficulty.style.display !== 'none') {
+					Game.gameMenuIndex = 0;
+					Game.gameMenuSize = 6;
+
+					DOM.elGameMenuEpisodesItems.forEach((v) => v.classList.remove('active'));
+					DOM.elGameMenuEpisodesItems[Game.gameMenuIndex].classList.add('active');
+					DOM.elGameMenuPistol.style.top = '20px';
+
+					DOM.elGameMenuContent.classList.add('tall');
+					DOM.elGameMenuBanners.style.display = 'none';
+					DOM.elGameMenuDifficulty.style.display = 'none';
+					DOM.elGameMenuDifficultyDesc.style.display = 'none';
+					DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+					DOM.elGameMenuEpisodes.style.display = 'block';
+					DOM.elGameMenuEpisodesDesc.style.display = 'flex';
+					DOM.elGameMenuSlots.style.display = 'none';
+					DOM.elGameMenuMain.style.display = 'none';
+
+					console.log('DOM.elGameMenuEpisodesDesc.style.display', DOM.elGameMenuEpisodesDesc.style.display);
+
+					mute !== true && Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_EXIT);
+				} else if (DOM.elGameMenuMain.style.display === 'none') {
 					Game.gameMenuIndex = 0;
 					if (Game.started === true) {
 						DOM.elGameMenuMainContinue.style.display = 'block';
@@ -327,7 +397,13 @@ export class Game {
 					DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
 					DOM.elGameMenuPistol.style.top = '0';
 
+					DOM.elGameMenuContent.classList.remove('tall');
+					DOM.elGameMenuBanners.style.display = 'flex';
+					DOM.elGameMenuDifficulty.style.display = 'none';
+					DOM.elGameMenuDifficultyDesc.style.display = 'none';
+					DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
 					DOM.elGameMenuEpisodes.style.display = 'none';
+					DOM.elGameMenuEpisodesDesc.style.display = 'none';
 					DOM.elGameMenuSlots.style.display = 'none';
 					DOM.elGameMenuMain.style.display = 'block';
 
@@ -355,6 +431,12 @@ export class Game {
 
 					DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
 					DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+				} else if (DOM.elGameMenuDifficulty.style.display !== 'none') {
+					DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+					DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+					DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+					DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
 					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
 				} else if (DOM.elGameMenuEpisodes.style.display !== 'none') {
 					while (DOM.elGameMenuEpisodesItems[Game.gameMenuIndex].classList.contains('disable') === true) {
@@ -479,33 +561,6 @@ export class Game {
 		}
 	}
 
-	private static gameMenuActionMap(): void {
-		Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-		GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
-
-		// GameMap
-		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
-
-		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-		Game.viewport.apply(Game.camera, false);
-
-		CalcMainBus.outputMap(Game.mapBackup);
-		CalcPathBus.outputMap(Game.mapBackup);
-		VideoEditorBus.outputMap(Game.mapBackup);
-		VideoMainBus.outputMap(Game.mapBackup);
-		VideoOverlayBus.outputReset();
-
-		// End menu
-		setTimeout(() => {
-			CalcMainBus.outputMetaReset();
-
-			Game.gameMenu(false);
-			Game.started = true;
-			DOM.elGameMenuMainGameSave.classList.remove('disable');
-		}, 200);
-	}
-
 	private static gameMenuActionPlay(assetId: AssetIdAudio): void {
 		const properties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId);
 
@@ -537,10 +592,78 @@ export class Game {
 			}
 		};
 
+		DOM.elGameMenuDifficulty1.onmouseover = () => {
+			if (Game.gameMenuIndex !== 0) {
+				Game.gameMenuIndex = 0;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+				DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+				DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
+		DOM.elGameMenuDifficulty2.onmouseover = () => {
+			if (Game.gameMenuIndex !== 1) {
+				Game.gameMenuIndex = 1;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+				DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+				DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
+		DOM.elGameMenuDifficulty3.onmouseover = () => {
+			if (Game.gameMenuIndex !== 2) {
+				Game.gameMenuIndex = 2;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+				DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+				DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
+		DOM.elGameMenuDifficulty4.onmouseover = () => {
+			if (Game.gameMenuIndex !== 3) {
+				Game.gameMenuIndex = 3;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+				DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+				DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
 		DOM.elGameMenuEpisodes1.onclick = () => {
-			Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-			Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-			Game.gameMenuActionMap();
+			Game.gameMenuEpisode = 0;
+
+			DOM.elGameMenuContent.classList.add('tall');
+			DOM.elGameMenuBanners.style.display = 'none';
+			DOM.elGameMenuDifficulty.style.display = 'block';
+			DOM.elGameMenuDifficultyDesc.style.display = 'flex';
+			DOM.elGameMenuMain.style.display = 'none';
+			DOM.elGameMenuEpisodes.style.display = 'none';
+			DOM.elGameMenuEpisodesDesc.style.display = 'none';
+
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+			Game.gameMenuIndex = 0;
+			Game.gameMenuSize = 4;
+			DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
+			DOM.elGameMenuDifficultyHeadItems[Game.gameMenuIndex].style.display = 'block';
+			DOM.elGameMenuDifficultyItems.forEach((v) => v.classList.remove('active'));
+			DOM.elGameMenuDifficultyItems[Game.gameMenuIndex].classList.add('active');
+			DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
 		};
 
 		DOM.elGameMenuMainGameLoad.onclick = () => {
@@ -550,6 +673,8 @@ export class Game {
 			Game.gameMenuSize = 3;
 			Game.gameMenuSlotSave = false;
 
+			DOM.elGameMenuContent.classList.remove('tall');
+			DOM.elGameMenuBanners.style.display = 'flex';
 			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
 			DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('empty'));
 			DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
@@ -569,6 +694,8 @@ export class Game {
 				Game.gameMenuIndex = 1;
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
+				DOM.elGameMenuContent.classList.remove('tall');
+				DOM.elGameMenuBanners.style.display = 'flex';
 				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
 				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
 				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
@@ -576,8 +703,16 @@ export class Game {
 		};
 
 		DOM.elGameMenuMainGameNew.onclick = () => {
+			DOM.elGameMenuContent.classList.add('tall');
+			DOM.elGameMenuBanners.style.display = 'none';
+			DOM.elGameMenuDifficulty.style.display = 'none';
+			DOM.elGameMenuDifficultyDesc.style.display = 'none';
+			DOM.elGameMenuDifficultyHeadItems.forEach((v) => (v.style.display = 'none'));
 			DOM.elGameMenuMain.style.display = 'none';
 			DOM.elGameMenuEpisodes.style.display = 'block';
+			DOM.elGameMenuEpisodesDesc.style.display = 'flex';
+
+			console.log('DOM.elGameMenuEpisodesDesc.style.display', DOM.elGameMenuEpisodesDesc.style.display);
 
 			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
@@ -586,34 +721,6 @@ export class Game {
 			DOM.elGameMenuEpisodesItems.forEach((v) => v.classList.remove('active'));
 			DOM.elGameMenuEpisodesItems[Game.gameMenuIndex].classList.add('active');
 			DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
-
-			// Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
-			// GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
-
-			// // GameMap
-			// Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-			// Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-
-			// Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
-
-			// Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-			// Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-			// Game.viewport.apply(Game.camera, false);
-
-			// CalcMainBus.outputMap(Game.mapBackup);
-			// CalcPathBus.outputMap(Game.mapBackup);
-			// VideoEditorBus.outputMap(Game.mapBackup);
-			// VideoMainBus.outputMap(Game.mapBackup);
-			// VideoOverlayBus.outputReset();
-
-			// // End menu
-			// setTimeout(() => {
-			// 	CalcMainBus.outputMetaReset();
-
-			// 	Game.gameMenu(false);
-			// 	Game.started = true;
-			// 	DOM.elGameMenuMainGameSave.classList.remove('disable');
-			// }, 200);
 		};
 		DOM.elGameMenuMainGameNew.onmouseover = () => {
 			if (Game.gameMenuIndex !== 0) {
@@ -643,6 +750,8 @@ export class Game {
 
 			Game.gameMenuActionSlotsLoad();
 
+			DOM.elGameMenuContent.classList.remove('tall');
+			DOM.elGameMenuBanners.style.display = 'flex';
 			DOM.elGameMenuBannersGameLoad.style.display = 'none';
 			DOM.elGameMenuBannersGameSave.style.display = 'block';
 			DOM.elGameMenuBannersOptions.style.display = 'none';
