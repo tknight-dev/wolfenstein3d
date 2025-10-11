@@ -264,7 +264,7 @@ export class Game {
 				} else {
 					DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
 					DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
-					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 'px';
+					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
 				}
 				break;
 			case GameMenuAction.ENTER:
@@ -342,7 +342,7 @@ export class Game {
 				} else {
 					DOM.elGameMenuSlotsItems.forEach((v) => v.classList.remove('active'));
 					DOM.elGameMenuSlotsItems[Game.gameMenuIndex].classList.add('active');
-					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 'px';
+					DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
 				}
 				break;
 		}
@@ -441,13 +441,21 @@ export class Game {
 				date = new Date(data.timestamp);
 				element.classList.remove('empty');
 
-				(<HTMLElement>element.children[0]).innerText = AssetIdMap[data.mapId].replaceAll('_', ' ');
+				(<HTMLElement>element.children[0]).innerText = AssetIdMap[data.mapId].replaceAll('_', ' ').replace(' LEV', ': LEV');
 				(<HTMLElement>element.children[1]).style.backgroundImage = data.image !== undefined ? `url(${data.image})` : 'none';
 				(<HTMLElement>element.children[2]).innerText =
 					`${date.getFullYear()}/${date.getMonth() + 1}/${date.getDay()} ${date.toLocaleString('en-US', { minute: 'numeric', hour: 'numeric', hour12: true })}`;
 			}
 		} catch (error) {
 			console.error('gameMenuActionSlotsLoad: failed with', error);
+		}
+	}
+
+	private static gameMenuActionPlay(assetId: AssetIdAudio): void {
+		const properties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId);
+
+		if (properties !== undefined) {
+			GamingCanvas.audioControlPlay(assetId, GamingCanvasAudioType.EFFECT, false, 0, 0, properties.volume);
 		}
 	}
 
@@ -462,6 +470,16 @@ export class Game {
 			setTimeout(() => {
 				Game.gameMenu(false);
 			}, 200);
+		};
+		DOM.elGameMenuMainContinue.onmouseover = () => {
+			if (Game.gameMenuIndex !== 3) {
+				Game.gameMenuIndex = 3;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
 		};
 
 		DOM.elGameMenuMainGameLoad.onclick = () => {
@@ -484,6 +502,16 @@ export class Game {
 
 			DOM.elGameMenuMain.style.display = 'none';
 			DOM.elGameMenuSlots.style.display = 'block';
+		};
+		DOM.elGameMenuMainGameLoad.onmouseover = () => {
+			if (Game.gameMenuIndex !== 1) {
+				Game.gameMenuIndex = 1;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
 		};
 
 		DOM.elGameMenuMainGameNew.onclick = () => {
@@ -515,6 +543,16 @@ export class Game {
 				DOM.elGameMenuMainGameSave.classList.remove('disable');
 			}, 200);
 		};
+		DOM.elGameMenuMainGameNew.onmouseover = () => {
+			if (Game.gameMenuIndex !== 0) {
+				Game.gameMenuIndex = 0;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
 
 		DOM.elGameMenuMainGameSave.onclick = () => {
 			if (DOM.elGameMenuMainGameSave.classList.contains('disable') === true) {
@@ -540,6 +578,16 @@ export class Game {
 			DOM.elGameMenuMain.style.display = 'none';
 			DOM.elGameMenuSlots.style.display = 'block';
 		};
+		DOM.elGameMenuMainGameSave.onmouseover = () => {
+			if (Game.gameMenuIndex !== 2 && DOM.elGameMenuMainGameSave.classList.contains('disable') !== true) {
+				Game.gameMenuIndex = 2;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
 
 		DOM.elGameMenuSlots1.onclick = async () => {
 			Game.gameMenuIndex = 1;
@@ -552,6 +600,16 @@ export class Game {
 					Game.started = true;
 					DOM.elGameMenuMainGameSave.classList.remove('disable');
 				}
+			}
+		};
+		DOM.elGameMenuSlots1.onmouseover = () => {
+			if (Game.gameMenuIndex !== 0) {
+				Game.gameMenuIndex = 0;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
 			}
 		};
 
@@ -568,6 +626,16 @@ export class Game {
 				}
 			}
 		};
+		DOM.elGameMenuSlots2.onmouseover = () => {
+			if (Game.gameMenuIndex !== 1) {
+				Game.gameMenuIndex = 1;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
+			}
+		};
 
 		DOM.elGameMenuSlots3.onclick = async () => {
 			Game.gameMenuIndex = 2;
@@ -582,14 +650,16 @@ export class Game {
 				}
 			}
 		};
-	}
+		DOM.elGameMenuSlots3.onmouseover = () => {
+			if (Game.gameMenuIndex !== 2) {
+				Game.gameMenuIndex = 2;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
-	private static gameMenuActionPlay(assetId: AssetIdAudio): void {
-		const properties: AssetPropertiesAudio = <AssetPropertiesAudio>assetsAudio.get(assetId);
-
-		if (properties !== undefined) {
-			GamingCanvas.audioControlPlay(assetId, GamingCanvasAudioType.EFFECT, false, 0, 0, properties.volume);
-		}
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
+			}
+		};
 	}
 
 	public static initializeDomInteractive(): void {
