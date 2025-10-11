@@ -1776,7 +1776,7 @@ export class Game {
 						if (camera.z !== cameraZoom) {
 							camera.z = cameraZoom;
 							viewport.applyZ(camera, report);
-						} else if (updated === true || updatedR !== true) {
+						} else if (Game.reportNew !== true && (updated === true || updatedR !== true)) {
 							camera.x = cameraXOriginal + (cameraMoveX - cameraMoveXOriginal) * viewport.width;
 							camera.y = cameraYOriginal + (cameraMoveY - cameraMoveYOriginal) * viewport.height;
 						}
