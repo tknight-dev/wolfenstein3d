@@ -324,6 +324,7 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 					}, 1000);
 				}
 			};
+			DOM.elIconsTop.classList.add('intro');
 			Game.viewGame();
 			document.addEventListener('click', click);
 			document.addEventListener('keydown', click);

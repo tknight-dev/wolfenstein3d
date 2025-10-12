@@ -150,7 +150,9 @@ export class Game {
 		threadVideoEditor: VideoEditorBusInputDataSettings;
 		threadVideoMain: VideoMainBusInputDataSettings;
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
-	} = <any>{};
+	} = <any>{
+		intro: true,
+	};
 	public static started: boolean;
 	public static viewport: GamingCanvasGridViewport;
 

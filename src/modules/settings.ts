@@ -93,6 +93,9 @@ export class Settings {
 			localStorage.setItem(Game.localStoragePrefix + 'settings', JSON.stringify(Game.settings));
 		}
 
+		// Always set
+		Game.settings.intro = true;
+
 		/**
 		 * URL Param
 		 */
