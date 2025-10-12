@@ -206,12 +206,23 @@ export class Game {
 	 * @param enable undefined means toggle
 	 */
 	public static gameMenu(enable?: boolean): void {
+		if (Game.gameMenuActive === enable) {
+			return;
+		}
+
 		if (Game.started === true) {
 			DOM.elGameMenuMainContinue.style.display = 'block';
 			Game.gameMenuSize = 4;
 		} else {
 			DOM.elGameMenuMainContinue.style.display = 'none';
 			Game.gameMenuSize = 3;
+		}
+
+		// Hide performance overlay
+		if (Game.modeEdit === false) {
+			Game.viewEditor();
+		} else {
+			Game.viewGame();
 		}
 
 		DOM.elGameMenuContent.classList.remove('tall');
