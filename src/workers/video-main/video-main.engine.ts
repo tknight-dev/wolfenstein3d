@@ -668,32 +668,33 @@ class VideoMainEngine {
 
 			if (timestampDelta !== 0) {
 				timestampUnix = Date.now();
-			}
-			if (VideoMainEngine.pause !== pause) {
-				pause = VideoMainEngine.pause;
 
-				timestampUnixPause = Date.now();
-				timestampUnixPauseDelta = timestampUnixPause - VideoMainEngine.pauseTimestampUnix;
+				if (VideoMainEngine.pause !== pause) {
+					pause = VideoMainEngine.pause;
 
-				if (pause !== true) {
-					timers.clockUpdate(timestampNow);
+					timestampUnixPause = Date.now();
+					timestampUnixPauseDelta = timestampUnixPause - VideoMainEngine.pauseTimestampUnix;
 
-					for (actionDoorState of actionDoors.values()) {
-						actionDoorState.timestampUnix += timestampUnixPauseDelta;
+					if (pause !== true) {
+						timers.clockUpdate(timestampNow);
+
+						for (actionDoorState of actionDoors.values()) {
+							actionDoorState.timestampUnix += timestampUnixPauseDelta;
+						}
+
+						for (actionWallState of actionWall.values()) {
+							actionWallState.timestampUnix += timestampUnixPauseDelta;
+						}
 					}
 
-					for (actionWallState of actionWall.values()) {
-						actionWallState.timestampUnix += timestampUnixPauseDelta;
-					}
+					VideoMainEngine.pauseTimestampUnix = timestampUnixPause;
 				}
-
-				VideoMainEngine.pauseTimestampUnix = timestampUnixPause;
-			}
-			if (pause === true) {
-				timestampUnixEff = timestampUnixPause;
-			} else {
-				timestampUnixEff = timestampUnix;
-				timers.tick(timestampNow);
+				if (pause === true) {
+					timestampUnixEff = timestampUnixPause;
+				} else {
+					timestampUnixEff = timestampUnix;
+					timers.tick(timestampNow);
+				}
 			}
 
 			// Main code

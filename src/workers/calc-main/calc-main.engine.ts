@@ -1581,30 +1581,30 @@ class CalcMainEngine {
 			// Timing
 			if (timestampDelta !== 0) {
 				timestampUnix = Date.now();
-			}
 
-			if (CalcMainEngine.pause !== pause) {
-				pause = CalcMainEngine.pause;
+				if (CalcMainEngine.pause !== pause) {
+					pause = CalcMainEngine.pause;
 
-				reportOrientationForce = true;
-				timestampUnixPause = Date.now();
-				timestampUnixPauseDelta = timestampUnixPause - CalcMainEngine.pauseTimestampUnix;
+					reportOrientationForce = true;
+					timestampUnixPause = Date.now();
+					timestampUnixPauseDelta = timestampUnixPause - CalcMainEngine.pauseTimestampUnix;
 
-				if (pause !== true) {
-					timers.clockUpdate(timestampNow);
+					if (pause !== true) {
+						timers.clockUpdate(timestampNow);
 
-					for (actionDoorState of actionDoors.values()) {
-						actionDoorState.timestampUnix += timestampUnixPauseDelta;
+						for (actionDoorState of actionDoors.values()) {
+							actionDoorState.timestampUnix += timestampUnixPauseDelta;
+						}
 					}
-				}
 
-				CalcMainEngine.pauseTimestampUnix = timestampUnixPause;
-			}
-			if (pause === true) {
-				timestampUnixEff = timestampUnixPause;
-			} else {
-				timestampUnixEff = timestampUnix;
-				timers.tick(timestampNow);
+					CalcMainEngine.pauseTimestampUnix = timestampUnixPause;
+				}
+				if (pause === true) {
+					timestampUnixEff = timestampUnixPause;
+				} else {
+					timestampUnixEff = timestampUnix;
+					timers.tick(timestampNow);
+				}
 			}
 
 			// Main code
