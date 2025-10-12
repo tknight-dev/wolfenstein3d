@@ -819,8 +819,8 @@ class CalcMainEngine {
 			]);
 
 			// Perform action
-			CalcMainEngine.timers.clear(state.timeout);
-			state.timeout = CalcMainEngine.timers.add(() => {
+			timers.clear(state.timeout);
+			state.timeout = timers.add(() => {
 				// Change state complete
 				if (state.closing === true) {
 					state.closed = true;
@@ -842,7 +842,8 @@ class CalcMainEngine {
 		};
 
 		const actionDoorAutoClose = (gridIndex: number, state: CalcMainBusActionDoorState) => {
-			state.timeout = CalcMainEngine.timers.add(() => {
+			timers.clear(state.timeout);
+			state.timeout = timers.add(() => {
 				if (
 					CalcMainEngine.characterPlayer1.gridIndex === gridIndex ||
 					CalcMainEngine.characterPlayer2.gridIndex === gridIndex ||
@@ -868,7 +869,8 @@ class CalcMainEngine {
 						},
 					]);
 
-					state.timeout = setTimeout(() => {
+					timers.clear(state.timeout);
+					state.timeout = timers.add(() => {
 						// Auto close complete
 						state.closed = true;
 						state.closing = false;
