@@ -1460,16 +1460,53 @@ $main-z-index-video-interactive: 50;
 					font-size: 20px;
 					font-weight: bold;
 					justify-content: center;
-					top: 20px;
+					top: 23px;
+				}
+
+				&.small {
+					border: border;
+					position: relative;
+					width: 20px;
+
+					.bottom,
+					.top {
+						border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+						border-left: 1px solid rgba(255, 255, 255, 0.5);
+						border-right: 1px solid rgba(0, 0, 0, 0.5);
+						border-top: 1px solid rgba(255, 255, 255, 0.5);
+						height: 50%;
+						left: 0;
+						padding: 1px;
+						position: absolute;
+						right: 0;
+
+						.key {
+							background-repeat: no-repeat !important;
+							background-size: contain !important;
+							display: none;
+							height: 100%;
+							image-rendering: pixelated;
+							margin-top: 1px;
+							width: 100%;
+						}
+					}
+
+					.bottom {
+						bottom: 0;
+					}
+
+					.top {
+						top: 0;
+					}
 				}
 
 				.title {
-					color: #888888;
-					font-size: 20px;
-					font-weight: bold;
+					background-position: center !important;
+					background-repeat: no-repeat !important;
+					background-size: auto 100% !important;
 					height: 20px;
-					text-align: center;
-					top: 0;
+					image-rendering: pixelated;
+					top: 3px;
 				}
 			}
 		}

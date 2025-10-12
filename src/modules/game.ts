@@ -1895,6 +1895,8 @@ export class Game {
 
 				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
 				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
+				DOM.elPlayerOverlay1Key1.style.display = character.key1 === true ? 'block' : 'none';
+				DOM.elPlayerOverlay1Key2.style.display = character.key2 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
 			}
 
@@ -1903,6 +1905,8 @@ export class Game {
 
 				DOM.elPlayerOverlay2Ammo.innerText = String(character.ammo);
 				DOM.elPlayerOverlay2Health.innerText = String(character.health) + '%';
+				DOM.elPlayerOverlay2Key1.style.display = character.key1 === true ? 'block' : 'none';
+				DOM.elPlayerOverlay2Key2.style.display = character.key2 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay2Lives.innerText = String(character.lives);
 			}
 		});

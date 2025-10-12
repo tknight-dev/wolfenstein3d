@@ -390,8 +390,10 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_GUARD_DEATH5 = 34,
 	AUDIO_EFFECT_GUARD_FIRE = 10,
 	AUDIO_EFFECT_GUARD_SURPRISE = 11,
+	AUDIO_EFFECT_KEY = 37,
 	AUDIO_EFFECT_KNIFE = 12,
 	AUDIO_EFFECT_MACHINE_GUN = 33,
+	AUDIO_EFFECT_MACHINE_GUN_PICKUP = 36,
 	AUDIO_EFFECT_MEDKIT = 13,
 	AUDIO_EFFECT_MENU_EXIT = 14,
 	AUDIO_EFFECT_MENU_OPEN = 15,
@@ -443,12 +445,15 @@ export enum AssetIdImg {
 	SPRITE_FOOD = 9,
 	SPRITE_FOOD_DOG = 10,
 	SPRITE_GUARD_CORPSE = 56,
+	SPRITE_KEY1 = 72,
+	SPRITE_KEY2 = 73,
 	SPRITE_LIGHT_CEILING_OFF = 11,
 	SPRITE_LIGHT_CEILING_ON = 12,
 	SPRITE_LIGHT_CHANDELIER_OFF = 13,
 	SPRITE_LIGHT_CHANDELIER_ON = 14,
 	SPRITE_LIGHT_FLOOR_OFF = 15,
 	SPRITE_LIGHT_FLOOR_ON = 16,
+	SPRITE_MACHINE_GUN = 74,
 	SPRITE_MEDKIT = 17,
 	SPRITE_VINES = 18,
 	SPRITE_METAL_DOOR_INSIDE = 19,
@@ -612,6 +617,22 @@ export enum AssetIdImgMenu {
 	EPISODE_5,
 	EPISODE_6,
 	GET_PSYCHED,
+	HUD_AMMO,
+	HUD_FONT_0,
+	HUD_FONT_1,
+	HUD_FONT_2,
+	HUD_FONT_3,
+	HUD_FONT_4,
+	HUD_FONT_5,
+	HUD_FONT_6,
+	HUD_FONT_7,
+	HUD_FONT_8,
+	HUD_FONT_9,
+	HUD_FONT_PERCENT,
+	HUD_HEALTH,
+	HUD_KEY_1,
+	HUD_KEY_2,
+	HUD_LIVES,
 	KEYS,
 	MENU_PISTOL,
 	RATING,
@@ -1107,6 +1128,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.75,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_KEY, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/key.mp3',
+		title: 'Key',
+		volume: 0.5,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_KNIFE, {
 		author: 'Id Software',
 		effect: true,
@@ -1123,6 +1153,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		file: 'audio/effect/machine_gun.mp3',
 		title: 'Machine Gun Fire',
 		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/machine_gun_pickup.mp3',
+		title: 'Machine Gun Pickup',
+		volume: 0.25,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MEDKIT, {
@@ -1486,6 +1525,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Guard Corpse',
 		});
 
+		assetsImages.set(AssetIdImg.SPRITE_KEY1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/key_1.png',
+			title: 'Key 1',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_KEY2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/key_2.png',
+			title: 'Key 2',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_OFF, {
 			alpha: true,
 			author: 'Id Software',
@@ -1540,6 +1597,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/light_floor_on.png',
 			title: 'Light Floor On',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_MACHINE_GUN, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE_PICKUP,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/machine_gun.png',
+			title: 'Machine Gun',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_MEDKIT, {
@@ -2089,6 +2155,69 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Bar',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_LOAD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/game_load.png',
+			title: 'Game Load',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_SAVE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/game_save.png',
+			title: 'Game Save',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.BANNER_OPTIONS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/options.png',
+			title: 'Options',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_EASY, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_easy.png',
+			title: 'Difficulty Easy',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_NORMAL, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_normal.png',
+			title: 'Difficulty Normal',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_HARD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_hard.png',
+			title: 'Difficulty Hard',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_INSANE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/difficulty_insane.png',
+			title: 'Difficulty Insane',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_1, {
 			alpha: true,
 			author: 'Id Software',
@@ -2161,67 +2290,148 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Episode 6',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_LOAD, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_AMMO, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/game_load.png',
-			title: 'Game Load',
+			file: 'img/hud/ammo.png',
+			title: 'HUD Ammo',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.BANNER_GAME_SAVE, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_0, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/game_save.png',
-			title: 'Game Save',
+			file: 'img/font/hud/0.png',
+			title: 'HUD Font 0',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.BANNER_OPTIONS, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_1, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/options.png',
-			title: 'Options',
+			file: 'img/font/hud/1.png',
+			title: 'HUD Font 1',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_EASY, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_2, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/difficulty_easy.png',
-			title: 'Difficulty Easy',
+			file: 'img/font/hud/2.png',
+			title: 'HUD Font 2',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_NORMAL, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_3, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/difficulty_normal.png',
-			title: 'Difficulty Normal',
+			file: 'img/font/hud/3.png',
+			title: 'HUD Font 3',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_HARD, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_4, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/difficulty_hard.png',
-			title: 'Difficulty Hard',
+			file: 'img/font/hud/4.png',
+			title: 'HUD Font 4',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.DIFFICULTY_INSANE, {
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_5, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
 			ext: AssetExtImg.PNG,
-			file: 'img/menu/difficulty_insane.png',
-			title: 'Difficulty Insane',
+			file: 'img/font/hud/5.png',
+			title: 'HUD Font 5',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_6, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/hud/6.png',
+			title: 'HUD Font 6',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_7, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/hud/7.png',
+			title: 'HUD Font 7',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_8, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/hud/8.png',
+			title: 'HUD Font 8',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_9, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/hud/9.png',
+			title: 'HUD Font 9',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_FONT_PERCENT, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/hud/percent.png',
+			title: 'HUD Font Percent',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_HEALTH, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/hud/health.png',
+			title: 'HUD Health',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_KEY_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/hud/key_1.png',
+			title: 'HUD Key 1',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_KEY_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/hud/key_2.png',
+			title: 'HUD Key 2',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.HUD_LIVES, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/hud/lives.png',
+			title: 'HUD Lives',
 		});
 
 		assetsImageMenus.set(AssetIdImgMenu.GET_PSYCHED, {

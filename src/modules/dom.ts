@@ -193,12 +193,22 @@ export class DOM {
 	public static elPlayerJoystick2Wrapper: HTMLElement;
 	public static elPlayerOverlay1: HTMLElement;
 	public static elPlayerOverlay1Ammo: HTMLElement;
+	public static elPlayerOverlay1AmmoTitle: HTMLElement;
 	public static elPlayerOverlay1Health: HTMLElement;
+	public static elPlayerOverlay1HealthTitle: HTMLElement;
+	public static elPlayerOverlay1Key1: HTMLElement;
+	public static elPlayerOverlay1Key2: HTMLElement;
 	public static elPlayerOverlay1Lives: HTMLElement;
+	public static elPlayerOverlay1LivesTitle: HTMLElement;
 	public static elPlayerOverlay2: HTMLElement;
 	public static elPlayerOverlay2Ammo: HTMLElement;
+	public static elPlayerOverlay2AmmoTitle: HTMLElement;
 	public static elPlayerOverlay2Health: HTMLElement;
+	public static elPlayerOverlay2HealthTitle: HTMLElement;
+	public static elPlayerOverlay2Key1: HTMLElement;
+	public static elPlayerOverlay2Key2: HTMLElement;
 	public static elPlayerOverlay2Lives: HTMLElement;
+	public static elPlayerOverlay2LivesTitle: HTMLElement;
 	public static elScreenActive: HTMLElement;
 	public static elScreenBlack: HTMLElement;
 	public static elScreenLevelEnd: HTMLElement;
@@ -566,12 +576,22 @@ export class DOM {
 
 		DOM.elPlayerOverlay1 = <HTMLElement>document.getElementById('player-overlay-1');
 		DOM.elPlayerOverlay1Ammo = <HTMLElement>document.getElementById('player-overlay-1-ammo');
+		DOM.elPlayerOverlay1AmmoTitle = <HTMLElement>document.getElementById('player-overlay-1-ammo-title');
 		DOM.elPlayerOverlay1Health = <HTMLElement>document.getElementById('player-overlay-1-health');
+		DOM.elPlayerOverlay1HealthTitle = <HTMLElement>document.getElementById('player-overlay-1-health-title');
+		DOM.elPlayerOverlay1Key1 = <HTMLElement>document.getElementById('player-overlay-1-key1');
+		DOM.elPlayerOverlay1Key2 = <HTMLElement>document.getElementById('player-overlay-1-key2');
 		DOM.elPlayerOverlay1Lives = <HTMLElement>document.getElementById('player-overlay-1-lives');
+		DOM.elPlayerOverlay1LivesTitle = <HTMLElement>document.getElementById('player-overlay-1-lives-title');
 		DOM.elPlayerOverlay2 = <HTMLElement>document.getElementById('player-overlay-2');
 		DOM.elPlayerOverlay2Ammo = <HTMLElement>document.getElementById('player-overlay-2-ammo');
+		DOM.elPlayerOverlay2AmmoTitle = <HTMLElement>document.getElementById('player-overlay-2-ammo-title');
 		DOM.elPlayerOverlay2Health = <HTMLElement>document.getElementById('player-overlay-2-health');
+		DOM.elPlayerOverlay2HealthTitle = <HTMLElement>document.getElementById('player-overlay-2-health-title');
+		DOM.elPlayerOverlay2Key1 = <HTMLElement>document.getElementById('player-overlay-2-key1');
+		DOM.elPlayerOverlay2Key2 = <HTMLElement>document.getElementById('player-overlay-2-key2');
 		DOM.elPlayerOverlay2Lives = <HTMLElement>document.getElementById('player-overlay-2-lives');
+		DOM.elPlayerOverlay2LivesTitle = <HTMLElement>document.getElementById('player-overlay-2-lives-title');
 
 		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
 		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
@@ -756,6 +776,18 @@ export class DOM {
 		DOM.elGameMenuDifficultyHead3.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_HARD)})`;
 		DOM.elGameMenuDifficultyHead4.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_INSANE)})`;
 		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
+
+		DOM.elPlayerOverlay1AmmoTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_AMMO)})`;
+		DOM.elPlayerOverlay1HealthTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_HEALTH)})`;
+		DOM.elPlayerOverlay1Key1.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_KEY_1)})`;
+		DOM.elPlayerOverlay1Key2.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_KEY_2)})`;
+		DOM.elPlayerOverlay1LivesTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_LIVES)})`;
+
+		DOM.elPlayerOverlay2AmmoTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_AMMO)})`;
+		DOM.elPlayerOverlay2HealthTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_HEALTH)})`;
+		DOM.elPlayerOverlay2Key1.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_KEY_1)})`;
+		DOM.elPlayerOverlay2Key2.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_KEY_2)})`;
+		DOM.elPlayerOverlay2LivesTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_LIVES)})`;
 
 		(<HTMLElement>DOM.elGameMenuEpisodes1.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_1)})`;
 		(<HTMLElement>DOM.elGameMenuEpisodes2.children[0]).style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_2)})`;

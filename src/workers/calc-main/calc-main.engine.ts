@@ -197,6 +197,8 @@ class CalcMainEngine {
 			gridIndex: 0,
 			health: 100,
 			id: -1,
+			key1: false,
+			key2: false,
 			lives: 3,
 			player1: true,
 			seenAngleById: new Map(),
@@ -221,6 +223,8 @@ class CalcMainEngine {
 			gridIndex: CalcMainEngine.characterPlayer1.gridIndex,
 			health: CalcMainEngine.characterPlayer1.health,
 			id: -2,
+			key1: false,
+			key2: false,
 			lives: 3,
 			player1: true,
 			seenAngleById: new Map(),
@@ -288,6 +292,8 @@ class CalcMainEngine {
 
 		characterPlayer.ammo = Math.max(99, characterPlayer.ammo);
 		characterPlayer.health = 100;
+		characterPlayer.key1 = true;
+		characterPlayer.key2 = true;
 		characterPlayer.lives = Math.max(3, characterPlayer.lives);
 
 		if (characterPlayer.weapons.length !== 4) {
@@ -1982,6 +1988,34 @@ class CalcMainEngine {
 										characterPlayer.ammo += 4;
 										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
 										break;
+									case AssetIdImg.SPRITE_KEY1:
+										characterPlayer1.key1 = true;
+										characterPlayer2.key1 = true;
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
+										break;
+									case AssetIdImg.SPRITE_KEY2:
+										characterPlayer1.key2 = true;
+										characterPlayer2.key2 = true;
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
+										break;
+									case AssetIdImg.SPRITE_MACHINE_GUN:
+										characterPlayer.ammo += 6;
+										if (characterPlayer.weapons.includes(CharacterWeapon.MACHINE_GUN) !== true) {
+											characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
+											characterPlayer.weapons.push(CharacterWeapon.MACHINE_GUN);
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP);
+
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+													data: {
+														player1: true,
+														weapon: characterPlayer.weapon,
+													},
+												},
+											]);
+										}
+										break;
 									case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
 										characterPlayer.ammo += 6;
 										if (characterPlayer.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
@@ -2073,7 +2107,12 @@ class CalcMainEngine {
 							GamingCanvasGridCharacterLook(characterPlayers, gameMapNPCById.values(), gameMapGrid, gameMapLookBlocking);
 
 							for (characterNPC of gameMapNPCById.values()) {
-								if (characterNPC === undefined || characterNPC.difficulty > settingsDifficulty || characterNPC.health === 0) {
+								if (
+									characterNPC === undefined ||
+									gameMapNPCPaths === undefined ||
+									characterNPC.difficulty > settingsDifficulty ||
+									characterNPC.health === 0
+								) {
 									// Dead men tell no tales
 									continue;
 								}

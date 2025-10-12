@@ -400,6 +400,10 @@ class VideoEditorEngine {
 						gameMapGridData = VideoEditorEngine.gameMap.grid.data;
 						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
 						gameMapNPCById = VideoEditorEngine.gameMap.npcById;
+
+						for (characterNPC of gameMapNPCById.values()) {
+							gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
+						}
 					}
 
 					if (VideoEditorEngine.npcUpdateNew === true) {

@@ -9,6 +9,8 @@ import { AssetIdImgCharacter, AssetIdImgCharacterType } from '../asset-manager.j
 export interface Character extends GamingCanvasGridCharacter {
 	ammo: number; // int16
 	health: number;
+	key1: boolean;
+	key2: boolean;
 	lives: number; // int16
 	player1: boolean;
 	score: number; // int16
@@ -25,13 +27,15 @@ export const CharacterMetaDecode = (data: Uint16Array, character?: Character): C
 
 	(<Character>character).ammo = data[0];
 	(<Character>character).health = data[1];
-	(<Character>character).lives = data[2];
-	(<Character>character).score = data[3];
-	(<Character>character).type = data[4];
-	(<Character>character).weapon = data[5];
+	(<Character>character).key1 = data[2] !== 0;
+	(<Character>character).key2 = data[3] !== 0;
+	(<Character>character).lives = data[4];
+	(<Character>character).score = data[5];
+	(<Character>character).type = data[6];
+	(<Character>character).weapon = data[7];
 
 	(<Character>character).weapons = [];
-	for (let i = 6; i < data.length; i++) {
+	for (let i = 8; i < data.length; i++) {
 		(<Character>character).weapons.push(data[i]);
 	}
 
@@ -39,7 +43,17 @@ export const CharacterMetaDecode = (data: Uint16Array, character?: Character): C
 };
 
 export const CharacterMetaEncode = (character: Character): Uint16Array => {
-	return Uint16Array.from([character.ammo, character.health, character.lives, character.score, character.type, character.weapon, ...character.weapons]);
+	return Uint16Array.from([
+		character.ammo,
+		character.health,
+		character.key1 === true ? 1 : 0,
+		character.key2 === true ? 1 : 0,
+		character.lives,
+		character.score,
+		character.type,
+		character.weapon,
+		...character.weapons,
+	]);
 };
 
 export interface CharacterNPC extends GamingCanvasGridCharacter {
