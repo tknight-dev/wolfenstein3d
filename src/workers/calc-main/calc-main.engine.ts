@@ -530,8 +530,8 @@ class CalcMainEngine {
 			cellSide: GamingCanvasGridRaycastCellSide,
 			characterControlOptions: GamingCanvasGridCharacterControlOptions = {
 				clip: true,
-				factorPosition: 0.0055,
-				factorRotation: 0.00225,
+				factorPosition: 0.005,
+				factorRotation: 0.002,
 				style: GamingCanvasGridCharacterControlStyle.STRAFE,
 			},
 			characterNPC: CharacterNPC,
