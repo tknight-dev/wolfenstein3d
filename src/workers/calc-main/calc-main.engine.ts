@@ -645,12 +645,7 @@ class CalcMainEngine {
 				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
 					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
-					if (
-						actionDoorState === undefined ||
-						actionDoorState.closed === true ||
-						actionDoorState.closing === true ||
-						actionDoorState.opening === true
-					) {
+					if (actionDoorState === undefined || actionDoorState.closed === true) {
 						return true;
 					}
 
@@ -1448,7 +1443,7 @@ class CalcMainEngine {
 					) {
 						gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 
-						if (gameMapNPCPath.length < 25) {
+						if (gameMapNPCPath.length < 20) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
 								if (

@@ -109,6 +109,7 @@ export class Game {
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
+	public static fullscreen: boolean;
 	public static gameOver: boolean;
 	public static gameMenuActive: boolean;
 	public static gameMenuEpisode: number;
@@ -126,7 +127,7 @@ export class Game {
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
 	public static modePerformance: boolean;
-	public static musicInstance: number | null;
+	public static musicInstance: number | null = null;
 	public static position: GamingCanvasInputPositionBasic;
 	public static positionCellHighlight: GamingCanvasInputPositionOverlay;
 	public static report: GamingCanvasReport;
@@ -241,7 +242,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true);
+			Game.pause(true, Game.started !== true);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
 			DOM.elIconsTop.classList.remove('intro');
 			DOM.elGameMenu.classList.remove('show');
@@ -253,7 +254,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true);
+			Game.pause(true, Game.started !== true);
 		}
 	}
 
@@ -1370,9 +1371,11 @@ export class Game {
 		// Fullscreen
 		DOM.elButtonFullscreen.onclick = async () => {
 			if (DOM.elButtonFullscreen.classList.contains('active') === true) {
+				Game.fullscreen = false;
 				await GamingCanvas.setFullscreen(false);
 				await GamingCanvas.wakeLock(false);
 			} else {
+				Game.fullscreen = true;
 				await GamingCanvas.setFullscreen(true, DOM.elGame);
 				await GamingCanvas.wakeLock(true);
 			}
@@ -1388,7 +1391,14 @@ export class Game {
 				DOM.elButtonFullscreen.children[0].classList.add('fullscreen');
 
 				DOM.elButtonFullscreen.children[0].classList.remove('fullscreen-exit');
+
+				// Game menu if not clicked() (EG Escape key)
+				if (Game.fullscreen !== false) {
+					Game.gameMenu(true);
+				}
 			}
+
+			Game.fullscreen = state;
 		});
 
 		// Menu
@@ -2716,7 +2726,7 @@ export class Game {
 						DOM.elPlayerJoystick2Thumb.style.left = touchJoystick2XThumb + touchJoystickSizeQuarter + 'px';
 						DOM.elPlayerJoystick2Thumb.style.top = touchJoystick2YThumb + touchJoystickSizeQuarter + 'px';
 
-						characterPlayerInputPlayer.r = (touchJoystick2XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf;
+						characterPlayerInputPlayer.r = ((touchJoystick2XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf) * 1.1;
 						// DOM.elDebug.innerHTML += `<br>${((touchJoystick2XThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
 						// DOM.elDebug.innerText += `x${((touchJoystick2YThumb - touchJoystickSizeEighth) / touchJoystickSizeHalf).toFixed(3)}`;
 						if (characterPlayerInputPlayer.r > -touchJoystickDeadBand && characterPlayerInputPlayer.r < touchJoystickDeadBand) {
@@ -2880,18 +2890,18 @@ export class Game {
 		};
 	}
 
-	public static pause(state: boolean): void {
+	public static pause(state: boolean, skipAudio?: boolean): void {
 		if (state === true) {
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
-			GamingCanvas.audioControlPauseAll(true);
+			skipAudio !== true && GamingCanvas.audioControlPauseAll(true);
 			VideoMainBus.outputPause(true);
 			VideoOverlayBus.outputPause(true);
 		} else {
 			if (Game.gameOver !== true) {
 				CalcMainBus.outputPause(false);
 				CalcPathBus.outputPause(false);
-				GamingCanvas.audioControlPauseAll(false);
+				skipAudio !== true && GamingCanvas.audioControlPauseAll(false);
 				VideoMainBus.outputPause(false);
 				VideoOverlayBus.outputPause(false);
 			}

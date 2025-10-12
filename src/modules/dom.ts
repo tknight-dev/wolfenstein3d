@@ -802,9 +802,9 @@ export class DOM {
 
 					DOM.timeoutScreen = setTimeout(() => {
 						DOM.elScreenBlack.style.display = 'none';
-					}, 1000);
-				}, 1000);
-			}, 1000);
+					}, 500);
+				}, 500);
+			}, 500);
 		}
 	}
 

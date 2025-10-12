@@ -195,6 +195,18 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 		});
 	}
 
+	public static async introMusic(): Promise<void> {
+		if (Game.musicInstance === null) {
+			Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, GamingCanvasAudioType.MUSIC, true, -1, 0, 0);
+			if (Game.musicInstance !== null) {
+				GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
+					GamingCanvas.audioControlPan(instance, 0, 5000);
+				});
+				GamingCanvas.audioControlVolume(Game.musicInstance, (<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1, 5000);
+			}
+		}
+	}
+
 	public static async main(): Promise<void> {
 		const then: number = performance.now();
 
@@ -256,35 +268,22 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 			// Start the game!
 			let suspend: boolean = false,
-				state: number = 0;
+				state: number = 0,
+				timeout: ReturnType<typeof setTimeout>;
 			let click = async () => {
 				if (suspend === true) {
 					return;
 				}
+				clearTimeout(timeout);
 				suspend = true;
 
 				switch (state) {
 					case 0:
-						// play music
-						Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, GamingCanvasAudioType.MUSIC, true, -1, 0, 0);
-						if (Game.musicInstance !== null) {
-							GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
-								GamingCanvas.audioControlPan(instance, 0, 5000);
-							});
-							GamingCanvas.audioControlVolume(
-								Game.musicInstance,
-								(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1,
-								5000,
-							);
-						}
+						Blockenstein.introMusic();
 
 						if (Game.settingIntro === true) {
 							DOM.screenControl(DOM.elScreenRating);
 						} else {
-							// Game.viewEditor();
-							Game.viewGame();
-							// Game.viewPerformance();
-
 							DOM.elIconsTop.classList.remove('intro');
 							DOM.elScreenActive.style.display = 'none';
 							Game.inputSuspend = false;
@@ -295,11 +294,11 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 						}
 						break;
 					case 1:
+						Blockenstein.introMusic();
 						DOM.screenControl(DOM.elScreenTitle);
 						break;
 					case 2:
-						// Game.viewEditor();
-						Game.viewGame();
+						Blockenstein.introMusic();
 
 						DOM.elIconsTop.classList.remove('intro');
 						DOM.elScreenActive.style.display = 'none';
@@ -313,11 +312,12 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 				state++;
 
 				if (Game.settingIntro === true) {
-					setTimeout(() => {
+					timeout = setTimeout(() => {
 						suspend = false;
-					}, 2000);
+					}, 1000);
 				}
 			};
+			Game.viewGame();
 			document.addEventListener('click', click);
 			document.addEventListener('keydown', click);
 
