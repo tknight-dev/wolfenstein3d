@@ -118,9 +118,9 @@ export class Game {
 	public static gameMenuSize: number;
 	public static gameMenuSlotSave: boolean;
 	public static gameMenuSlotSaveId: number | undefined;
-	public static gameMenuSlotSavePrefix: string = 'tknight-dev-wolfenstein3d-map-';
 	public static inputRequest: number;
 	public static inputSuspend: boolean = true;
+	public static localStoragePrefix: string = 'tknight-dev-wolfenstein3d-';
 	public static map: GameMap;
 	public static mapBackup: GameMap;
 	public static mapBackupRestored: boolean;
@@ -133,22 +133,24 @@ export class Game {
 	public static positionCellHighlight: GamingCanvasInputPositionOverlay;
 	public static report: GamingCanvasReport;
 	public static reportNew: boolean;
-	public static settingAudioVolume: number;
-	public static settingAudioVolumeEffect: number;
-	public static settingAudioVolumeMusic: number;
-	public static settingDebug: boolean;
-	public static settingGraphicsDPISupport: boolean;
-	public static settingGraphicsFOV: number;
-	public static settingGraphicsFPSDisplay: boolean;
-	public static settingGamePlayer2InputDevice: InputDevice;
-	public static settingGraphicsResolution: Resolution;
-	public static settingIntro: boolean;
-	public static settingsCalcMain: CalcMainBusInputDataSettings;
-	public static settingsCalcPath: CalcPathBusInputDataSettings;
-	public static settingsGamingCanvas: GamingCanvasOptions;
-	public static settingsVideoEditor: VideoEditorBusInputDataSettings;
-	public static settingsVideoMain: VideoMainBusInputDataSettings;
-	public static settingsVideoOverlay: VideoOverlayBusInputDataSettings;
+	public static settings: {
+		audioVolume: number;
+		audioVolumeEffect: number;
+		audioVolumeMusic: number;
+		debug: boolean;
+		graphicsDPISupport: boolean;
+		graphicsFOV: number;
+		graphicsFPSDisplay: boolean;
+		gamePlayer2InputDevice: InputDevice;
+		graphicsResolution: Resolution;
+		intro: boolean;
+		threadCalcMain: CalcMainBusInputDataSettings;
+		threadCalcPath: CalcPathBusInputDataSettings;
+		threadGamingCanvas: GamingCanvasOptions;
+		threadVideoEditor: VideoEditorBusInputDataSettings;
+		threadVideoMain: VideoMainBusInputDataSettings;
+		threadVideoOverlay: VideoOverlayBusInputDataSettings;
+	} = <any>{};
 	public static started: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
@@ -220,7 +222,7 @@ export class Game {
 		}
 
 		// Hide performance overlay
-		if (Game.modeEdit === false) {
+		if (Game.modeEdit !== false) {
 			Game.viewEditor();
 		} else {
 			Game.viewGame();
@@ -495,7 +497,7 @@ export class Game {
 					const fileReader: FileReader = new FileReader();
 					fileReader.onload = async (event: ProgressEvent) => {
 						localStorage.setItem(
-							Game.gameMenuSlotSavePrefix + '-desc-' + id,
+							Game.localStoragePrefix + 'map-desc-' + id,
 							JSON.stringify({
 								image: (<any>event.target).result,
 								mapId: Game.map.id,
@@ -508,7 +510,7 @@ export class Game {
 					fileReader.readAsDataURL(blob);
 				} else {
 					localStorage.setItem(
-						Game.gameMenuSlotSavePrefix + '-desc-' + id,
+						Game.localStoragePrefix + 'map-desc-' + id,
 						JSON.stringify({
 							mapId: Game.map.id,
 							timestamp: Date.now(),
@@ -518,8 +520,8 @@ export class Game {
 					CalcMainBus.outputSave();
 				}
 			} else {
-				const rawMap: string | null = localStorage.getItem(Game.gameMenuSlotSavePrefix + id),
-					rawMeta: string | null = localStorage.getItem(Game.gameMenuSlotSavePrefix + 'meta-' + id);
+				const rawMap: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-' + id),
+					rawMeta: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-meta-' + id);
 
 				if (rawMap === null || rawMeta === null) {
 					return false;
@@ -564,7 +566,7 @@ export class Game {
 		try {
 			for (let i = 0; i < 3; i++) {
 				element = DOM.elGameMenuSlotsItems[i];
-				raw = localStorage.getItem(Game.gameMenuSlotSavePrefix + '-desc-' + i);
+				raw = localStorage.getItem(Game.localStoragePrefix + 'map-desc-' + i);
 
 				if (raw === null) {
 					(<HTMLElement>element.children[0]).innerText = 'Empty';
@@ -1965,8 +1967,8 @@ export class Game {
 		// Calc: Weapon Fire
 		CalcMainBus.setCallbackSave((data: CalcMainBusOutputDataWeaponSave) => {
 			if (Game.gameMenuSlotSaveId !== undefined) {
-				localStorage.setItem(Game.gameMenuSlotSavePrefix + Game.gameMenuSlotSaveId, data.mapRaw);
-				localStorage.setItem(Game.gameMenuSlotSavePrefix + 'meta-' + Game.gameMenuSlotSaveId, data.metaRaw);
+				localStorage.setItem(Game.localStoragePrefix + 'map-' + Game.gameMenuSlotSaveId, data.mapRaw);
+				localStorage.setItem(Game.localStoragePrefix + 'map-meta-' + Game.gameMenuSlotSaveId, data.metaRaw);
 				Game.gameMenuSlotSaveId = undefined;
 			}
 		});
@@ -2309,8 +2311,8 @@ export class Game {
 
 		const processorGamepad = (input: GamingCanvasInputGamepad) => {
 			if (modeEdit !== true) {
-				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer2InputDevice === InputDevice.GAMEPAD) {
+				if (Game.settings.threadCalcMain.player2Enable === true) {
+					if (Game.settings.gamePlayer2InputDevice === InputDevice.GAMEPAD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 						player1 = false;
 					} else {
@@ -2389,8 +2391,8 @@ export class Game {
 					}
 				}
 			} else if (modeEdit !== true || Game.editorHide === true) {
-				if (Game.settingsCalcMain.player2Enable === true) {
-					if (Game.settingGamePlayer2InputDevice === InputDevice.KEYBOARD) {
+				if (Game.settings.threadCalcMain.player2Enable === true) {
+					if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
 						characterPlayerInputPlayer = characterPlayerInput.player2;
 						player1 = false;
 					} else {
@@ -3013,7 +3015,7 @@ export class Game {
 			// Overlay
 			DOM.elPlayerOverlay1.style.display = 'flex';
 
-			if (Game.settingsCalcMain.player2Enable === true) {
+			if (Game.settings.threadCalcMain.player2Enable === true) {
 				DOM.elPlayerOverlay2.style.display = 'flex';
 			} else {
 				DOM.elPlayerOverlay2.style.display = 'none';

@@ -28,12 +28,12 @@ class Blockenstein {
 	private static statFPS: { [key: string]: number } = {};
 
 	private static initializeGamingCanvas(): void {
-		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, Game.settingsGamingCanvas);
+		DOM.elCanvases = GamingCanvas.initialize(DOM.elVideo, Game.settings.threadGamingCanvas);
 
 		GamingCanvas.audioLoad(Assets.dataAudio);
-		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolume, GamingCanvasAudioType.ALL);
-		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeEffect, GamingCanvasAudioType.EFFECT);
-		GamingCanvas.audioVolumeGlobal(Game.settingAudioVolumeMusic, GamingCanvasAudioType.MUSIC);
+		GamingCanvas.audioVolumeGlobal(Game.settings.audioVolume, GamingCanvasAudioType.ALL);
+		GamingCanvas.audioVolumeGlobal(Game.settings.audioVolumeEffect, GamingCanvasAudioType.EFFECT);
+		GamingCanvas.audioVolumeGlobal(Game.settings.audioVolumeMusic, GamingCanvasAudioType.MUSIC);
 	}
 
 	private static initializeStatCallbacks(): void {
@@ -139,15 +139,15 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 		element.innerText = String(value);
 		if (hardLimit === true) {
-			if (value < Game.settingsVideoMain.fps) {
+			if (value < Game.settings.threadVideoMain.fps) {
 				element.style.color = 'red';
 			} else {
 				element.style.color = 'green';
 			}
 		} else {
-			if (value < Game.settingsVideoMain.fps * 0.8) {
+			if (value < Game.settings.threadVideoMain.fps * 0.8) {
 				element.style.color = 'red';
-			} else if (value < Game.settingsVideoMain.fps * 0.9) {
+			} else if (value < Game.settings.threadVideoMain.fps * 0.9) {
 				element.style.color = 'yellow';
 			} else {
 				element.style.color = 'green';
@@ -160,31 +160,31 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		return new Promise<void>((resolve: any) => {
-			CalcMainBus.initialize(Game.settingsCalcMain, () => {
+			CalcMainBus.initialize(Game.settings.threadCalcMain, () => {
 				// Done
 				console.log('CalcMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 				// Load video-editor
 				then = performance.now();
-				CalcPathBus.initialize(Game.settingsCalcPath, () => {
+				CalcPathBus.initialize(Game.settings.threadCalcPath, () => {
 					// Done
 					console.log('CalcPathEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 					// Load video-main
 					then = performance.now();
-					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], Game.settingsVideoEditor, viewport, () => {
+					VideoEditorBus.initialize(GamingCanvas.getCanvases()[4], Game.settings.threadVideoEditor, viewport, () => {
 						// Done
 						console.log('VideoEditorEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 						// Load video-main
 						then = performance.now();
-						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], Game.settingsVideoMain, () => {
+						VideoMainBus.initialize(GamingCanvas.getCanvases()[0], GamingCanvas.getCanvases()[1], Game.settings.threadVideoMain, () => {
 							// Done
 							console.log('VideoMainEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
 							// Load video-overlay
 							then = performance.now();
-							VideoOverlayBus.initialize(GamingCanvas.getCanvases()[2], GamingCanvas.getCanvases()[3], Game.settingsVideoOverlay, () => {
+							VideoOverlayBus.initialize(GamingCanvas.getCanvases()[2], GamingCanvas.getCanvases()[3], Game.settings.threadVideoOverlay, () => {
 								// Done
 								console.log('VideoOverlayEngine Loaded in', (performance.now() - then) | 0, 'ms');
 
@@ -284,7 +284,7 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 					case 0:
 						Blockenstein.introMusic();
 
-						if (Game.settingIntro === true) {
+						if (Game.settings.intro === true) {
 							DOM.screenControl(DOM.elScreenRating);
 						} else {
 							DOM.elIconsTop.classList.remove('intro');
@@ -318,7 +318,7 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 				}
 				state++;
 
-				if (Game.settingIntro === true) {
+				if (Game.settings.intro === true) {
 					timeout = setTimeout(() => {
 						suspend = false;
 					}, 1000);
