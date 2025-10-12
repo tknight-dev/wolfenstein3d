@@ -605,7 +605,7 @@ class CalcMainEngine {
 			characterPlayerSingle: Character[] = [characterPlayer1],
 			cycleCount: number = 0,
 			cycleCountReported: number = 0,
-			cycleMinMs: number = 14,
+			cycleMinMs: number = 8,
 			distance: number,
 			distance2: number,
 			gameMap: GameMap = CalcMainEngine.gameMap,
@@ -2980,7 +2980,10 @@ class CalcMainEngine {
 						[
 							{
 								cmd: CalcMainBusOutputCmd.NPC_UPDATE,
-								data: characterNPCUpdates,
+								data: {
+									npcs: characterNPCUpdates,
+									timestampUnix: timestampUnix,
+								},
 							},
 						],
 						buffers,

@@ -7,7 +7,7 @@ import {
 	CalcPathBusOutputPayload,
 } from './calc-path.model.js';
 import { GameMap } from '../../models/game.model.js';
-import { CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { CalcMainBusOutputDataActionWallMove, CalcMainBusOutputDataNPCUpdate } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -83,7 +83,7 @@ export class CalcPathBus {
 		});
 	}
 
-	public static outputNPCUpdate(data: Float32Array[]): void {
+	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
 		CalcPathBus.worker.postMessage({
 			cmd: CalcPathBusInputCmd.NPC_UPDATE,
 			data: data,

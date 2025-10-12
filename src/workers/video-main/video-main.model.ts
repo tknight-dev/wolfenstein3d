@@ -2,7 +2,12 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionSwitch, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import {
+	CalcMainBusActionDoorState,
+	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
+} from '../calc-main/calc-main.model.js';
 import { CharacterWeapon } from '../../models/character.model.js';
 
 /**
@@ -14,8 +19,9 @@ import { CharacterWeapon } from '../../models/character.model.js';
  */
 export enum VideoMainBusStats {
 	ALL,
-	C_V,
+	NPC_C_V,
 	RAY,
+	RAY_C_V,
 	SPRITE,
 }
 
@@ -75,6 +81,7 @@ export interface VideoMainBusInputPayload {
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataActionSwitch
 		| CalcMainBusOutputDataActionWallMove
+		| CalcMainBusOutputDataNPCUpdate
 		| CharacterWeapon
 		| Float32Array[]
 		| Float64Array
@@ -98,9 +105,10 @@ export interface VideoMainBusOutputDataStats {
 	all: Float32Array;
 	countRays: number;
 	countSprites: number;
-	c_v: Float32Array;
 	fps: number;
+	npc_c_v: Float32Array;
 	ray: Float32Array;
+	ray_c_v: Float32Array;
 	sprite: Float32Array;
 }
 

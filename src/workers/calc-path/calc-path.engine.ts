@@ -19,7 +19,11 @@ import {
 } from '@tknight-dev/gaming-canvas/grid';
 import { GamingCanvasGridPathAStar, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 import { Assets } from '../../modules/assets.js';
-import { CalcMainBusActionWallMoveStateChangeDurationInMS, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import {
+	CalcMainBusActionWallMoveStateChangeDurationInMS,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
+} from '../calc-main/calc-main.model.js';
 import { GamingCanvasStat, GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
 import { AssetIdImgCharacter } from '../../asset-manager.js';
 
@@ -44,7 +48,7 @@ self.onmessage = (event: MessageEvent) => {
 			CalcPathEngine.initialize(<CalcPathBusInputDataInit>payload.data);
 			break;
 		case CalcPathBusInputCmd.NPC_UPDATE:
-			CalcPathEngine.inputNPCUpdate(<Float32Array[]>payload.data);
+			CalcPathEngine.inputNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);
 			break;
 		case CalcPathBusInputCmd.PAUSE:
 			CalcPathEngine.inputPause(<boolean>payload.data);
@@ -154,8 +158,8 @@ class CalcPathEngine {
 		CalcPathEngine.gameMapNew = true;
 	}
 
-	public static inputNPCUpdate(data: Float32Array[]): void {
-		CalcPathEngine.npcUpdate = data;
+	public static inputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
+		CalcPathEngine.npcUpdate = data.npcs;
 		CalcPathEngine.npcUpdateNew = true;
 	}
 
@@ -238,15 +242,17 @@ class CalcPathEngine {
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
 
-			if (CalcPathEngine.pause !== pause) {
-				pause = CalcPathEngine.pause;
+			if (timestampDelta !== 0) {
+				if (CalcPathEngine.pause !== pause) {
+					pause = CalcPathEngine.pause;
 
-				if (pause !== true) {
-					timers.clockUpdate(timestampNow);
+					if (pause !== true) {
+						timers.clockUpdate(timestampNow);
+					}
 				}
-			}
-			if (pause !== true) {
-				timers.tick(timestampNow);
+				if (pause !== true) {
+					timers.tick(timestampNow);
+				}
 			}
 
 			if (timestampDelta > 1000) {

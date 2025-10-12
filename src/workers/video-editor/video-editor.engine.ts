@@ -24,6 +24,7 @@ import {
 	initializeAssetManager,
 } from '../../asset-manager.js';
 import { Assets } from '../../modules/assets.js';
+import { CalcMainBusOutputDataNPCUpdate } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -49,7 +50,7 @@ self.onmessage = (event: MessageEvent) => {
 			VideoEditorEngine.inputMap(<GameMap>payload.data);
 			break;
 		case VideoEditorBusInputCmd.NPC_UPDATE:
-			VideoEditorEngine.inputNPCUpdate(<Float32Array[]>payload.data);
+			VideoEditorEngine.inputNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);
 			break;
 		case VideoEditorBusInputCmd.PATH_UPDATE:
 			VideoEditorEngine.inputPathUpdate(<Map<number, number[]>>payload.data);
@@ -208,8 +209,8 @@ class VideoEditorEngine {
 		VideoEditorEngine.gameMapNew = true;
 	}
 
-	public static inputNPCUpdate(data: Float32Array[]): void {
-		VideoEditorEngine.npcUpdate = data;
+	public static inputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
+		VideoEditorEngine.npcUpdate = data.npcs;
 		VideoEditorEngine.npcUpdateNew = true;
 	}
 

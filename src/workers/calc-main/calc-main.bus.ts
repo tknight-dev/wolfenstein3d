@@ -19,6 +19,7 @@ import {
 	CalcMainBusOutputDataPlayerHit,
 	CalcMainBusInputDataCamera,
 	CalcMainBusOutputDataWeaponSave,
+	CalcMainBusOutputDataNPCUpdate,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -38,7 +39,7 @@ export class CalcMainBus {
 	private static callbackCharacterMeta: (data: CalcMainBusOutputDataCharacterMeta) => void;
 	private static callbackGameover: () => void;
 	private static callbackInitComplete: (status: boolean) => void;
-	private static callbackNPCUpdate: (data: Float32Array[]) => void;
+	private static callbackNPCUpdate: (data: CalcMainBusOutputDataNPCUpdate) => void;
 	private static callbackPlayerDied: (player1: boolean) => void;
 	private static callbackPlayerHit: (player1: CalcMainBusOutputDataPlayerHit) => void;
 	private static callbackSave: (data: CalcMainBusOutputDataWeaponSave) => void;
@@ -115,7 +116,7 @@ export class CalcMainBus {
 						VideoMainBus.outputMapUpdate(<Uint16Array>payload.data);
 						break;
 					case CalcMainBusOutputCmd.NPC_UPDATE:
-						CalcMainBus.callbackNPCUpdate(<Float32Array[]>payload.data);
+						CalcMainBus.callbackNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);
 						break;
 					case CalcMainBusOutputCmd.PLAYER_DIED:
 						CalcMainBus.callbackPlayerDied(<boolean>payload.data);
@@ -282,7 +283,7 @@ export class CalcMainBus {
 		CalcMainBus.callbackGameover = callbackGameover;
 	}
 
-	public static setCallbackNPCUpdate(callbackNPCUpdate: (data: Float32Array[]) => void): void {
+	public static setCallbackNPCUpdate(callbackNPCUpdate: (data: CalcMainBusOutputDataNPCUpdate) => void): void {
 		CalcMainBus.callbackNPCUpdate = callbackNPCUpdate;
 	}
 

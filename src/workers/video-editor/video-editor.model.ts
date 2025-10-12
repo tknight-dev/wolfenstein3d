@@ -2,6 +2,7 @@ import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+import { CalcMainBusOutputDataNPCUpdate } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -61,10 +62,11 @@ export interface VideoEditorBusInputPayload {
 	cmd: VideoEditorBusInputCmd;
 	data:
 		| boolean
-		| GamingCanvasReport
+		| CalcMainBusOutputDataNPCUpdate
 		| Float32Array[]
 		| Float64Array
 		| GameMap
+		| GamingCanvasReport
 		| Map<number, number[]>
 		| VideoEditorBusInputDataCalculations
 		| VideoEditorBusInputDataInit

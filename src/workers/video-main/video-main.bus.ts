@@ -14,6 +14,7 @@ import {
 	CalcMainBusActionDoorState,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataWeaponSelect,
 } from '../calc-main/calc-main.model.js';
 
@@ -210,7 +211,7 @@ export class VideoMainBus {
 		);
 	}
 
-	public static outputNPCUpdate(data: Float32Array[]): void {
+	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
 		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
 			return;
 		}

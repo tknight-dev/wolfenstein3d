@@ -215,6 +215,11 @@ export interface CalcMainBusOutputDataCalculations {
 	timestampUnix: number;
 }
 
+export interface CalcMainBusOutputDataNPCUpdate {
+	npcs: Float32Array[];
+	timestampUnix: number;
+}
+
 export interface CalcMainBusOutputDataPlayerHit {
 	angle: number;
 	player1: boolean;
@@ -252,6 +257,7 @@ export interface CalcMainBusOutputPayload {
 		| CalcMainBusOutputDataCamera
 		| CalcMainBusOutputDataCalculations
 		| CalcMainBusOutputDataCharacterMeta
+		| CalcMainBusOutputDataNPCUpdate
 		| CalcMainBusOutputDataPlayerHit
 		| CalcMainBusOutputDataStats
 		| CalcMainBusOutputDataWeaponFire

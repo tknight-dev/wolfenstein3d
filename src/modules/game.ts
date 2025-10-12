@@ -30,6 +30,7 @@ import {
 	CalcMainBusOutputDataPlayerHit,
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusOutputDataWeaponSave,
+	CalcMainBusOutputDataNPCUpdate,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -1943,10 +1944,10 @@ export class Game {
 		});
 
 		// Calc: NPCs
-		CalcMainBus.setCallbackNPCUpdate((data: Float32Array[]) => {
+		CalcMainBus.setCallbackNPCUpdate((data: CalcMainBusOutputDataNPCUpdate) => {
 			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
-			VideoEditorBus.outputNPCUpdate(data);
+			// VideoEditorBus.outputNPCUpdate(data);
 		});
 
 		// Calc: Player died

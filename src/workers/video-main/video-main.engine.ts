@@ -76,6 +76,7 @@ import {
 	CalcMainBusFOVByDifficulty,
 	CalcMainBusOutputDataActionSwitch,
 	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusPlayerDeadFadeDurationInMS,
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusWeaponFireDurationsInMS,
@@ -116,7 +117,7 @@ self.onmessage = (event: MessageEvent) => {
 			VideoMainEngine.inputMapUpdate(<Uint16Array>payload.data);
 			break;
 		case VideoMainBusInputCmd.NPC_UPDATE:
-			VideoMainEngine.inputNPCUpdate(<Float32Array[]>payload.data);
+			VideoMainEngine.inputNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);
 			break;
 		case VideoMainBusInputCmd.PAUSE:
 			VideoMainEngine.inputPause(<boolean>payload.data);
@@ -174,8 +175,9 @@ class VideoMainEngine {
 	public static async initialize(data: VideoMainBusInputDataInit): Promise<void> {
 		// Stats
 		VideoMainEngine.stats[VideoMainBusStats.ALL] = new GamingCanvasStat(50);
-		VideoMainEngine.stats[VideoMainBusStats.C_V] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.NPC_C_V] = new GamingCanvasStat(50);
 		VideoMainEngine.stats[VideoMainBusStats.RAY] = new GamingCanvasStat(50);
+		VideoMainEngine.stats[VideoMainBusStats.RAY_C_V] = new GamingCanvasStat(50);
 		VideoMainEngine.stats[VideoMainBusStats.SPRITE] = new GamingCanvasStat(50);
 
 		// Assets
@@ -390,7 +392,7 @@ class VideoMainEngine {
 	}
 
 	public static inputCalculations(data: VideoMainBusInputDataCalculations): void {
-		VideoMainEngine.stats[VideoMainBusStats.C_V].add(Date.now() - data.timestampUnix);
+		VideoMainEngine.stats[VideoMainBusStats.RAY_C_V].add(Date.now() - data.timestampUnix);
 
 		VideoMainEngine.calculations = data;
 		VideoMainEngine.calculationsNew = true;
@@ -407,8 +409,9 @@ class VideoMainEngine {
 		VideoMainEngine.gameMapUpdateNew = true;
 	}
 
-	public static inputNPCUpdate(data: Float32Array[]): void {
-		VideoMainEngine.npcUpdate = data;
+	public static inputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
+		VideoMainEngine.stats[VideoMainBusStats.NPC_C_V].add(Date.now() - data.timestampUnix);
+		VideoMainEngine.npcUpdate = data.npcs;
 		VideoMainEngine.npcUpdateNew = true;
 	}
 
@@ -610,10 +613,12 @@ class VideoMainEngine {
 			settingsRaycastQuality: RaycastQuality = VideoMainEngine.settings.raycastQuality,
 			statAll: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.ALL],
 			statAllRaw: Float32Array,
-			statCV: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.C_V],
-			statCVRaw: Float32Array,
+			statNPCCV: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.NPC_C_V],
+			statNPCCVRaw: Float32Array,
 			statRay: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.RAY],
 			statRayRaw: Float32Array,
+			statRayCV: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.RAY_C_V],
+			statRayCVRaw: Float32Array,
 			statSprite: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.SPRITE],
 			statSpriteRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
@@ -668,7 +673,6 @@ class VideoMainEngine {
 
 			if (timestampDelta !== 0) {
 				timestampUnix = Date.now();
-
 				if (VideoMainEngine.pause !== pause) {
 					pause = VideoMainEngine.pause;
 
@@ -1065,7 +1069,7 @@ class VideoMainEngine {
 							asset.height, // (height-source) height of our test image
 							((renderRayIndex + 6) * settingsRaycastQuality) / 7, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
-							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (2 covers gaps between rays)
+							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (+1 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
 						);
 						statRay.watchStop();
@@ -1691,7 +1695,8 @@ class VideoMainEngine {
 				timestampFPS = timestampNow;
 
 				statAllRaw = <Float32Array>statAll.encode();
-				statCVRaw = <Float32Array>statCV.encode();
+				statNPCCVRaw = <Float32Array>statNPCCV.encode();
+				statRayCVRaw = <Float32Array>statRayCV.encode();
 				statRayRaw = <Float32Array>statRay.encode();
 				statSpriteRaw = <Float32Array>statSprite.encode();
 
@@ -1704,14 +1709,15 @@ class VideoMainEngine {
 								all: statAllRaw,
 								countRays: countRays,
 								countSprites: countSprites,
-								c_v: statCVRaw,
 								fps: countFrame,
+								npc_c_v: statNPCCVRaw,
 								ray: statRayRaw,
+								ray_c_v: statRayCVRaw,
 								sprite: statSpriteRaw,
 							},
 						},
 					],
-					[statAllRaw.buffer, statCVRaw.buffer, statRayRaw.buffer, statSpriteRaw.buffer],
+					[statAllRaw.buffer, statRayCVRaw.buffer, statRayRaw.buffer, statSpriteRaw.buffer],
 				);
 				countFrame = 0;
 			}

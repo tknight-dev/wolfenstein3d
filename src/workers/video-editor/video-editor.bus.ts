@@ -9,6 +9,7 @@ import {
 	VideoEditorBusOutputPayload,
 } from './video-editor.model.js';
 import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { CalcMainBusOutputDataNPCUpdate } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -127,7 +128,7 @@ export class VideoEditorBus {
 		});
 	}
 
-	public static outputNPCUpdate(data: Float32Array[]): void {
+	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
 		if (VideoEditorBus.worker === undefined) {
 			return;
 		}
@@ -137,7 +138,7 @@ export class VideoEditorBus {
 				cmd: VideoEditorBusInputCmd.NPC_UPDATE,
 				data: data,
 			},
-			data.map((array: Float32Array) => array.buffer),
+			data.npcs.map((array: Float32Array) => array.buffer),
 		);
 	}
 

@@ -261,6 +261,21 @@ export class Settings {
 			Game.settingsGamingCanvas.dpiSupportEnable = Game.settingGraphicsDPISupport;
 			Game.settingsGamingCanvas.resolutionWidthPx = Game.settingGraphicsResolution;
 
+			// Overlay
+			if (Game.settingsCalcMain.player2Enable === true) {
+				if (DOM.elPlayerOverlay1.style.display === 'flex') {
+					DOM.elPlayerOverlay2.style.display = 'flex';
+				}
+
+				DOM.elPlayerOverlay1.classList.add('multiplayer');
+				DOM.elPlayerOverlay2.classList.add('multiplayer');
+			} else {
+				DOM.elPlayerOverlay2.style.display = 'none';
+
+				DOM.elPlayerOverlay1.classList.add('remove');
+				DOM.elPlayerOverlay2.classList.add('remove');
+			}
+
 			// Send to Workers
 			CalcMainBus.outputSettings(Game.settingsCalcMain);
 			CalcPathBus.outputSettings(Game.settingsCalcPath);

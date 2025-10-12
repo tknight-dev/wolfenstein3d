@@ -3,7 +3,7 @@
  */
 
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
-import { CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { CalcMainBusOutputDataActionWallMove, CalcMainBusOutputDataNPCUpdate } from '../calc-main/calc-main.model.js';
 
 /*
  * Stats
@@ -48,6 +48,7 @@ export interface CalcPathBusInputPayload {
 		| CalcPathBusInputDataPlayerUpdate
 		| CalcPathBusInputDataSettings
 		| CalcMainBusOutputDataActionWallMove
+		| CalcMainBusOutputDataNPCUpdate
 		| Float32Array[]
 		| GameMap;
 }
