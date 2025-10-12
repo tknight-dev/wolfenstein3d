@@ -1733,6 +1733,7 @@ export class Game {
 			VideoOverlayBus.outputPause(true);
 
 			setTimeout(() => {
+				DOM.elIconsTop.classList.add('intro');
 				DOM.screenControl(DOM.elScreenLevelEnd);
 
 				if (Game.musicInstance !== null) {

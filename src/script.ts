@@ -289,11 +289,13 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 						} else {
 							DOM.elIconsTop.classList.remove('intro');
 							DOM.elScreenActive.style.display = 'none';
-							Game.inputSuspend = false;
 							document.removeEventListener('click', click, true);
 							document.removeEventListener('keydown', click, true);
 
 							Game.gameMenu(true);
+							setTimeout(() => {
+								Game.inputSuspend = false;
+							}, 500);
 						}
 						break;
 					case 1:
@@ -305,11 +307,13 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 						DOM.elIconsTop.classList.remove('intro');
 						DOM.elScreenActive.style.display = 'none';
-						Game.inputSuspend = false;
 						document.removeEventListener('click', click, true);
 						document.removeEventListener('keydown', click, true);
 
 						Game.gameMenu(true);
+						setTimeout(() => {
+							Game.inputSuspend = false;
+						}, 500);
 						return;
 				}
 				state++;

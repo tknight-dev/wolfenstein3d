@@ -15,12 +15,14 @@ $main-logo-width: 152px;
 $main-z-index-debug: 160;
 $main-z-index-editor: 80;
 $main-z-index-error: 150;
-$main-z-index-game-menu: 85;
-$main-z-index-icons: 85;
+$main-z-index-game-menu: 84;
+$main-z-index-icons-bottom: 83;
+$main-z-index-icons-top: 85;
 $main-z-index-menus: 100;
 $main-z-index-player-overlays: 49;
 $main-z-index-weapons: 50;
 $main-z-index-screen: 90;
+$main-z-index-screen-end-level: 83;
 $main-z-index-video-interactive: 50;
 
 .main-icon {
@@ -1073,12 +1075,12 @@ $main-z-index-video-interactive: 50;
 			transition:
 				background-color 1s linear,
 				opacity 1s linear;
-			z-index: $main-z-index-icons;
 
 			&.bottom {
 				bottom: 0;
 				transition: bottom 0.125s linear;
 				top: auto;
+				z-index: $main-z-index-icons-bottom;
 
 				.button {
 					&:not(:first-child) {
@@ -1107,6 +1109,8 @@ $main-z-index-video-interactive: 50;
 			}
 
 			&.top {
+				z-index: $main-z-index-icons-top;
+
 				.spacer {
 					flex-grow: 1;
 				}
@@ -1537,6 +1541,7 @@ $main-z-index-video-interactive: 50;
 
 			&.level-end {
 				background-color: #004141;
+				z-index: $main-z-index-screen-end-level;
 
 				.image,
 				.stats {
