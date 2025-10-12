@@ -725,9 +725,13 @@ class VideoMainEngine {
 
 						renderAltStand = false;
 						timers.clear(renderAltStandTimerId);
-						timers.add(() => {
-							renderAltStand = true;
-						}, 250);
+						timers.add(
+							() => {
+								renderAltStand = true;
+							},
+							250,
+							renderAltStandTimerId,
+						);
 					}
 
 					renderModeEdit = VideoMainEngine.calculations.edit;
