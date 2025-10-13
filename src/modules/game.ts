@@ -1952,7 +1952,7 @@ export class Game {
 		CalcMainBus.setCallbackNPCUpdate((data: CalcMainBusOutputDataNPCUpdate) => {
 			CalcPathBus.outputNPCUpdate(data); // Clones
 			VideoMainBus.outputNPCUpdate(data); // Clones
-			// VideoEditorBus.outputNPCUpdate(data);
+			VideoEditorBus.outputNPCUpdate(data);
 		});
 
 		// Calc: Player died

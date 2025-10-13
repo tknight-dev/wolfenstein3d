@@ -983,6 +983,20 @@ class VideoMainEngine {
 				// offscreenCanvasContext.fillStyle = 'black';
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
+				// Weapon
+				if (renderModeEdit !== true && settingsDebug === true) {
+					x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV / 2;
+					offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.25)';
+					offscreenCanvasContext.strokeStyle = 'rgba(255,247,0,0.75)';
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.moveTo(offscreenCanvasWidthPxHalf - x, offscreenCanvasHeightPxHalf);
+					offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf, offscreenCanvasHeightPx);
+					offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf + x, offscreenCanvasHeightPxHalf);
+					offscreenCanvasContext.stroke();
+					offscreenCanvasContext.closePath();
+					offscreenCanvasContext.fill();
+				}
+
 				// Iterate: By Distance
 				for (i of calculationsRaysMapKeysSorted) {
 					renderRayDistanceMapInstance = <GamingCanvasGridRaycastResultDistanceMapInstance>calculationsRaysMap.get(i);
@@ -1624,16 +1638,6 @@ class VideoMainEngine {
 
 				// Weapon
 				if (renderModeEdit !== true) {
-					if (settingsDebug === true) {
-						x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV;
-						offscreenCanvasContext.strokeStyle = 'rgba(255,255,0,0.75)';
-						offscreenCanvasContext.beginPath();
-						offscreenCanvasContext.moveTo(offscreenCanvasWidthPxHalf - x, 0);
-						offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf, offscreenCanvasHeightPx);
-						offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf + x, 0);
-						offscreenCanvasContext.stroke();
-					}
-
 					renderWeaponFire = false;
 					switch (renderWeapon) {
 						case CharacterWeapon.KNIFE:
