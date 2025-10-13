@@ -728,6 +728,7 @@ $main-z-index-video-interactive: 50;
 						position: relative;
 						transition: width 0.125s linear;
 						width: 75%;
+						max-width: 600px;
 						min-width: 500px;
 
 						#game-menu-back {
