@@ -61,7 +61,7 @@ class Blockenstein {
 				path: GamingCanvasStat = GamingCanvasStat.decode(stats.path);
 
 			DOM.elPerformanceCalcPathAll.innerHTML = displayNumberAll(all, precision);
-			DOM.elPerformanceCalcPathIndividual.innerHTML = `Count ${String(stats.pathCount).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(path, precision)}`;
+			DOM.elPerformanceCalcPathIndividual.innerHTML = `Count ${String(stats.pathCount).padStart(8, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(path, precision)}`;
 		});
 
 		/**
@@ -98,16 +98,16 @@ class Blockenstein {
 				DOM.elPerformanceVideoPlayer1All.innerHTML = displayNumberAll(all, precision);
 				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer1FPS, stats.fps);
 				DOM.elPerformanceVideoPlayer1NPCCV.innerHTML = displayNumberAll(npcCV, precision);
-				DOM.elPerformanceVideoPlayer1Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
+				DOM.elPerformanceVideoPlayer1Ray.innerHTML = `Count ${String(stats.countRays).padStart(8, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
 				DOM.elPerformanceVideoPlayer1RayCV.innerHTML = displayNumberAll(rayCV, precision);
-				DOM.elPerformanceVideoPlayer1Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
+				DOM.elPerformanceVideoPlayer1Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(8, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
 			} else {
 				DOM.elPerformanceVideoPlayer2All.innerHTML = displayNumberAll(all, precision);
 				Blockenstein.displayStatFPS(DOM.elPerformanceVideoPlayer2FPS, stats.fps);
 				DOM.elPerformanceVideoPlayer2NPCCV.innerHTML = displayNumberAll(npcCV, precision);
-				DOM.elPerformanceVideoPlayer2Ray.innerHTML = `Count ${String(stats.countRays).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
+				DOM.elPerformanceVideoPlayer2Ray.innerHTML = `Count ${String(stats.countRays).padStart(8, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(ray, precision)}`;
 				DOM.elPerformanceVideoPlayer2RayCV.innerHTML = displayNumberAll(rayCV, precision);
-				DOM.elPerformanceVideoPlayer2Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(3, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
+				DOM.elPerformanceVideoPlayer2Sprite.innerHTML = `Count ${String(stats.countSprites).padStart(8, '#').replaceAll('#', '&nbsp;')}<br>${displayNumberAll(sprite, precision)}`;
 			}
 		});
 

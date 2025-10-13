@@ -1375,6 +1375,12 @@ $main-z-index-video-interactive: 50;
 									text-align: right;
 									min-width: 100px;
 
+									&:first-child {
+										span {
+											white-space: nowrap;
+										}
+									}
+
 									&:last-child {
 										border-left: 1px solid rgba(128, 128, 128, 0.25);
 										color: white;
