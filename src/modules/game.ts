@@ -31,6 +31,7 @@ import {
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusOutputDataWeaponSave,
 	CalcMainBusOutputDataNPCUpdate,
+	CalcMainBusOutputDataActionDoorLocked,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
@@ -159,9 +160,10 @@ export class Game {
 	private static cellApply(): void {
 		Game.editorCellValue = Game.editorAssetIdImg;
 
-		DOM.elEditorPropertiesCellInputExtended.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED);
+		if (DOM.elEditorPropertiesCellInputExtended.checked === true) {
+			Game.editorCellValue &= GameGridCellMasksAndValuesExtended.ID_MASK;
+			Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED;
 
-		if (DOM.elEditorPropertiesCellInputExtended.checked) {
 			DOM.elEditorPropertiesCellExtendedInputDoor.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR);
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
@@ -1308,10 +1310,13 @@ export class Game {
 								case AssetIdImg.SPRITE_METAL_DOOR:
 									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
 									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
+									DOM.elEditorPropertiesCellInputWallInvisible.checked = true;
 									break;
 								case AssetIdImg.SPRITE_METAL_DOOR_LOCKED:
 									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
+									DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = true;
 									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
+									DOM.elEditorPropertiesCellInputWallInvisible.checked = true;
 									break;
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN:
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_UP:
@@ -1722,6 +1727,10 @@ export class Game {
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
 			VideoMainBus.outputActionDoor(data);
+		});
+
+		CalcMainBus.setCallbackActionDoorLocked((data: CalcMainBusOutputDataActionDoorLocked) => {
+			console.log('LOCKED', data);
 		});
 
 		// Calc: Action Switch

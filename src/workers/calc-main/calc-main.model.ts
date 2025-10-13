@@ -149,6 +149,7 @@ export interface CalcMainBusInputPayload {
  */
 export enum CalcMainBusOutputCmd {
 	ACTION_DOOR,
+	ACTION_DOOR_LOCKED,
 	ACTION_SWITCH,
 	ACTION_WALL_MOVE,
 	AUDIO,
@@ -166,6 +167,11 @@ export enum CalcMainBusOutputCmd {
 	STATS,
 	WEAPON_FIRE,
 	WEAPON_SELECT,
+}
+
+export interface CalcMainBusOutputDataActionDoorLocked {
+	player1: boolean;
+	keys: number[];
 }
 
 export interface CalcMainBusOutputDataActionSwitch {
@@ -250,6 +256,7 @@ export interface CalcMainBusOutputPayload {
 	cmd: CalcMainBusOutputCmd;
 	data:
 		| boolean
+		| CalcMainBusOutputDataActionDoorLocked
 		| CalcMainBusOutputDataActionSwitch
 		| CalcMainBusOutputDataActionWallMove
 		| CalcMainBusActionDoorState
