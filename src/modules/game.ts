@@ -212,7 +212,7 @@ export class Game {
 	/**
 	 * @param enable undefined means toggle
 	 */
-	public static gameMenu(enable?: boolean): void {
+	public static gameMenu(enable?: boolean, pauseAudio?: boolean): void {
 		if (Game.gameMenuActive === enable) {
 			return;
 		}
@@ -260,7 +260,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true);
+			Game.pause(true, Game.started !== true && pauseAudio !== true);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
 			DOM.elIconsTop.classList.remove('intro');
 			DOM.elGameMenu.classList.remove('show');
@@ -272,7 +272,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true);
+			Game.pause(true, Game.started !== true && pauseAudio !== true);
 		}
 	}
 
@@ -451,6 +451,9 @@ export class Game {
 	private static async gameMenuActionLoad(): Promise<void> {
 		Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 		GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+		DOM.elIconsTop.classList.remove('intro');
+		DOM.elScreenActive.style.display = 'none';
 
 		// Music
 		if (Game.musicInstance !== null) {
@@ -1662,7 +1665,7 @@ export class Game {
 		// Report
 		GamingCanvas.setCallbackVisibility((state: boolean) => {
 			if (state !== true) {
-				Game.gameMenu(true);
+				Game.gameMenu(true, true);
 			}
 		});
 		GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
