@@ -605,6 +605,7 @@ class VideoMainEngine {
 			renderWeaponHeightOffset: number,
 			renderWeaponWidth: number,
 			renderWeaponWidthOffset: number,
+			settingsCrosshair: boolean = VideoMainEngine.settings.crosshair,
 			settingsDebug: boolean = VideoMainEngine.settings.debug,
 			settingsDifficulty: GameDifficulty = VideoMainEngine.settings.difficulty,
 			settingsFOV: number = VideoMainEngine.settings.fov,
@@ -830,6 +831,7 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.reportNew === true || VideoMainEngine.settingsNew === true) {
 					// Settings
+					settingsCrosshair = VideoMainEngine.settings.crosshair;
 					settingsDebug = VideoMainEngine.settings.debug;
 					settingsDifficulty = VideoMainEngine.settings.difficulty;
 					settingsFOV = VideoMainEngine.settings.fov;
@@ -885,7 +887,7 @@ class VideoMainEngine {
 					renderWeaponHeight = asset.height * renderWeaponFactor;
 					renderWeaponWidth = asset.width * renderWeaponFactor;
 					renderWeaponHeightOffset = offscreenCanvasHeightPx - renderWeaponHeight;
-					renderWeaponWidthOffset = (offscreenCanvasWidthPx - renderWeaponWidth) / 2;
+					renderWeaponWidthOffset = (offscreenCanvasWidthPx - renderWeaponWidth) / 2 - offscreenCanvasWidthPx / 200; // + for magic centering offset
 				}
 
 				// Background cache
@@ -995,6 +997,10 @@ class VideoMainEngine {
 					offscreenCanvasContext.stroke();
 					offscreenCanvasContext.closePath();
 					offscreenCanvasContext.fill();
+					offscreenCanvasContext.beginPath();
+					offscreenCanvasContext.moveTo(offscreenCanvasWidthPxHalf, offscreenCanvasHeightPx);
+					offscreenCanvasContext.lineTo(offscreenCanvasWidthPxHalf, offscreenCanvasHeightPxHalf);
+					offscreenCanvasContext.stroke();
 				}
 
 				// Iterate: By Distance
@@ -1638,6 +1644,15 @@ class VideoMainEngine {
 
 				// Weapon
 				if (renderModeEdit !== true) {
+					if (settingsCrosshair === true) {
+						// Crosshair
+						offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.75)';
+						offscreenCanvasContext.fillRect(offscreenCanvasWidthPxHalf - 1, offscreenCanvasHeightPxHalf - 3, 2, 2); // Bottom-Middle
+						offscreenCanvasContext.fillRect(offscreenCanvasWidthPxHalf - 3, offscreenCanvasHeightPxHalf - 1, 2, 2); // Middle-Left
+						offscreenCanvasContext.fillRect(offscreenCanvasWidthPxHalf + 1, offscreenCanvasHeightPxHalf - 1, 2, 2); // Middle-Right
+						offscreenCanvasContext.fillRect(offscreenCanvasWidthPxHalf - 1, offscreenCanvasHeightPxHalf + 1, 2, 2); // Top-Middle
+					}
+
 					renderWeaponFire = false;
 					switch (renderWeapon) {
 						case CharacterWeapon.KNIFE:

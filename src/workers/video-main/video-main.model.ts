@@ -63,6 +63,7 @@ export interface VideoMainBusInputDataInit extends VideoMainBusInputDataSettings
 
 export interface VideoMainBusInputDataSettings {
 	antialias: boolean;
+	crosshair: boolean;
 	debug: boolean;
 	difficulty: GameDifficulty;
 	fov: number;

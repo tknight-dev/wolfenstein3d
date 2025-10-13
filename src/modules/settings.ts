@@ -71,6 +71,7 @@ export class Settings {
 
 			Game.settings.threadVideoMain = {
 				antialias: Game.settings.threadVideoEditor.antialias,
+				crosshair: false,
 				debug: Game.settings.debug,
 				difficulty: Game.settings.threadCalcMain.difficulty,
 				fov: Game.settings.threadCalcMain.fov,
@@ -102,6 +103,9 @@ export class Settings {
 		const params: URLSearchParams = new URLSearchParams(document.location.search);
 		for (let [name, value] of params.entries()) {
 			switch (name.toLowerCase()) {
+				case 'crosshair':
+					Game.settings.threadVideoMain.crosshair = String(value).toLowerCase() === 'true';
+					break;
 				case 'debug':
 					Game.settings.debug = String(value).toLowerCase() === 'true';
 					Game.settings.threadCalcMain.debug = Game.settings.debug;
@@ -260,6 +264,7 @@ export class Settings {
 			Game.settings.threadVideoEditor.player2Enable = Game.settings.threadCalcMain.player2Enable;
 
 			Game.settings.threadVideoMain.antialias = Game.settings.threadVideoEditor.antialias;
+			Game.settings.threadVideoMain.crosshair = DOM.elSettingsValueGameCrosshair.checked;
 			Game.settings.threadVideoMain.debug = Game.settings.debug;
 			Game.settings.threadVideoMain.difficulty = Game.settings.threadCalcMain.difficulty;
 			Game.settings.threadVideoMain.fov = Game.settings.threadCalcMain.fov;
@@ -320,6 +325,7 @@ export class Settings {
 			DOM.elSettingsValueAudioNoAction.checked = Game.settings.threadCalcMain.audioNoAction;
 			DOM.elSettingsValueAudioWallCollisions.checked = Game.settings.threadCalcMain.audioWallCollisions;
 			DOM.elSettingsValueEditorDrawGrid.checked = Game.settings.threadVideoEditor.gridDraw;
+			DOM.elSettingsValueGameCrosshair.checked = Game.settings.threadVideoMain.crosshair;
 			DOM.elSettingsValueGameDebug.checked = Game.settings.debug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settings.threadCalcMain.difficulty);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settings.threadCalcMain.player2Enable;

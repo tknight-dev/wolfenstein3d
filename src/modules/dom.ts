@@ -241,6 +241,7 @@ export class DOM {
 	public static elSettingsValueAudioNoAction: HTMLInputElement;
 	public static elSettingsValueAudioWallCollisions: HTMLInputElement;
 	public static elSettingsValueEditorDrawGrid: HTMLInputElement;
+	public static elSettingsValueGameCrosshair: HTMLInputElement;
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
@@ -629,6 +630,7 @@ export class DOM {
 		DOM.elSettingsValueAudioNoAction = <HTMLInputElement>document.getElementById('settings-value-audio-no-action');
 		DOM.elSettingsValueAudioWallCollisions = <HTMLInputElement>document.getElementById('settings-value-audio-wall-collision');
 		DOM.elSettingsValueEditorDrawGrid = <HTMLInputElement>document.getElementById('settings-value-editor-cell-draw-grid');
+		DOM.elSettingsValueGameCrosshair = <HTMLInputElement>document.getElementById('settings-value-game-crosshair');
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
