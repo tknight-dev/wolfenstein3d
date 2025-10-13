@@ -219,10 +219,10 @@ export class Game {
 
 		if (Game.started === true) {
 			DOM.elGameMenuMainContinue.style.display = 'block';
-			Game.gameMenuSize = 4;
+			Game.gameMenuSize = 6;
 		} else {
 			DOM.elGameMenuMainContinue.style.display = 'none';
-			Game.gameMenuSize = 3;
+			Game.gameMenuSize = 5;
 		}
 
 		// Hide performance overlay
@@ -318,12 +318,18 @@ export class Game {
 							DOM.elGameMenuMainGameNew.click();
 							break;
 						case 1:
-							DOM.elGameMenuMainGameLoad.click();
+							DOM.elGameMenuMainControls.click();
 							break;
 						case 2:
-							DOM.elGameMenuMainGameSave.click();
+							DOM.elGameMenuMainGameLoad.click();
 							break;
 						case 3:
+							DOM.elGameMenuMainGameSave.click();
+							break;
+						case 4:
+							DOM.elGameMenuMainSettings.click();
+							break;
+						case 5:
 							Game.gameMenu(false);
 							break;
 					}
@@ -367,10 +373,10 @@ export class Game {
 					Game.gameMenuIndex = 0;
 					if (Game.started === true) {
 						DOM.elGameMenuMainContinue.style.display = 'block';
-						Game.gameMenuSize = 4;
+						Game.gameMenuSize = 6;
 					} else {
 						DOM.elGameMenuMainContinue.style.display = 'none';
-						Game.gameMenuSize = 3;
+						Game.gameMenuSize = 5;
 					}
 
 					DOM.elGameMenuBannersGameLoad.style.display = 'none';
@@ -616,8 +622,27 @@ export class Game {
 			}, 200);
 		};
 		DOM.elGameMenuMainContinue.onmouseover = () => {
-			if (Game.gameMenuIndex !== 3) {
-				Game.gameMenuIndex = 3;
+			if (Game.gameMenuIndex !== 5) {
+				Game.gameMenuIndex = 5;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
+		DOM.elGameMenuMainControls.onclick = () => {
+			if (DOM.elGameMenuMainControls.classList.contains('disable') === true) {
+				return;
+			}
+
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+			DOM.elInfoControls.click();
+		};
+		DOM.elGameMenuMainControls.onmouseover = () => {
+			if (Game.gameMenuIndex !== 1 && DOM.elGameMenuMainSettings.classList.contains('disable') !== true) {
+				Game.gameMenuIndex = 1;
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
 				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
@@ -736,8 +761,8 @@ export class Game {
 			DOM.elGameMenuSlots.style.display = 'block';
 		};
 		DOM.elGameMenuMainGameLoad.onmouseover = () => {
-			if (Game.gameMenuIndex !== 1) {
-				Game.gameMenuIndex = 1;
+			if (Game.gameMenuIndex !== 2) {
+				Game.gameMenuIndex = 2;
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
 				DOM.elGameMenuContent.classList.remove('tall');
@@ -804,8 +829,27 @@ export class Game {
 			DOM.elGameMenuSlots.style.display = 'block';
 		};
 		DOM.elGameMenuMainGameSave.onmouseover = () => {
-			if (Game.gameMenuIndex !== 2 && DOM.elGameMenuMainGameSave.classList.contains('disable') !== true) {
-				Game.gameMenuIndex = 2;
+			if (Game.gameMenuIndex !== 3 && DOM.elGameMenuMainGameSave.classList.contains('disable') !== true) {
+				Game.gameMenuIndex = 3;
+				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
+
+				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));
+				DOM.elGameMenuMainItems[Game.gameMenuIndex].classList.add('active');
+				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 40 + 'px';
+			}
+		};
+
+		DOM.elGameMenuMainSettings.onclick = () => {
+			if (DOM.elGameMenuMainSettings.classList.contains('disable') === true) {
+				return;
+			}
+
+			Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
+			DOM.elInfoSettings.click();
+		};
+		DOM.elGameMenuMainSettings.onmouseover = () => {
+			if (Game.gameMenuIndex !== 4 && DOM.elGameMenuMainSettings.classList.contains('disable') !== true) {
+				Game.gameMenuIndex = 4;
 				Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_SELECT_DOUBLE);
 
 				DOM.elGameMenuMainItems.forEach((v) => v.classList.remove('active'));

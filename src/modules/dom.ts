@@ -135,10 +135,12 @@ export class DOM {
 	public static elGameMenuEpisodesItems: HTMLElement[];
 	public static elGameMenuMain: HTMLElement;
 	public static elGameMenuMainContinue: HTMLElement;
+	public static elGameMenuMainControls: HTMLElement;
 	public static elGameMenuMainItems: HTMLElement[];
 	public static elGameMenuMainGameLoad: HTMLElement;
 	public static elGameMenuMainGameNew: HTMLElement;
 	public static elGameMenuMainGameSave: HTMLElement;
+	public static elGameMenuMainSettings: HTMLElement;
 	public static elGameMenuPistol: HTMLElement;
 	public static elGameMenuSlots: HTMLElement;
 	public static elGameMenuSlots1: HTMLElement;
@@ -500,10 +502,19 @@ export class DOM {
 
 		DOM.elGameMenuMain = <HTMLElement>document.getElementById('game-menu-main');
 		DOM.elGameMenuMainContinue = <HTMLElement>document.getElementById('game-menu-continue');
+		DOM.elGameMenuMainControls = <HTMLElement>document.getElementById('game-menu-main-controls');
 		DOM.elGameMenuMainGameLoad = <HTMLElement>document.getElementById('game-menu-main-game-load');
 		DOM.elGameMenuMainGameNew = <HTMLElement>document.getElementById('game-menu-main-game-new');
 		DOM.elGameMenuMainGameSave = <HTMLElement>document.getElementById('game-menu-main-game-save');
-		DOM.elGameMenuMainItems = [DOM.elGameMenuMainGameNew, DOM.elGameMenuMainGameLoad, DOM.elGameMenuMainGameSave, DOM.elGameMenuMainContinue];
+		DOM.elGameMenuMainSettings = <HTMLElement>document.getElementById('game-menu-main-settings');
+		DOM.elGameMenuMainItems = [
+			DOM.elGameMenuMainGameNew,
+			DOM.elGameMenuMainControls,
+			DOM.elGameMenuMainGameLoad,
+			DOM.elGameMenuMainGameSave,
+			DOM.elGameMenuMainSettings,
+			DOM.elGameMenuMainContinue,
+		];
 
 		DOM.elGameMenuSlots = <HTMLElement>document.getElementById('game-menu-slots');
 		DOM.elGameMenuSlots1 = <HTMLElement>document.getElementById('game-menu-slot-1');
