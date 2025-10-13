@@ -393,7 +393,7 @@ class VideoEditorEngine {
 				}
 				frameCount++;
 
-				if (VideoEditorEngine.enable === true || true) {
+				if (VideoEditorEngine.enable === true) {
 					statAll.watchStart();
 					if (VideoEditorEngine.gameMapNew === true) {
 						VideoEditorEngine.gameMapNew = false;
@@ -489,6 +489,14 @@ class VideoEditorEngine {
 							} else {
 								GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
 							}
+
+							setTimeout(() => {
+								if (VideoEditorEngine.settings.antialias === true) {
+									GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
+								} else {
+									GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
+								}
+							}, 1000);
 						}
 
 						// Settings
