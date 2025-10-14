@@ -1807,7 +1807,7 @@ export class Game {
 					Game.musicInstance = await GamingCanvas.audioControlPlay(
 						AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL,
 						GamingCanvasAudioType.MUSIC,
-						false,
+						true,
 						0,
 						0,
 						(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
