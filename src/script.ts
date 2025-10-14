@@ -125,7 +125,7 @@ class Blockenstein {
 		const displayNumber = Blockenstein.displayNumber;
 		return `${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MAX), precision, 'max')}<br>
 ${displayNumber(<number>GamingCanvasStat.calc(stat), precision, 'avg')}<br>
-${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.STD_DEV), precision, 'σ')}<br>
+${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.STD_DEV), precision, 'std')}<br>
 ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN), precision, 'min')}`;
 	}
 
