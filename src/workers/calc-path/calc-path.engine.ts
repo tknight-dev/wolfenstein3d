@@ -241,7 +241,6 @@ class CalcPathEngine {
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
-
 			if (timestampDelta !== 0) {
 				if (CalcPathEngine.pause !== pause) {
 					pause = CalcPathEngine.pause;

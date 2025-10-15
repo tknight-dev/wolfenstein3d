@@ -13,7 +13,7 @@ export enum GameGridCellMasksAndValues {
 	BLOCKING_MASK_ALL = 0x2000 | 0x4000 | 0x8000,
 	BLOCKING_MASK_VISIBLE = 0x2000 | 0x8000,
 	FLOOR = 0x0100,
-	EXTENDED = 0x0200, // asset id is now also a reference to an object
+	EXTENDED = 0x0200,
 	ID_MASK = 0x00ff, // 255 possible
 	LIGHT = 0x0400,
 	NULL = 0x0000,

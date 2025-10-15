@@ -11,7 +11,8 @@ import {
 	VideoEditorBusStats,
 } from './video-editor.model.js';
 import { CharacterNPC, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
-import { GamingCanvasGridCamera, GamingCanvasGridRaycastTestImageCreate, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasUtilDebugImage } from '@tknight-dev/gaming-canvas';
+import { GamingCanvasGridCamera, GamingCanvasGridViewport } from '@tknight-dev/gaming-canvas/grid';
 import {
 	AssetIdImg,
 	AssetIdImgCharacter,
@@ -335,7 +336,7 @@ class VideoEditorEngine {
 			statCellsRaw: Float32Array,
 			statCV: GamingCanvasStat = VideoEditorEngine.stats[VideoEditorBusStats.C_V],
 			statCVRaw: Float32Array,
-			testImage: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
+			testImage: OffscreenCanvas = GamingCanvasUtilDebugImage(64),
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
@@ -578,15 +579,6 @@ class VideoEditorEngine {
 						}
 					}
 
-					// Draw: Config
-					// statDrawAvg.watchStart();
-					calculationsViewportHeightStartEff = calculationsViewportHeightStart - 1;
-					calculationsViewportHeightStopEff = calculationsViewport.heightStop + 1;
-					calculationsViewportWidthStartEff = calculationsViewportWidthStart - 1;
-					calculationsViewportWidthStopEff = calculationsViewport.widthStop;
-
-					// console.log(calculationsViewportWidthStartEff, calculationsViewportWidthStopEff);
-
 					// No Game map loaded
 					if (gameMapGridData === undefined) {
 						return;
@@ -596,79 +588,68 @@ class VideoEditorEngine {
 					offscreenCanvasContext.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
 					// Draw: Cells
+					calculationsViewportHeightStartEff = Math.max(0, (calculationsViewportHeightStart - 1) | 0);
+					calculationsViewportHeightStopEff = Math.min(gameMapGridSideLength, (calculationsViewport.heightStop + 1) | 0);
+					calculationsViewportWidthStartEff = Math.max(0, (calculationsViewportWidthStart - 1) | 0);
+					calculationsViewportWidthStopEff = Math.min(gameMapGridSideLength * gameMapGridSideLength, (calculationsViewport.widthStop + 1) | 0);
+
 					statCells.watchStart();
-					for ([i, value] of gameMapGridData.entries()) {
-						y = i % gameMapGridSideLength;
+					x = calculationsViewportWidthStartEff;
+					for (; x < calculationsViewportWidthStopEff; x++) {
+						for (y = calculationsViewportHeightStartEff; y < calculationsViewportHeightStopEff; y++) {
+							value = gameMapGridData[x * gameMapGridSideLength + y];
 
-						// if (i === 0) {
-						// 	console.log(i, x, calculationsViewportWidthStartEff, calculationsViewportWidthStopEff, value, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
-						// }
-						// console.log(i, x, x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff);
-
-						if (y > calculationsViewportHeightStartEff && y < calculationsViewportHeightStopEff) {
-							x = (i / gameMapGridSideLength) | 0;
-
-							if (x > calculationsViewportWidthStartEff && x < calculationsViewportWidthStopEff) {
-								// if (i === 0) {
-								// 	console.log(i, x, y, (x - viewport.widthStart) * cellSizePx, (y - viewport.heightStart - 1) * cellSizePx);
-								// }
-
-								// Floor
-								if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
-									offscreenCanvasContext.fillStyle = 'black';
-									offscreenCanvasContext.fillRect(
-										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-										calculationsViewportCellSizePxEff,
-										calculationsViewportCellSizePxEff,
-									);
-								}
-
-								if (value !== GameGridCellMasksAndValues.NULL) {
-									// Sprite/Wall
-									if (value !== GameGridCellMasksAndValues.FLOOR) {
-										if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-											assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
-										} else {
-											assetId = value & GameGridCellMasksAndValues.ID_MASK;
-										}
-
-										offscreenCanvasContext.drawImage(
-											<OffscreenCanvas>cacheCanvasImages.get(assetId) || testImage,
-											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-										);
+							// Floor
+							if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
+								offscreenCanvasContext.fillStyle = 'black';
+								offscreenCanvasContext.fillRect(
+									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									calculationsViewportCellSizePxEff,
+									calculationsViewportCellSizePxEff,
+								);
+							}
+							if (value !== GameGridCellMasksAndValues.NULL) {
+								// Sprite/Wall
+								if (value !== GameGridCellMasksAndValues.FLOOR) {
+									if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+										assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
+									} else {
+										assetId = value & GameGridCellMasksAndValues.ID_MASK;
 									}
-
-									// Extended
-									if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
-										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
-										offscreenCanvasContext.strokeStyle = 'white';
-										offscreenCanvasContext.strokeRect(
-											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-										);
-									}
-								}
-
-								// Character
-								characterNPC = gameMapNPCByGridIndex.get(i);
-								if (characterNPC !== undefined) {
-									offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
 									offscreenCanvasContext.drawImage(
-										offscreenCanvasInstance,
-										0,
-										0,
-										offscreenCanvasInstance.width,
-										offscreenCanvasInstance.height,
+										cacheCanvasImages.get(assetId) || testImage,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-										calculationsViewportCellSizePxEff,
-										calculationsViewportCellSizePxEff,
 									);
 								}
+								// Extended
+								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+									offscreenCanvasContext.strokeStyle = 'white';
+									offscreenCanvasContext.strokeRect(
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+									);
+								}
+							}
+							// Character
+							characterNPC = gameMapNPCByGridIndex.get(i);
+							if (characterNPC !== undefined) {
+								offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
+								offscreenCanvasContext.drawImage(
+									offscreenCanvasInstance,
+									0,
+									0,
+									offscreenCanvasInstance.width,
+									offscreenCanvasInstance.height,
+									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									calculationsViewportCellSizePxEff,
+									calculationsViewportCellSizePxEff,
+								);
 							}
 						}
 					}

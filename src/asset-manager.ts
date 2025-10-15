@@ -774,7 +774,7 @@ interface AssetProperties {
 	file: string;
 	license?: string;
 	title: string;
-	URL?: string;
+	url?: string;
 }
 
 export interface AssetPropertiesAudio extends AssetProperties {

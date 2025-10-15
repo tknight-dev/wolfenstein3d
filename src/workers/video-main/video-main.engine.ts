@@ -60,13 +60,9 @@ import {
 	GamingCanvasConstPI_1_375,
 	GamingCanvasConstPI_1_625,
 	GamingCanvasOrientation,
+	GamingCanvasUtilDebugImage,
 } from '@tknight-dev/gaming-canvas';
-import {
-	GamingCanvasGridCamera,
-	GamingCanvasGridRaycastTestImageCreate,
-	GamingCanvasGridRaycastCellSide,
-	GamingCanvasGridRaycastResultDistanceMapInstance,
-} from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
 import {
 	CalcMainBusActionDoorState,
@@ -569,7 +565,7 @@ class VideoMainEngine {
 			renderDistance: number,
 			renderDistance1: number,
 			renderDistance2: number,
-			renderImageTest: OffscreenCanvas = GamingCanvasGridRaycastTestImageCreate(64),
+			renderImageTest: OffscreenCanvas = GamingCanvasUtilDebugImage(64),
 			renderFilter: string,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
