@@ -676,6 +676,7 @@ class CalcMainEngine {
 			pause: boolean = CalcMainEngine.pause,
 			raycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
+				// cellIgnoreValue: GameGridCellMasksAndValues.FLOOR,
 				distanceMapEnable: true,
 				rayCount: CalcMainEngine.report.canvasWidth,
 				rayFOV: CalcMainEngine.settings.fov,

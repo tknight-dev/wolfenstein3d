@@ -1094,10 +1094,10 @@ class VideoMainEngine {
 					/**
 					 * Draw: Sprites
 					 */
-					if (renderRayDistanceMapInstance.cellIndex !== undefined) {
+					if (renderRayDistanceMapInstance.gridIndex !== undefined) {
 						countSprites++;
 						statSprite.watchStart();
-						gameMapGridIndex = renderRayDistanceMapInstance.cellIndex;
+						gameMapGridIndex = renderRayDistanceMapInstance.gridIndex;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 						renderGlobalShadow = false;
 						renderSkip = false;

@@ -296,7 +296,6 @@ class VideoEditorEngine {
 			cacheCanvasContextInstance: OffscreenCanvasRenderingContext2D,
 			cacheCellSizePx: number = -1,
 			characterNPC: CharacterNPC | undefined,
-			characterNPCGridIndex: number,
 			characterNPCId: number,
 			characterNPCUpdateEncoded: Float32Array,
 			characterPlayer1: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer1Camera,
@@ -311,6 +310,7 @@ class VideoEditorEngine {
 			gameMapNPCId: number,
 			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapNPCById: Map<number, CharacterNPC>,
+			gridIndex: number,
 			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoEditorEngine.offscreenCanvas,
 			offscreenCanvasInstance: OffscreenCanvas,
@@ -594,10 +594,10 @@ class VideoEditorEngine {
 					calculationsViewportWidthStopEff = Math.min(gameMapGridSideLength * gameMapGridSideLength, (calculationsViewport.widthStop + 1) | 0);
 
 					statCells.watchStart();
-					x = calculationsViewportWidthStartEff;
-					for (; x < calculationsViewportWidthStopEff; x++) {
+					for (x = calculationsViewportWidthStartEff; x < calculationsViewportWidthStopEff; x++) {
 						for (y = calculationsViewportHeightStartEff; y < calculationsViewportHeightStopEff; y++) {
-							value = gameMapGridData[x * gameMapGridSideLength + y];
+							gridIndex = x * gameMapGridSideLength + y;
+							value = gameMapGridData[gridIndex];
 
 							// Floor
 							if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
@@ -636,7 +636,7 @@ class VideoEditorEngine {
 								}
 							}
 							// Character
-							characterNPC = gameMapNPCByGridIndex.get(i);
+							characterNPC = gameMapNPCByGridIndex.get(gridIndex);
 							if (characterNPC !== undefined) {
 								offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
 								offscreenCanvasContext.drawImage(
@@ -796,9 +796,9 @@ class VideoEditorEngine {
 							offscreenCanvasContext.beginPath();
 
 							for (i = 1; i < path.length; i++) {
-								characterNPCGridIndex = path[i];
-								y = characterNPCGridIndex % gameMapGridSideLength;
-								x = (characterNPCGridIndex - y) / gameMapGridSideLength;
+								gridIndex = path[i];
+								y = gridIndex % gameMapGridSideLength;
+								x = (gridIndex - y) / gameMapGridSideLength;
 
 								if (i === 0) {
 									offscreenCanvasContext.moveTo(
