@@ -1416,7 +1416,9 @@ $main-z-index-video-interactive: 50;
 			height: 60px;
 			justify-content: center;
 			left: 0;
+			pointer-events: none;
 			right: 0;
+			touch-action: none;
 			z-index: $main-z-index-player-overlays;
 
 			&.multiplayer {

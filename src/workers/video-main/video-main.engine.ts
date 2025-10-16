@@ -565,7 +565,7 @@ class VideoMainEngine {
 			renderDistance: number,
 			renderDistance1: number,
 			renderDistance2: number,
-			renderImageTest: OffscreenCanvas = GamingCanvasUtilDebugImage(64),
+			renderDebugImage: OffscreenCanvas = GamingCanvasUtilDebugImage(64),
 			renderFilter: string,
 			renderFilterNone: string = 'none',
 			renderGamma: number,
@@ -864,7 +864,7 @@ class VideoMainEngine {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
 					}
 
-					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderImageTest;
+					asset = assetImages.get(AssetIdImg.WEAPON_KNIFE_1) || renderDebugImage;
 
 					if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
 						if (settingsPlayer2Enable === true) {
@@ -1038,7 +1038,7 @@ class VideoMainEngine {
 
 						// Render: Asset Selection
 						if ((gameMapGridCell2 & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell2 & gameGridCellMaskExtendedDoor) !== 0) {
-							asset = renderAssets.get(AssetIdImg.SPRITE_METAL_DOOR_INSIDE) || renderImageTest;
+							asset = renderAssets.get(AssetIdImg.SPRITE_METAL_DOOR_INSIDE) || renderDebugImage;
 						} else {
 							gameMapGridCell = gameMapGridData[gameMapGridIndex];
 							renderAssetId =
@@ -1046,9 +1046,9 @@ class VideoMainEngine {
 									? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
 									: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
 
-							asset = renderAssets.get(renderAssetId) || renderImageTest;
+							asset = renderAssets.get(renderAssetId) || renderDebugImage;
 						}
-						// asset = renderImageTest;
+						// asset = renderDebugImage;
 
 						// Calc
 						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 3]) * renderWallHeightFactor;
@@ -1134,7 +1134,7 @@ class VideoMainEngine {
 								renderSpriteFixedDoorOffset = 0;
 								if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
 									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gameMapGridIndex);
-									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderImageTest;
+									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderDebugImage;
 
 									// Door in a non-closed state
 									if (
@@ -1192,22 +1192,22 @@ class VideoMainEngine {
 												case GamingCanvasGridRaycastCellSide.EAST: // inv
 													asset =
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
-														renderImageTest;
+														renderDebugImage;
 													x -= renderSpriteFixedWallMovableOffset - 0.5;
 													renderGlobalShadow = true;
 													break;
 												case GamingCanvasGridRaycastCellSide.NORTH:
 													asset =
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
-														renderImageTest;
+														renderDebugImage;
 													y += renderSpriteFixedWallMovableOffset - 0.5; // inv
 													break;
 												case GamingCanvasGridRaycastCellSide.SOUTH:
-													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 													y -= renderSpriteFixedWallMovableOffset - 0.5; // good
 													break;
 												case GamingCanvasGridRaycastCellSide.WEST: // good
-													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 													x += renderSpriteFixedWallMovableOffset - 0.5;
 													renderGlobalShadow = true;
 													break;
@@ -1325,7 +1325,7 @@ class VideoMainEngine {
 									renderDistance = Math.min(offscreenCanvasWidthPx, ((x * x + y * y) ** 0.5) | 0);
 
 									if (asset === undefined) {
-										asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderImageTest;
+										asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 									}
 
 									renderStep = Math.max(1, (renderDistance / asset.width) | 0);
@@ -1359,7 +1359,7 @@ class VideoMainEngine {
 										(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
 											? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
 											: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-									) || renderImageTest;
+									) || renderDebugImage;
 
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;
@@ -1473,23 +1473,23 @@ class VideoMainEngine {
 
 							// Calc: Asset
 							if (renderAngle < GamingCanvasConstPI_0_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
 							} else {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
 							}
 
 							// Render: Lighting
@@ -1560,7 +1560,7 @@ class VideoMainEngine {
 								// Calc: Asset by rotation
 								if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
 									// Calc: Angle (always facing camera)
-									asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderImageTest;
+									asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
 								} else {
 									// Calc: Angle
 									renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
@@ -1581,23 +1581,23 @@ class VideoMainEngine {
 
 									// Calc: Asset
 									if (renderAngle < GamingCanvasConstPI_0_125) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_0_375) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_0_625) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_0_875) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_1_125) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_1_375) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_1_625) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
 									} else if (renderAngle < GamingCanvasConstPI_1_875) {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
 									} else {
-										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderImageTest;
+										asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
 									}
 								}
 
@@ -1652,23 +1652,23 @@ class VideoMainEngine {
 					renderWeaponFire = false;
 					switch (renderWeapon) {
 						case CharacterWeapon.KNIFE:
-							asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderImageTest;
+							asset = assetImages.get(AssetIdImgWeaponSequenceKnife[VideoMainEngine.weaponFrame]) || renderDebugImage;
 							break;
 						case CharacterWeapon.MACHINE_GUN:
-							asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+							asset = assetImages.get(AssetIdImgWeaponSequenceMachineGun[VideoMainEngine.weaponFrame]) || renderDebugImage;
 
 							if (VideoMainEngine.weaponFrame === 2 || VideoMainEngine.weaponFrame === 3) {
 								renderWeaponFire = true;
 							}
 							break;
 						case CharacterWeapon.PISTOL:
-							asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderImageTest;
+							asset = assetImages.get(AssetIdImgWeaponSequencePistol[VideoMainEngine.weaponFrame]) || renderDebugImage;
 							if (VideoMainEngine.weaponFrame === 2) {
 								renderWeaponFire = true;
 							}
 							break;
 						case CharacterWeapon.SUB_MACHINE_GUN:
-							asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderImageTest;
+							asset = assetImages.get(AssetIdImgWeaponSequenceSubMachineGun[VideoMainEngine.weaponFrame]) || renderDebugImage;
 							if (VideoMainEngine.weaponFrame === 2) {
 								renderWeaponFire = true;
 							}

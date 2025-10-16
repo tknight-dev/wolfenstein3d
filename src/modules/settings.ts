@@ -189,8 +189,8 @@ export class Settings {
 		} else {
 			DOM.elPlayerOverlay2.style.display = 'none';
 
-			DOM.elPlayerOverlay1.classList.add('remove');
-			DOM.elPlayerOverlay2.classList.add('remove');
+			DOM.elPlayerOverlay1.classList.remove('multiplayer');
+			DOM.elPlayerOverlay2.classList.remove('multiplayer');
 		}
 
 		/**
@@ -295,8 +295,8 @@ export class Settings {
 			} else {
 				DOM.elPlayerOverlay2.style.display = 'none';
 
-				DOM.elPlayerOverlay1.classList.add('remove');
-				DOM.elPlayerOverlay2.classList.add('remove');
+				DOM.elPlayerOverlay1.classList.remove('multiplayer');
+				DOM.elPlayerOverlay2.classList.remove('multiplayer');
 			}
 
 			// Send to Workers
