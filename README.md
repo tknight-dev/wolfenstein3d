@@ -1,6 +1,6 @@
 # Wolfenstein3D
 
-This project is a TypeScript re-write of the original MS-DOS version of _Id Software_'s _Wolfenstein3D_ (1991). I learned quite a bit about the old school raycaster techniques while coding this. I hope you find the code educational and the game fun. 😃
+This project is a TypeScript re-write of the original MS-DOS version of _Id Software_'s _Wolfenstein3D_ (1992). I learned quite a bit about the old school raycaster techniques while coding this. I hope you find the code educational and the game fun. 😃
 
 It features:
 
