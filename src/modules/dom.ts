@@ -216,8 +216,16 @@ export class DOM {
 	public static elScreenActive: HTMLElement;
 	public static elScreenBlack: HTMLElement;
 	public static elScreenLevelEnd: HTMLElement;
+	public static elScreenLevelEndBonus: HTMLElement;
+	public static elScreenLevelEndCompleted: HTMLElement;
 	public static elScreenLevelEndImage1: HTMLImageElement;
 	public static elScreenLevelEndImage2: HTMLImageElement;
+	public static elScreenLevelEndFloor: HTMLElement;
+	public static elScreenLevelEndRatioKill: HTMLElement;
+	public static elScreenLevelEndRatioSecret: HTMLElement;
+	public static elScreenLevelEndRatioTreasure: HTMLElement;
+	public static elScreenLevelEndTime: HTMLElement;
+	public static elScreenLevelEndTimePar: HTMLElement;
 	public static elScreenRating: HTMLElement;
 	public static elScreenStats: HTMLElement;
 	public static elScreenTitle: HTMLElement;
@@ -610,9 +618,19 @@ export class DOM {
 		DOM.elPlayerOverlay2LivesTitle = <HTMLElement>document.getElementById('player-overlay-2-lives-title');
 
 		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
+
 		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
+		DOM.elScreenLevelEndBonus = <HTMLElement>document.getElementById('screen-level-end-bonus');
+		DOM.elScreenLevelEndCompleted = <HTMLElement>document.getElementById('screen-level-end-completed');
 		DOM.elScreenLevelEndImage1 = <HTMLImageElement>document.getElementById('screen-level-end-image1');
 		DOM.elScreenLevelEndImage2 = <HTMLImageElement>document.getElementById('screen-level-end-image2');
+		DOM.elScreenLevelEndFloor = <HTMLElement>document.getElementById('screen-level-end-floor');
+		DOM.elScreenLevelEndRatioKill = <HTMLElement>document.getElementById('screen-level-end-ratio-kill');
+		DOM.elScreenLevelEndRatioSecret = <HTMLElement>document.getElementById('screen-level-end-ratio-secret');
+		DOM.elScreenLevelEndRatioTreasure = <HTMLElement>document.getElementById('screen-level-end-ratio-treasure');
+		DOM.elScreenLevelEndTime = <HTMLElement>document.getElementById('screen-level-end-time');
+		DOM.elScreenLevelEndTimePar = <HTMLElement>document.getElementById('screen-level-end-time-par');
+
 		DOM.elScreenRating = <HTMLElement>document.getElementById('screen-rating');
 		DOM.elScreenStats = <HTMLElement>document.getElementById('screen-stats');
 		DOM.elScreenTitle = <HTMLElement>document.getElementById('screen-title');

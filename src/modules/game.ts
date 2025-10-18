@@ -4,6 +4,7 @@ import {
 	AssetIdImg,
 	AssetIdImgCharacter,
 	AssetIdImgCharacterType,
+	AssetIdImgMenu,
 	AssetIdMap,
 	AssetImgCategory,
 	AssetPropertiesAudio,
@@ -11,6 +12,8 @@ import {
 	AssetPropertiesImage,
 	assetsAudio,
 	assetsImageCharacters,
+	assetsImageMenusFontEndLevel,
+	assetsImageMenusFontHUD,
 	assetsImages,
 } from '../asset-manager.js';
 import { Settings } from './settings.js';
@@ -151,9 +154,7 @@ export class Game {
 		threadVideoEditor: VideoEditorBusInputDataSettings;
 		threadVideoMain: VideoMainBusInputDataSettings;
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
-	} = <any>{
-		intro: true,
-	};
+	} = {} as any;
 	public static started: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
@@ -1802,10 +1803,10 @@ export class Game {
 				DOM.elIconsTop.classList.add('intro');
 				DOM.screenControl(DOM.elScreenLevelEnd);
 
+				// Music
 				if (Game.musicInstance !== null) {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
-
 				setTimeout(async () => {
 					if (Game.musicInstance !== null) {
 						GamingCanvas.audioControlStop(Game.musicInstance);
@@ -1820,6 +1821,16 @@ export class Game {
 					);
 				}, 1500);
 			}, 500);
+
+			// Stats
+			utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${10000}`, true);
+			utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
+			utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${1}`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(100).padStart(3, ' ')}%`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(80).padStart(3, ' ')}%`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(5).padStart(3, ' ')}%`, true);
+			utilStringToHTML(DOM.elScreenLevelEndTime, ` Time ${String(1).padStart(2, '0')}:${String(1).padStart(2, '0')}`, true);
+			utilStringToHTML(DOM.elScreenLevelEndTimePar, `  Par ${String(1).padStart(2, '0')}:${String(1).padStart(2, '0')}`, true);
 		});
 
 		// Calc: Action Wall Move
@@ -1972,21 +1983,25 @@ export class Game {
 			if (data.player1 !== undefined) {
 				character = CharacterMetaDecode(data.player1);
 
-				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
+				utilStringToHTML(DOM.elPlayerOverlay1Ammo, String(character.ammo));
+				utilStringToHTML(DOM.elPlayerOverlay1Health, String(character.health) + '%');
+
 				DOM.elPlayerOverlay1Key1.style.display = character.key1 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay1Key2.style.display = character.key2 === true ? 'block' : 'none';
-				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
+
+				utilStringToHTML(DOM.elPlayerOverlay1Lives, String(character.lives));
 			}
 
 			if (data.player2 !== undefined) {
 				character = CharacterMetaDecode(data.player2);
 
-				DOM.elPlayerOverlay2Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay2Health.innerText = String(character.health) + '%';
+				utilStringToHTML(DOM.elPlayerOverlay2Ammo, String(character.ammo));
+				utilStringToHTML(DOM.elPlayerOverlay2Health, String(character.health) + '%');
+
 				DOM.elPlayerOverlay2Key1.style.display = character.key1 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay2Key2.style.display = character.key2 === true ? 'block' : 'none';
-				DOM.elPlayerOverlay2Lives.innerText = String(character.lives);
+
+				utilStringToHTML(DOM.elPlayerOverlay2Lives, String(character.lives));
 			}
 		});
 
@@ -2969,6 +2984,38 @@ export class Game {
 						}
 						break;
 				}
+			}
+		};
+
+		const utilStringToHTML = (element: HTMLElement, string: string, stats?: boolean): void => {
+			let character: string, characterMap: Map<string, AssetIdImgMenu>, img: HTMLImageElement, prefix: string;
+
+			// Clear existing
+			element.innerText = '';
+
+			// Asset pack selector
+			if (stats === true) {
+				characterMap = assetsImageMenusFontEndLevel;
+				prefix = 'font-end-level-';
+			} else {
+				characterMap = assetsImageMenusFontHUD;
+				prefix = 'font-hud-';
+			}
+
+			// String to assets
+			string = (string || '').toLowerCase();
+			for (character of string) {
+				img = document.createElement('img');
+				img.className = 'font-string-img';
+
+				if (character !== ' ') {
+					img.id = prefix + character;
+					img.src = <string>Assets.dataImageMenus.get(<number>characterMap.get(character));
+				} else {
+					img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+				}
+
+				element.appendChild(img);
 			}
 		};
 	}

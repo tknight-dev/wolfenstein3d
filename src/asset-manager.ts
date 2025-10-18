@@ -608,6 +608,46 @@ export enum AssetIdImgMenu {
 	DIFFICULTY_NORMAL,
 	DIFFICULTY_HARD,
 	DIFFICULTY_INSANE,
+	END_LEVEL_FONT_0,
+	END_LEVEL_FONT_1,
+	END_LEVEL_FONT_2,
+	END_LEVEL_FONT_3,
+	END_LEVEL_FONT_4,
+	END_LEVEL_FONT_5,
+	END_LEVEL_FONT_6,
+	END_LEVEL_FONT_7,
+	END_LEVEL_FONT_8,
+	END_LEVEL_FONT_9,
+	END_LEVEL_FONT_A,
+	END_LEVEL_FONT_APOSTROPHE,
+	END_LEVEL_FONT_B,
+	END_LEVEL_FONT_C,
+	END_LEVEL_FONT_COLON,
+	END_LEVEL_FONT_D,
+	END_LEVEL_FONT_E,
+	END_LEVEL_FONT_EXCLAMATION,
+	END_LEVEL_FONT_F,
+	END_LEVEL_FONT_G,
+	END_LEVEL_FONT_H,
+	END_LEVEL_FONT_I,
+	END_LEVEL_FONT_J,
+	END_LEVEL_FONT_K,
+	END_LEVEL_FONT_L,
+	END_LEVEL_FONT_M,
+	END_LEVEL_FONT_N,
+	END_LEVEL_FONT_O,
+	END_LEVEL_FONT_P,
+	END_LEVEL_FONT_PERCENT,
+	END_LEVEL_FONT_Q,
+	END_LEVEL_FONT_R,
+	END_LEVEL_FONT_S,
+	END_LEVEL_FONT_T,
+	END_LEVEL_FONT_U,
+	END_LEVEL_FONT_V,
+	END_LEVEL_FONT_W,
+	END_LEVEL_FONT_X,
+	END_LEVEL_FONT_Y,
+	END_LEVEL_FONT_Z,
 	END_LEVEL_PISTOL_1,
 	END_LEVEL_PISTOL_2,
 	EPISODE_1,
@@ -801,9 +841,11 @@ export interface AssetPropertiesMap extends AssetProperties {
 }
 
 export const assetsAudio: Map<AssetIdAudio, AssetPropertiesAudio> = new Map();
-export const assetsImages: Map<AssetIdImg, AssetPropertiesImage> = new Map();
 export const assetsImageCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, AssetPropertiesCharacter>> = new Map();
 export const assetsImageMenus: Map<AssetIdImgMenu, AssetPropertiesImage> = new Map();
+export const assetsImageMenusFontEndLevel: Map<string, AssetIdImgMenu> = new Map();
+export const assetsImageMenusFontHUD: Map<string, AssetIdImgMenu> = new Map();
+export const assetsImages: Map<AssetIdImg, AssetPropertiesImage> = new Map();
 export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
 
 export const initializeAssetManager = async (audioOnly?: boolean) => {
@@ -816,187 +858,6 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		cInstance: Map<AssetIdImgCharacter, AssetPropertiesCharacter>,
 		cMovement: AssetIdImgCharacter[],
 		cName: string;
-
-	if (audioOnly !== true) {
-		for (const characterType of Object.values(AssetIdImgCharacterType)) {
-			if (typeof characterType !== 'number') {
-				continue;
-			}
-
-			switch (characterType) {
-				case AssetIdImgCharacterType.GUARD:
-					cDir = 'guard';
-					cHide = false;
-					cName = 'Guard';
-					break;
-				case AssetIdImgCharacterType.OFFICER:
-					cDir = 'officer';
-					cHide = true;
-					cName = 'Officer';
-					break;
-			}
-
-			cInstance = new Map();
-			assetsImageCharacters.set(characterType, cInstance);
-
-			/**
-			 * Standard
-			 */
-
-			cInstance.set(AssetIdImgCharacter.AIM, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/aim.png`,
-				hide: cHide,
-				title: `${cName} Aim`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.CORPSE, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/corpse.png`,
-				hide: cHide,
-				title: `${cName} Corpse`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.DIE1, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/die1.png`,
-				hide: cHide,
-				title: `${cName} Die1`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.DIE2, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/die2.png`,
-				hide: cHide,
-				title: `${cName} Die2`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.DIE3, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/die3.png`,
-				hide: cHide,
-				title: `${cName} Die3`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.DIE4, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/die4.png`,
-				hide: cHide,
-				title: `${cName} Die4`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.FIRE, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/fire.png`,
-				hide: cHide,
-				title: `${cName} Fire`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.HIT, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit.png`,
-				hide: cHide,
-				title: `${cName} Hit`,
-			});
-
-			cInstance.set(AssetIdImgCharacter.SUPRISE, {
-				alpha: true,
-				author: 'Id Software',
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/surprise.png`,
-				hide: cHide,
-				title: `${cName} Surprise`,
-			});
-
-			/**
-			 * Movement
-			 */
-			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
-				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
-
-				switch (cFilePrefix) {
-					case 'e':
-						cAngle = 0; // 0 deg
-						break;
-					case 'n':
-						cAngle = 1.5708; // 90 deg
-						break;
-					case 'ne':
-						cAngle = 0.7855; // 45 deg
-						break;
-					case 'nw':
-						cAngle = 2.3562; // 135 deg
-						break;
-					case 's':
-						cAngle = 4.7124; // 270 deg
-						break;
-					case 'se':
-						cAngle = 5.4978; // 315 deg
-						break;
-					case 'sw':
-						cAngle = 3.927; // 225 deg
-						break;
-					case 'w':
-						cAngle = 3.1416; // 180 deg
-						break;
-					default:
-						cAngle = -1;
-						break;
-				}
-
-				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
-					cInstance.set(cAssetIdImgCharacter, {
-						alpha: true,
-						angle: cAngle,
-						author: 'Id Software',
-						category: AssetImgCategory.CHARACTER,
-						ext: AssetExtImg.PNG,
-						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
-						hide: cHide,
-						title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
-					});
-				}
-			}
-		}
-	}
-
-	/**
-	 * Assets: Maps
-	 */
-
-	if (audioOnly !== true) {
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
-			episode: 1,
-			file: 'map/episode_01_level_01.map',
-			level: 1,
-			title: 'Ammo',
-		});
-	}
 
 	/**
 	 * Assets: Audio - Effects
@@ -1339,67 +1200,195 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.8,
 	});
 
-	if (audioOnly !== true) {
-		/**
-		 * Waypoints
-		 */
-		assetsImages.set(AssetIdImg.MISC_ARROW_EAST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_e.png',
-			title: 'Arrow (East)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_n.png',
-			title: 'Arrow (North)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_EAST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_ne.png',
-			title: 'Arrow (North East)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_WEST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_nw.png',
-			title: 'Arrow (North West)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_s.png',
-			title: 'Arrow (South)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_EAST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_se.png',
-			title: 'Arrow (South East)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_WEST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_sw.png',
-			title: 'Arrow (South West)',
-		});
-		assetsImages.set(AssetIdImg.MISC_ARROW_WEST, {
-			alpha: true,
-			category: AssetImgCategory.WAYPOINT,
-			ext: AssetExtImg.PNG,
-			file: 'img/misc/arrow_w.png',
-			title: 'Arrow (West)',
-		});
+	/**
+	 * Assets: Characters
+	 */
 
+	if (audioOnly !== true) {
+		for (const characterType of Object.values(AssetIdImgCharacterType)) {
+			if (typeof characterType !== 'number') {
+				continue;
+			}
+
+			switch (characterType) {
+				case AssetIdImgCharacterType.GUARD:
+					cDir = 'guard';
+					cHide = false;
+					cName = 'Guard';
+					break;
+				case AssetIdImgCharacterType.OFFICER:
+					cDir = 'officer';
+					cHide = true;
+					cName = 'Officer';
+					break;
+			}
+
+			cInstance = new Map();
+			assetsImageCharacters.set(characterType, cInstance);
+
+			/**
+			 * Standard
+			 */
+
+			cInstance.set(AssetIdImgCharacter.AIM, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/aim.png`,
+				hide: cHide,
+				title: `${cName} Aim`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.CORPSE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/corpse.png`,
+				hide: cHide,
+				title: `${cName} Corpse`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.DIE1, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die1.png`,
+				hide: cHide,
+				title: `${cName} Die1`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.DIE2, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die2.png`,
+				hide: cHide,
+				title: `${cName} Die2`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.DIE3, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die3.png`,
+				hide: cHide,
+				title: `${cName} Die3`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.DIE4, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/die4.png`,
+				hide: cHide,
+				title: `${cName} Die4`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.FIRE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/fire.png`,
+				hide: cHide,
+				title: `${cName} Fire`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.HIT, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/hit.png`,
+				hide: cHide,
+				title: `${cName} Hit`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.SUPRISE, {
+				alpha: true,
+				author: 'Id Software',
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/surprise.png`,
+				hide: cHide,
+				title: `${cName} Surprise`,
+			});
+
+			/**
+			 * Movement
+			 */
+			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
+				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
+
+				switch (cFilePrefix) {
+					case 'e':
+						cAngle = 0; // 0 deg
+						break;
+					case 'n':
+						cAngle = 1.5708; // 90 deg
+						break;
+					case 'ne':
+						cAngle = 0.7855; // 45 deg
+						break;
+					case 'nw':
+						cAngle = 2.3562; // 135 deg
+						break;
+					case 's':
+						cAngle = 4.7124; // 270 deg
+						break;
+					case 'se':
+						cAngle = 5.4978; // 315 deg
+						break;
+					case 'sw':
+						cAngle = 3.927; // 225 deg
+						break;
+					case 'w':
+						cAngle = 3.1416; // 180 deg
+						break;
+					default:
+						cAngle = -1;
+						break;
+				}
+
+				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
+					cInstance.set(cAssetIdImgCharacter, {
+						alpha: true,
+						angle: cAngle,
+						author: 'Id Software',
+						category: AssetImgCategory.CHARACTER,
+						ext: AssetExtImg.PNG,
+						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
+						hide: cHide,
+						title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
+					});
+				}
+			}
+		}
+	}
+
+	/**
+	 * Assets: Maps
+	 */
+
+	if (audioOnly !== true) {
+		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
+			episode: 1,
+			file: 'map/episode_01_level_01.map',
+			level: 1,
+			title: 'Ammo',
+		});
+	}
+
+	/**
+	 * Assets: Images
+	 */
+	if (audioOnly !== true) {
 		/**
 		 * Assets: Images - Sprites
 		 */
@@ -1789,363 +1778,9 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		});
 
 		/**
-		 * Assets: Images - Walls
-		 */
-
-		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/brick_blue.png',
-			title: 'Brick Blue',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE2, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/brick_blue2.png',
-			title: 'Brick Blue2',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/brick_blue_cell.png',
-			title: 'Brick Blue Cell',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/brick_blue_cell_skeleton.png',
-			title: 'Brick Blue Cell Skeleton',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/elevator_side.png',
-			title: 'Elevator Side',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.EXTENDED,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/elevator_switch_down.png',
-			title: 'Switch Down',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_UP, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.EXTENDED,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/elevator_switch_up.png',
-			title: 'Switch Up',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/outside_day.png',
-			title: 'Outside Day',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_OUTSIDE_NIGHT, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/outside_night.png',
-			title: 'Outside Night',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey.png',
-			title: 'Stone Grey',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY2, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey2.png',
-			title: 'Stone Grey2',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY3, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey3.png',
-			title: 'Stone Grey3',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY_EAGLE, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey_eagle.png',
-			title: 'Stone Grey Eagle',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY_FLAG, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey_flag.png',
-			title: 'Stone Grey Flag',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY_HITLER, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey_hitler.png',
-			title: 'Stone Grey Hitler',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY_SIGN_VERBOTEM, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey_sign_verbotem.png',
-			title: 'Stone Grey Sign Verbotem',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_WOOD, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/wood.png',
-			title: 'Wood',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_WOOD_EAGLE, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/wood_eagle.png',
-			title: 'Wood',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_WOOD_HITLER, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/wood_hitler.png',
-			title: 'Wood',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_KNIFE_1, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/knife_1.png',
-			title: 'Knife 1',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_KNIFE_2, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/knife_2.png',
-			title: 'Knife 2',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_KNIFE_3, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/knife_3.png',
-			title: 'Knife 3',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_KNIFE_4, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/knife_4.png',
-			title: 'Knife 4',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_KNIFE_5, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/knife_5.png',
-			title: 'Knife 5',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_1, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/machine_gun_1.png',
-			title: 'Machine Gun 1',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_2, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/machine_gun_2.png',
-			title: 'Machine Gun 2',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_3, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/machine_gun_3.png',
-			title: 'Machine Gun 3',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_4, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/machine_gun_4.png',
-			title: 'Machine Gun 4',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_5, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/machine_gun_5.png',
-			title: 'Machine Gun 5',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_PISTOL_1, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/pistol_1.png',
-			title: 'Pistol 1',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_PISTOL_2, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/pistol_2.png',
-			title: 'Pistol 2',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_PISTOL_3, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/pistol_3.png',
-			title: 'Pistol 3',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_PISTOL_4, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/pistol_4.png',
-			title: 'Pistol 4',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_PISTOL_5, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/pistol_5.png',
-			title: 'Pistol 5',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/sub_machine_gun_1.png',
-			title: 'Sub Machine Gun 1',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_2, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/sub_machine_gun_2.png',
-			title: 'Sub Machine Gun 2',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_3, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/sub_machine_gun_3.png',
-			title: 'Sub Machine Gun 3',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_4, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/sub_machine_gun_4.png',
-			title: 'Sub Machine Gun 4',
-		});
-
-		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_5, {
-			alpha: true,
-			author: 'Id Software',
-			category: AssetImgCategory.WEAPON,
-			ext: AssetExtImg.PNG,
-			file: 'img/weapon/sub_machine_gun_5.png',
-			title: 'Sub Machine Gun 5',
-		});
-
-		/**
 		 * Assets: Images - Menu
 		 */
+
 		assetsImageMenus.set(AssetIdImgMenu.BANNER_BAR, {
 			alpha: true,
 			author: 'Id Software',
@@ -2234,6 +1869,366 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/end_level_pistol2.png',
 			title: 'End Level Pistol 2',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_0, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/0.png',
+			title: 'End Level Font 0',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/1.png',
+			title: 'End Level Font 1',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/2.png',
+			title: 'End Level Font 2',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/3.png',
+			title: 'End Level Font 3',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/4.png',
+			title: 'End Level Font 4',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/5.png',
+			title: 'End Level Font 5',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_6, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/6.png',
+			title: 'End Level Font 6',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_7, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/7.png',
+			title: 'End Level Font 7',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_8, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/8.png',
+			title: 'End Level Font 8',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_9, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/9.png',
+			title: 'End Level Font 9',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_A, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/a.png',
+			title: 'End Level Font A',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_APOSTROPHE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/apostrophe.png',
+			title: 'End Level Font Apostrophe',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_B, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/b.png',
+			title: 'End Level Font B',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_C, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/c.png',
+			title: 'End Level Font C',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_COLON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/colon.png',
+			title: 'End Level Font Colon',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_D, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/d.png',
+			title: 'End Level Font D',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_E, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/e.png',
+			title: 'End Level Font E',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_EXCLAMATION, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/exclamation.png',
+			title: 'End Level Font Exclamation',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_F, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/f.png',
+			title: 'End Level Font F',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_G, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/g.png',
+			title: 'End Level Font G',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_H, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/h.png',
+			title: 'End Level Font H',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_I, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/i.png',
+			title: 'End Level Font I',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_J, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/j.png',
+			title: 'End Level Font J',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_K, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/k.png',
+			title: 'End Level Font K',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_L, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/l.png',
+			title: 'End Level Font L',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_M, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/m.png',
+			title: 'End Level Font M',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_N, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/n.png',
+			title: 'End Level Font N',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_O, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/o.png',
+			title: 'End Level Font O',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_P, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/p.png',
+			title: 'End Level Font P',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_PERCENT, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/percent.png',
+			title: 'End Level Font Percent',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Q, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/q.png',
+			title: 'End Level Font Q',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_R, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/r.png',
+			title: 'End Level Font R',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_S, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/s.png',
+			title: 'End Level Font S',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_T, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/t.png',
+			title: 'End Level Font T',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_U, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/u.png',
+			title: 'End Level Font U',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_V, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/v.png',
+			title: 'End Level Font V',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_W, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/w.png',
+			title: 'End Level Font W',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_X, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/x.png',
+			title: 'End Level Font X',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Y, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/y.png',
+			title: 'End Level Font Y',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Z, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/z.png',
+			title: 'End Level Font Z',
 		});
 
 		assetsImageMenus.set(AssetIdImgMenu.EPISODE_1, {
@@ -2531,6 +2526,483 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/weapon_machine_gun.png',
 			title: 'Weapon Machine Gun',
+		});
+
+		/**
+		 * Assets: Menu Fonts
+		 */
+
+		assetsImageMenusFontEndLevel.set('0', AssetIdImgMenu.END_LEVEL_FONT_0);
+		assetsImageMenusFontEndLevel.set('1', AssetIdImgMenu.END_LEVEL_FONT_1);
+		assetsImageMenusFontEndLevel.set('2', AssetIdImgMenu.END_LEVEL_FONT_2);
+		assetsImageMenusFontEndLevel.set('3', AssetIdImgMenu.END_LEVEL_FONT_3);
+		assetsImageMenusFontEndLevel.set('4', AssetIdImgMenu.END_LEVEL_FONT_4);
+		assetsImageMenusFontEndLevel.set('5', AssetIdImgMenu.END_LEVEL_FONT_5);
+		assetsImageMenusFontEndLevel.set('6', AssetIdImgMenu.END_LEVEL_FONT_6);
+		assetsImageMenusFontEndLevel.set('7', AssetIdImgMenu.END_LEVEL_FONT_7);
+		assetsImageMenusFontEndLevel.set('8', AssetIdImgMenu.END_LEVEL_FONT_8);
+		assetsImageMenusFontEndLevel.set('9', AssetIdImgMenu.END_LEVEL_FONT_9);
+		assetsImageMenusFontEndLevel.set('a', AssetIdImgMenu.END_LEVEL_FONT_A);
+		assetsImageMenusFontEndLevel.set("'", AssetIdImgMenu.END_LEVEL_FONT_APOSTROPHE);
+		assetsImageMenusFontEndLevel.set('b', AssetIdImgMenu.END_LEVEL_FONT_B);
+		assetsImageMenusFontEndLevel.set('c', AssetIdImgMenu.END_LEVEL_FONT_C);
+		assetsImageMenusFontEndLevel.set(':', AssetIdImgMenu.END_LEVEL_FONT_COLON);
+		assetsImageMenusFontEndLevel.set('d', AssetIdImgMenu.END_LEVEL_FONT_D);
+		assetsImageMenusFontEndLevel.set('e', AssetIdImgMenu.END_LEVEL_FONT_E);
+		assetsImageMenusFontEndLevel.set('!', AssetIdImgMenu.END_LEVEL_FONT_EXCLAMATION);
+		assetsImageMenusFontEndLevel.set('f', AssetIdImgMenu.END_LEVEL_FONT_F);
+		assetsImageMenusFontEndLevel.set('g', AssetIdImgMenu.END_LEVEL_FONT_G);
+		assetsImageMenusFontEndLevel.set('h', AssetIdImgMenu.END_LEVEL_FONT_H);
+		assetsImageMenusFontEndLevel.set('i', AssetIdImgMenu.END_LEVEL_FONT_I);
+		assetsImageMenusFontEndLevel.set('j', AssetIdImgMenu.END_LEVEL_FONT_J);
+		assetsImageMenusFontEndLevel.set('k', AssetIdImgMenu.END_LEVEL_FONT_K);
+		assetsImageMenusFontEndLevel.set('l', AssetIdImgMenu.END_LEVEL_FONT_L);
+		assetsImageMenusFontEndLevel.set('m', AssetIdImgMenu.END_LEVEL_FONT_M);
+		assetsImageMenusFontEndLevel.set('n', AssetIdImgMenu.END_LEVEL_FONT_N);
+		assetsImageMenusFontEndLevel.set('o', AssetIdImgMenu.END_LEVEL_FONT_O);
+		assetsImageMenusFontEndLevel.set('p', AssetIdImgMenu.END_LEVEL_FONT_P);
+		assetsImageMenusFontEndLevel.set('%', AssetIdImgMenu.END_LEVEL_FONT_PERCENT);
+		assetsImageMenusFontEndLevel.set('q', AssetIdImgMenu.END_LEVEL_FONT_Q);
+		assetsImageMenusFontEndLevel.set('r', AssetIdImgMenu.END_LEVEL_FONT_R);
+		assetsImageMenusFontEndLevel.set('s', AssetIdImgMenu.END_LEVEL_FONT_S);
+		assetsImageMenusFontEndLevel.set('t', AssetIdImgMenu.END_LEVEL_FONT_T);
+		assetsImageMenusFontEndLevel.set('u', AssetIdImgMenu.END_LEVEL_FONT_U);
+		assetsImageMenusFontEndLevel.set('v', AssetIdImgMenu.END_LEVEL_FONT_V);
+		assetsImageMenusFontEndLevel.set('w', AssetIdImgMenu.END_LEVEL_FONT_W);
+		assetsImageMenusFontEndLevel.set('x', AssetIdImgMenu.END_LEVEL_FONT_X);
+		assetsImageMenusFontEndLevel.set('y', AssetIdImgMenu.END_LEVEL_FONT_Y);
+		assetsImageMenusFontEndLevel.set('z', AssetIdImgMenu.END_LEVEL_FONT_Z);
+
+		assetsImageMenusFontHUD.set('0', AssetIdImgMenu.HUD_FONT_0);
+		assetsImageMenusFontHUD.set('1', AssetIdImgMenu.HUD_FONT_1);
+		assetsImageMenusFontHUD.set('2', AssetIdImgMenu.HUD_FONT_2);
+		assetsImageMenusFontHUD.set('3', AssetIdImgMenu.HUD_FONT_3);
+		assetsImageMenusFontHUD.set('4', AssetIdImgMenu.HUD_FONT_4);
+		assetsImageMenusFontHUD.set('5', AssetIdImgMenu.HUD_FONT_5);
+		assetsImageMenusFontHUD.set('6', AssetIdImgMenu.HUD_FONT_6);
+		assetsImageMenusFontHUD.set('7', AssetIdImgMenu.HUD_FONT_7);
+		assetsImageMenusFontHUD.set('8', AssetIdImgMenu.HUD_FONT_8);
+		assetsImageMenusFontHUD.set('9', AssetIdImgMenu.HUD_FONT_9);
+		assetsImageMenusFontHUD.set('%', AssetIdImgMenu.HUD_FONT_PERCENT);
+
+		/**
+		 * Assets: Images - Walls
+		 */
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue.png',
+			title: 'Brick Blue',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue2.png',
+			title: 'Brick Blue2',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue_cell.png',
+			title: 'Brick Blue Cell',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_BLUE_CELL_SKELETON, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_blue_cell_skeleton.png',
+			title: 'Brick Blue Cell Skeleton',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_side.png',
+			title: 'Elevator Side',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_switch_down.png',
+			title: 'Switch Down',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SWITCH_UP, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/elevator_switch_up.png',
+			title: 'Switch Up',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/outside_day.png',
+			title: 'Outside Day',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_OUTSIDE_NIGHT, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/outside_night.png',
+			title: 'Outside Night',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey.png',
+			title: 'Stone Grey',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY2, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey2.png',
+			title: 'Stone Grey2',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY3, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey3.png',
+			title: 'Stone Grey3',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_eagle.png',
+			title: 'Stone Grey Eagle',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_FLAG, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_flag.png',
+			title: 'Stone Grey Flag',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_HITLER, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_hitler.png',
+			title: 'Stone Grey Hitler',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_STONE_GREY_SIGN_VERBOTEM, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/stone_grey_sign_verbotem.png',
+			title: 'Stone Grey Sign Verbotem',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_WOOD, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood.png',
+			title: 'Wood',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_WOOD_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood_eagle.png',
+			title: 'Wood',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_WOOD_HITLER, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/wood_hitler.png',
+			title: 'Wood',
+		});
+
+		/**
+		 * Assets: Images - Waypoints
+		 */
+
+		assetsImages.set(AssetIdImg.MISC_ARROW_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_e.png',
+			title: 'Arrow (East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_n.png',
+			title: 'Arrow (North)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_ne.png',
+			title: 'Arrow (North East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_NORTH_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_nw.png',
+			title: 'Arrow (North West)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_s.png',
+			title: 'Arrow (South)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_EAST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_se.png',
+			title: 'Arrow (South East)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_sw.png',
+			title: 'Arrow (South West)',
+		});
+		assetsImages.set(AssetIdImg.MISC_ARROW_WEST, {
+			alpha: true,
+			category: AssetImgCategory.WAYPOINT,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/arrow_w.png',
+			title: 'Arrow (West)',
+		});
+
+		/**
+		 * Assets: Images - Weapons
+		 */
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_1.png',
+			title: 'Knife 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_2.png',
+			title: 'Knife 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_3.png',
+			title: 'Knife 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_4.png',
+			title: 'Knife 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_KNIFE_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/knife_5.png',
+			title: 'Knife 5',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_1.png',
+			title: 'Machine Gun 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_2.png',
+			title: 'Machine Gun 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_3.png',
+			title: 'Machine Gun 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_4.png',
+			title: 'Machine Gun 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_MACHINE_GUN_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/machine_gun_5.png',
+			title: 'Machine Gun 5',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_1.png',
+			title: 'Pistol 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_2.png',
+			title: 'Pistol 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_3.png',
+			title: 'Pistol 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_4.png',
+			title: 'Pistol 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_PISTOL_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/pistol_5.png',
+			title: 'Pistol 5',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_1.png',
+			title: 'Sub Machine Gun 1',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_2.png',
+			title: 'Sub Machine Gun 2',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_3.png',
+			title: 'Sub Machine Gun 3',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_4, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_4.png',
+			title: 'Sub Machine Gun 4',
+		});
+
+		assetsImages.set(AssetIdImg.WEAPON_SUB_MACHINE_GUN_5, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.WEAPON,
+			ext: AssetExtImg.PNG,
+			file: 'img/weapon/sub_machine_gun_5.png',
+			title: 'Sub Machine Gun 5',
 		});
 	}
 };

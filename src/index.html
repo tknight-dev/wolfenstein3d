@@ -690,17 +690,38 @@
 					<div class="screen black" id="screen-black"></div>
 					<div class="screen level-end" id="screen-level-end">
 						<div class="wrapper">
-							<div class="image">
-								<div class="wrapper">
-									<img id="screen-level-end-image1"/>
-									<img id="screen-level-end-image2" class="animate"/>
-								</div>
-							</div>
-							<div class="stats">
-								<h1>LEVEL 1 COMPLETE!</h1><br />
-								<h3>That's it for this alpha build</h3><br />
-								<h3>Thanks for playing!</h3>
-							</div>
+							<table class="top">
+								<tr>
+									<td class="image" rowspan="5">
+										<img id="screen-level-end-image1"/>
+										<img id="screen-level-end-image2" class="animate"/>
+									</td>
+									<td class="text" id="screen-level-end-floor"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-completed"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-bonus"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-time"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-time-par"></td>
+								</tr>
+							</table>
+							<table class="bottom">
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-kill"></td>
+								</tr>
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-secret"></td>
+								</tr>
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-treasure"></td>
+								</tr>
+							</table>
 						</div>
 					</div>
 					<div class="screen rating" id="screen-rating"></div>
