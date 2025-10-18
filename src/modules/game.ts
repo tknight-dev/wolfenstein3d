@@ -102,7 +102,7 @@ enum GameMenuAction {
 }
 
 export class Game {
-	public static camera: GamingCanvasGridCamera;
+	public static camera: GamingCanvasGridCamera = new GamingCanvasGridCamera();
 	public static editorAssetIdImg: number = 0;
 	public static editorAssetCharacterId: AssetIdImgCharacter = 0;
 	public static editorAssetCharacterType: AssetIdImgCharacterType = 0;
@@ -479,7 +479,10 @@ export class Game {
 				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
 				break;
 		}
-		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+		Game.camera.r = Game.map.position.r;
+		Game.camera.x = Game.map.position.x + 0.5;
+		Game.camera.y = Game.map.position.y + 0.5;
+		Game.camera.z = Game.map.position.z;
 
 		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
@@ -1647,7 +1650,10 @@ export class Game {
 		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
 		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
 
-		Game.camera = new GamingCanvasGridCamera(Game.map.position.r, Game.map.position.x + 0.5, Game.map.position.y + 0.5, Game.map.position.z);
+		Game.camera.r = Game.map.position.r;
+		Game.camera.x = Game.map.position.x + 0.5;
+		Game.camera.y = Game.map.position.y + 0.5;
+		Game.camera.z = Game.map.position.z;
 
 		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());

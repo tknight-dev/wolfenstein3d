@@ -366,9 +366,9 @@ export class Settings {
 		} else {
 			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
-			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x);
+			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x | 0);
 			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
-			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y);
+			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y | 0);
 		}
 	}
 }
