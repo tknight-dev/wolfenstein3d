@@ -403,6 +403,7 @@ class VideoEditorEngine {
 						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
 						gameMapNPCById = VideoEditorEngine.gameMap.npcById;
 
+						gameMapNPCByGridIndex.clear();
 						for (characterNPC of gameMapNPCById.values()) {
 							gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 						}
@@ -775,6 +776,10 @@ class VideoEditorEngine {
 								continue;
 							}
 							gameMapNPC = <CharacterNPC>gameMapNPCById.get(gameMapNPCId);
+
+							if (gameMapNPC === undefined) {
+								continue;
+							}
 
 							if (gameMapNPC.assetId === AssetIdImgCharacter.CORPSE) {
 								offscreenCanvasContext.fillStyle = 'rgba(255, 0, 0, 0.5)';

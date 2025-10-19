@@ -1109,7 +1109,7 @@ export class Game {
 				Game.map.npcById = npcById;
 
 				a.classList.add('hidden');
-				a.download = 'blockenstein.map';
+				a.download = 'wolfenstein3d.map';
 				a.href = downloadData;
 
 				// Download
@@ -1821,7 +1821,6 @@ export class Game {
 			id: number,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			keyState: Map<string, boolean> = new Map(),
-			map: GameMap = Game.map,
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
 			player1: boolean,
@@ -2065,7 +2064,7 @@ export class Game {
 		CalcMainBus.setCallbackCalculations((data: CalcMainBusOutputDataCalculations) => {
 			if (data.characterPlayer1Camera !== undefined) {
 				camera.decode(data.characterPlayer1Camera);
-				camera.z = map.position.z;
+				camera.z = Game.map.position.z;
 
 				if (cameraZoom !== camera.z) {
 					cameraZoom = camera.z;
@@ -2073,7 +2072,7 @@ export class Game {
 				}
 				viewport.apply(camera);
 
-				gridIndexPlayer1 = (camera.x | 0) * map.grid.sideLength + (camera.y | 0);
+				gridIndexPlayer1 = (camera.x | 0) * Game.map.grid.sideLength + (camera.y | 0);
 
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
@@ -2110,7 +2109,7 @@ export class Game {
 			if (data.characterPlayer2Camera !== undefined) {
 				cameraScratch.decode(data.characterPlayer2Camera);
 
-				gridIndexPlayer2 = (cameraScratch.x | 0) * map.grid.sideLength + (cameraScratch.y | 0);
+				gridIndexPlayer2 = (cameraScratch.x | 0) * Game.map.grid.sideLength + (cameraScratch.y | 0);
 
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
@@ -2274,10 +2273,10 @@ export class Game {
 			if (dataUpdated === true) {
 				dataUpdated = false;
 
-				CalcMainBus.outputMap(map);
-				CalcPathBus.outputMap(map);
-				VideoEditorBus.outputMap(map);
-				VideoMainBus.outputMap(map);
+				CalcMainBus.outputMap(Game.map);
+				CalcPathBus.outputMap(Game.map);
+				VideoEditorBus.outputMap(Game.map);
+				VideoMainBus.outputMap(Game.map);
 			}
 		}, 100);
 
@@ -2292,14 +2291,14 @@ export class Game {
 
 			if (erase === true) {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
-					map.npcById.delete(cooridnate.x * map.grid.sideLength + cooridnate.y);
+					Game.map.npcById.delete(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				} else {
-					map.grid.setBasic(cooridnate, 0);
+					Game.map.grid.setBasic(cooridnate, 0);
 				}
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					// Character
-					id = cooridnate.x * map.grid.sideLength + cooridnate.y;
+					id = cooridnate.x * Game.map.grid.sideLength + cooridnate.y;
 
 					switch (Game.editorAssetCharacterId) {
 						case AssetIdImgCharacter.STAND_E:
@@ -2317,7 +2316,7 @@ export class Game {
 							break;
 					}
 
-					map.npcById.set(id, {
+					Game.map.npcById.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
@@ -2344,7 +2343,7 @@ export class Game {
 					DOM.elEditorPropertiesCharacterInputFOV.value = String(120) + '°';
 				} else {
 					// Cell
-					map.grid.setBasic(cooridnate, Game.editorCellValue);
+					Game.map.grid.setBasic(cooridnate, Game.editorCellValue);
 				}
 			}
 
@@ -2355,7 +2354,7 @@ export class Game {
 			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
-				const characterNPC: CharacterNPC | undefined = map.npcById.get(coordinate.x * map.grid.sideLength + coordinate.y);
+				const characterNPC: CharacterNPC | undefined = Game.map.npcById.get(coordinate.x * Game.map.grid.sideLength + coordinate.y);
 
 				if (characterNPC === undefined) {
 					DOM.elEditorSectionObjects.click();
@@ -2389,7 +2388,7 @@ export class Game {
 				DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
 				DOM.elEdit.style.backgroundColor = '#980066';
 			} else {
-				const cell: number | undefined = map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
+				const cell: number | undefined = Game.map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
 
 				if (cell === undefined) {
 					return;
@@ -2505,7 +2504,6 @@ export class Game {
 					characterPlayerInput.player2.x = 0;
 					characterPlayerInput.player2.y = 0;
 					dataUpdated = false;
-					map = Game.map;
 					updated = false;
 					updatedR = true;
 
@@ -2809,8 +2807,8 @@ export class Game {
 						break;
 					case 'KeyR':
 						if (keyState.get('ShiftLeft') === true && down) {
-							map.npcById.clear();
-							map.grid.data.fill(0);
+							Game.map.npcById.clear();
+							Game.map.grid.data.fill(0);
 							dataUpdated = true;
 						} else {
 							DOM.elEditorCommandResetMap.click();

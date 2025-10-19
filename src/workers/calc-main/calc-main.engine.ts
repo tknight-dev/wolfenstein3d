@@ -1109,6 +1109,14 @@ class CalcMainEngine {
 			let gridSwitch: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.SWITCH) !== 0,
 				gridSwitchAlt: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.SWITCH_ALT) !== 0;
 
+			// Update here as settings can change after map load
+			gameMapMetaNPCCount = 0;
+			for (characterNPC of gameMapNPCById.values()) {
+				if (characterNPC.difficulty <= CalcMainEngine.settings.difficulty) {
+					gameMapMetaNPCCount++;
+				}
+			}
+
 			if (characterPlayer1Meta.ratioKill !== 0) {
 				characterPlayer1Meta.ratioKill /= gameMapMetaNPCCount;
 			}
@@ -1447,6 +1455,7 @@ class CalcMainEngine {
 				characterNPC2 = <CharacterNPC>gameMapNPCById.get(characterNPCId);
 
 				if (
+					characterNPC2 !== undefined &&
 					characterNPC2.difficulty <= settingsDifficulty &&
 					characterNPC2.health !== 0 &&
 					seen === true &&
@@ -1831,10 +1840,6 @@ class CalcMainEngine {
 					for (characterNPC of gameMapNPCById.values()) {
 						characterNPC.timestampUnixState = timestampUnixEff;
 						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
-
-						if (characterNPC.difficulty <= CalcMainEngine.settings.difficulty) {
-							gameMapMetaNPCCount++;
-						}
 
 						if (characterNPC.walking === true) {
 							characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
