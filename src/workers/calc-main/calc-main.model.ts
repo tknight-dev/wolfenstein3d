@@ -3,6 +3,7 @@ import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput, CharacterWeapon } from '../../models/character.model.js';
+import { AssetIdMap } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -177,6 +178,23 @@ export interface CalcMainBusOutputDataActionDoorLocked {
 export interface CalcMainBusOutputDataActionSwitch {
 	cellValue: number;
 	gridIndex: number;
+	gridSwitch: boolean;
+	gridSwitchAlt: boolean;
+	mapId: AssetIdMap;
+	player1Meta: CalcMainBusOutputDataActionPlayerMeta;
+	player2Meta: CalcMainBusOutputDataActionPlayerMeta;
+}
+
+export interface CalcMainBusOutputDataActionPlayerMeta {
+	bonus: number;
+	damageInstances: number;
+	damageTaken: number;
+	ratioKill: number;
+	ratioSecret: number;
+	ratioTreasure: number;
+	shotsFired: number;
+	shotsHit: number;
+	timeInMS: number;
 }
 
 export interface CalcMainBusOutputDataActionWallMove {

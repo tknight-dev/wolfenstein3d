@@ -268,10 +268,10 @@
 											<input autocomplete="off" class="input" id="editor-cell-extended-switch" name="editor-cell-extended-switch" type="checkbox" />
 											<div class="title">Switch</div>
 										</label>
-								<!-- 		<label class="item" for="editor-cell-extended-teleport">
-											<input autocomplete="off" class="input" id="editor-cell-extended-teleport" name="editor-cell-extended-teleport" type="checkbox" />
-											<div class="title">Teleport</div>
-										</label> -->
+										<label class="item" for="editor-cell-extended-switch-alt">
+											<input autocomplete="off" class="input" id="editor-cell-extended-switch-alt" name="editor-cell-extended-switch-alt" type="checkbox" />
+											<div class="title">Switch Alt</div>
+										</label>
 									</div>
 								</div>
 							</div>
@@ -512,7 +512,13 @@
 											</td>
 										</tr>
 										<tr>
-											<td>Starting Rotation (degrees)</td>
+											<td>Id</td>
+											<td>
+												<select autocomplete="off" id="meta-map-value-id"></select>
+											</td>
+										</tr>
+										<tr>
+											<td>Starting Angle (degrees)</td>
 											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
@@ -522,6 +528,10 @@
 										<tr>
 											<td>Starting Position Y</td>
 											<td><input autocomplete="off" id="meta-map-value-starting-position-y" min="0" step="1" type="number" /></td>
+										</tr>
+										<tr>
+											<td>Time: Par in Seconds</td>
+											<td><input autocomplete="off" id="meta-map-value-time-par-seconds" min="0" step="1" type="number" /></td>
 										</tr>
 									</tbody>
 								</table>

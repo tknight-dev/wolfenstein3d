@@ -379,8 +379,11 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_AMMO = 0,
 	AUDIO_EFFECT_DOOR_CLOSE = 1,
 	AUDIO_EFFECT_DOOR_OPEN = 2,
-	AUDIO_EFFECT_EXTRA_LIFE = 3,
+	AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE = 37,
+	AUDIO_EFFECT_END_LEVEL_SCORE_NONE = 38,
+	AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE = 39,
 	AUDIO_EFFECT_EVIL_LAUGH = 35,
+	AUDIO_EFFECT_EXTRA_LIFE = 3,
 	AUDIO_EFFECT_FOOD = 4,
 	AUDIO_EFFECT_FOOD_DOG = 5,
 	AUDIO_EFFECT_GUARD_DEATH = 6,
@@ -794,7 +797,66 @@ export enum AssetIdImgCharacterType {
 }
 
 export enum AssetIdMap {
-	EPISODE_01_LEVEL01,
+	EPISODE_01_LEVEL_01 = 0,
+	EPISODE_01_LEVEL_02 = 1,
+	EPISODE_01_LEVEL_03 = 2,
+	EPISODE_01_LEVEL_04 = 3,
+	EPISODE_01_LEVEL_05 = 4,
+	EPISODE_01_LEVEL_06 = 5,
+	EPISODE_01_LEVEL_07 = 6,
+	EPISODE_01_LEVEL_08 = 7,
+	EPISODE_01_LEVEL_09 = 8,
+	EPISODE_01_LEVEL_10 = 9,
+	EPISODE_02_LEVEL_01 = 10,
+	EPISODE_02_LEVEL_02 = 11,
+	EPISODE_02_LEVEL_03 = 12,
+	EPISODE_02_LEVEL_04 = 13,
+	EPISODE_02_LEVEL_05 = 14,
+	EPISODE_02_LEVEL_06 = 15,
+	EPISODE_02_LEVEL_07 = 16,
+	EPISODE_02_LEVEL_08 = 17,
+	EPISODE_02_LEVEL_09 = 18,
+	EPISODE_02_LEVEL_10 = 19,
+	EPISODE_03_LEVEL_01 = 20,
+	EPISODE_03_LEVEL_02 = 21,
+	EPISODE_03_LEVEL_03 = 22,
+	EPISODE_03_LEVEL_04 = 23,
+	EPISODE_03_LEVEL_05 = 24,
+	EPISODE_03_LEVEL_06 = 25,
+	EPISODE_03_LEVEL_07 = 26,
+	EPISODE_03_LEVEL_08 = 27,
+	EPISODE_03_LEVEL_09 = 28,
+	EPISODE_03_LEVEL_10 = 29,
+	EPISODE_04_LEVEL_01 = 30,
+	EPISODE_04_LEVEL_02 = 31,
+	EPISODE_04_LEVEL_03 = 32,
+	EPISODE_04_LEVEL_04 = 33,
+	EPISODE_04_LEVEL_05 = 34,
+	EPISODE_04_LEVEL_06 = 35,
+	EPISODE_04_LEVEL_07 = 36,
+	EPISODE_04_LEVEL_08 = 37,
+	EPISODE_04_LEVEL_09 = 38,
+	EPISODE_04_LEVEL_10 = 39,
+	EPISODE_05_LEVEL_01 = 40,
+	EPISODE_05_LEVEL_02 = 41,
+	EPISODE_05_LEVEL_03 = 42,
+	EPISODE_05_LEVEL_04 = 43,
+	EPISODE_05_LEVEL_05 = 44,
+	EPISODE_05_LEVEL_06 = 45,
+	EPISODE_05_LEVEL_07 = 46,
+	EPISODE_05_LEVEL_08 = 47,
+	EPISODE_05_LEVEL_09 = 48,
+	EPISODE_05_LEVEL_10 = 49,
+	EPISODE_06_LEVEL_01 = 50,
+	EPISODE_06_LEVEL_02 = 51,
+	EPISODE_06_LEVEL_03 = 52,
+	EPISODE_06_LEVEL_04 = 53,
+	EPISODE_06_LEVEL_05 = 54,
+	EPISODE_06_LEVEL_06 = 55,
+	EPISODE_06_LEVEL_07 = 56,
+	EPISODE_06_LEVEL_08 = 57,
+	EPISODE_06_LEVEL_09 = 58,
+	EPISODE_06_LEVEL_10 = 59,
 }
 
 export enum AssetImgCategory {
@@ -888,6 +950,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		file: 'audio/effect/door_open.mp3',
 		title: 'Door Open',
 		volume: 0.8,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/end_level_score_multiple.mp3',
+		title: 'End Level Score Multiple',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/end_level_score_none.mp3',
+		title: 'End Level Score None',
+		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/end_level_score_single.mp3',
+		title: 'End Level Score Single',
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_EVIL_LAUGH, {
@@ -1377,11 +1466,17 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 */
 
 	if (audioOnly !== true) {
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL01, {
+		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_01, {
 			episode: 1,
 			file: 'map/episode_01_level_01.map',
 			level: 1,
-			title: 'Ammo',
+			title: 'Episode 01: Level 01',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_02, {
+			episode: 1,
+			file: 'map/episode_01_level_02.map',
+			level: 2,
+			title: 'Episode 01: Level 02',
 		});
 	}
 

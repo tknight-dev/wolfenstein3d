@@ -10,6 +10,7 @@ import {
 	AssetPropertiesImage,
 	assetsImages,
 	assetsImageCharacters,
+	AssetIdMap,
 } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
@@ -84,7 +85,7 @@ export class DOM {
 	public static elEditorPropertiesCellOutputProperties: HTMLElement;
 	public static elEditorPropertiesCellOutputValue: HTMLElement;
 	public static elEditorPropertiesCellExtended: HTMLElement;
-	public static elEditorPropertiesCellExtendedInputTeleport: HTMLInputElement;
+	public static elEditorPropertiesCellExtendedInputSwitchAlt: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoor: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoorLocked1: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoorLocked2: HTMLInputElement;
@@ -159,9 +160,11 @@ export class DOM {
 	public static elMetaMapApply: HTMLElement;
 	public static elMetaMapCancel: HTMLElement;
 	public static elMetaMapLocation: HTMLElement;
+	public static elMetaMapValueId: HTMLInputElement;
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
+	public static elMetaMapValueTimeParInSeconds: HTMLInputElement;
 	public static elPerformance: HTMLElement;
 	public static elPerformanceCalcMain: HTMLElement;
 	public static elPerformanceCalcMainAll: HTMLElement;
@@ -442,13 +445,13 @@ export class DOM {
 		DOM.elEditorPropertiesCellExtendedInputDoorLocked1 = <HTMLInputElement>document.getElementById('editor-cell-cell-extended-door-locked1');
 		DOM.elEditorPropertiesCellExtendedInputDoorLocked2 = <HTMLInputElement>document.getElementById('editor-cell-cell-extended-door-locked2');
 		DOM.elEditorPropertiesCellExtendedInputSwitch = <HTMLInputElement>document.getElementById('editor-cell-extended-switch');
-		DOM.elEditorPropertiesCellExtendedInputTeleport = <HTMLInputElement>document.getElementById('editor-cell-extended-teleport');
+		DOM.elEditorPropertiesCellExtendedInputSwitchAlt = <HTMLInputElement>document.getElementById('editor-cell-extended-switch-alt');
 		DOM.elEditorPropertiesCellExtendedInputs = [
 			DOM.elEditorPropertiesCellExtendedInputDoor,
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked1,
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked2,
 			DOM.elEditorPropertiesCellExtendedInputSwitch,
-			// DOM.elEditorPropertiesCellExtendedInputTeleport,
+			DOM.elEditorPropertiesCellExtendedInputSwitchAlt,
 		];
 
 		DOM.elEditorPropertiesCellOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
@@ -544,9 +547,20 @@ export class DOM {
 		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
 		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
 		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
+
+		DOM.elMetaMapValueId = <HTMLInputElement>document.getElementById('meta-map-value-id');
+		let option: HTMLOptionElement;
+		for (let i = 0; i < 60; i++) {
+			option = document.createElement('option');
+			option.innerText = AssetIdMap[i];
+			option.value = String(i);
+			DOM.elMetaMapValueId.appendChild(option);
+		}
+
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
+		DOM.elMetaMapValueTimeParInSeconds = <HTMLInputElement>document.getElementById('meta-map-value-time-par-seconds');
 
 		DOM.elPerformance = <HTMLElement>document.getElementById('performance');
 		DOM.elPerformanceCalcMain = <HTMLElement>document.getElementById('performance-calc-main');

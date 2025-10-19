@@ -128,6 +128,9 @@ export class Game {
 	public static map: GameMap;
 	public static mapBackup: GameMap;
 	public static mapBackupRestored: boolean;
+	public static mapEnded: boolean;
+	public static mapEnding: boolean;
+	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
@@ -169,7 +172,7 @@ export class Game {
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
 			DOM.elEditorPropertiesCellExtendedInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH);
-			// DOM.elEditorPropertiesCellExtendedInputTeleport.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.TELEPORT);
+			DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH_ALT);
 		}
 
 		DOM.elEditorPropertiesCellInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
@@ -208,6 +211,60 @@ export class Game {
 		DOM.elEditorPropertiesCellOutputAssetId.innerText = '0000';
 		DOM.elEditorPropertiesCellOutputProperties.innerText = '0000';
 		DOM.elEditorPropertiesCellOutputValue.innerText = '0000';
+	}
+
+	public static loadNextLevel(): void {
+		if (Game.inputSuspend === true) {
+			return;
+		}
+		Game.inputSuspend = true;
+
+		if (Game.mapBackup.id % 10 === 8) {
+			// episode complete
+		} else {
+			let assetIdMapNext: AssetIdMap;
+
+			if (Game.mapBackup.id % 10 === 9) {
+				// secret level complete
+				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
+			} else {
+				// regular level complete
+				assetIdMapNext = Game.mapBackup.id + 1;
+			}
+
+			// GameMap
+			Game.map = <GameMap>Assets.dataMap.get(assetIdMapNext);
+			Game.mapBackup = <GameMap>Assets.dataMap.get(assetIdMapNext);
+			Game.mapEnded = false;
+			Game.mapEnding = false;
+
+			Game.camera.r = Game.map.position.r;
+			Game.camera.x = Game.map.position.x + 0.5;
+			Game.camera.y = Game.map.position.y + 0.5;
+			Game.camera.z = Game.map.position.z;
+
+			Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+			Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+			Game.viewport.apply(Game.camera, false);
+
+			CalcMainBus.outputMap(Game.mapBackup);
+			CalcPathBus.outputMap(Game.mapBackup);
+			VideoEditorBus.outputMap(Game.mapBackup);
+			VideoMainBus.outputMap(Game.mapBackup);
+			VideoOverlayBus.outputReset();
+
+			// End menu
+			setTimeout(() => {
+				console.log('loadNextLevel() complete!');
+
+				Game.gameMenu(false);
+				Game.started = true;
+				DOM.elGameMenuMainGameSave.classList.remove('disable');
+				DOM.elScreenActive.style.display = 'none';
+				Game.inputSuspend = false;
+				Game.pause(false);
+			}, 200);
+		}
 	}
 
 	/**
@@ -476,14 +533,17 @@ export class Game {
 		// GameMap
 		switch (Game.gameMenuEpisode) {
 			case 0:
-				Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+				Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
+				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
 				break;
 		}
 		Game.camera.r = Game.map.position.r;
 		Game.camera.x = Game.map.position.x + 0.5;
 		Game.camera.y = Game.map.position.y + 0.5;
 		Game.camera.z = Game.map.position.z;
+
+		Game.mapEnded = false;
+		Game.mapEnding = false;
 
 		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
@@ -553,6 +613,8 @@ export class Game {
 				Game.camera.z = parsed.position.z;
 				Game.map = parsed;
 				Game.mapBackup = parsed2;
+				Game.mapEnded = false;
+				Game.mapEnding = false;
 
 				// Done
 				Game.gameOver = false;
@@ -1171,6 +1233,8 @@ export class Game {
 							Game.camera.z = parsed.position.z;
 							Game.map = parsed;
 							Game.mapBackup = parsed2;
+							Game.mapEnded = false;
+							Game.mapEnding = false;
 
 							// Done
 							Game.gameOver = false;
@@ -1262,6 +1326,8 @@ export class Game {
 			Game.camera.z = parsed.position.z;
 			Game.map = parsed;
 			Game.mapBackupRestored = true;
+			Game.mapEnded = false;
+			Game.mapEnding = false;
 
 			CalcMainBus.outputMap(parsed);
 			CalcPathBus.outputMap(parsed);
@@ -1648,8 +1714,10 @@ export class Game {
 		Game.report = GamingCanvas.getReport();
 
 		// GameMap
-		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
+		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
+		Game.mapEnded = false;
+		Game.mapEnding = false;
 
 		Game.camera.r = Game.map.position.r;
 		Game.camera.x = Game.map.position.x + 0.5;
@@ -1789,11 +1857,11 @@ export class Game {
 
 		// Calc: Action Switch
 		CalcMainBus.setCallbackActionSwitch((data: CalcMainBusOutputDataActionSwitch) => {
+			Game.mapEnding = true;
 			VideoMainBus.outputActionSwitch(data);
 
 			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
-			Game.inputSuspend = true;
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
 			VideoMainBus.outputPause(true);
@@ -1823,14 +1891,89 @@ export class Game {
 			}, 500);
 
 			// Stats
-			utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${10000}`, true);
+			let floor: number = (Game.mapBackup.id % 10) + 1,
+				ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
+				ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
+				ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
+				timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
+				timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
+
+			// Stats: Display
+			utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
 			utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
-			utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${1}`, true);
-			utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(100).padStart(3, ' ')}%`, true);
-			utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(80).padStart(3, ' ')}%`, true);
-			utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(5).padStart(3, ' ')}%`, true);
-			utilStringToHTML(DOM.elScreenLevelEndTime, ` Time ${String(1).padStart(2, '0')}:${String(1).padStart(2, '0')}`, true);
-			utilStringToHTML(DOM.elScreenLevelEndTimePar, `  Par ${String(1).padStart(2, '0')}:${String(1).padStart(2, '0')}`, true);
+			utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
+			utilStringToHTML(
+				DOM.elScreenLevelEndTime,
+				` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
+				true,
+			);
+			utilStringToHTML(
+				DOM.elScreenLevelEndTimePar,
+				`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
+				true,
+			);
+			utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+
+			setTimeout(() => {
+				Game.mapEndingSkip = false;
+				if (data.player1Meta.bonus === 0) {
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+				} else {
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+				}
+				utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
+
+				setTimeout(
+					() => {
+						if (Game.mapEndingSkip !== true) {
+							if (ratioKill === 0) {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+							} else if (ratioKill < 10) {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+							} else {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+							}
+						}
+						utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
+
+						setTimeout(
+							() => {
+								if (Game.mapEndingSkip !== true) {
+									if (ratioSecret === 0) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+									} else if (ratioSecret < 10) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+									} else {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+									}
+								}
+								utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+
+								setTimeout(
+									() => {
+										if (Game.mapEndingSkip !== true) {
+											if (ratioTreasure === 0) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+											} else if (ratioTreasure < 10) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+											} else {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+											}
+										}
+										utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`, true);
+										Game.mapEnded = true;
+									},
+									Game.mapEndingSkip === true ? 0 : 1000,
+								);
+							},
+							Game.mapEndingSkip === true ? 0 : 1000,
+						);
+					},
+					<any>Game.mapEndingSkip === true ? 0 : 1000,
+				);
+			}, 2500);
 		});
 
 		// Calc: Action Wall Move
@@ -2288,7 +2431,7 @@ export class Game {
 					DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0;
 					DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0;
 					DOM.elEditorPropertiesCellExtendedInputSwitch.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0;
-					// DOM.elEditorPropertiesCellExtendedInputTeleport.checked = (cell & GameGridCellMasksAndValuesExtended.TELEPORT) !== 0;
+					DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH_ALT) !== 0;
 				} else {
 					DOM.elEditorPropertiesCellExtended.classList.remove('show');
 
@@ -2362,6 +2505,12 @@ export class Game {
 					queueInput = <GamingCanvasInput>queue.pop();
 
 					if (Game.inputSuspend === true) {
+						continue;
+					} else if (Game.mapEnded === true) {
+						Game.loadNextLevel();
+						continue;
+					} else if (Game.mapEnding === true) {
+						Game.mapEndingSkip = true;
 						continue;
 					}
 

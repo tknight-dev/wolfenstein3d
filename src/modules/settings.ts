@@ -360,15 +360,19 @@ export class Settings {
 
 	public static setMetaMap(apply: boolean): void {
 		if (apply === true) {
+			Game.map.id = Number(DOM.elMetaMapValueId.value);
 			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
 			Game.map.position.x = (Number(DOM.elMetaMapValueStartingPositionX.value) | 0) + 0.5;
 			Game.map.position.y = (Number(DOM.elMetaMapValueStartingPositionY.value) | 0) + 0.5;
+			Game.map.timeParInMS = Number(DOM.elMetaMapValueTimeParInSeconds.value) * 1000;
 		} else {
+			DOM.elMetaMapValueId.value = String(Game.map.id);
 			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
 			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x | 0);
 			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
 			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y | 0);
+			DOM.elMetaMapValueTimeParInSeconds.value = String((Game.map.timeParInMS / 1000) | 0);
 		}
 	}
 }

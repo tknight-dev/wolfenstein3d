@@ -57,7 +57,7 @@ export class Assets {
 
 		if (map.npcById !== undefined) {
 			if (map.npcById instanceof Map !== true) {
-				// map.id = AssetIdMap.EPISODE_01_LEVEL01;
+				// map.id = AssetIdMap.EPISODE_01_LEVEL_01;
 				npc = new Map();
 
 				// map.position.x += 0.5;
