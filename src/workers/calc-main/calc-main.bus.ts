@@ -195,6 +195,13 @@ export class CalcMainBus {
 		});
 	}
 
+	public static outputMapEnd(): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.MAP_END,
+			data: undefined,
+		});
+	}
+
 	public static outputMeta(data: string): void {
 		CalcMainBus.worker.postMessage({
 			cmd: CalcMainBusInputCmd.META,

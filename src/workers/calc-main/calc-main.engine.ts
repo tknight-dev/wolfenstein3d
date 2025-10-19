@@ -118,6 +118,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcMainBusInputCmd.MAP:
 			CalcMainEngine.inputMap(<GameMap>payload.data);
 			break;
+		case CalcMainBusInputCmd.MAP_END:
+			CalcMainEngine.inputMapEnd();
+			break;
 		case CalcMainBusInputCmd.META:
 			CalcMainEngine.inputMeta(<string>payload.data);
 			break;
@@ -169,6 +172,7 @@ class CalcMainEngine {
 	private static characterPlayer2Meta: CalcMainBusOutputDataActionPlayerMeta;
 	private static characterPlayer2Firing: boolean;
 	private static gameMap: GameMap;
+	private static gameMapEnd: boolean;
 	private static gameMapNew: boolean;
 	private static paths: Map<number, number[]>;
 	private static pathsNew: boolean;
@@ -343,6 +347,10 @@ class CalcMainEngine {
 	public static inputMap(data: GameMap): void {
 		CalcMainEngine.gameMap = Assets.parseMap(data);
 		CalcMainEngine.gameMapNew = true;
+	}
+
+	public static inputMapEnd(): void {
+		CalcMainEngine.gameMapEnd = true;
 	}
 
 	public static inputMeta(data: string): void {
@@ -1765,6 +1773,11 @@ class CalcMainEngine {
 						characterPlayer1Input.x = 0;
 						characterPlayer1Input.y = 0;
 					}
+				}
+
+				if (CalcMainEngine.gameMapEnd === true) {
+					CalcMainEngine.gameMapEnd = false;
+					actionSwitch(0);
 				}
 
 				if (CalcMainEngine.gameMapNew === true) {

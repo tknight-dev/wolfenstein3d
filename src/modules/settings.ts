@@ -8,6 +8,7 @@ import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import { GameDifficulty } from '../models/game.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
+import { AssetIdMap } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -107,6 +108,7 @@ export class Settings {
 					Game.settings.threadVideoMain.crosshair = String(value).toLowerCase() === 'true';
 					break;
 				case 'debug':
+				case 'goobers':
 					Game.settings.debug = String(value).toLowerCase() === 'true';
 					Game.settings.threadCalcMain.debug = Game.settings.debug;
 					Game.settings.threadCalcPath.debug = Game.settings.debug;
@@ -171,6 +173,7 @@ export class Settings {
 			elementInjectAsOverlay: [DOM.elEdit, DOM.elPlayerJoystick1, DOM.elPlayerJoystick2],
 			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
+			inputKeyboardPreventTab: true,
 			inputMouseEnable: true,
 			inputTouchEnable: true,
 			orientationCanvasRotateEnable: false,
@@ -374,5 +377,7 @@ export class Settings {
 			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y | 0);
 			DOM.elMetaMapValueTimeParInSeconds.value = String((Game.map.timeParInMS / 1000) | 0);
 		}
+
+		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.map.id];
 	}
 }

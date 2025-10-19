@@ -443,6 +443,7 @@ $main-z-index-video-interactive: 50;
 				display: flex;
 				height: 20px;
 				justify-content: space-between;
+				position: relative;
 				top: 0;
 
 				.arrow,
@@ -460,6 +461,16 @@ $main-z-index-video-interactive: 50;
 					&:hover {
 						cursor: pointer;
 					}
+				}
+
+				.episode-level {
+					left: 20px;
+					pointer-events: none;
+					position: absolute;
+					right: 20px;
+					text-align: center;
+					top: 0;
+					touch-action: none;
 				}
 			}
 

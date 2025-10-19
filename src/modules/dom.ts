@@ -64,6 +64,7 @@ export class DOM {
 	public static elEditorFindAndReplaceValueFind: HTMLInputElement;
 	public static elEditorFindAndReplaceValueReplace: HTMLInputElement;
 	public static elEditorHandleArrow: HTMLElement;
+	public static elEditorHandleEpisodeLevel: HTMLElement;
 	public static elEditorHandleHide: HTMLElement;
 	public static elEditorItemActive: HTMLElement | undefined;
 	public static elEditorItemsCharacters: HTMLElement[] = [];
@@ -351,6 +352,8 @@ export class DOM {
 				DOM.elEditorPropertiesHandleArrow.innerText = '🡠';
 			}
 		};
+
+		DOM.elEditorHandleEpisodeLevel = <HTMLElement>document.getElementById('editor-cell-handle-episode-level');
 
 		DOM.elEditorHandleHide = <HTMLElement>document.getElementById('editor-cell-handle-hide');
 		DOM.elEditorHandleHide.onclick = () => {

@@ -160,6 +160,24 @@
 											<td>Cheat Code</td>
 											<td><input autocomplete="off" disabled readonly value = "i + l + m" /></td>
 										</tr>
+										<tr>
+											<td colspan="2" style="text-align: center;">--- Editor ---</td>
+										</tr>
+										<tr>
+											<td>Erase All</td>
+											<td><input autocomplete="off" disabled readonly value = "left-shift + r" /></td>
+										</tr>
+										<tr>
+											<td colspan="2" style="text-align: center;">--- Debug (Goobers) ---</td>
+										</tr>
+										<tr>
+											<td>End Level</td>
+											<td><input autocomplete="off" disabled readonly value = "tab + e" /></td>
+										</tr>
+										<tr>
+											<td>Warp To Level</td>
+											<td><input autocomplete="off" disabled readonly value = "tab + w" /></td>
+										</tr>
 									</tbody>
 								</table>
 							</div>
@@ -203,6 +221,7 @@
 						<div class="wrapper">
 							<div class="handle">
 								<div class="arrow" id="editor-cell-handle-arrow">🡠</div>
+								<div class="episode-level"><span id="editor-cell-handle-episode-level"></span></div>
 								<div class="hide" id="editor-cell-handle-hide">_</div>
 							</div>
 							<div class="container" id="editor-cell-container-characters" style="display:none">
@@ -803,7 +822,7 @@
 											<td><input autocomplete="off" id="settings-value-game-crosshair" type="checkbox" /></td>
 										</tr>
 										<tr>
-											<td>Debug</td>
+											<td>Debug (goobers)</td>
 											<td><input autocomplete="off" id="settings-value-game-debug" type="checkbox" /></td>
 										</tr>
 										<tr>

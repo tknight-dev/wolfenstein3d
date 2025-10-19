@@ -82,6 +82,7 @@ export enum CalcMainBusInputCmd {
 	CHEAT_CODE,
 	INIT,
 	MAP,
+	MAP_END,
 	META,
 	META_RESET,
 	PATH_UPDATE,
