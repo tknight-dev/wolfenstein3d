@@ -9,8 +9,9 @@ import { GameMap } from '../../models/game.model.js';
  * Input
  */
 export enum VideoOverlayBusInputCmd {
-	INIT,
 	GAME_OVER,
+	INIT,
+	LOCKED,
 	PAUSE,
 	PLAYER_DEAD,
 	PLAYER_HIT,
@@ -41,6 +42,7 @@ export interface VideoOverlayBusInputPayload {
 		| GameMap
 		| GamingCanvasReport
 		| number
+		| number[]
 		| Uint16Array
 		| VideoOverlayBusInputDataInit
 		| VideoOverlayBusInputDataSettings;

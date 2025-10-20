@@ -131,6 +131,20 @@ export class VideoOverlayBus {
 		});
 	}
 
+	public static outputLocked(player1: boolean, keys: number[]): void {
+		if (player1 === true) {
+			VideoOverlayBus.workerPlayer1.postMessage({
+				cmd: VideoOverlayBusInputCmd.LOCKED,
+				data: keys,
+			});
+		} else {
+			VideoOverlayBus.workerPlayer2.postMessage({
+				cmd: VideoOverlayBusInputCmd.LOCKED,
+				data: keys,
+			});
+		}
+	}
+
 	public static outputPause(state: boolean): void {
 		if (VideoOverlayBus.workerPlayer1 === undefined || VideoOverlayBus.workerPlayer2 === undefined) {
 			return;

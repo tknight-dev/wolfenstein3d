@@ -1837,6 +1837,7 @@ export class Game {
 			characterPlayerInputPlayer: CharacterInput,
 			characterWalking: boolean | undefined,
 			dataUpdated: boolean,
+			doorLockedTimeout: ReturnType<typeof setTimeout>,
 			down: boolean,
 			downMode: boolean,
 			downModeWheel: boolean,
@@ -1877,9 +1878,7 @@ export class Game {
 			touchJoystick2YThumb: number,
 			updated: boolean,
 			updatedR: boolean,
-			viewport: GamingCanvasGridViewport = Game.viewport,
-			x: number,
-			y: number;
+			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
@@ -1887,7 +1886,31 @@ export class Game {
 		});
 
 		CalcMainBus.setCallbackActionDoorLocked((data: CalcMainBusOutputDataActionDoorLocked) => {
-			console.log('LOCKED', data);
+			VideoOverlayBus.outputLocked(data.player1, data.keys);
+
+			for (let key of data.keys) {
+				if (key === 1) {
+					if (data.player1 === true) {
+						(<HTMLElement>DOM.elPlayerOverlay1Key1.parentNode).classList.add('invalid');
+					} else {
+						(<HTMLElement>DOM.elPlayerOverlay2Key1.parentNode).classList.add('invalid');
+					}
+				} else {
+					if (data.player1 === true) {
+						(<HTMLElement>DOM.elPlayerOverlay1Key2.parentNode).classList.add('invalid');
+					} else {
+						(<HTMLElement>DOM.elPlayerOverlay2Key2.parentNode).classList.add('invalid');
+					}
+				}
+			}
+
+			clearTimeout(doorLockedTimeout);
+			doorLockedTimeout = setTimeout(() => {
+				(<HTMLElement>DOM.elPlayerOverlay1Key1.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay1Key2.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay2Key1.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay2Key2.parentNode).classList.remove('invalid');
+			}, 2000);
 		});
 
 		// Calc: Action Switch

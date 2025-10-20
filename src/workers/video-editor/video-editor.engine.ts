@@ -641,10 +641,15 @@ class VideoEditorEngine {
 										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 ||
 										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
 									) {
-										if ((value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
+										if (
+											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 &&
+											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
+										) {
+											offscreenCanvasContext.strokeStyle = '#f700f7';
+										} else if ((value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
 											offscreenCanvasContext.strokeStyle = '#fff700';
 										} else {
-											offscreenCanvasContext.strokeStyle = '#7f7f7f';
+											offscreenCanvasContext.strokeStyle = '#00f7ff';
 										}
 
 										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;

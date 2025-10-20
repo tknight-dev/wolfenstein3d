@@ -2148,7 +2148,7 @@ class CalcMainEngine {
 													},
 												},
 											]);
-											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 										}
 									} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
 										if (characterPlayer.key1 === true) {
@@ -2163,7 +2163,7 @@ class CalcMainEngine {
 													},
 												},
 											]);
-											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 										}
 									} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0) {
 										if (characterPlayer.key2 === true) {
@@ -2178,7 +2178,7 @@ class CalcMainEngine {
 													},
 												},
 											]);
-											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 										}
 									} else {
 										actionDoor(cellSide, gameMapIndexEff);

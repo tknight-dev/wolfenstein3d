@@ -31,6 +31,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.INIT:
 			VideoOverlayEngine.initialize(<VideoOverlayBusInputDataInit>payload.data);
 			break;
+		case VideoOverlayBusInputCmd.LOCKED:
+			VideoOverlayEngine.inputLocked(<number[]>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.PAUSE:
 			VideoOverlayEngine.inputPause(<boolean>payload.data);
 			break;
@@ -58,6 +61,8 @@ class VideoOverlayEngine {
 	private static gameover: boolean;
 	private static hitGradientsByTimerId: Map<number, CanvasGradient> = new Map();
 	private static hitsByTimerId: Map<number, number> = new Map();
+	private static locked: number[];
+	private static lockedNew: boolean;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
@@ -119,6 +124,11 @@ class VideoOverlayEngine {
 	public static inputGameOver(): void {
 		VideoOverlayEngine.dead = true;
 		VideoOverlayEngine.gameover = true;
+	}
+
+	public static inputLocked(locked: number[]): void {
+		VideoOverlayEngine.locked = locked;
+		VideoOverlayEngine.lockedNew = true;
 	}
 
 	public static inputPause(state: boolean): void {
@@ -204,11 +214,15 @@ class VideoOverlayEngine {
 			renderGradient: CanvasGradient,
 			renderGrayscale: boolean,
 			renderGrayscaleFilter: string = 'grayscale(1)',
+			renderLocked: number[],
+			renderLockedDelta: number,
+			renderLockedTimestampUnix: number,
 			timerId: number,
 			timers: GamingCanvasUtilTimers = VideoOverlayEngine.timers,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
+			timestampUnix: number,
 			timestampUnixPause: number,
 			timestampUnixPauseDelta: number,
 			x: number,
@@ -222,25 +236,29 @@ class VideoOverlayEngine {
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
 
-			if (VideoOverlayEngine.pause !== pause) {
-				pause = VideoOverlayEngine.pause;
+			if (timestampDelta !== 0) {
+				timestampUnix = Date.now();
 
-				timestampUnixPause = Date.now();
-				timestampUnixPauseDelta = timestampUnixPause - VideoOverlayEngine.pauseTimestampUnix;
+				if (VideoOverlayEngine.pause !== pause) {
+					pause = VideoOverlayEngine.pause;
 
-				if (pause !== true) {
-					timers.clockUpdate(timestampNow);
+					timestampUnixPause = Date.now();
+					timestampUnixPauseDelta = timestampUnixPause - VideoOverlayEngine.pauseTimestampUnix;
 
-					if (renderDead === true) {
-						VideoOverlayEngine.deadTimestamp += timestampUnixPauseDelta;
-						renderDeadTimestamp += timestampUnixPauseDelta;
+					if (pause !== true) {
+						timers.clockUpdate(timestampNow);
+
+						if (renderDead === true) {
+							VideoOverlayEngine.deadTimestamp += timestampUnixPauseDelta;
+							renderDeadTimestamp += timestampUnixPauseDelta;
+						}
 					}
-				}
 
-				VideoOverlayEngine.pauseTimestampUnix = timestampUnixPause;
-			}
-			if (pause !== true) {
-				timers.tick(timestampNow);
+					VideoOverlayEngine.pauseTimestampUnix = timestampUnixPause;
+				}
+				if (pause !== true) {
+					timers.tick(timestampNow);
+				}
 			}
 
 			// Main code
@@ -262,6 +280,7 @@ class VideoOverlayEngine {
 						renderDeadTimestamp = VideoOverlayEngine.deadTimestamp;
 					}
 				}
+
 				if (VideoOverlayEngine.gameover !== renderGameOver) {
 					renderGameOver = VideoOverlayEngine.gameover;
 
@@ -270,6 +289,13 @@ class VideoOverlayEngine {
 						renderDeadFall = true;
 						renderDeadTimestamp = timestampNow;
 					}
+				}
+
+				if (VideoOverlayEngine.lockedNew === true) {
+					VideoOverlayEngine.lockedNew = false;
+
+					renderLocked = VideoOverlayEngine.locked;
+					renderLockedTimestampUnix = timestampUnix;
 				}
 
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew === true) {
@@ -341,8 +367,8 @@ class VideoOverlayEngine {
 							} else {
 								offscreenCanvasContext.fillStyle = 'rgba(125,0,0, 0.075)'; // dark red
 							}
-							for (let x = 0; x < offscreenCanvasWidthPx; x += offscreenCanvasWidthPx / 64) {
-								for (let y = 0; y < offscreenCanvasHeightPx; y += offscreenCanvasWidthPx / 64) {
+							for (x = 0; x < offscreenCanvasWidthPx; x += offscreenCanvasWidthPx / 64) {
+								for (y = 0; y < offscreenCanvasHeightPx; y += offscreenCanvasWidthPx / 64) {
 									if (Math.random() < 0.5) {
 										offscreenCanvasContext.fillRect(x, y, offscreenCanvasWidthPx / 64, offscreenCanvasWidthPx / 64);
 									}
@@ -413,6 +439,35 @@ class VideoOverlayEngine {
 							offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 						}
 						offscreenCanvasContext.globalAlpha = 1;
+
+						// Key Required
+						renderLockedDelta = timestampUnix - renderLockedTimestampUnix;
+						if (renderLockedDelta < 3000) {
+							if (renderLockedDelta < 1000) {
+								offscreenCanvasContext.globalAlpha = renderLockedDelta / 1000;
+							} else if (renderLockedDelta > 2000) {
+								offscreenCanvasContext.globalAlpha = (3000 - renderLockedDelta) / 1000;
+							} else {
+								offscreenCanvasContext.globalAlpha = 1;
+							}
+
+							offscreenCanvasContext.fillStyle = 'white';
+							if (VideoOverlayEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+								offscreenCanvasContext.font = `${offscreenCanvasWidthPx / 15}px serif`;
+							} else {
+								offscreenCanvasContext.font = `${offscreenCanvasWidthPx / 6}px serif`;
+							}
+							offscreenCanvasContext.textAlign = 'center';
+
+							offscreenCanvasContext.fillText(
+								`Key ${renderLocked[0]}${renderLocked.length === 2 ? ' and ' + renderLocked[1] : ''}`,
+								offscreenCanvasWidthPx / 2,
+								offscreenCanvasHeightPx / 5,
+							);
+							offscreenCanvasContext.fillText('Required', offscreenCanvasWidthPx / 2, offscreenCanvasHeightPx / 3);
+
+							offscreenCanvasContext.globalAlpha = 1;
+						}
 					}
 				}
 			}

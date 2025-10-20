@@ -1508,10 +1508,14 @@ $main-z-index-video-interactive: 50;
 						border-left: 1px solid rgba(255, 255, 255, 0.5);
 						border-right: 1px solid rgba(0, 0, 0, 0.5);
 						border-top: 1px solid rgba(255, 255, 255, 0.5);
+						box-shadow: none;
 						height: 50%;
 						left: 0;
 						padding: 1px;
 						position: absolute;
+						transition:
+							border 1s linear,
+							box-shadow 1s linear;
 						right: 0;
 
 						.key {
@@ -1522,6 +1526,11 @@ $main-z-index-video-interactive: 50;
 							image-rendering: pixelated;
 							margin-top: 1px;
 							width: 100%;
+						}
+
+						&.invalid {
+							border: 1px solid red;
+							box-shadow: 0 0 2px 4px rgba(255, 0, 0, 0.5);
 						}
 					}
 
