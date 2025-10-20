@@ -624,7 +624,6 @@ class VideoEditorEngine {
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 									);
 								}
-								// Extended
 								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 									offscreenCanvasContext.strokeStyle = 'white';
@@ -634,6 +633,28 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 									);
+								}
+
+								// Extended
+								if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+									if (
+										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 ||
+										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
+									) {
+										if ((value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
+											offscreenCanvasContext.strokeStyle = '#fff700';
+										} else {
+											offscreenCanvasContext.strokeStyle = '#7f7f7f';
+										}
+
+										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+										offscreenCanvasContext.strokeRect(
+											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										);
+									}
 								}
 							}
 							// Character

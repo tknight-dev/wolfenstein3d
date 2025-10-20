@@ -807,16 +807,18 @@ class VideoMainEngine {
 							actionDie(characterNPC);
 
 							// Spawn ammo drop
-							if (gameMapGridData[characterNPC.gridIndex] === GameGridCellMasksAndValues.FLOOR) {
-								gameMapGridData[characterNPC.gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-							} else if (gameMapGridData[characterNPC.gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
-								gameMapGridData[characterNPC.gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-							} else if (gameMapGridData[characterNPC.gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
-								gameMapGridData[characterNPC.gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-							} else if (gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-								gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-							} else if (gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-								gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							if (characterNPC.type !== AssetIdImgCharacterType.RAT) {
+								if (gameMapGridData[characterNPC.gridIndex] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[characterNPC.gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								} else if (gameMapGridData[characterNPC.gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[characterNPC.gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								} else if (gameMapGridData[characterNPC.gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[characterNPC.gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								} else if (gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								} else if (gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								}
 							}
 						}
 

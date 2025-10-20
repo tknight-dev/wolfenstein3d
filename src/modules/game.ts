@@ -249,6 +249,8 @@ export class Game {
 
 			DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
+			Game.gameMusicPlay(Game.mapBackup.music);
+
 			CalcMainBus.outputMap(Game.mapBackup);
 			CalcPathBus.outputMap(Game.mapBackup);
 			VideoEditorBus.outputMap(Game.mapBackup);
@@ -512,19 +514,6 @@ export class Game {
 		DOM.elIconsTop.classList.remove('intro');
 		DOM.elScreenActive.style.display = 'none';
 
-		// Music
-		if (Game.musicInstance !== null) {
-			GamingCanvas.audioControlStop(Game.musicInstance);
-		}
-		Game.musicInstance = await GamingCanvas.audioControlPlay(
-			AssetIdAudio.AUDIO_MUSIC_LVL1,
-			GamingCanvasAudioType.MUSIC,
-			true,
-			0,
-			0,
-			(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-		);
-
 		// Difficulty
 		DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
 		Settings.set(true);
@@ -551,6 +540,8 @@ export class Game {
 		Game.viewport.apply(Game.camera, false);
 
 		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+
+		Game.gameMusicPlay(Game.mapBackup.music);
 
 		CalcMainBus.outputMap(Game.mapBackup);
 		CalcPathBus.outputMap(Game.mapBackup);
@@ -1003,6 +994,21 @@ export class Game {
 				DOM.elGameMenuPistol.style.top = Game.gameMenuIndex * 80 + 20 + 'px';
 			}
 		};
+	}
+
+	public static async gameMusicPlay(assetId: AssetIdAudio): Promise<number | null> {
+		if (Game.musicInstance !== null) {
+			GamingCanvas.audioControlStop(Game.musicInstance);
+		}
+		Game.musicInstance = await GamingCanvas.audioControlPlay(
+			assetId,
+			GamingCanvasAudioType.MUSIC,
+			true,
+			0,
+			0,
+			(<AssetPropertiesAudio>assetsAudio.get(assetId)).volume,
+		);
+		return Game.musicInstance;
 	}
 
 	public static initializeDomInteractive(): void {
@@ -1886,17 +1892,7 @@ export class Game {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
 				setTimeout(async () => {
-					if (Game.musicInstance !== null) {
-						GamingCanvas.audioControlStop(Game.musicInstance);
-					}
-					Game.musicInstance = await GamingCanvas.audioControlPlay(
-						AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL,
-						GamingCanvasAudioType.MUSIC,
-						true,
-						0,
-						0,
-						(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-					);
+					Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
 				}, 1500);
 			}, 500);
 
@@ -2326,7 +2322,6 @@ export class Game {
 						fovDistanceMax: 20,
 						health: 100,
 						id: id,
-						runningSpeed: 0.00055,
 						seenAngleById: new Map(),
 						seenDistanceById: new Map(),
 						seenLOSById: new Map(),
@@ -2336,7 +2331,6 @@ export class Game {
 						timestampUnixState: 0,
 						type: Game.editorAssetCharacterType,
 						walking: characterWalking,
-						walkingSpeed: 0.000275,
 					});
 
 					DOM.elEditorPropertiesCharacterInputId.value = String(id);
@@ -2351,6 +2345,9 @@ export class Game {
 		};
 
 		const inspect = (position: GamingCanvasInputPosition) => {
+			down = false;
+			downMode = false;
+
 			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
@@ -2744,6 +2741,7 @@ export class Game {
 								}
 								Game.inputSuspend = true;
 								Game.pause(true);
+								GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
 								let assetIdMapNext: AssetIdMap = Game.mapBackup.id - (Game.mapBackup.id % 10) + (level - 1);
 
@@ -2763,6 +2761,8 @@ export class Game {
 								Game.viewport.apply(Game.camera, false);
 
 								DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+
+								Game.gameMusicPlay(Game.mapBackup.music);
 
 								CalcMainBus.outputMap(Game.mapBackup);
 								CalcPathBus.outputMap(Game.mapBackup);

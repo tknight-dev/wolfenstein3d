@@ -200,12 +200,16 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 	public static async introMusic(): Promise<void> {
 		if (Game.musicInstance === null) {
-			Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_MENU, GamingCanvasAudioType.MUSIC, true, -1, 0, 0);
+			Game.musicInstance = await GamingCanvas.audioControlPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING, GamingCanvasAudioType.MUSIC, true, -1, 0, 0);
 			if (Game.musicInstance !== null) {
 				GamingCanvas.audioControlPan(Game.musicInstance, 1, 5000, (instance: number) => {
 					GamingCanvas.audioControlPan(instance, 0, 5000);
 				});
-				GamingCanvas.audioControlVolume(Game.musicInstance, (<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_MENU)).volume || 1, 5000);
+				GamingCanvas.audioControlVolume(
+					Game.musicInstance,
+					(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_WONDERING)).volume || 1,
+					5000,
+				);
 			}
 		}
 	}

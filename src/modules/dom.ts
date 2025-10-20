@@ -11,6 +11,8 @@ import {
 	assetsImages,
 	assetsImageCharacters,
 	AssetIdMap,
+	AssetIdMusicLevels,
+	assetsAudio,
 } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
@@ -48,6 +50,9 @@ export class DOM {
 	public static elEditorCommandResetMap: HTMLElement;
 	public static elEditorContainerCharacters: HTMLElement;
 	public static elEditorContainerCharactersGuardContent: HTMLElement;
+	public static elEditorContainerCharactersOfficerContent: HTMLElement;
+	public static elEditorContainerCharactersRatContent: HTMLElement;
+	public static elEditorContainerCharactersSSContent: HTMLElement;
 	public static elEditorContainerObjects: HTMLElement;
 	public static elEditorContainerObjectsPickups: HTMLElement;
 	public static elEditorContainerObjectsPickupsContent: HTMLElement;
@@ -162,6 +167,7 @@ export class DOM {
 	public static elMetaMapCancel: HTMLElement;
 	public static elMetaMapLocation: HTMLElement;
 	public static elMetaMapValueId: HTMLInputElement;
+	public static elMetaMapValueMusic: HTMLInputElement;
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
@@ -321,6 +327,9 @@ export class DOM {
 		DOM.elEditorCommandResetMap = <HTMLElement>document.getElementById('editor-cell-command-toggle-reset');
 		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-cell-container-characters');
 		DOM.elEditorContainerCharactersGuardContent = <HTMLElement>document.getElementById('editor-cell-container-characters-guard-content');
+		DOM.elEditorContainerCharactersOfficerContent = <HTMLElement>document.getElementById('editor-cell-container-characters-officer-content');
+		DOM.elEditorContainerCharactersRatContent = <HTMLElement>document.getElementById('editor-cell-container-characters-rat-content');
+		DOM.elEditorContainerCharactersSSContent = <HTMLElement>document.getElementById('editor-cell-container-characters-ss-content');
 		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-cell-container-objects');
 		DOM.elEditorContainerObjectsPickups = <HTMLElement>document.getElementById('editor-cell-container-pickups');
 		DOM.elEditorContainerObjectsPickupsContent = <HTMLElement>document.getElementById('editor-cell-container-pickups-content');
@@ -550,16 +559,8 @@ export class DOM {
 		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
 		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
 		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
-
 		DOM.elMetaMapValueId = <HTMLInputElement>document.getElementById('meta-map-value-id');
-		let option: HTMLOptionElement;
-		for (let i = 0; i < 60; i++) {
-			option = document.createElement('option');
-			option.innerText = AssetIdMap[i];
-			option.value = String(i);
-			DOM.elMetaMapValueId.appendChild(option);
-		}
-
+		DOM.elMetaMapValueMusic = <HTMLInputElement>document.getElementById('meta-map-value-music');
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
@@ -749,7 +750,14 @@ export class DOM {
 						elementContainer = DOM.elEditorContainerCharactersGuardContent;
 						break;
 					case AssetIdImgCharacterType.OFFICER:
-						continue;
+						elementContainer = DOM.elEditorContainerCharactersOfficerContent;
+						break;
+					case AssetIdImgCharacterType.RAT:
+						elementContainer = DOM.elEditorContainerCharactersRatContent;
+						break;
+					case AssetIdImgCharacterType.SS:
+						elementContainer = DOM.elEditorContainerCharactersSSContent;
+						break;
 				}
 
 				elementContent = document.createElement('div');
@@ -828,6 +836,21 @@ export class DOM {
 		DOM.elGameMenuDifficultyHead3.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_HARD)})`;
 		DOM.elGameMenuDifficultyHead4.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_INSANE)})`;
 		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
+
+		// Meta menu options
+		let option: HTMLOptionElement;
+		for (let i = 0; i < 60; i++) {
+			option = document.createElement('option');
+			option.innerText = AssetIdMap[i];
+			option.value = String(i);
+			DOM.elMetaMapValueId.appendChild(option);
+		}
+		for (let assetIdAudio of AssetIdMusicLevels) {
+			option = document.createElement('option');
+			option.innerText = (assetsAudio.get(assetIdAudio) || {}).title || '???';
+			option.value = String(assetIdAudio);
+			DOM.elMetaMapValueMusic.appendChild(option);
+		}
 
 		DOM.elPlayerOverlay1AmmoTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_AMMO)})`;
 		DOM.elPlayerOverlay1HealthTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_HEALTH)})`;

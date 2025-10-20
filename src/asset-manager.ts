@@ -404,6 +404,12 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_MENU_SELECT_DOUBLE = 17,
 	AUDIO_EFFECT_NOTHING_TO_DO = 18,
 	AUDIO_EFFECT_PISTOL = 19,
+	AUDIO_EFFECT_RAT_DEATH = 40,
+	AUDIO_EFFECT_RAT_FIRE = 41,
+	AUDIO_EFFECT_RAT_SURPRISE = 42,
+	AUDIO_EFFECT_SS_DEATH = 43,
+	AUDIO_EFFECT_SS_FIRE = 44,
+	AUDIO_EFFECT_SS_SURPRISE = 45,
 	AUDIO_EFFECT_SUB_MACHINE_GUN = 20,
 	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP = 21,
 	AUDIO_EFFECT_SWITCH = 22,
@@ -413,11 +419,13 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_TREASURE_CUP = 26,
 	AUDIO_EFFECT_WALL_HIT = 27,
 	AUDIO_EFFECT_WALL_MOVE = 28,
-	AUDIO_MUSIC_END_OF_LEVEL = 29,
-	AUDIO_MUSIC_LVL1 = 30,
-	AUDIO_MUSIC_MENU = 31,
-	AUDIO_MUSIC_MENU_INTRO = 32,
+	AUDIO_MUSIC_END_OF_LEVEL = 10000,
+	AUDIO_MUSIC_GET_THEM = 10001,
+	AUDIO_MUSIC_SEARCHN = 10002,
+	AUDIO_MUSIC_WONDERING = 10003,
 }
+
+export const AssetIdMusicLevels: AssetIdAudio[] = [AssetIdAudio.AUDIO_MUSIC_GET_THEM, AssetIdAudio.AUDIO_MUSIC_SEARCHN];
 
 export enum AssetIdImg {
 	NULL = 0,
@@ -442,14 +450,25 @@ export enum AssetIdImg {
 	SPRITE_BANNER_BARREL_GREEN = 59,
 	SPRITE_BANNER_BARREL_WOOD = 60,
 	SPRITE_BASKET = 61,
+	SPRITE_BED = 80,
+	SPRITE_BLOOD = 81,
+	SPRITE_BONE_RUBISH_1 = 75,
+	SPRITE_BONE_RUBISH_2 = 76,
+	SPRITE_BONE_RUBISH_3 = 77,
 	SPRITE_BONE_PILE = 62,
+	SPRITE_CAGE = 78,
+	SPRITE_CAGE_SKELETON = 79,
 	SPRITE_EXTRA_LIFE = 63,
+	SPRITE_FAUCET = 81,
 	SPRITE_FLAG = 8,
+	SPRITE_FURNACE = 82,
 	SPRITE_FOOD = 9,
 	SPRITE_FOOD_DOG = 10,
 	SPRITE_GUARD_CORPSE = 56,
 	SPRITE_KEY1 = 72,
 	SPRITE_KEY2 = 73,
+	SPRITE_KITCHEN_UTENSILS_1 = 83,
+	SPRITE_KITCHEN_UTENSILS_2 = 84,
 	SPRITE_LIGHT_CEILING_OFF = 11,
 	SPRITE_LIGHT_CEILING_ON = 12,
 	SPRITE_LIGHT_CHANDELIER_OFF = 13,
@@ -462,9 +481,13 @@ export enum AssetIdImg {
 	SPRITE_METAL_DOOR_INSIDE = 19,
 	// SPRITE_METAL_DOOR_INSIDE2 = 20,
 	// SPRITE_METAL_DOOR_LOCKED = 21,
+	SPRITE_PILLAR_STONE = 85,
 	SPRITE_POTTED_PLANT = 22,
 	SPRITE_POTTED_TREE = 23,
 	SPRITE_SKELETON = 25,
+	SPRITE_SKELETON_BLOOD = 86,
+	SPRITE_SKELETON_HANGING = 87,
+	SPRITE_SPEARS = 88,
 	SPRITE_SUB_MACHINE_GUN = 24,
 	SPRITE_TABLE = 26,
 	SPRITE_TABLE_CHAIRS = 27,
@@ -558,7 +581,8 @@ export enum AssetIdImgCharacter {
 	DIE3 = 4,
 	DIE4 = 5,
 	FIRE = 6,
-	HIT = 7,
+	HIT1 = 7,
+	HIT2 = 50,
 	MOVE1_E = 8,
 	MOVE1_N = 9,
 	MOVE1_NE = 10,
@@ -599,7 +623,7 @@ export enum AssetIdImgCharacter {
 	STAND_SE = 46,
 	STAND_SW = 47,
 	STAND_W = 48,
-	SUPRISE = -1,
+	SUPRISE = 49,
 }
 
 export enum AssetIdImgMenu {
@@ -792,8 +816,10 @@ const assetIdImgCharacterMovementAll: AssetIdImgCharacter[][] = [
 const assetIdImgCharacterMovementAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
 
 export enum AssetIdImgCharacterType {
-	GUARD,
-	OFFICER,
+	GUARD = 0,
+	OFFICER = 1,
+	RAT = 3,
+	SS = 2,
 }
 
 export enum AssetIdMap {
@@ -913,6 +939,7 @@ export const assetsMaps: Map<AssetIdMap, AssetPropertiesMap> = new Map();
 export const initializeAssetManager = async (audioOnly?: boolean) => {
 	let cAngle: number,
 		cAssetIdImgCharacter: AssetIdImgCharacter,
+		cAuthor: string,
 		cDir: string,
 		cFilePrefix: string,
 		cHide: boolean,
@@ -1177,6 +1204,60 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.75,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_RAT_DEATH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/rat_death.mp3',
+		title: 'Rat Death',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_RAT_FIRE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/rat_fire.mp3',
+		title: 'Rat Fire',
+		volume: 1,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_RAT_SURPRISE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/rat_surprise.mp3',
+		title: 'Rat Surprise',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SS_DEATH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/ss_death.mp3',
+		title: 'SS Death',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SS_FIRE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/ss_fire.mp3',
+		title: 'SS Fire',
+		volume: 1,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SS_SURPRISE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/ss_surprise.mp3',
+		title: 'SS Surprise',
+		volume: 0.75,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN, {
 		author: 'Id Software',
 		effect: true,
@@ -1271,7 +1352,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_LVL1, {
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_GET_THEM, {
 		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
@@ -1280,7 +1361,16 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MENU, {
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_SEARCHN, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/searching_for_the_enemy.mp3',
+		title: 'Searching For The Enemy',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_WONDERING, {
 		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
@@ -1301,14 +1391,28 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			switch (characterType) {
 				case AssetIdImgCharacterType.GUARD:
+					cAuthor = 'Id Software';
 					cDir = 'guard';
 					cHide = false;
 					cName = 'Guard';
 					break;
 				case AssetIdImgCharacterType.OFFICER:
+					cAuthor = 'Id Software';
 					cDir = 'officer';
 					cHide = true;
 					cName = 'Officer';
+					break;
+				case AssetIdImgCharacterType.RAT:
+					cAuthor = 'Capstone Software';
+					cDir = 'rat';
+					cHide = true;
+					cName = 'Rat';
+					break;
+				case AssetIdImgCharacterType.SS:
+					cAuthor = 'Id Software';
+					cDir = 'ss';
+					cHide = true;
+					cName = 'SS';
 					break;
 			}
 
@@ -1321,7 +1425,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.AIM, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/aim.png`,
@@ -1331,7 +1435,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.CORPSE, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/corpse.png`,
@@ -1341,7 +1445,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.DIE1, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/die1.png`,
@@ -1351,7 +1455,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.DIE2, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/die2.png`,
@@ -1361,7 +1465,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.DIE3, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/die3.png`,
@@ -1371,7 +1475,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.DIE4, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/die4.png`,
@@ -1381,7 +1485,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 
 			cInstance.set(AssetIdImgCharacter.FIRE, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/fire.png`,
@@ -1389,19 +1493,29 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 				title: `${cName} Fire`,
 			});
 
-			cInstance.set(AssetIdImgCharacter.HIT, {
+			cInstance.set(AssetIdImgCharacter.HIT1, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit.png`,
+				file: `img/character/${cDir}/hit1.png`,
 				hide: cHide,
-				title: `${cName} Hit`,
+				title: `${cName} Hit1`,
+			});
+
+			cInstance.set(AssetIdImgCharacter.HIT2, {
+				alpha: true,
+				author: cAuthor,
+				category: AssetImgCategory.CHARACTER,
+				ext: AssetExtImg.PNG,
+				file: `img/character/${cDir}/hit2.png`,
+				hide: cHide,
+				title: `${cName} Hit2`,
 			});
 
 			cInstance.set(AssetIdImgCharacter.SUPRISE, {
 				alpha: true,
-				author: 'Id Software',
+				author: cAuthor,
 				category: AssetImgCategory.CHARACTER,
 				ext: AssetExtImg.PNG,
 				file: `img/character/${cDir}/surprise.png`,
@@ -1449,7 +1563,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 					cInstance.set(cAssetIdImgCharacter, {
 						alpha: true,
 						angle: cAngle,
-						author: 'Id Software',
+						author: cAuthor,
 						category: AssetImgCategory.CHARACTER,
 						ext: AssetExtImg.PNG,
 						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
@@ -1525,6 +1639,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Basket',
 		});
 
+		assetsImages.set(AssetIdImg.SPRITE_BED, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/bed.png',
+			title: 'Bed',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BLOOD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/blood.png',
+			title: 'Blood',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_BONE_PILE, {
 			alpha: true,
 			author: 'Id Software',
@@ -1532,6 +1664,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/bone_pile.png',
 			title: 'Bone Pile',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BONE_RUBISH_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/bone_rubish_1.png',
+			title: 'Bone Rubish 1',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BONE_RUBISH_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/bone_rubish_2.png',
+			title: 'Bone Rubish 2',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BONE_RUBISH_3, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/bone_rubish_3.png',
+			title: 'Bone Rubish 3',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_BANNER_BARREL_GREEN, {
@@ -1554,6 +1713,26 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Barrel Wood',
 		});
 
+		assetsImages.set(AssetIdImg.SPRITE_CAGE, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/cage.png',
+			title: 'Cage',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_CAGE_SKELETON, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/cage_skeleton.png',
+			title: 'Cage Skeleton',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_ELEVATOR_DOOR, {
 			alpha: false,
 			author: 'Id Software',
@@ -1570,6 +1749,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/extra_life.png',
 			title: 'Extra Life',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_FAUCET, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/faucet.png',
+			title: 'Faucet',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_FLAG, {
@@ -1600,6 +1788,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Food (Dog)',
 		});
 
+		assetsImages.set(AssetIdImg.SPRITE_FURNACE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/furnace.png',
+			title: 'Furnace',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_GUARD_CORPSE, {
 			alpha: true,
 			author: 'Id Software',
@@ -1625,6 +1822,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/key_2.png',
 			title: 'Key 2',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_KITCHEN_UTENSILS_1, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/kitchen_utensils.png',
+			title: 'Kitchen Utensils 1',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_KITCHEN_UTENSILS_2, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/kitchen_utensils2.png',
+			title: 'Kitchen Utensils 2',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_LIGHT_CEILING_OFF, {
@@ -1729,6 +1944,16 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Metal Door Locked',
 		});
 
+		assetsImages.set(AssetIdImg.SPRITE_PILLAR_STONE, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/pillar_stone.png',
+			title: 'Pillar Stone',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_POTTED_PLANT, {
 			alpha: true,
 			author: 'Id Software',
@@ -1756,6 +1981,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/skeleton.png',
 			title: 'Skeleton',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_SKELETON_BLOOD, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/skeleton_blood.png',
+			title: 'Skeleton Blood',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_SKELETON_HANGING, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/skeleton_hanging.png',
+			title: 'Skeleton Hanging',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_SPEARS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/spears.png',
+			title: 'Spears',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_SUB_MACHINE_GUN, {
