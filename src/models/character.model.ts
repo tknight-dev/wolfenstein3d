@@ -59,6 +59,7 @@ export const CharacterMetaEncode = (character: Character): Uint16Array => {
 export interface CharacterNPC extends GamingCanvasGridCharacter {
 	assetId: AssetIdImgCharacter;
 	difficulty: GameDifficulty;
+	fireCount?: number;
 	health: number;
 	id: number;
 	running?: boolean;

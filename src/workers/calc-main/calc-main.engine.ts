@@ -1898,6 +1898,7 @@ class CalcMainEngine {
 					gameMapNPCByGridIndex.clear();
 					gameMapNPCShootAt.clear();
 					for (characterNPC of gameMapNPCById.values()) {
+						characterNPC.fireCount = 0;
 						characterNPC.timestampUnixState = timestampUnixEff;
 						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
@@ -2525,6 +2526,7 @@ class CalcMainEngine {
 												}
 
 												characterNPC.assetId = AssetIdImgCharacter.FIRE;
+												(<any>characterNPC).fireCount++;
 												characterNPC.timestampUnixState = timestampUnix;
 
 												characterNPCUpdated.add(characterNPC.id);
@@ -2537,24 +2539,34 @@ class CalcMainEngine {
 												characterNPCUpdated.add(characterNPC.id);
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
 											}
-
-											gameMapNPCShootAt.delete(characterNPC.id);
 										}
 										break;
 									case CharacterNPCState.CORPSE:
 										break;
 									case CharacterNPCState.FIRE:
-										if (timestampUnix - characterNPC.timestampUnixState > 250) {
+										if (
+											characterNPC.type === AssetIdImgCharacterType.SS &&
+											(<any>characterNPC).fireCount < 8 &&
+											characterNPCDistance !== GamingCanvasConstIntegerMaxSafe
+										) {
+											characterNPC.timestampUnixState = timestampUnix - 400;
+											characterNPCUpdated.add(characterNPC.id);
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+										} else if (timestampUnix - characterNPC.timestampUnixState > 250) {
 											characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+											(<any>characterNPC).fireCount = 0;
 											characterNPC.timestampUnixState = timestampUnix;
 
 											characterNPCUpdated.add(characterNPC.id);
 											characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+
+											gameMapNPCShootAt.delete(characterNPC.id);
 										}
 										break;
 									case CharacterNPCState.HIT:
 										if (timestampUnix - characterNPC.timestampUnixState > 500) {
 											characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+											(<any>characterNPC).fireCount = 0;
 											characterNPC.timestampUnixState = timestampUnix;
 
 											characterNPCUpdated.add(characterNPC.id);
@@ -2650,7 +2662,7 @@ class CalcMainEngine {
 
 										if (
 											(characterNPC.type === AssetIdImgCharacterType.RAT && characterNPCDistance < 2) ||
-											(characterNPC.type !== AssetIdImgCharacterType.RAT && characterNPCDistance === GamingCanvasConstIntegerMaxSafe)
+											(characterNPC.type !== AssetIdImgCharacterType.RAT && characterNPCDistance !== GamingCanvasConstIntegerMaxSafe)
 										) {
 											if (timestampUnix - characterNPC.timestampUnixState > 1000) {
 												characterNPC.assetId = AssetIdImgCharacter.AIM;
