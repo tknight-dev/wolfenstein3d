@@ -2597,40 +2597,54 @@ export class Game {
 				}
 				characterPlayerInputPlayer.type === GamingCanvasInputType.GAMEPAD;
 
-				if (input.propriatary.axes !== undefined) {
-					characterPlayerInputPlayer.x = input.propriatary.axes[0];
-					characterPlayerInputPlayer.y = input.propriatary.axes[1];
-					characterPlayerInputPlayer.r = input.propriatary.axes[2];
-				}
-
-				if (input.propriatary.buttons !== undefined) {
-					if (
-						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] === true &&
-						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.B__O] === true &&
-						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.X__TRIANGE] === true &&
-						input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.Y__SQUARE] === true
-					) {
-						cheatCodeCheck(player1, true);
-					} else {
-						characterPlayerInputPlayer.action =
-							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] ||
-							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__LEFT] ||
-							false;
-						characterPlayerInputPlayer.fire =
-							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] ||
-							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__RIGHT] ||
-							false;
-
+				if (Game.gameMenuActive === true) {
+					if (input.propriatary.buttons !== undefined) {
 						if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__DOWN] === true) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
-						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__LEFT] === true) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
-						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__RIGHT] === true) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+							Game.gameMenuAction(GameMenuAction.DOWN);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] === true) {
+							Game.gameMenuAction(GameMenuAction.ENTER);
+						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.B__O] === true) {
+							Game.gameMenuAction(GameMenuAction.ESC);
 						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
-						} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.MENU__OPTIONS] === true) {
-							Game.gameMenu();
+							Game.gameMenuAction(GameMenuAction.UP);
+						}
+					}
+				} else {
+					if (input.propriatary.axes !== undefined) {
+						characterPlayerInputPlayer.x = input.propriatary.axes[0];
+						characterPlayerInputPlayer.y = input.propriatary.axes[1];
+						characterPlayerInputPlayer.r = input.propriatary.axes[2];
+					}
+
+					if (input.propriatary.buttons !== undefined) {
+						if (
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] === true &&
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.B__O] === true &&
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.X__TRIANGE] === true &&
+							input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.Y__SQUARE] === true
+						) {
+							cheatCodeCheck(player1, true);
+						} else {
+							characterPlayerInputPlayer.action =
+								input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.A__X] ||
+								input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__LEFT] ||
+								false;
+							characterPlayerInputPlayer.fire =
+								input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.BUMPER__RIGHT] ||
+								input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.STICK__RIGHT] ||
+								false;
+
+							if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__DOWN] === true) {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__LEFT] === true) {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__RIGHT] === true) {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
+								CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.MENU__OPTIONS] === true) {
+								Game.gameMenu();
+							}
 						}
 					}
 				}
