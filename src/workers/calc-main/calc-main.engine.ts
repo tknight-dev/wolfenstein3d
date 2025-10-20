@@ -326,6 +326,7 @@ class CalcMainEngine {
 		characterPlayer.key1 = true;
 		characterPlayer.key2 = true;
 		characterPlayer.lives = Math.max(3, characterPlayer.lives);
+		characterPlayer.score = 0;
 
 		if (characterPlayer.weapons.length !== 4) {
 			characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
