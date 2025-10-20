@@ -115,6 +115,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcMainBusInputCmd.CHEAT_CODE:
 			CalcMainEngine.inputCheatCode(<boolean>payload.data);
 			break;
+		case CalcMainBusInputCmd.DEBUG_HIT:
+			CalcMainEngine.inputDebugHit();
+			break;
 		case CalcMainBusInputCmd.MAP:
 			CalcMainEngine.inputMap(<GameMap>payload.data);
 			break;
@@ -171,6 +174,7 @@ class CalcMainEngine {
 	private static characterPlayer2: Character;
 	private static characterPlayer2Meta: CalcMainBusOutputDataActionPlayerMeta;
 	private static characterPlayer2Firing: boolean;
+	private static debugHit: boolean;
 	private static gameMap: GameMap;
 	private static gameMapEnd: boolean;
 	private static gameMapNew: boolean;
@@ -343,6 +347,10 @@ class CalcMainEngine {
 				},
 			]);
 		}
+	}
+
+	public static inputDebugHit(): void {
+		CalcMainEngine.debugHit = true;
 	}
 
 	public static inputMap(data: GameMap): void {
@@ -1845,6 +1853,11 @@ class CalcMainEngine {
 						characterPlayer1Input.x = 0;
 						characterPlayer1Input.y = 0;
 					}
+				}
+
+				if (CalcMainEngine.debugHit === true) {
+					CalcMainEngine.debugHit = false;
+					actionPlayerHit(true, 0, 20, 20, CharacterWeapon.PISTOL);
 				}
 
 				if (CalcMainEngine.gameMapEnd === true) {

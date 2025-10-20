@@ -80,6 +80,7 @@ export enum CalcMainBusInputCmd {
 	CAMERA,
 	CHARACTER_INPUT,
 	CHEAT_CODE,
+	DEBUG_HIT,
 	INIT,
 	MAP,
 	MAP_END,

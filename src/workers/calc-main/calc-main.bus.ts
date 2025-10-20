@@ -188,6 +188,13 @@ export class CalcMainBus {
 		});
 	}
 
+	public static outputDebugHit(): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.DEBUG_HIT,
+			data: undefined,
+		});
+	}
+
 	public static outputMap(data: GameMap): void {
 		CalcMainBus.worker.postMessage({
 			cmd: CalcMainBusInputCmd.MAP,

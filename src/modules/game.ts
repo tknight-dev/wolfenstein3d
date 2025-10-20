@@ -2741,6 +2741,21 @@ export class Game {
 							CalcMainBus.outputMapEnd();
 						}
 						break;
+					case 'KeyF':
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
+R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
+X: ${camera.x | 0}
+Y: ${camera.y | 0}`);
+						}
+						break;
+					case 'KeyH':
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							CalcMainBus.outputDebugHit();
+						}
+						break;
 					case 'KeyI':
 					case 'KeyL':
 					case 'KeyM':
