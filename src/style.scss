@@ -421,7 +421,7 @@ $main-z-index-video-interactive: 50;
 
 			.extended {
 				border: 2px solid white;
-				height: 205px;
+				height: 255px;
 				left: auto;
 				overflow: hidden;
 				position: absolute;
@@ -443,6 +443,7 @@ $main-z-index-video-interactive: 50;
 				display: flex;
 				height: 20px;
 				justify-content: space-between;
+				position: relative;
 				top: 0;
 
 				.arrow,
@@ -460,6 +461,16 @@ $main-z-index-video-interactive: 50;
 					&:hover {
 						cursor: pointer;
 					}
+				}
+
+				.episode-level {
+					left: 20px;
+					pointer-events: none;
+					position: absolute;
+					right: 20px;
+					text-align: center;
+					top: 0;
+					touch-action: none;
 				}
 			}
 
@@ -1215,6 +1226,12 @@ $main-z-index-video-interactive: 50;
 							max-width: 600px;
 						}
 
+						&.mouse {
+							aspect-ratio: 1.431034483;
+							background: url('assets/controls/mouse.svg');
+							max-width: 350px;
+						}
+
 						&.touch {
 							aspect-ratio: 0.714207351;
 							background: url('assets/controls/touch.svg');
@@ -1470,10 +1487,14 @@ $main-z-index-video-interactive: 50;
 					align-items: center;
 					bottom: 0;
 					display: flex;
-					font-size: 20px;
-					font-weight: bold;
 					justify-content: center;
+					padding: 5px;
 					top: 23px;
+
+					img {
+						height: 100%;
+						image-rendering: pixelated;
+					}
 				}
 
 				&.small {
@@ -1487,10 +1508,14 @@ $main-z-index-video-interactive: 50;
 						border-left: 1px solid rgba(255, 255, 255, 0.5);
 						border-right: 1px solid rgba(0, 0, 0, 0.5);
 						border-top: 1px solid rgba(255, 255, 255, 0.5);
+						box-shadow: none;
 						height: 50%;
 						left: 0;
 						padding: 1px;
 						position: absolute;
+						transition:
+							border 1s linear,
+							box-shadow 1s linear;
 						right: 0;
 
 						.key {
@@ -1501,6 +1526,11 @@ $main-z-index-video-interactive: 50;
 							image-rendering: pixelated;
 							margin-top: 1px;
 							width: 100%;
+						}
+
+						&.invalid {
+							border: 1px solid red;
+							box-shadow: 0 0 2px 4px rgba(255, 0, 0, 0.5);
 						}
 					}
 
@@ -1552,76 +1582,116 @@ $main-z-index-video-interactive: 50;
 				background-color: #004141;
 				z-index: $main-z-index-screen-end-level;
 
-				.image,
-				.stats {
-					position: absolute;
-					top: 10%;
-				}
+				table {
+					tr {
+						td {
+							&.image {
+								padding-right: 10px;
+								position: relative;
+								width: 30%;
 
-				.image {
-					align-items: center;
-					aspect-ratio: 1;
-					display: flex;
-					justify-content: center;
-					left: 10%;
-					max-height: 50%;
-					width: 33%;
+								img {
+									display: block;
+									height: 100%;
+									left: 5%;
+									image-rendering: pixelated;
+									object-fit: contain;
+									object-position: center;
+									position: absolute;
+									top: 0;
+									width: 90%;
+								}
 
-					img {
-						display: block;
-						height: 100%;
-						left: 0;
-						image-rendering: pixelated;
-						object-fit: contain;
-						object-position: center;
-						position: absolute;
-						top: 0;
-						width: 100%;
-					}
+								#screen-level-end-image2 {
+									z-index: 2;
 
-					#screen-level-end-image2 {
-						z-index: 2;
+									&.animate {
+										animation-duration: 0.85s;
+										animation-name: screen-level-end-image-rotation;
+										animation-iteration-count: infinite;
+										animation-direction: alternate;
+									}
+								}
 
-						&.animate {
-							animation-duration: 0.85s;
-							animation-name: screen-level-end-image-rotation;
-							animation-iteration-count: infinite;
-							animation-direction: alternate;
+								@keyframes screen-level-end-image-rotation {
+									from {
+										opacity: 0;
+									}
+
+									to {
+										opacity: 1;
+									}
+								}
+							}
+
+							&.text {
+								img {
+									aspect-ratio: 1;
+									height: 100px;
+									max-height: 200%;
+									min-height: 50%;
+									image-rendering: pixelated;
+								}
+							}
 						}
 					}
 
-					@keyframes screen-level-end-image-rotation {
-						from {
-							opacity: 0;
-						}
+					&.bottom {
+						height: 40%;
 
-						to {
-							opacity: 1;
+						tr {
+							td {
+								&.text {
+									text-align: right;
+
+									img {
+										width: 4.75%;
+									}
+								}
+							}
 						}
 					}
-				}
 
-				.stats {
-					bottom: 10%;
-					left: 50%;
-					right: 10%;
+					&.top {
+						height: 60%;
+
+						tr {
+							td {
+								&.text {
+									width: 70%;
+
+									img {
+										width: 8%;
+									}
+								}
+							}
+						}
+					}
 				}
 
 				@media only screen and (max-width: 465px) {
-					.image {
-						bottom: 50%;
-						left: 10px;
-						position: absolute;
-						top: 10px;
-						width: calc(100% - 20px);
-					}
+					table {
+						&.bottom {
+							tr {
+								td {
+									&.text {
+										img {
+											width: 5.25%;
+										}
+									}
+								}
+							}
+						}
 
-					.stats {
-						bottom: 0;
-						left: 0;
-						right: 0;
-						text-align: center;
-						top: 50%;
+						&.top {
+							tr {
+								td {
+									&.image {
+										display: none;
+									}
+								}
+							}
+						}
 					}
 				}
 			}

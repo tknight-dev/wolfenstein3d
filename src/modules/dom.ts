@@ -10,6 +10,9 @@ import {
 	AssetPropertiesImage,
 	assetsImages,
 	assetsImageCharacters,
+	AssetIdMap,
+	AssetIdMusicLevels,
+	assetsAudio,
 } from '../asset-manager.js';
 import packageJSON from '../../package.json' with { type: 'json' };
 
@@ -34,10 +37,12 @@ export class DOM {
 	public static elControls: HTMLElement;
 	public static elControlsBodyGamepad: HTMLElement;
 	public static elControlsBodyKeyboard: HTMLElement;
+	public static elControlsBodyMouse: HTMLElement;
 	public static elControlsBodyTouch: HTMLElement;
 	public static elControlsClose: HTMLElement;
 	public static elControlsSubGamepad: HTMLElement;
 	public static elControlsSubKeyboard: HTMLElement;
+	public static elControlsSubMouse: HTMLElement;
 	public static elControlsSubTouch: HTMLElement;
 	public static elDebug: HTMLElement;
 	public static elEdit: HTMLElement;
@@ -47,6 +52,9 @@ export class DOM {
 	public static elEditorCommandResetMap: HTMLElement;
 	public static elEditorContainerCharacters: HTMLElement;
 	public static elEditorContainerCharactersGuardContent: HTMLElement;
+	public static elEditorContainerCharactersOfficerContent: HTMLElement;
+	public static elEditorContainerCharactersRatContent: HTMLElement;
+	public static elEditorContainerCharactersSSContent: HTMLElement;
 	public static elEditorContainerObjects: HTMLElement;
 	public static elEditorContainerObjectsPickups: HTMLElement;
 	public static elEditorContainerObjectsPickupsContent: HTMLElement;
@@ -63,6 +71,7 @@ export class DOM {
 	public static elEditorFindAndReplaceValueFind: HTMLInputElement;
 	public static elEditorFindAndReplaceValueReplace: HTMLInputElement;
 	public static elEditorHandleArrow: HTMLElement;
+	public static elEditorHandleEpisodeLevel: HTMLElement;
 	public static elEditorHandleHide: HTMLElement;
 	public static elEditorItemActive: HTMLElement | undefined;
 	public static elEditorItemsCharacters: HTMLElement[] = [];
@@ -84,7 +93,7 @@ export class DOM {
 	public static elEditorPropertiesCellOutputProperties: HTMLElement;
 	public static elEditorPropertiesCellOutputValue: HTMLElement;
 	public static elEditorPropertiesCellExtended: HTMLElement;
-	public static elEditorPropertiesCellExtendedInputTeleport: HTMLInputElement;
+	public static elEditorPropertiesCellExtendedInputSwitchAlt: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoor: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoorLocked1: HTMLInputElement;
 	public static elEditorPropertiesCellExtendedInputDoorLocked2: HTMLInputElement;
@@ -159,9 +168,12 @@ export class DOM {
 	public static elMetaMapApply: HTMLElement;
 	public static elMetaMapCancel: HTMLElement;
 	public static elMetaMapLocation: HTMLElement;
+	public static elMetaMapValueId: HTMLInputElement;
+	public static elMetaMapValueMusic: HTMLInputElement;
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
 	public static elMetaMapValueStartingPositionX: HTMLInputElement;
 	public static elMetaMapValueStartingPositionY: HTMLInputElement;
+	public static elMetaMapValueTimeParInSeconds: HTMLInputElement;
 	public static elPerformance: HTMLElement;
 	public static elPerformanceCalcMain: HTMLElement;
 	public static elPerformanceCalcMainAll: HTMLElement;
@@ -216,8 +228,16 @@ export class DOM {
 	public static elScreenActive: HTMLElement;
 	public static elScreenBlack: HTMLElement;
 	public static elScreenLevelEnd: HTMLElement;
+	public static elScreenLevelEndBonus: HTMLElement;
+	public static elScreenLevelEndCompleted: HTMLElement;
 	public static elScreenLevelEndImage1: HTMLImageElement;
 	public static elScreenLevelEndImage2: HTMLImageElement;
+	public static elScreenLevelEndFloor: HTMLElement;
+	public static elScreenLevelEndRatioKill: HTMLElement;
+	public static elScreenLevelEndRatioSecret: HTMLElement;
+	public static elScreenLevelEndRatioTreasure: HTMLElement;
+	public static elScreenLevelEndTime: HTMLElement;
+	public static elScreenLevelEndTimePar: HTMLElement;
 	public static elScreenRating: HTMLElement;
 	public static elScreenStats: HTMLElement;
 	public static elScreenTitle: HTMLElement;
@@ -291,10 +311,12 @@ export class DOM {
 		DOM.elControls = <HTMLElement>document.getElementById('controls');
 		DOM.elControlsBodyGamepad = <HTMLElement>document.getElementById('controls-body-gamepad');
 		DOM.elControlsBodyKeyboard = <HTMLElement>document.getElementById('controls-body-keyboard');
+		DOM.elControlsBodyMouse = <HTMLElement>document.getElementById('controls-body-mouse');
 		DOM.elControlsBodyTouch = <HTMLElement>document.getElementById('controls-body-touch');
 		DOM.elControlsClose = <HTMLElement>document.getElementById('controls-close');
 		DOM.elControlsSubGamepad = <HTMLElement>document.getElementById('controls-sub-gamepad');
 		DOM.elControlsSubKeyboard = <HTMLElement>document.getElementById('controls-sub-keyboard');
+		DOM.elControlsSubMouse = <HTMLElement>document.getElementById('controls-sub-mouse');
 		DOM.elControlsSubTouch = <HTMLElement>document.getElementById('controls-sub-touch');
 
 		DOM.elDebug = <HTMLElement>document.getElementById('debug');
@@ -309,6 +331,9 @@ export class DOM {
 		DOM.elEditorCommandResetMap = <HTMLElement>document.getElementById('editor-cell-command-toggle-reset');
 		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-cell-container-characters');
 		DOM.elEditorContainerCharactersGuardContent = <HTMLElement>document.getElementById('editor-cell-container-characters-guard-content');
+		DOM.elEditorContainerCharactersOfficerContent = <HTMLElement>document.getElementById('editor-cell-container-characters-officer-content');
+		DOM.elEditorContainerCharactersRatContent = <HTMLElement>document.getElementById('editor-cell-container-characters-rat-content');
+		DOM.elEditorContainerCharactersSSContent = <HTMLElement>document.getElementById('editor-cell-container-characters-ss-content');
 		DOM.elEditorContainerObjects = <HTMLElement>document.getElementById('editor-cell-container-objects');
 		DOM.elEditorContainerObjectsPickups = <HTMLElement>document.getElementById('editor-cell-container-pickups');
 		DOM.elEditorContainerObjectsPickupsContent = <HTMLElement>document.getElementById('editor-cell-container-pickups-content');
@@ -340,6 +365,8 @@ export class DOM {
 				DOM.elEditorPropertiesHandleArrow.innerText = '🡠';
 			}
 		};
+
+		DOM.elEditorHandleEpisodeLevel = <HTMLElement>document.getElementById('editor-cell-handle-episode-level');
 
 		DOM.elEditorHandleHide = <HTMLElement>document.getElementById('editor-cell-handle-hide');
 		DOM.elEditorHandleHide.onclick = () => {
@@ -434,13 +461,13 @@ export class DOM {
 		DOM.elEditorPropertiesCellExtendedInputDoorLocked1 = <HTMLInputElement>document.getElementById('editor-cell-cell-extended-door-locked1');
 		DOM.elEditorPropertiesCellExtendedInputDoorLocked2 = <HTMLInputElement>document.getElementById('editor-cell-cell-extended-door-locked2');
 		DOM.elEditorPropertiesCellExtendedInputSwitch = <HTMLInputElement>document.getElementById('editor-cell-extended-switch');
-		DOM.elEditorPropertiesCellExtendedInputTeleport = <HTMLInputElement>document.getElementById('editor-cell-extended-teleport');
+		DOM.elEditorPropertiesCellExtendedInputSwitchAlt = <HTMLInputElement>document.getElementById('editor-cell-extended-switch-alt');
 		DOM.elEditorPropertiesCellExtendedInputs = [
 			DOM.elEditorPropertiesCellExtendedInputDoor,
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked1,
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked2,
 			DOM.elEditorPropertiesCellExtendedInputSwitch,
-			// DOM.elEditorPropertiesCellExtendedInputTeleport,
+			DOM.elEditorPropertiesCellExtendedInputSwitchAlt,
 		];
 
 		DOM.elEditorPropertiesCellOutputAssetId = <HTMLElement>document.getElementById('editor-properties-output-assetid');
@@ -536,9 +563,12 @@ export class DOM {
 		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
 		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
 		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
+		DOM.elMetaMapValueId = <HTMLInputElement>document.getElementById('meta-map-value-id');
+		DOM.elMetaMapValueMusic = <HTMLInputElement>document.getElementById('meta-map-value-music');
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
 		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
 		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
+		DOM.elMetaMapValueTimeParInSeconds = <HTMLInputElement>document.getElementById('meta-map-value-time-par-seconds');
 
 		DOM.elPerformance = <HTMLElement>document.getElementById('performance');
 		DOM.elPerformanceCalcMain = <HTMLElement>document.getElementById('performance-calc-main');
@@ -610,9 +640,19 @@ export class DOM {
 		DOM.elPlayerOverlay2LivesTitle = <HTMLElement>document.getElementById('player-overlay-2-lives-title');
 
 		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
+
 		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
+		DOM.elScreenLevelEndBonus = <HTMLElement>document.getElementById('screen-level-end-bonus');
+		DOM.elScreenLevelEndCompleted = <HTMLElement>document.getElementById('screen-level-end-completed');
 		DOM.elScreenLevelEndImage1 = <HTMLImageElement>document.getElementById('screen-level-end-image1');
 		DOM.elScreenLevelEndImage2 = <HTMLImageElement>document.getElementById('screen-level-end-image2');
+		DOM.elScreenLevelEndFloor = <HTMLElement>document.getElementById('screen-level-end-floor');
+		DOM.elScreenLevelEndRatioKill = <HTMLElement>document.getElementById('screen-level-end-ratio-kill');
+		DOM.elScreenLevelEndRatioSecret = <HTMLElement>document.getElementById('screen-level-end-ratio-secret');
+		DOM.elScreenLevelEndRatioTreasure = <HTMLElement>document.getElementById('screen-level-end-ratio-treasure');
+		DOM.elScreenLevelEndTime = <HTMLElement>document.getElementById('screen-level-end-time');
+		DOM.elScreenLevelEndTimePar = <HTMLElement>document.getElementById('screen-level-end-time-par');
+
 		DOM.elScreenRating = <HTMLElement>document.getElementById('screen-rating');
 		DOM.elScreenStats = <HTMLElement>document.getElementById('screen-stats');
 		DOM.elScreenTitle = <HTMLElement>document.getElementById('screen-title');
@@ -714,7 +754,14 @@ export class DOM {
 						elementContainer = DOM.elEditorContainerCharactersGuardContent;
 						break;
 					case AssetIdImgCharacterType.OFFICER:
-						continue;
+						elementContainer = DOM.elEditorContainerCharactersOfficerContent;
+						break;
+					case AssetIdImgCharacterType.RAT:
+						elementContainer = DOM.elEditorContainerCharactersRatContent;
+						break;
+					case AssetIdImgCharacterType.SS:
+						elementContainer = DOM.elEditorContainerCharactersSSContent;
+						break;
 				}
 
 				elementContent = document.createElement('div');
@@ -793,6 +840,21 @@ export class DOM {
 		DOM.elGameMenuDifficultyHead3.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_HARD)})`;
 		DOM.elGameMenuDifficultyHead4.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.DIFFICULTY_INSANE)})`;
 		DOM.elGameMenuInstructions.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.KEYS)})`;
+
+		// Meta menu options
+		let option: HTMLOptionElement;
+		for (let i = 0; i < 60; i++) {
+			option = document.createElement('option');
+			option.innerText = AssetIdMap[i];
+			option.value = String(i);
+			DOM.elMetaMapValueId.appendChild(option);
+		}
+		for (let assetIdAudio of AssetIdMusicLevels) {
+			option = document.createElement('option');
+			option.innerText = (assetsAudio.get(assetIdAudio) || {}).title || '???';
+			option.value = String(assetIdAudio);
+			DOM.elMetaMapValueMusic.appendChild(option);
+		}
 
 		DOM.elPlayerOverlay1AmmoTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_AMMO)})`;
 		DOM.elPlayerOverlay1HealthTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_HEALTH)})`;

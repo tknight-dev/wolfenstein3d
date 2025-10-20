@@ -60,6 +60,7 @@
 							<div class="header-sub">
 								<div class="hyperlink" id="controls-sub-gamepad">Gamepad</div>
 								<div class="hyperlink" id="controls-sub-keyboard">Keyboard</div>
+								<div class="hyperlink" id="controls-sub-mouse">Mouse</div>
 								<div class="hyperlink" id="controls-sub-touch">Touch</div>
 							</div>
 							<div class="body" id="controls-body-gamepad">
@@ -160,6 +161,50 @@
 											<td>Cheat Code</td>
 											<td><input autocomplete="off" disabled readonly value = "i + l + m" /></td>
 										</tr>
+										<tr>
+											<td colspan="2" style="text-align: center;">--- Editor ---</td>
+										</tr>
+										<tr>
+											<td>Erase All</td>
+											<td><input autocomplete="off" disabled readonly value = "left-shift + r" /></td>
+										</tr>
+										<tr>
+											<td colspan="2" style="text-align: center;">--- Debug (Goobers) ---</td>
+										</tr>
+										<tr>
+											<td>End Level</td>
+											<td><input autocomplete="off" disabled readonly value = "tab + e" /></td>
+										</tr>
+										<tr>
+											<td>Warp To Level</td>
+											<td><input autocomplete="off" disabled readonly value = "tab + w" /></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="body" id="controls-body-mouse">
+								<div class="image-container"><div class="image mouse"></div></div>
+								<table>
+									<tbody>
+										<tr>
+											<td colspan="2" style="text-align: center;">--- Editor ---</td>
+										</tr>
+										<tr>
+											<td>Camera: Move</td>
+											<td><input autocomplete="off" disabled readonly value = "L + Move Down/Left/Right/Up" /></td>
+										</tr>
+										<tr>
+											<td>Camera: Rotate</td>
+											<td><input autocomplete="off" disabled readonly value = "M + Move Left/Right" /></td>
+										</tr>
+										<tr>
+											<td>Place/Inspect</td>
+											<td><input autocomplete="off" disabled readonly value = "L" /></td>
+										</tr>
+										<tr>
+											<td>Zoom</td>
+											<td><input autocomplete="off" disabled readonly value = "Scroll Down/Up" /></td>
+										</tr>
 									</tbody>
 								</table>
 							</div>
@@ -203,12 +248,25 @@
 						<div class="wrapper">
 							<div class="handle">
 								<div class="arrow" id="editor-cell-handle-arrow">🡠</div>
+								<div class="episode-level"><span id="editor-cell-handle-episode-level"></span></div>
 								<div class="hide" id="editor-cell-handle-hide">_</div>
 							</div>
 							<div class="container" id="editor-cell-container-characters" style="display:none">
-								<div class="group" id="editor-cell-container-characters-group">
+								<div class="group">
 									<div class="name">Guard</div>
 									<div class="content" id="editor-cell-container-characters-guard-content"></div>
+								</div>
+								<div class="group">
+									<div class="name">Officer</div>
+									<div class="content" id="editor-cell-container-characters-officer-content"></div>
+								</div>
+								<div class="group">
+									<div class="name">Rat</div>
+									<div class="content" id="editor-cell-container-characters-rat-content"></div>
+								</div>
+								<div class="group">
+									<div class="name">SS</div>
+									<div class="content" id="editor-cell-container-characters-ss-content"></div>
 								</div>
 							</div>
 							<div class="container" id="editor-cell-container-extended" style="display:none">
@@ -268,10 +326,10 @@
 											<input autocomplete="off" class="input" id="editor-cell-extended-switch" name="editor-cell-extended-switch" type="checkbox" />
 											<div class="title">Switch</div>
 										</label>
-								<!-- 		<label class="item" for="editor-cell-extended-teleport">
-											<input autocomplete="off" class="input" id="editor-cell-extended-teleport" name="editor-cell-extended-teleport" type="checkbox" />
-											<div class="title">Teleport</div>
-										</label> -->
+										<label class="item" for="editor-cell-extended-switch-alt">
+											<input autocomplete="off" class="input" id="editor-cell-extended-switch-alt" name="editor-cell-extended-switch-alt" type="checkbox" />
+											<div class="title">Switch Alt</div>
+										</label>
 									</div>
 								</div>
 							</div>
@@ -512,7 +570,19 @@
 											</td>
 										</tr>
 										<tr>
-											<td>Starting Rotation (degrees)</td>
+											<td>Id</td>
+											<td>
+												<select autocomplete="off" id="meta-map-value-id"></select>
+											</td>
+										</tr>
+										<tr>
+											<td>Music</td>
+											<td>
+												<select autocomplete="off" id="meta-map-value-music"></select>
+											</td>
+										</tr>
+										<tr>
+											<td>Starting Angle (degrees)</td>
 											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
@@ -522,6 +592,10 @@
 										<tr>
 											<td>Starting Position Y</td>
 											<td><input autocomplete="off" id="meta-map-value-starting-position-y" min="0" step="1" type="number" /></td>
+										</tr>
+										<tr>
+											<td>Time: Par in Seconds</td>
+											<td><input autocomplete="off" id="meta-map-value-time-par-seconds" min="0" step="1" type="number" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -690,17 +764,38 @@
 					<div class="screen black" id="screen-black"></div>
 					<div class="screen level-end" id="screen-level-end">
 						<div class="wrapper">
-							<div class="image">
-								<div class="wrapper">
-									<img id="screen-level-end-image1"/>
-									<img id="screen-level-end-image2" class="animate"/>
-								</div>
-							</div>
-							<div class="stats">
-								<h1>LEVEL 1 COMPLETE!</h1><br />
-								<h3>That's it for this alpha build</h3><br />
-								<h3>Thanks for playing!</h3>
-							</div>
+							<table class="top">
+								<tr>
+									<td class="image" rowspan="5">
+										<img id="screen-level-end-image1"/>
+										<img id="screen-level-end-image2" class="animate"/>
+									</td>
+									<td class="text" id="screen-level-end-floor"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-completed"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-bonus"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-time"></td>
+								</tr>
+								<tr>
+									<td class="text" id="screen-level-end-time-par"></td>
+								</tr>
+							</table>
+							<table class="bottom">
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-kill"></td>
+								</tr>
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-secret"></td>
+								</tr>
+								<tr>
+									<td class="text"  id="screen-level-end-ratio-treasure"></td>
+								</tr>
+							</table>
 						</div>
 					</div>
 					<div class="screen rating" id="screen-rating"></div>
@@ -772,7 +867,7 @@
 											<td><input autocomplete="off" id="settings-value-game-crosshair" type="checkbox" /></td>
 										</tr>
 										<tr>
-											<td>Debug</td>
+											<td>Debug (goobers)</td>
 											<td><input autocomplete="off" id="settings-value-game-debug" type="checkbox" /></td>
 										</tr>
 										<tr>

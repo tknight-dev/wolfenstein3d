@@ -8,6 +8,7 @@ import { VideoMainBus } from '../workers/video-main/video-main.bus.js';
 import { GameDifficulty } from '../models/game.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
+import { AssetIdMap } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -107,6 +108,7 @@ export class Settings {
 					Game.settings.threadVideoMain.crosshair = String(value).toLowerCase() === 'true';
 					break;
 				case 'debug':
+				case 'goobers':
 					Game.settings.debug = String(value).toLowerCase() === 'true';
 					Game.settings.threadCalcMain.debug = Game.settings.debug;
 					Game.settings.threadCalcPath.debug = Game.settings.debug;
@@ -131,10 +133,10 @@ export class Settings {
 					Game.settings.threadVideoOverlay.player2Enable = Game.settings.threadCalcMain.player2Enable;
 					break;
 				case 'effect':
-					Game.settings.audioVolumeEffect = Math.max(0, Math.min(1, Number(value)));
+					Game.settings.audioVolumeEffect = Math.max(0, Math.min(100, Number(value) | 0)) / 100;
 					break;
 				case 'music':
-					Game.settings.audioVolumeMusic = Math.max(0, Math.min(1, Number(value)));
+					Game.settings.audioVolumeMusic = Math.max(0, Math.min(100, Number(value) | 0)) / 100;
 					break;
 				case 'res':
 					if (String(value).toLowerCase() === 'null') {
@@ -171,6 +173,7 @@ export class Settings {
 			elementInjectAsOverlay: [DOM.elEdit, DOM.elPlayerJoystick1, DOM.elPlayerJoystick2],
 			inputGamepadEnable: true,
 			inputKeyboardEnable: true,
+			inputKeyboardPreventTab: true,
 			inputMouseEnable: true,
 			inputTouchEnable: true,
 			orientationCanvasRotateEnable: false,
@@ -360,15 +363,23 @@ export class Settings {
 
 	public static setMetaMap(apply: boolean): void {
 		if (apply === true) {
+			Game.map.id = Number(DOM.elMetaMapValueId.value);
+			Game.map.music = Number(DOM.elMetaMapValueMusic.value);
 			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
 			Game.map.position.x = (Number(DOM.elMetaMapValueStartingPositionX.value) | 0) + 0.5;
 			Game.map.position.y = (Number(DOM.elMetaMapValueStartingPositionY.value) | 0) + 0.5;
+			Game.map.timeParInMS = Number(DOM.elMetaMapValueTimeParInSeconds.value) * 1000;
 		} else {
+			DOM.elMetaMapValueId.value = String(Game.map.id);
+			DOM.elMetaMapValueMusic.value = String(Game.map.music);
 			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
 			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
 			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x | 0);
 			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
 			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y | 0);
+			DOM.elMetaMapValueTimeParInSeconds.value = String((Game.map.timeParInMS / 1000) | 0);
 		}
+
+		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.map.id];
 	}
 }

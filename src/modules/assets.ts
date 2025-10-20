@@ -33,7 +33,7 @@ export class Assets {
 
 		Assets.dataMap = await assetLoaderMap();
 		for (let map of Assets.dataMap.values()) {
-			Assets.parseMap(map);
+			Assets.mapParse(map);
 		}
 
 		if (Assets.dataImageMenus === undefined) {
@@ -45,23 +45,37 @@ export class Assets {
 		Assets.dataImageMenus = <any>await assetLoaderImageMenu();
 	}
 
-	public static parseMap(map: GameMap): GameMap {
+	public static mapToJSONString(map: GameMap): string {
+		let convert: boolean = map.npcById instanceof Map === true,
+			npcById: Map<number, CharacterNPC> | undefined,
+			string: string;
+
+		if (convert === true) {
+			npcById = map.npcById;
+			map.npcById = <any>{};
+
+			for (let [i, value] of npcById.entries()) {
+				(<any>map.npcById)[String(i)] = value;
+			}
+		}
+
+		string = JSON.stringify(map);
+
+		if (convert === true) {
+			map.npcById = <any>npcById;
+		}
+
+		return string;
+	}
+
+	public static mapParse(map: GameMap): GameMap {
 		let key: string, npc: Map<number, CharacterNPC>, value: any;
 
 		map.grid = GamingCanvasGridUint16Array.from(<Uint16Array>map.grid.data);
 
-		// if ((<any>map).npc !== undefined) {
-		// 	map.npcById = (<any>map).npc;
-		// 	delete (<any>map).npc;
-		// }
-
 		if (map.npcById !== undefined) {
 			if (map.npcById instanceof Map !== true) {
-				// map.id = AssetIdMap.EPISODE_01_LEVEL01;
 				npc = new Map();
-
-				// map.position.x += 0.5;
-				// map.position.y += 0.5;
 
 				for ([key, value] of Object.entries(map.npcById)) {
 					value.camera = new GamingCanvasGridCamera(value.camera.r, value.camera.x, value.camera.y, value.camera.z);
@@ -69,12 +83,6 @@ export class Assets {
 					value.seenAngleById = new Map();
 					value.seenDistanceById = new Map();
 					value.seenLOSById = new Map();
-
-					// value.gridIndex = value.id;
-					// value.runningSpeed = 0.0011;
-					// value.walkingSpeed = 0.000275;
-					// value.walkingSpeed = 0.000275;
-
 					npc.set(Number(key), value);
 				}
 

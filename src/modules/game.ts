@@ -4,6 +4,7 @@ import {
 	AssetIdImg,
 	AssetIdImgCharacter,
 	AssetIdImgCharacterType,
+	AssetIdImgMenu,
 	AssetIdMap,
 	AssetImgCategory,
 	AssetPropertiesAudio,
@@ -11,6 +12,8 @@ import {
 	AssetPropertiesImage,
 	assetsAudio,
 	assetsImageCharacters,
+	assetsImageMenusFontEndLevel,
+	assetsImageMenusFontHUD,
 	assetsImages,
 } from '../asset-manager.js';
 import { Settings } from './settings.js';
@@ -125,6 +128,9 @@ export class Game {
 	public static map: GameMap;
 	public static mapBackup: GameMap;
 	public static mapBackupRestored: boolean;
+	public static mapEnded: boolean;
+	public static mapEnding: boolean;
+	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
@@ -151,9 +157,7 @@ export class Game {
 		threadVideoEditor: VideoEditorBusInputDataSettings;
 		threadVideoMain: VideoMainBusInputDataSettings;
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
-	} = <any>{
-		intro: true,
-	};
+	} = {} as any;
 	public static started: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
@@ -168,7 +172,7 @@ export class Game {
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
 			DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
 			DOM.elEditorPropertiesCellExtendedInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH);
-			// DOM.elEditorPropertiesCellExtendedInputTeleport.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.TELEPORT);
+			DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH_ALT);
 		}
 
 		DOM.elEditorPropertiesCellInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
@@ -207,6 +211,65 @@ export class Game {
 		DOM.elEditorPropertiesCellOutputAssetId.innerText = '0000';
 		DOM.elEditorPropertiesCellOutputProperties.innerText = '0000';
 		DOM.elEditorPropertiesCellOutputValue.innerText = '0000';
+	}
+
+	public static loadNextLevel(): void {
+		if (Game.inputSuspend === true) {
+			return;
+		}
+		Game.inputSuspend = true;
+
+		if (Game.mapBackup.id % 10 === 8) {
+			// episode complete
+		} else {
+			let assetIdMapNext: AssetIdMap;
+
+			if (Game.mapBackup.id % 10 === 9) {
+				// secret level complete
+				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
+			} else {
+				// regular level complete
+				assetIdMapNext = Game.mapBackup.id + 1;
+			}
+
+			if (Assets.dataMap.has(assetIdMapNext) !== true) {
+				alert("That's it for this build!");
+			} else {
+				// GameMap
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapEnded = false;
+				Game.mapEnding = false;
+
+				Game.camera.r = Game.map.position.r;
+				Game.camera.x = Game.map.position.x + 0.5;
+				Game.camera.y = Game.map.position.y + 0.5;
+				Game.camera.z = Game.map.position.z;
+
+				Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+				Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+				Game.viewport.apply(Game.camera, false);
+
+				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+
+				Game.gameMusicPlay(Game.mapBackup.music);
+
+				CalcMainBus.outputMap(Game.mapBackup);
+				CalcPathBus.outputMap(Game.mapBackup);
+				VideoEditorBus.outputMap(Game.mapBackup);
+				VideoMainBus.outputMap(Game.mapBackup);
+				VideoOverlayBus.outputReset();
+
+				// End menu
+				setTimeout(() => {
+					Game.gameMenu(false);
+					DOM.elIconsTop.classList.remove('intro');
+					DOM.elScreenActive.style.display = 'none';
+					Game.inputSuspend = false;
+					Game.pause(false);
+				}, 200);
+			}
+		}
 	}
 
 	/**
@@ -455,19 +518,6 @@ export class Game {
 		DOM.elIconsTop.classList.remove('intro');
 		DOM.elScreenActive.style.display = 'none';
 
-		// Music
-		if (Game.musicInstance !== null) {
-			GamingCanvas.audioControlStop(Game.musicInstance);
-		}
-		Game.musicInstance = await GamingCanvas.audioControlPlay(
-			AssetIdAudio.AUDIO_MUSIC_LVL1,
-			GamingCanvasAudioType.MUSIC,
-			true,
-			0,
-			0,
-			(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-		);
-
 		// Difficulty
 		DOM.elSettingsValueGameDifficulty.value = String(Game.gameMenuIndex);
 		Settings.set(true);
@@ -475,8 +525,10 @@ export class Game {
 		// GameMap
 		switch (Game.gameMenuEpisode) {
 			case 0:
-				Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+
+				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 				break;
 		}
 		Game.camera.r = Game.map.position.r;
@@ -484,9 +536,16 @@ export class Game {
 		Game.camera.y = Game.map.position.y + 0.5;
 		Game.camera.z = Game.map.position.z;
 
+		Game.mapEnded = false;
+		Game.mapEnding = false;
+
 		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
 		Game.viewport.apply(Game.camera, false);
+
+		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+
+		Game.gameMusicPlay(Game.mapBackup.music);
 
 		CalcMainBus.outputMap(Game.mapBackup);
 		CalcPathBus.outputMap(Game.mapBackup);
@@ -542,8 +601,8 @@ export class Game {
 				if (rawMap === null || rawMeta === null) {
 					return false;
 				}
-				const parsed: GameMap = Assets.parseMap(JSON.parse(rawMap)),
-					parsed2: GameMap = Assets.parseMap(JSON.parse(rawMap));
+				const parsed: GameMap = Assets.mapParse(JSON.parse(rawMap)),
+					parsed2: GameMap = Assets.mapParse(JSON.parse(rawMap));
 
 				// Adjust
 				Game.camera.r = parsed.position.r;
@@ -552,10 +611,14 @@ export class Game {
 				Game.camera.z = parsed.position.z;
 				Game.map = parsed;
 				Game.mapBackup = parsed2;
+				Game.mapEnded = false;
+				Game.mapEnding = false;
 
 				// Done
 				Game.gameOver = false;
 				Game.mapNew = true;
+
+				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
 				CalcMainBus.outputMap(parsed);
 				CalcPathBus.outputMap(parsed);
@@ -937,6 +1000,21 @@ export class Game {
 		};
 	}
 
+	public static async gameMusicPlay(assetId: AssetIdAudio): Promise<number | null> {
+		if (Game.musicInstance !== null) {
+			GamingCanvas.audioControlStop(Game.musicInstance);
+		}
+		Game.musicInstance = await GamingCanvas.audioControlPlay(
+			assetId,
+			GamingCanvasAudioType.MUSIC,
+			true,
+			0,
+			0,
+			(<AssetPropertiesAudio>assetsAudio.get(assetId)).volume,
+		);
+		return Game.musicInstance;
+	}
+
 	public static initializeDomInteractive(): void {
 		Game.gameMenuInitialize();
 
@@ -960,6 +1038,7 @@ export class Game {
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 
 			DOM.elControls.style.display = 'none';
@@ -973,30 +1052,48 @@ export class Game {
 		DOM.elControlsSubGamepad.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'block';
 			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'none';
 
 			DOM.elControlsSubGamepad.classList.add('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 		};
 
 		DOM.elControlsSubKeyboard.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'none';
 			DOM.elControlsBodyKeyboard.style.display = 'block';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'none';
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.add('active');
+			DOM.elControlsSubMouse.classList.remove('active');
+			DOM.elControlsSubTouch.classList.remove('active');
+		};
+
+		DOM.elControlsSubMouse.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'none';
+			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'block';
+			DOM.elControlsBodyTouch.style.display = 'none';
+
+			DOM.elControlsSubGamepad.classList.remove('active');
+			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.add('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 		};
 
 		DOM.elControlsSubTouch.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'none';
 			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'block';
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.add('active');
 		};
 
@@ -1027,21 +1124,11 @@ export class Game {
 			DOM.spinner(true);
 
 			setTimeout(() => {
-				// Convert map
-				let npcById: Map<number, CharacterNPC> = Game.map.npcById;
-				Game.map.npcById = <any>{};
-				for (let [i, value] of npcById.entries()) {
-					(<any>Game.map.npcById)[String(i)] = value;
-				}
-
 				const a: HTMLAnchorElement = document.createElement('a'),
-					downloadData = 'data:text/json;charset=utf-8,' + btoa(JSON.stringify(Game.map));
-
-				// Restore map
-				Game.map.npcById = npcById;
+					downloadData = 'data:text/json;charset=utf-8,' + btoa(Assets.mapToJSONString(Game.map));
 
 				a.classList.add('hidden');
-				a.download = 'blockenstein.map';
+				a.download = 'wolfenstein3d.map';
 				a.href = downloadData;
 
 				// Download
@@ -1160,8 +1247,8 @@ export class Game {
 
 					fileReader.onloadend = () => {
 						try {
-							const parsed: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result))),
-								parsed2: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result)));
+							const parsed: GameMap = Assets.mapParse(JSON.parse(atob(<string>fileReader.result))),
+								parsed2: GameMap = Assets.mapParse(JSON.parse(atob(<string>fileReader.result)));
 
 							// Adjust
 							Game.camera.r = parsed.position.r;
@@ -1170,10 +1257,14 @@ export class Game {
 							Game.camera.z = parsed.position.z;
 							Game.map = parsed;
 							Game.mapBackup = parsed2;
+							Game.mapEnded = false;
+							Game.mapEnding = false;
 
 							// Done
 							Game.gameOver = false;
 							Game.mapNew = true;
+
+							DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
 							CalcMainBus.outputMap(parsed);
 							CalcPathBus.outputMap(parsed);
@@ -1249,7 +1340,7 @@ export class Game {
 				(<any>Game.mapBackup.npcById)[String(i)] = value;
 			}
 
-			const parsed: GameMap = Assets.parseMap(JSON.parse(JSON.stringify(Game.mapBackup)));
+			const parsed: GameMap = Assets.mapParse(JSON.parse(Assets.mapToJSONString(Game.mapBackup)));
 
 			// Restore map
 			Game.gameOver = false;
@@ -1261,6 +1352,10 @@ export class Game {
 			Game.camera.z = parsed.position.z;
 			Game.map = parsed;
 			Game.mapBackupRestored = true;
+			Game.mapEnded = false;
+			Game.mapEnding = false;
+
+			DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
 			CalcMainBus.outputMap(parsed);
 			CalcPathBus.outputMap(parsed);
@@ -1647,8 +1742,10 @@ export class Game {
 		Game.report = GamingCanvas.getReport();
 
 		// GameMap
-		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
-		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL01);
+		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+		Game.mapEnded = false;
+		Game.mapEnding = false;
 
 		Game.camera.r = Game.map.position.r;
 		Game.camera.x = Game.map.position.x + 0.5;
@@ -1658,6 +1755,8 @@ export class Game {
 		Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
 		Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
 		Game.viewport.apply(Game.camera, false);
+
+		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
 		// Overlay
 		if (GamingCanvas.getReport().orientation === GamingCanvasOrientation.PORTRAIT) {
@@ -1731,8 +1830,8 @@ export class Game {
 			},
 			characterPlayerInputPlayer: CharacterInput,
 			characterWalking: boolean | undefined,
-			cheatCode: Map<string, boolean> = new Map(),
 			dataUpdated: boolean,
+			doorLockedTimeout: ReturnType<typeof setTimeout>,
 			down: boolean,
 			downMode: boolean,
 			downModeWheel: boolean,
@@ -1740,8 +1839,8 @@ export class Game {
 			gridIndexPlayer1: number | undefined,
 			gridIndexPlayer2: number | undefined,
 			id: number,
-			map: GameMap = Game.map,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
+			keyState: Map<string, boolean> = new Map(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
 			player1: boolean,
@@ -1773,9 +1872,7 @@ export class Game {
 			touchJoystick2YThumb: number,
 			updated: boolean,
 			updatedR: boolean,
-			viewport: GamingCanvasGridViewport = Game.viewport,
-			x: number,
-			y: number;
+			viewport: GamingCanvasGridViewport = Game.viewport;
 
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
@@ -1783,16 +1880,40 @@ export class Game {
 		});
 
 		CalcMainBus.setCallbackActionDoorLocked((data: CalcMainBusOutputDataActionDoorLocked) => {
-			console.log('LOCKED', data);
+			VideoOverlayBus.outputLocked(data.player1, data.keys);
+
+			for (let key of data.keys) {
+				if (key === 1) {
+					if (data.player1 === true) {
+						(<HTMLElement>DOM.elPlayerOverlay1Key1.parentNode).classList.add('invalid');
+					} else {
+						(<HTMLElement>DOM.elPlayerOverlay2Key1.parentNode).classList.add('invalid');
+					}
+				} else {
+					if (data.player1 === true) {
+						(<HTMLElement>DOM.elPlayerOverlay1Key2.parentNode).classList.add('invalid');
+					} else {
+						(<HTMLElement>DOM.elPlayerOverlay2Key2.parentNode).classList.add('invalid');
+					}
+				}
+			}
+
+			clearTimeout(doorLockedTimeout);
+			doorLockedTimeout = setTimeout(() => {
+				(<HTMLElement>DOM.elPlayerOverlay1Key1.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay1Key2.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay2Key1.parentNode).classList.remove('invalid');
+				(<HTMLElement>DOM.elPlayerOverlay2Key2.parentNode).classList.remove('invalid');
+			}, 2000);
 		});
 
 		// Calc: Action Switch
 		CalcMainBus.setCallbackActionSwitch((data: CalcMainBusOutputDataActionSwitch) => {
+			Game.mapEnding = true;
 			VideoMainBus.outputActionSwitch(data);
 
 			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
-			Game.inputSuspend = true;
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
 			VideoMainBus.outputPause(true);
@@ -1802,24 +1923,99 @@ export class Game {
 				DOM.elIconsTop.classList.add('intro');
 				DOM.screenControl(DOM.elScreenLevelEnd);
 
+				// Music
 				if (Game.musicInstance !== null) {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
-
 				setTimeout(async () => {
-					if (Game.musicInstance !== null) {
-						GamingCanvas.audioControlStop(Game.musicInstance);
-					}
-					Game.musicInstance = await GamingCanvas.audioControlPlay(
-						AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL,
-						GamingCanvasAudioType.MUSIC,
-						true,
-						0,
-						0,
-						(<AssetPropertiesAudio>assetsAudio.get(AssetIdAudio.AUDIO_MUSIC_LVL1)).volume,
-					);
+					Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
 				}, 1500);
 			}, 500);
+
+			// Stats
+			let floor: number = (Game.mapBackup.id % 10) + 1,
+				ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
+				ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
+				ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
+				timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
+				timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
+
+			// Stats: Display
+			utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
+			utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
+			utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
+			utilStringToHTML(
+				DOM.elScreenLevelEndTime,
+				` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
+				true,
+			);
+			utilStringToHTML(
+				DOM.elScreenLevelEndTimePar,
+				`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
+				true,
+			);
+			utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
+			utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+
+			setTimeout(() => {
+				Game.mapEndingSkip = false;
+				if (data.player1Meta.bonus === 0) {
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+				} else {
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+				}
+				utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
+
+				setTimeout(
+					() => {
+						if (Game.mapEndingSkip !== true) {
+							if (ratioKill === 0) {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+							} else if (ratioKill < 10) {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+							} else {
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+							}
+						}
+						utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
+
+						setTimeout(
+							() => {
+								if (Game.mapEndingSkip !== true) {
+									if (ratioSecret === 0) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+									} else if (ratioSecret < 10) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+									} else {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+									}
+								}
+								utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+
+								setTimeout(
+									() => {
+										if (Game.mapEndingSkip !== true) {
+											if (ratioTreasure === 0) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+											} else if (ratioTreasure < 10) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+											} else {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+											}
+										}
+										utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`, true);
+										Game.mapEnded = true;
+									},
+									Game.mapEndingSkip === true ? 0 : 1000,
+								);
+							},
+							Game.mapEndingSkip === true ? 0 : 1000,
+						);
+					},
+					<any>Game.mapEndingSkip === true ? 0 : 1000,
+				);
+			}, 2500);
 		});
 
 		// Calc: Action Wall Move
@@ -1900,7 +2096,7 @@ export class Game {
 		CalcMainBus.setCallbackCalculations((data: CalcMainBusOutputDataCalculations) => {
 			if (data.characterPlayer1Camera !== undefined) {
 				camera.decode(data.characterPlayer1Camera);
-				camera.z = map.position.z;
+				camera.z = Game.map.position.z;
 
 				if (cameraZoom !== camera.z) {
 					cameraZoom = camera.z;
@@ -1908,7 +2104,7 @@ export class Game {
 				}
 				viewport.apply(camera);
 
-				gridIndexPlayer1 = (camera.x | 0) * map.grid.sideLength + (camera.y | 0);
+				gridIndexPlayer1 = (camera.x | 0) * Game.map.grid.sideLength + (camera.y | 0);
 
 				// First: VideoMain
 				VideoMainBus.outputCalculations(true, {
@@ -1945,7 +2141,7 @@ export class Game {
 			if (data.characterPlayer2Camera !== undefined) {
 				cameraScratch.decode(data.characterPlayer2Camera);
 
-				gridIndexPlayer2 = (cameraScratch.x | 0) * map.grid.sideLength + (cameraScratch.y | 0);
+				gridIndexPlayer2 = (cameraScratch.x | 0) * Game.map.grid.sideLength + (cameraScratch.y | 0);
 
 				VideoMainBus.outputCalculations(false, {
 					camera: data.characterPlayer2Camera,
@@ -1972,21 +2168,25 @@ export class Game {
 			if (data.player1 !== undefined) {
 				character = CharacterMetaDecode(data.player1);
 
-				DOM.elPlayerOverlay1Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay1Health.innerText = String(character.health) + '%';
+				utilStringToHTML(DOM.elPlayerOverlay1Ammo, String(character.ammo));
+				utilStringToHTML(DOM.elPlayerOverlay1Health, String(character.health) + '%');
+
 				DOM.elPlayerOverlay1Key1.style.display = character.key1 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay1Key2.style.display = character.key2 === true ? 'block' : 'none';
-				DOM.elPlayerOverlay1Lives.innerText = String(character.lives);
+
+				utilStringToHTML(DOM.elPlayerOverlay1Lives, String(character.lives));
 			}
 
 			if (data.player2 !== undefined) {
 				character = CharacterMetaDecode(data.player2);
 
-				DOM.elPlayerOverlay2Ammo.innerText = String(character.ammo);
-				DOM.elPlayerOverlay2Health.innerText = String(character.health) + '%';
+				utilStringToHTML(DOM.elPlayerOverlay2Ammo, String(character.ammo));
+				utilStringToHTML(DOM.elPlayerOverlay2Health, String(character.health) + '%');
+
 				DOM.elPlayerOverlay2Key1.style.display = character.key1 === true ? 'block' : 'none';
 				DOM.elPlayerOverlay2Key2.style.display = character.key2 === true ? 'block' : 'none';
-				DOM.elPlayerOverlay2Lives.innerText = String(character.lives);
+
+				utilStringToHTML(DOM.elPlayerOverlay2Lives, String(character.lives));
 			}
 		});
 
@@ -2105,15 +2305,15 @@ export class Game {
 			if (dataUpdated === true) {
 				dataUpdated = false;
 
-				CalcMainBus.outputMap(map);
-				CalcPathBus.outputMap(map);
-				VideoEditorBus.outputMap(map);
-				VideoMainBus.outputMap(map);
+				CalcMainBus.outputMap(Game.map);
+				CalcPathBus.outputMap(Game.map);
+				VideoEditorBus.outputMap(Game.map);
+				VideoMainBus.outputMap(Game.map);
 			}
 		}, 100);
 
 		const cheatCodeCheck = (player1: boolean, gamepad?: boolean) => {
-			if (gamepad === true || (cheatCode.get('i') === true && cheatCode.get('l') === true && cheatCode.get('m') === true)) {
+			if (gamepad === true || (keyState.get('KeyI') === true && keyState.get('KeyL') === true && keyState.get('KeyM') === true)) {
 				CalcMainBus.outputCheatCode(player1);
 			}
 		};
@@ -2123,14 +2323,14 @@ export class Game {
 
 			if (erase === true) {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
-					map.npcById.delete(cooridnate.x * map.grid.sideLength + cooridnate.y);
+					Game.map.npcById.delete(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				} else {
-					map.grid.setBasic(cooridnate, 0);
+					Game.map.grid.setBasic(cooridnate, 0);
 				}
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					// Character
-					id = cooridnate.x * map.grid.sideLength + cooridnate.y;
+					id = cooridnate.x * Game.map.grid.sideLength + cooridnate.y;
 
 					switch (Game.editorAssetCharacterId) {
 						case AssetIdImgCharacter.STAND_E:
@@ -2148,7 +2348,7 @@ export class Game {
 							break;
 					}
 
-					map.npcById.set(id, {
+					Game.map.npcById.set(id, {
 						assetId: Game.editorAssetCharacterId,
 						camera: new GamingCanvasGridCamera(Game.editorAssetPropertiesCharacter.angle || 0, cooridnate.x + 0.5, cooridnate.y + 0.5, 1),
 						cameraPrevious: <GamingCanvasGridICamera>{},
@@ -2158,7 +2358,6 @@ export class Game {
 						fovDistanceMax: 20,
 						health: 100,
 						id: id,
-						runningSpeed: 0.00055,
 						seenAngleById: new Map(),
 						seenDistanceById: new Map(),
 						seenLOSById: new Map(),
@@ -2168,14 +2367,13 @@ export class Game {
 						timestampUnixState: 0,
 						type: Game.editorAssetCharacterType,
 						walking: characterWalking,
-						walkingSpeed: 0.000275,
 					});
 
 					DOM.elEditorPropertiesCharacterInputId.value = String(id);
 					DOM.elEditorPropertiesCharacterInputFOV.value = String(120) + '°';
 				} else {
 					// Cell
-					map.grid.setBasic(cooridnate, Game.editorCellValue);
+					Game.map.grid.setBasic(cooridnate, Game.editorCellValue);
 				}
 			}
 
@@ -2183,10 +2381,13 @@ export class Game {
 		};
 
 		const inspect = (position: GamingCanvasInputPosition) => {
+			down = false;
+			downMode = false;
+
 			if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 				const coordinate: GamingCanvasInputPositionBasic = GamingCanvasGridInputToCoordinate(position, viewport);
 
-				const characterNPC: CharacterNPC | undefined = map.npcById.get(coordinate.x * map.grid.sideLength + coordinate.y);
+				const characterNPC: CharacterNPC | undefined = Game.map.npcById.get(coordinate.x * Game.map.grid.sideLength + coordinate.y);
 
 				if (characterNPC === undefined) {
 					DOM.elEditorSectionObjects.click();
@@ -2220,13 +2421,15 @@ export class Game {
 				DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
 				DOM.elEdit.style.backgroundColor = '#980066';
 			} else {
-				const cell: number | undefined = map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
+				const cell: number | undefined = Game.map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
 
 				if (cell === undefined) {
 					return;
 				}
 
-				const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
+				const assetId: number =
+					cell &
+					((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 ? GameGridCellMasksAndValuesExtended.ID_MASK : GameGridCellMasksAndValues.ID_MASK);
 				const assetIdStr: String = String(assetId);
 				let clicked: boolean = false,
 					element: HTMLElement;
@@ -2273,7 +2476,7 @@ export class Game {
 					DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0;
 					DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0;
 					DOM.elEditorPropertiesCellExtendedInputSwitch.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0;
-					// DOM.elEditorPropertiesCellExtendedInputTeleport.checked = (cell & GameGridCellMasksAndValuesExtended.TELEPORT) !== 0;
+					DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH_ALT) !== 0;
 				} else {
 					DOM.elEditorPropertiesCellExtended.classList.remove('show');
 
@@ -2336,7 +2539,6 @@ export class Game {
 					characterPlayerInput.player2.x = 0;
 					characterPlayerInput.player2.y = 0;
 					dataUpdated = false;
-					map = Game.map;
 					updated = false;
 					updatedR = true;
 
@@ -2347,6 +2549,12 @@ export class Game {
 					queueInput = <GamingCanvasInput>queue.pop();
 
 					if (Game.inputSuspend === true) {
+						continue;
+					} else if (Game.mapEnded === true) {
+						Game.loadNextLevel();
+						continue;
+					} else if (Game.mapEnding === true) {
+						Game.mapEndingSkip = true;
 						continue;
 					}
 
@@ -2433,6 +2641,7 @@ export class Game {
 
 		const processorKeyboard = (input: GamingCanvasInputKeyboard) => {
 			down = input.propriatary.down;
+			keyState.set(input.propriatary.action.code, down);
 
 			if (Game.gameMenuActive === true) {
 				if (down === true) {
@@ -2543,37 +2752,94 @@ export class Game {
 						}
 						updated = true;
 						break;
+					case 'KeyE':
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							CalcMainBus.outputMapEnd();
+						}
+						break;
+					case 'KeyF':
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
+R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
+X: ${camera.x | 0}
+Y: ${camera.y | 0}`);
+						}
+						break;
+					case 'KeyH':
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							CalcMainBus.outputDebugHit();
+						}
+						break;
 					case 'KeyI':
-						if (down) {
-							cheatCode.set('i', true);
-							cheatCodeCheck(player1);
-						} else {
-							cheatCode.set('i', false);
-						}
-						break;
 					case 'KeyL':
-						if (down) {
-							cheatCode.set('l', true);
-							cheatCodeCheck(player1);
-						} else {
-							cheatCode.set('l', false);
-						}
-						break;
 					case 'KeyM':
 						if (down) {
-							cheatCode.set('m', true);
 							cheatCodeCheck(player1);
-						} else {
-							cheatCode.set('m', false);
 						}
 						break;
 					case 'KeyW':
-						if (down) {
-							characterPlayerInputPlayer.y = -1;
-						} else if (characterPlayerInputPlayer.y === -1) {
-							characterPlayerInputPlayer.y = 0;
+						if (keyState.get('Tab') === true && down) {
+							keyState.set('Tab', false);
+							keyState.set('KeyW', false);
+
+							// Warp to level
+							let level: number | string | null = prompt('Warp to level? [1-10]');
+							if (level !== null) {
+								level = Number(level);
+								if (Number.isInteger(level) !== true || level < 1 || level > 10) {
+									break;
+								}
+								Game.inputSuspend = true;
+								Game.pause(true);
+								GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+								let assetIdMapNext: AssetIdMap = Game.mapBackup.id - (Game.mapBackup.id % 10) + (level - 1);
+
+								// GameMap
+								Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+								Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+								Game.mapEnded = false;
+								Game.mapEnding = false;
+
+								Game.camera.r = Game.map.position.r;
+								Game.camera.x = Game.map.position.x + 0.5;
+								Game.camera.y = Game.map.position.y + 0.5;
+								Game.camera.z = Game.map.position.z;
+
+								Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+								Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+								Game.viewport.apply(Game.camera, false);
+
+								DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+
+								Game.gameMusicPlay(Game.mapBackup.music);
+
+								CalcMainBus.outputMap(Game.mapBackup);
+								CalcPathBus.outputMap(Game.mapBackup);
+								VideoEditorBus.outputMap(Game.mapBackup);
+								VideoMainBus.outputMap(Game.mapBackup);
+								VideoOverlayBus.outputReset();
+
+								// End menu
+								setTimeout(() => {
+									DOM.elIconsTop.classList.remove('intro');
+									Game.gameMenu(false);
+									Game.started = true;
+									Game.inputSuspend = false;
+									Game.pause(false);
+								}, 200);
+							}
+						} else {
+							if (down) {
+								characterPlayerInputPlayer.y = -1;
+							} else if (characterPlayerInputPlayer.y === -1) {
+								characterPlayerInputPlayer.y = 0;
+							}
+							updated = true;
 						}
-						updated = true;
 						break;
 					case 'KeyS':
 						if (down) {
@@ -2593,7 +2859,13 @@ export class Game {
 						DOM.elEditorCommandMetaMenu.click();
 						break;
 					case 'KeyR':
-						DOM.elEditorCommandResetMap.click();
+						if (keyState.get('ShiftLeft') === true && down) {
+							Game.map.npcById.clear();
+							Game.map.grid.data.fill(0);
+							dataUpdated = true;
+						} else {
+							DOM.elEditorCommandResetMap.click();
+						}
 						break;
 				}
 			}
@@ -2969,6 +3241,38 @@ export class Game {
 						}
 						break;
 				}
+			}
+		};
+
+		const utilStringToHTML = (element: HTMLElement, string: string, stats?: boolean): void => {
+			let character: string, characterMap: Map<string, AssetIdImgMenu>, img: HTMLImageElement, prefix: string;
+
+			// Clear existing
+			element.innerText = '';
+
+			// Asset pack selector
+			if (stats === true) {
+				characterMap = assetsImageMenusFontEndLevel;
+				prefix = 'font-end-level-';
+			} else {
+				characterMap = assetsImageMenusFontHUD;
+				prefix = 'font-hud-';
+			}
+
+			// String to assets
+			string = (string || '').toLowerCase();
+			for (character of string) {
+				img = document.createElement('img');
+				img.className = 'font-string-img';
+
+				if (character !== ' ') {
+					img.id = prefix + character;
+					img.src = <string>Assets.dataImageMenus.get(<number>characterMap.get(character));
+				} else {
+					img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+				}
+
+				element.appendChild(img);
 			}
 		};
 	}

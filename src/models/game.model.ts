@@ -1,6 +1,6 @@
 import { GamingCanvasGridUint16Array, GamingCanvasGridICamera } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterNPC } from './character.model.js';
-import { AssetIdMap } from '../asset-manager.js';
+import { AssetIdAudio, AssetIdMap } from '../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -30,7 +30,7 @@ export enum GameGridCellMasksAndValuesExtended {
 	DOOR_LOCKED_2 = 0x0020,
 	ID_MASK = 0x0007, // 7 possible
 	SWITCH = 0x0010,
-	TELEPORT = 0x0008,
+	SWITCH_ALT = 0x0008,
 }
 
 export const gameGridCellMaskExtendedDoor: number =
@@ -51,6 +51,8 @@ export enum GameDifficulty {
 export interface GameMap {
 	id: AssetIdMap;
 	grid: GamingCanvasGridUint16Array;
+	music: AssetIdAudio;
 	npcById: Map<number, CharacterNPC>; // number is id
 	position: GamingCanvasGridICamera;
+	timeParInMS: number;
 }

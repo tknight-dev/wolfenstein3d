@@ -206,7 +206,7 @@ class VideoEditorEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		VideoEditorEngine.gameMap = Assets.parseMap(data);
+		VideoEditorEngine.gameMap = Assets.mapParse(data);
 		VideoEditorEngine.gameMapNew = true;
 	}
 
@@ -403,6 +403,7 @@ class VideoEditorEngine {
 						gameMapGridSideLength = VideoEditorEngine.gameMap.grid.sideLength;
 						gameMapNPCById = VideoEditorEngine.gameMap.npcById;
 
+						gameMapNPCByGridIndex.clear();
 						for (characterNPC of gameMapNPCById.values()) {
 							gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 						}
@@ -623,7 +624,6 @@ class VideoEditorEngine {
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 									);
 								}
-								// Extended
 								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 									offscreenCanvasContext.strokeStyle = 'white';
@@ -633,6 +633,33 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 									);
+								}
+
+								// Extended
+								if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
+									if (
+										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 ||
+										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
+									) {
+										if (
+											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 &&
+											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
+										) {
+											offscreenCanvasContext.strokeStyle = '#f700f7';
+										} else if ((value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
+											offscreenCanvasContext.strokeStyle = '#fff700';
+										} else {
+											offscreenCanvasContext.strokeStyle = '#00f7ff';
+										}
+
+										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+										offscreenCanvasContext.strokeRect(
+											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										);
+									}
 								}
 							}
 							// Character
@@ -775,6 +802,10 @@ class VideoEditorEngine {
 								continue;
 							}
 							gameMapNPC = <CharacterNPC>gameMapNPCById.get(gameMapNPCId);
+
+							if (gameMapNPC === undefined) {
+								continue;
+							}
 
 							if (gameMapNPC.assetId === AssetIdImgCharacter.CORPSE) {
 								offscreenCanvasContext.fillStyle = 'rgba(255, 0, 0, 0.5)';

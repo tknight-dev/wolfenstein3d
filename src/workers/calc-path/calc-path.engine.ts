@@ -154,7 +154,7 @@ class CalcPathEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		CalcPathEngine.gameMap = Assets.parseMap(data);
+		CalcPathEngine.gameMap = Assets.mapParse(data);
 		CalcPathEngine.gameMapNew = true;
 	}
 
