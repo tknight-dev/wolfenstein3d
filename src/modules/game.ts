@@ -236,8 +236,8 @@ export class Game {
 				alert("That's it for this build!");
 			} else {
 				// GameMap
-				Game.map = <GameMap>Assets.dataMap.get(assetIdMapNext);
-				Game.mapBackup = <GameMap>Assets.dataMap.get(assetIdMapNext);
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 				Game.mapEnded = false;
 				Game.mapEnding = false;
 
@@ -525,8 +525,8 @@ export class Game {
 		// GameMap
 		switch (Game.gameMenuEpisode) {
 			case 0:
-				Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
-				Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
 
 				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 				break;
@@ -601,8 +601,8 @@ export class Game {
 				if (rawMap === null || rawMeta === null) {
 					return false;
 				}
-				const parsed: GameMap = Assets.parseMap(JSON.parse(rawMap)),
-					parsed2: GameMap = Assets.parseMap(JSON.parse(rawMap));
+				const parsed: GameMap = Assets.mapParse(JSON.parse(rawMap)),
+					parsed2: GameMap = Assets.mapParse(JSON.parse(rawMap));
 
 				// Adjust
 				Game.camera.r = parsed.position.r;
@@ -1124,18 +1124,8 @@ export class Game {
 			DOM.spinner(true);
 
 			setTimeout(() => {
-				// Convert map
-				let npcById: Map<number, CharacterNPC> = Game.map.npcById;
-				Game.map.npcById = <any>{};
-				for (let [i, value] of npcById.entries()) {
-					(<any>Game.map.npcById)[String(i)] = value;
-				}
-
 				const a: HTMLAnchorElement = document.createElement('a'),
-					downloadData = 'data:text/json;charset=utf-8,' + btoa(JSON.stringify(Game.map));
-
-				// Restore map
-				Game.map.npcById = npcById;
+					downloadData = 'data:text/json;charset=utf-8,' + btoa(Assets.mapToJSONString(Game.map));
 
 				a.classList.add('hidden');
 				a.download = 'wolfenstein3d.map';
@@ -1257,8 +1247,8 @@ export class Game {
 
 					fileReader.onloadend = () => {
 						try {
-							const parsed: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result))),
-								parsed2: GameMap = Assets.parseMap(JSON.parse(atob(<string>fileReader.result)));
+							const parsed: GameMap = Assets.mapParse(JSON.parse(atob(<string>fileReader.result))),
+								parsed2: GameMap = Assets.mapParse(JSON.parse(atob(<string>fileReader.result)));
 
 							// Adjust
 							Game.camera.r = parsed.position.r;
@@ -1350,7 +1340,7 @@ export class Game {
 				(<any>Game.mapBackup.npcById)[String(i)] = value;
 			}
 
-			const parsed: GameMap = Assets.parseMap(JSON.parse(JSON.stringify(Game.mapBackup)));
+			const parsed: GameMap = Assets.mapParse(JSON.parse(Assets.mapToJSONString(Game.mapBackup)));
 
 			// Restore map
 			Game.gameOver = false;
@@ -1752,8 +1742,8 @@ export class Game {
 		Game.report = GamingCanvas.getReport();
 
 		// GameMap
-		Game.map = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
-		Game.mapBackup = <GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01);
+		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
 		Game.mapEnded = false;
 		Game.mapEnding = false;
 
@@ -2809,8 +2799,8 @@ Y: ${camera.y | 0}`);
 								let assetIdMapNext: AssetIdMap = Game.mapBackup.id - (Game.mapBackup.id % 10) + (level - 1);
 
 								// GameMap
-								Game.map = <GameMap>Assets.dataMap.get(assetIdMapNext);
-								Game.mapBackup = <GameMap>Assets.dataMap.get(assetIdMapNext);
+								Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+								Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 								Game.mapEnded = false;
 								Game.mapEnding = false;
 

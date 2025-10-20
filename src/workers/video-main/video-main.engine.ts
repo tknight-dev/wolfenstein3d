@@ -396,7 +396,7 @@ class VideoMainEngine {
 
 	public static inputMap(data: GameMap): void {
 		VideoMainEngine.dead = false;
-		VideoMainEngine.gameMap = Assets.parseMap(data);
+		VideoMainEngine.gameMap = Assets.mapParse(data);
 		VideoMainEngine.gameMapNew = true;
 	}
 

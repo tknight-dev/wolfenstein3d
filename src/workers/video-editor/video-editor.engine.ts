@@ -206,7 +206,7 @@ class VideoEditorEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		VideoEditorEngine.gameMap = Assets.parseMap(data);
+		VideoEditorEngine.gameMap = Assets.mapParse(data);
 		VideoEditorEngine.gameMapNew = true;
 	}
 

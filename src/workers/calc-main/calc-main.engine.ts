@@ -354,7 +354,7 @@ class CalcMainEngine {
 	}
 
 	public static inputMap(data: GameMap): void {
-		CalcMainEngine.gameMap = Assets.parseMap(data);
+		CalcMainEngine.gameMap = Assets.mapParse(data);
 		CalcMainEngine.gameMapNew = true;
 	}
 
