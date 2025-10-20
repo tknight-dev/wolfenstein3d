@@ -1034,6 +1034,7 @@ export class Game {
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 
 			DOM.elControls.style.display = 'none';
@@ -1047,30 +1048,48 @@ export class Game {
 		DOM.elControlsSubGamepad.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'block';
 			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'none';
 
 			DOM.elControlsSubGamepad.classList.add('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 		};
 
 		DOM.elControlsSubKeyboard.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'none';
 			DOM.elControlsBodyKeyboard.style.display = 'block';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'none';
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.add('active');
+			DOM.elControlsSubMouse.classList.remove('active');
+			DOM.elControlsSubTouch.classList.remove('active');
+		};
+
+		DOM.elControlsSubMouse.onclick = () => {
+			DOM.elControlsBodyGamepad.style.display = 'none';
+			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'block';
+			DOM.elControlsBodyTouch.style.display = 'none';
+
+			DOM.elControlsSubGamepad.classList.remove('active');
+			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.add('active');
 			DOM.elControlsSubTouch.classList.remove('active');
 		};
 
 		DOM.elControlsSubTouch.onclick = () => {
 			DOM.elControlsBodyGamepad.style.display = 'none';
 			DOM.elControlsBodyKeyboard.style.display = 'none';
+			DOM.elControlsBodyMouse.style.display = 'none';
 			DOM.elControlsBodyTouch.style.display = 'block';
 
 			DOM.elControlsSubGamepad.classList.remove('active');
 			DOM.elControlsSubKeyboard.classList.remove('active');
+			DOM.elControlsSubMouse.classList.remove('active');
 			DOM.elControlsSubTouch.classList.add('active');
 		};
 

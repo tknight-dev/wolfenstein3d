@@ -37,10 +37,12 @@ export class DOM {
 	public static elControls: HTMLElement;
 	public static elControlsBodyGamepad: HTMLElement;
 	public static elControlsBodyKeyboard: HTMLElement;
+	public static elControlsBodyMouse: HTMLElement;
 	public static elControlsBodyTouch: HTMLElement;
 	public static elControlsClose: HTMLElement;
 	public static elControlsSubGamepad: HTMLElement;
 	public static elControlsSubKeyboard: HTMLElement;
+	public static elControlsSubMouse: HTMLElement;
 	public static elControlsSubTouch: HTMLElement;
 	public static elDebug: HTMLElement;
 	public static elEdit: HTMLElement;
@@ -309,10 +311,12 @@ export class DOM {
 		DOM.elControls = <HTMLElement>document.getElementById('controls');
 		DOM.elControlsBodyGamepad = <HTMLElement>document.getElementById('controls-body-gamepad');
 		DOM.elControlsBodyKeyboard = <HTMLElement>document.getElementById('controls-body-keyboard');
+		DOM.elControlsBodyMouse = <HTMLElement>document.getElementById('controls-body-mouse');
 		DOM.elControlsBodyTouch = <HTMLElement>document.getElementById('controls-body-touch');
 		DOM.elControlsClose = <HTMLElement>document.getElementById('controls-close');
 		DOM.elControlsSubGamepad = <HTMLElement>document.getElementById('controls-sub-gamepad');
 		DOM.elControlsSubKeyboard = <HTMLElement>document.getElementById('controls-sub-keyboard');
+		DOM.elControlsSubMouse = <HTMLElement>document.getElementById('controls-sub-mouse');
 		DOM.elControlsSubTouch = <HTMLElement>document.getElementById('controls-sub-touch');
 
 		DOM.elDebug = <HTMLElement>document.getElementById('debug');

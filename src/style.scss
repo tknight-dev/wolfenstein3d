@@ -1226,6 +1226,12 @@ $main-z-index-video-interactive: 50;
 							max-width: 600px;
 						}
 
+						&.mouse {
+							aspect-ratio: 1.431034483;
+							background: url('assets/controls/mouse.svg');
+							max-width: 350px;
+						}
+
 						&.touch {
 							aspect-ratio: 0.714207351;
 							background: url('assets/controls/touch.svg');
