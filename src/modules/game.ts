@@ -232,39 +232,43 @@ export class Game {
 				assetIdMapNext = Game.mapBackup.id + 1;
 			}
 
-			// GameMap
-			Game.map = <GameMap>Assets.dataMap.get(assetIdMapNext);
-			Game.mapBackup = <GameMap>Assets.dataMap.get(assetIdMapNext);
-			Game.mapEnded = false;
-			Game.mapEnding = false;
+			if (Assets.dataMap.has(assetIdMapNext) !== true) {
+				alert("That's it for this build!");
+			} else {
+				// GameMap
+				Game.map = <GameMap>Assets.dataMap.get(assetIdMapNext);
+				Game.mapBackup = <GameMap>Assets.dataMap.get(assetIdMapNext);
+				Game.mapEnded = false;
+				Game.mapEnding = false;
 
-			Game.camera.r = Game.map.position.r;
-			Game.camera.x = Game.map.position.x + 0.5;
-			Game.camera.y = Game.map.position.y + 0.5;
-			Game.camera.z = Game.map.position.z;
+				Game.camera.r = Game.map.position.r;
+				Game.camera.x = Game.map.position.x + 0.5;
+				Game.camera.y = Game.map.position.y + 0.5;
+				Game.camera.z = Game.map.position.z;
 
-			Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-			Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-			Game.viewport.apply(Game.camera, false);
+				Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+				Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+				Game.viewport.apply(Game.camera, false);
 
-			DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
-			Game.gameMusicPlay(Game.mapBackup.music);
+				Game.gameMusicPlay(Game.mapBackup.music);
 
-			CalcMainBus.outputMap(Game.mapBackup);
-			CalcPathBus.outputMap(Game.mapBackup);
-			VideoEditorBus.outputMap(Game.mapBackup);
-			VideoMainBus.outputMap(Game.mapBackup);
-			VideoOverlayBus.outputReset();
+				CalcMainBus.outputMap(Game.mapBackup);
+				CalcPathBus.outputMap(Game.mapBackup);
+				VideoEditorBus.outputMap(Game.mapBackup);
+				VideoMainBus.outputMap(Game.mapBackup);
+				VideoOverlayBus.outputReset();
 
-			// End menu
-			setTimeout(() => {
-				Game.gameMenu(false);
-				DOM.elIconsTop.classList.remove('intro');
-				DOM.elScreenActive.style.display = 'none';
-				Game.inputSuspend = false;
-				Game.pause(false);
-			}, 200);
+				// End menu
+				setTimeout(() => {
+					Game.gameMenu(false);
+					DOM.elIconsTop.classList.remove('intro');
+					DOM.elScreenActive.style.display = 'none';
+					Game.inputSuspend = false;
+					Game.pause(false);
+				}, 200);
+			}
 		}
 	}
 
