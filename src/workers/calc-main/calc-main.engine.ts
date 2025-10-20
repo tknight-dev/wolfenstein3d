@@ -1523,7 +1523,9 @@ class CalcMainEngine {
 					}
 				}
 
+				characterNPC.running = true;
 				characterNPC.timestampUnixState = timestampUnix;
+				characterNPC.walking = false;
 
 				if (characterNPC.health <= 0) {
 					characterNPC.assetId = AssetIdImgCharacter.DIE1;
