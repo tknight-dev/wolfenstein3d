@@ -801,9 +801,11 @@ class VideoMainEngine {
 
 						// Prepare
 						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(characterNPC.gridIndex);
-						gameMapNPCByGridIndexInstance.delete(characterNPC.gridIndex);
-						if (gameMapNPCByGridIndexInstance.size === 0) {
-							gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+						if (gameMapNPCByGridIndexInstance !== undefined) {
+							gameMapNPCByGridIndexInstance.delete(characterNPC.gridIndex);
+							if (gameMapNPCByGridIndexInstance.size === 0) {
+								gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+							}
 						}
 
 						// Update
@@ -838,7 +840,7 @@ class VideoMainEngine {
 							gameMapNPCByGridIndexInstance = new Map();
 							gameMapNPCByGridIndex.set(characterNPC.gridIndex, gameMapNPCByGridIndexInstance);
 						}
-						gameMapNPCByGridIndexInstance.set(characterNPC.id, characterNPC);
+						gameMapNPCByGridIndexInstance.set(characterNPC.gridIndex, characterNPC);
 					}
 				}
 
