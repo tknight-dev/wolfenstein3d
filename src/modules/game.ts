@@ -2391,7 +2391,9 @@ export class Game {
 					return;
 				}
 
-				const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
+				const assetId: number =
+					cell &
+					((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 ? GameGridCellMasksAndValuesExtended.ID_MASK : GameGridCellMasksAndValues.ID_MASK);
 				const assetIdStr: String = String(assetId);
 				let clicked: boolean = false,
 					element: HTMLElement;
