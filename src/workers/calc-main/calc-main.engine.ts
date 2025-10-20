@@ -1858,6 +1858,10 @@ class CalcMainEngine {
 				if (CalcMainEngine.debugHit === true) {
 					CalcMainEngine.debugHit = false;
 					actionPlayerHit(true, 0, 20, 20, CharacterWeapon.PISTOL);
+
+					if (settingsPlayer2Enable === true) {
+						actionPlayerHit(false, 0, 20, 20, CharacterWeapon.PISTOL);
+					}
 				}
 
 				if (CalcMainEngine.gameMapEnd === true) {
