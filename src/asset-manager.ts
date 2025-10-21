@@ -503,12 +503,20 @@ export enum AssetIdImg {
 	WALL_BRICK_BLUE2 = 37,
 	WALL_BRICK_BLUE_CELL = 38,
 	WALL_BRICK_BLUE_CELL_SKELETON = 39,
+	WALL_BRICK_RED = 89,
+	WALL_BRICK_RED_EAGLE = 90,
+	WALL_BRICK_RED_LAURAL = 91,
 	// SPRITE_ELEVATOR_DOOR = 40,
 	WALL_ELEVATOR_SIDE = 41,
 	// WALL_ELEVATOR_SWITCH_UP = 42,
 	// WALL_ELEVATOR_SWITCH_DOWN = 43,
+	WALL_METAL = 92,
+	WALL_METAL_ACHTUNG = 93,
+	WALL_METAL_VERBOTEM = 94,
 	WALL_OUTSIDE_DAY = 44,
 	WALL_OUTSIDE_NIGHT = 45,
+	WALL_ROCK_PURPLE = 95,
+	WALL_ROCK_PURPLE_BLOOD = 96,
 	WALL_STONE_GREY = 46,
 	WALL_STONE_GREY2 = 47,
 	WALL_STONE_GREY3 = 48,
@@ -2972,6 +2980,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Brick Blue Cell Skeleton',
 		});
 
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red.png',
+			title: 'Brick Red',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red_eagle.png',
+			title: 'Brick Red Eagle',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED_LAURAL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red_laural.png',
+			title: 'Brick Red Laural',
+		});
+
 		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
 			alpha: false,
 			author: 'Id Software',
@@ -2999,6 +3034,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Switch Up',
 		});
 
+		assetsImages.set(AssetIdImg.WALL_METAL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal.png',
+			title: 'Metal',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_METAL_ACHTUNG, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal_achtung.png',
+			title: 'Metal Auchtung',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_METAL_VERBOTEM, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal_verbotem.png',
+			title: 'Metal Verbotem',
+		});
+
 		assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
 			alpha: false,
 			author: 'Id Software',
@@ -3015,6 +3077,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/wall/outside_night.png',
 			title: 'Outside Night',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ROCK_PURPLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/rock_purple.png',
+			title: 'Rock Purple',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ROCK_PURPLE_BLOOD, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/rock_purple_blood.png',
+			title: 'Rock Purple Blood',
 		});
 
 		assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
