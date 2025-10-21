@@ -31,13 +31,7 @@ import {
 	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
-import {
-	GameDifficulty,
-	gameGridCellMaskExtendedDoor,
-	GameGridCellMasksAndValues,
-	GameGridCellMasksAndValuesExtended,
-	GameMap,
-} from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMaskBlockingAll, GameGridCellMaskBlockingVisible, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
 	GamingCanvasConstIntegerMaxSafe,
 	GamingCanvasConstPI_0_125,
@@ -668,7 +662,7 @@ class CalcMainEngine {
 					return true;
 				}
 
-				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+				return (cell & GameGridCellMaskBlockingAll) !== 0;
 			},
 			gameMapControlNPCBlocking = (cell: number, gridIndex: number) => {
 				// Can NPC walk here?
@@ -678,11 +672,11 @@ class CalcMainEngine {
 					return true;
 				}
 
-				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+				return (cell & GameGridCellMaskBlockingAll) !== 0;
 			},
 			gameMapLookBlocking = (cell: number, gridIndex: number) => {
 				// Can NPC see player
-				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
 					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
 					if (actionDoorState === undefined || actionDoorState.open !== true) {
@@ -692,11 +686,11 @@ class CalcMainEngine {
 					return false;
 				}
 
-				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
+				return (cell & GameGridCellMaskBlockingVisible) !== 0;
 			},
 			gameMapLookPlayerBlocking = (cell: number, gridIndex: number) => {
 				// Can player weapon hit NPC?
-				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
 					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
 					if (actionDoorState === undefined || actionDoorState.closed === true) {
@@ -706,7 +700,7 @@ class CalcMainEngine {
 					return false;
 				}
 
-				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE) !== 0;
+				return (cell & GameGridCellMaskBlockingVisible) !== 0;
 			},
 			gameMapMetaNPCCount: number,
 			gameMapMetaSecretsCount: number,
@@ -1108,8 +1102,8 @@ class CalcMainEngine {
 
 		const actionSwitch = (gridIndex: number) => {
 			// Calc: AssetId
-			let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.ID_MASK;
-			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValuesExtended.ID_MASK;
+			let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
+			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.ID_MASK;
 			if (assetId === AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN) {
 				assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_UP;
 			} else {
@@ -1117,8 +1111,8 @@ class CalcMainEngine {
 			}
 
 			// Meta
-			let gridSwitch: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.SWITCH) !== 0,
-				gridSwitchAlt: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValuesExtended.SWITCH_ALT) !== 0;
+			let gridSwitch: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH) !== 0,
+				gridSwitchAlt: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0;
 
 			// Update here as settings can change after map load
 			gameMapMetaNPCCount = 0;
@@ -1170,7 +1164,7 @@ class CalcMainEngine {
 
 			// Set: Grid
 			gameMapGridData[gridIndex] |= assetId;
-			gameMapGridData[gridIndex] &= ~(GameGridCellMasksAndValuesExtended.SWITCH | GameGridCellMasksAndValuesExtended.SWITCH_ALT);
+			gameMapGridData[gridIndex] &= ~(GameGridCellMasksAndValues.SWITCH | GameGridCellMasksAndValues.SWITCH_SECRET);
 
 			// Post to other threads
 			audioPlay(AssetIdAudio.AUDIO_EFFECT_SWITCH, gridIndex);
@@ -1639,10 +1633,7 @@ class CalcMainEngine {
 						if (gameMapNPCPath.length < 20) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
-								if (
-									(gameMapGridData[gridIndex] & GameGridCellMasksAndValues.EXTENDED) !== 0 &&
-									(gameMapGridData[gridIndex] & gameGridCellMaskExtendedDoor) !== 0
-								) {
+								if ((gameMapGridData[gridIndex] & GameGridCellMasksAndValues.DOOR) !== 0) {
 									// Closed doors block sounds
 									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
@@ -1895,20 +1886,18 @@ class CalcMainEngine {
 					gameMapMetaSecretsCount = 0;
 					gameMapMetaTreasureCount = 0;
 					for (x of gameMapGridData) {
-						if ((x & GameGridCellMasksAndValues.EXTENDED) === 0) {
-							if ((x & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
-								gameMapMetaSecretsCount++;
-							}
+						if ((x & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+							gameMapMetaSecretsCount++;
+						}
 
-							y = x & GameGridCellMasksAndValues.ID_MASK;
-							if (
-								y === AssetIdImg.SPRITE_TREASURE_CHEST ||
-								y === AssetIdImg.SPRITE_TREASURE_CROSS ||
-								y === AssetIdImg.SPRITE_TREASURE_CROWN ||
-								y === AssetIdImg.SPRITE_TREASURE_CUP
-							) {
-								gameMapMetaTreasureCount++;
-							}
+						y = x & GameGridCellMasksAndValues.ID_MASK;
+						if (
+							y === AssetIdImg.SPRITE_TREASURE_CHEST ||
+							y === AssetIdImg.SPRITE_TREASURE_CROSS ||
+							y === AssetIdImg.SPRITE_TREASURE_CROWN ||
+							y === AssetIdImg.SPRITE_TREASURE_CUP
+						) {
+							gameMapMetaTreasureCount++;
 						}
 					}
 
@@ -2058,7 +2047,7 @@ class CalcMainEngine {
 								characterPlayer2Raycast = GamingCanvasGridRaycast(
 									characterPlayer2.camera,
 									gameMapGrid,
-									GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+									GameGridCellMaskBlockingVisible,
 									raycastOptions,
 								);
 								characterPlayer2RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>(
@@ -2086,7 +2075,7 @@ class CalcMainEngine {
 						characterPlayer1Raycast = GamingCanvasGridRaycast(
 							characterPlayer1.camera,
 							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
+							GameGridCellMaskBlockingVisible,
 							raycastOptions,
 						);
 						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
@@ -2131,64 +2120,60 @@ class CalcMainEngine {
 							}
 
 							gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
-							if ((gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-								if ((gameMapGridDataCell & gameGridCellMaskExtendedDoor) !== 0) {
-									if (
-										(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 &&
-										(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
-									) {
-										if (characterPlayer.key1 === true && characterPlayer.key2 === true) {
-											actionDoor(cellSide, gameMapIndexEff);
-										} else {
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-													data: {
-														player1: true,
-														keys: [1, 2],
-													},
-												},
-											]);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-										}
-									} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
-										if (characterPlayer.key1 === true) {
-											actionDoor(cellSide, gameMapIndexEff);
-										} else {
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-													data: {
-														player1: true,
-														keys: [1],
-													},
-												},
-											]);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-										}
-									} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0) {
-										if (characterPlayer.key2 === true) {
-											actionDoor(cellSide, gameMapIndexEff);
-										} else {
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-													data: {
-														player1: true,
-														keys: [2],
-													},
-												},
-											]);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-										}
-									} else {
+							if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+								if (
+									(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0 &&
+									(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0
+								) {
+									if (characterPlayer.key1 === true && characterPlayer.key2 === true) {
 										actionDoor(cellSide, gameMapIndexEff);
+									} else {
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+												data: {
+													player1: true,
+													keys: [1, 2],
+												},
+											},
+										]);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 									}
-								} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
-									actionSwitch(gameMapIndexEff);
+								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0) {
+									if (characterPlayer.key1 === true) {
+										actionDoor(cellSide, gameMapIndexEff);
+									} else {
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+												data: {
+													player1: true,
+													keys: [1],
+												},
+											},
+										]);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+									}
+								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+									if (characterPlayer.key2 === true) {
+										actionDoor(cellSide, gameMapIndexEff);
+									} else {
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+												data: {
+													player1: true,
+													keys: [2],
+												},
+											},
+										]);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+									}
 								} else {
-									audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+									actionDoor(cellSide, gameMapIndexEff);
 								}
+							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) {
+								actionSwitch(gameMapIndexEff);
 							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 								actionWallMovable(cellSide, gameMapIndexEff, true);
 							} else {
@@ -2228,64 +2213,60 @@ class CalcMainEngine {
 								}
 
 								gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
-								if ((gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-									if ((gameMapGridDataCell & gameGridCellMaskExtendedDoor) !== 0) {
-										if (
-											(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 &&
-											(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
-										) {
-											if (characterPlayer.key1 === true && characterPlayer.key2 === true) {
-												actionDoor(cellSide, gameMapIndexEff);
-											} else {
-												CalcMainEngine.post([
-													{
-														cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-														data: {
-															player1: false,
-															keys: [1, 2],
-														},
-													},
-												]);
-												audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-											}
-										} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
-											if (characterPlayer.key1 === true) {
-												actionDoor(cellSide, gameMapIndexEff);
-											} else {
-												CalcMainEngine.post([
-													{
-														cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-														data: {
-															player1: false,
-															keys: [1],
-														},
-													},
-												]);
-												audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-											}
-										} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0) {
-											if (characterPlayer.key2 === true) {
-												actionDoor(cellSide, gameMapIndexEff);
-											} else {
-												CalcMainEngine.post([
-													{
-														cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
-														data: {
-															player1: false,
-															keys: [2],
-														},
-													},
-												]);
-												audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
-											}
-										} else {
+								if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+									if (
+										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0 &&
+										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0
+									) {
+										if (characterPlayer.key1 === true && characterPlayer.key2 === true) {
 											actionDoor(cellSide, gameMapIndexEff);
+										} else {
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+													data: {
+														player1: false,
+														keys: [1, 2],
+													},
+												},
+											]);
+											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 										}
-									} else if ((gameMapGridDataCell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0) {
-										actionSwitch(gameMapIndexEff);
+									} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0) {
+										if (characterPlayer.key1 === true) {
+											actionDoor(cellSide, gameMapIndexEff);
+										} else {
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+													data: {
+														player1: false,
+														keys: [1],
+													},
+												},
+											]);
+											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+										}
+									} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+										if (characterPlayer.key2 === true) {
+											actionDoor(cellSide, gameMapIndexEff);
+										} else {
+											CalcMainEngine.post([
+												{
+													cmd: CalcMainBusOutputCmd.ACTION_DOOR_LOCKED,
+													data: {
+														player1: false,
+														keys: [2],
+													},
+												},
+											]);
+											audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+										}
 									} else {
-										audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+										actionDoor(cellSide, gameMapIndexEff);
 									}
+								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) {
+									actionSwitch(gameMapIndexEff);
 								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 									actionWallMovable(cellSide, gameMapIndexEff, false);
 								} else {
@@ -2323,128 +2304,125 @@ class CalcMainEngine {
 							}
 							cameraInstance = characterPlayer.camera;
 							characterPlayerGridIndex = (cameraInstance.x | 0) * gameMapSideLength + (cameraInstance.y | 0);
+							characterPlayerChangedMetaPickup = true;
 
-							if ((gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.EXTENDED) === 0) {
-								characterPlayerChangedMetaPickup = true;
+							// Character
+							switch (gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.ID_MASK) {
+								case AssetIdImg.SPRITE_AMMO:
+									characterPlayer.ammo += 8;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_EXTRA_LIFE:
+									characterPlayer.lives++;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE);
+									break;
+								case AssetIdImg.SPRITE_AMMO_DROPPED:
+									characterPlayer.ammo += 4;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
+									break;
+								case AssetIdImg.SPRITE_KEY1:
+									characterPlayer1.key1 = true;
+									characterPlayer2.key1 = true;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
+									break;
+								case AssetIdImg.SPRITE_KEY2:
+									characterPlayer1.key2 = true;
+									characterPlayer2.key2 = true;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
+									break;
+								case AssetIdImg.SPRITE_MACHINE_GUN:
+									characterPlayer.ammo += 6;
+									if (characterPlayer.weapons.includes(CharacterWeapon.MACHINE_GUN) !== true) {
+										characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
+										characterPlayer.weapons.push(CharacterWeapon.MACHINE_GUN);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP);
 
-								// Character
-								switch (gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.ID_MASK) {
-									case AssetIdImg.SPRITE_AMMO:
-										characterPlayer.ammo += 8;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
-										break;
-									case AssetIdImg.SPRITE_EXTRA_LIFE:
-										characterPlayer.lives++;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_EXTRA_LIFE);
-										break;
-									case AssetIdImg.SPRITE_AMMO_DROPPED:
-										characterPlayer.ammo += 4;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
-										break;
-									case AssetIdImg.SPRITE_KEY1:
-										characterPlayer1.key1 = true;
-										characterPlayer2.key1 = true;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
-										break;
-									case AssetIdImg.SPRITE_KEY2:
-										characterPlayer1.key2 = true;
-										characterPlayer2.key2 = true;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_KEY);
-										break;
-									case AssetIdImg.SPRITE_MACHINE_GUN:
-										characterPlayer.ammo += 6;
-										if (characterPlayer.weapons.includes(CharacterWeapon.MACHINE_GUN) !== true) {
-											characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
-											characterPlayer.weapons.push(CharacterWeapon.MACHINE_GUN);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP);
-
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
-													data: {
-														player1: true,
-														weapon: characterPlayer.weapon,
-													},
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+												data: {
+													player1: true,
+													weapon: characterPlayer.weapon,
 												},
-											]);
-										}
-										break;
-									case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
-										characterPlayer.ammo += 6;
-										if (characterPlayer.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
-											characterPlayer.weapon = CharacterWeapon.SUB_MACHINE_GUN;
-											characterPlayer.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
+											},
+										]);
+									}
+									break;
+								case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
+									characterPlayer.ammo += 6;
+									if (characterPlayer.weapons.includes(CharacterWeapon.SUB_MACHINE_GUN) !== true) {
+										characterPlayer.weapon = CharacterWeapon.SUB_MACHINE_GUN;
+										characterPlayer.weapons.push(CharacterWeapon.SUB_MACHINE_GUN);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP);
 
-											CalcMainEngine.post([
-												{
-													cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
-													data: {
-														player1: true,
-														weapon: characterPlayer.weapon,
-													},
+										CalcMainEngine.post([
+											{
+												cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
+												data: {
+													player1: true,
+													weapon: characterPlayer.weapon,
 												},
-											]);
-										}
-										break;
-									case AssetIdImg.SPRITE_MEDKIT:
-										if (characterPlayer.health !== 100) {
-											characterPlayer.health = Math.min(100, characterPlayer.health + 15);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
-										} else {
-											characterPlayerChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_FOOD:
-										if (characterPlayer.health !== 100) {
-											characterPlayer.health = Math.min(100, characterPlayer.health + 10);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
-										} else {
-											characterPlayerChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_FOOD_DOG:
-										if (characterPlayer.health !== 100) {
-											characterPlayer.health = Math.min(100, characterPlayer.health + 4);
-											audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
-										} else {
-											characterPlayerChangedMetaPickup = false;
-										}
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CHEST:
-										characterPlayer.score += 1000;
-										characterPlayerMeta.ratioTreasure++;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CROSS:
-										characterPlayer.score += 100;
-										characterPlayerMeta.ratioTreasure++;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CROWN:
-										characterPlayer.score += 5000;
-										characterPlayerMeta.ratioTreasure++;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
-										break;
-									case AssetIdImg.SPRITE_TREASURE_CUP:
-										characterPlayer.score += 500;
-										characterPlayerMeta.ratioTreasure++;
-										audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
-										break;
-									default:
+											},
+										]);
+									}
+									break;
+								case AssetIdImg.SPRITE_MEDKIT:
+									if (characterPlayer.health !== 100) {
+										characterPlayer.health = Math.min(100, characterPlayer.health + 15);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_MEDKIT);
+									} else {
 										characterPlayerChangedMetaPickup = false;
-										break;
-								}
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD:
+									if (characterPlayer.health !== 100) {
+										characterPlayer.health = Math.min(100, characterPlayer.health + 10);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD);
+									} else {
+										characterPlayerChangedMetaPickup = false;
+									}
+									break;
+								case AssetIdImg.SPRITE_FOOD_DOG:
+									if (characterPlayer.health !== 100) {
+										characterPlayer.health = Math.min(100, characterPlayer.health + 4);
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_FOOD_DOG);
+									} else {
+										characterPlayerChangedMetaPickup = false;
+									}
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CHEST:
+									characterPlayer.score += 1000;
+									characterPlayerMeta.ratioTreasure++;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CHEST);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROSS:
+									characterPlayer.score += 100;
+									characterPlayerMeta.ratioTreasure++;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROSS);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CROWN:
+									characterPlayer.score += 5000;
+									characterPlayerMeta.ratioTreasure++;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CROWN);
+									break;
+								case AssetIdImg.SPRITE_TREASURE_CUP:
+									characterPlayer.score += 500;
+									characterPlayerMeta.ratioTreasure++;
+									audioPlay(AssetIdAudio.AUDIO_EFFECT_TREASURE_CUP);
+									break;
+								default:
+									characterPlayerChangedMetaPickup = false;
+									break;
+							}
 
-								// Map
-								if (characterPlayerChangedMetaPickup === true) {
-									characterPlayerChangedMetaReport[i] = true;
+							// Map
+							if (characterPlayerChangedMetaPickup === true) {
+								characterPlayerChangedMetaReport[i] = true;
 
-									gameMapGridData[characterPlayerGridIndex] = GameGridCellMasksAndValues.FLOOR;
+								gameMapGridData[characterPlayerGridIndex] = GameGridCellMasksAndValues.FLOOR;
 
-									gameMapUpdate[gameMapUpdateIndex++] = characterPlayerGridIndex;
-									gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
-								}
+								gameMapUpdate[gameMapUpdateIndex++] = characterPlayerGridIndex;
+								gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
 							}
 						}
 					}
@@ -2696,10 +2674,7 @@ class CalcMainEngine {
 											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
 											gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
-											if (
-												(gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0 &&
-												(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR) !== 0
-											) {
+											if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
 												// Open door
 												actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
 												if (actionDoorState === undefined || actionDoorState.open !== true) {
@@ -2829,82 +2804,80 @@ class CalcMainEngine {
 										gameMapGridDataCell = gameMapGridData[characterNPC.gridIndex];
 
 										// Waypoint?
-										if ((gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) === 0) {
-											assetId = gameMapGridDataCell & GameGridCellMasksAndValues.ID_MASK;
-											if (assetId >= AssetIdImg.MISC_ARROW_EAST && assetId <= AssetIdImg.MISC_ARROW_WEST) {
-												characterNPCWaypoint = false;
-												x = characterNPC.camera.x % 1;
-												y = characterNPC.camera.y % 1;
+										assetId = gameMapGridDataCell & GameGridCellMasksAndValues.ID_MASK;
+										if (assetId >= AssetIdImg.MISC_ARROW_EAST && assetId <= AssetIdImg.MISC_ARROW_WEST) {
+											characterNPCWaypoint = false;
+											x = characterNPC.camera.x % 1;
+											y = characterNPC.camera.y % 1;
 
-												// 0.5 is the center of the square
-												// this snaps the character to the center
-												// it's possible the character is moving so fast that it skips over this detection method
-												// it should know the origin point and then compare to center to force direction change if passed the center
-												if (x > 0.4 && x < 0.6 && y > 0.4 && y < 0.6) {
-													switch (assetId) {
-														case AssetIdImg.MISC_ARROW_EAST:
-															if (characterNPC.camera.r !== 0) {
-																characterNPC.camera.r = 0;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-															break;
-														case AssetIdImg.MISC_ARROW_NORTH:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_0_500) {
-																characterNPC.camera.r = GamingCanvasConstPI_0_500;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
-															break;
-														case AssetIdImg.MISC_ARROW_NORTH_EAST:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_0_250) {
-																characterNPC.camera.r = GamingCanvasConstPI_0_250;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
-															break;
-														case AssetIdImg.MISC_ARROW_NORTH_WEST:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_0_750) {
-																characterNPC.camera.r = GamingCanvasConstPI_0_750;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
-															break;
-														case AssetIdImg.MISC_ARROW_SOUTH:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_1_500) {
-																characterNPC.camera.r = GamingCanvasConstPI_1_500;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
-															break;
-														case AssetIdImg.MISC_ARROW_SOUTH_EAST:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_1_750) {
-																characterNPC.camera.r = GamingCanvasConstPI_1_750;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
-															break;
-														case AssetIdImg.MISC_ARROW_SOUTH_WEST:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_1_250) {
-																characterNPC.camera.r = GamingCanvasConstPI_1_250;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
-															break;
-														case AssetIdImg.MISC_ARROW_WEST:
-															if (characterNPC.camera.r !== GamingCanvasConstPI_1_000) {
-																characterNPC.camera.r = GamingCanvasConstPI_1_000;
-																characterNPCWaypoint = true;
-															}
-															characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
-															break;
-													}
+											// 0.5 is the center of the square
+											// this snaps the character to the center
+											// it's possible the character is moving so fast that it skips over this detection method
+											// it should know the origin point and then compare to center to force direction change if passed the center
+											if (x > 0.4 && x < 0.6 && y > 0.4 && y < 0.6) {
+												switch (assetId) {
+													case AssetIdImg.MISC_ARROW_EAST:
+														if (characterNPC.camera.r !== 0) {
+															characterNPC.camera.r = 0;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+														break;
+													case AssetIdImg.MISC_ARROW_NORTH:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_0_500) {
+															characterNPC.camera.r = GamingCanvasConstPI_0_500;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
+														break;
+													case AssetIdImg.MISC_ARROW_NORTH_EAST:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_0_250) {
+															characterNPC.camera.r = GamingCanvasConstPI_0_250;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
+														break;
+													case AssetIdImg.MISC_ARROW_NORTH_WEST:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_0_750) {
+															characterNPC.camera.r = GamingCanvasConstPI_0_750;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
+														break;
+													case AssetIdImg.MISC_ARROW_SOUTH:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_1_500) {
+															characterNPC.camera.r = GamingCanvasConstPI_1_500;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
+														break;
+													case AssetIdImg.MISC_ARROW_SOUTH_EAST:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_1_750) {
+															characterNPC.camera.r = GamingCanvasConstPI_1_750;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
+														break;
+													case AssetIdImg.MISC_ARROW_SOUTH_WEST:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_1_250) {
+															characterNPC.camera.r = GamingCanvasConstPI_1_250;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
+														break;
+													case AssetIdImg.MISC_ARROW_WEST:
+														if (characterNPC.camera.r !== GamingCanvasConstPI_1_000) {
+															characterNPC.camera.r = GamingCanvasConstPI_1_000;
+															characterNPCWaypoint = true;
+														}
+														characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
+														break;
+												}
 
-													if (characterNPCWaypoint === true) {
-														characterNPC.camera.x = (characterNPC.camera.x | 0) + 0.5;
-														characterNPC.camera.y = (characterNPC.camera.y | 0) + 0.5;
-														characterNPC.timestampUnixState = timestampUnix;
-													}
+												if (characterNPCWaypoint === true) {
+													characterNPC.camera.x = (characterNPC.camera.x | 0) + 0.5;
+													characterNPC.camera.y = (characterNPC.camera.y | 0) + 0.5;
+													characterNPC.timestampUnixState = timestampUnix;
 												}
 											}
 										}
@@ -2914,10 +2887,7 @@ class CalcMainEngine {
 											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
 											gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
-											if (
-												(gameMapGridDataCell & GameGridCellMasksAndValues.EXTENDED) !== 0 &&
-												(gameMapGridDataCell & GameGridCellMasksAndValuesExtended.DOOR) !== 0
-											) {
+											if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
 												// Open door
 												actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
 												if (actionDoorState === undefined || actionDoorState.open !== true) {
@@ -2970,7 +2940,7 @@ class CalcMainEngine {
 													characterNPC.walking = false;
 													characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING_DOOR);
 												}
-											} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0) {
+											} else if ((gameMapGridDataCell & GameGridCellMaskBlockingAll) !== 0) {
 												// Wall, turn around!
 												switch (characterNPC.assetId) {
 													case AssetIdImgCharacter.MOVE1_E:
@@ -3106,12 +3076,7 @@ class CalcMainEngine {
 					characterPlayer1.camera = cameraInstance;
 
 					if (cameraUpdated === true || characterPlayerChanged[0] === true) {
-						characterPlayer1Raycast = GamingCanvasGridRaycast(
-							camera,
-							gameMapGrid,
-							GameGridCellMasksAndValues.BLOCKING_MASK_VISIBLE,
-							raycastOptions,
-						);
+						characterPlayer1Raycast = GamingCanvasGridRaycast(camera, gameMapGrid, GameGridCellMaskBlockingVisible, raycastOptions);
 						characterPlayer1RaycastDistanceMap = <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>characterPlayer1Raycast.distanceMap;
 						characterPlayer1RaycastDistanceMapKeysSorted = <Float64Array>characterPlayer1Raycast.distanceMapKeysSorted;
 						characterPlayer1RaycastRays = characterPlayer1Raycast.rays;

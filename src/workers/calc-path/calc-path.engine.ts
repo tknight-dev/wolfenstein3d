@@ -9,7 +9,7 @@ import {
 	CalcPathBusOutputPayload,
 	CalcPathBusStats,
 } from './calc-path.model.js';
-import { GameDifficulty, GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMaskBlockingAll, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import {
 	GamingCanvasGridPathAStarResult,
 	GamingCanvasGridPathAStarOptions,
@@ -209,14 +209,14 @@ class CalcPathEngine {
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapNPCById: Map<number, CharacterNPC>,
 			pathBlocking = (cell: number, gridIndex: number) => {
-				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
 					return false;
 				}
 
-				return (cell & GameGridCellMasksAndValues.BLOCKING_MASK_ALL) !== 0;
+				return (cell & GameGridCellMaskBlockingAll) !== 0;
 			},
 			pathWeight = (cell: number, gridIndex: number, heuristic: (heuristic?: GamingCanvasGridPathAStarOptionsPathHeuristic) => number) => {
-				if ((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0) {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
 					// Prefer not to use doors
 					return heuristic() + 1;
 				}

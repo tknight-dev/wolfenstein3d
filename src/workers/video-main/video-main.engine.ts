@@ -32,14 +32,7 @@ import {
 	GamingCanvasUtilTimers,
 	GamingCanvasStat,
 } from '@tknight-dev/gaming-canvas';
-import {
-	GameDifficulty,
-	gameGridCellMaskExtendedDoor,
-	GameGridCellMasksAndValues,
-	GameGridCellMasksAndValuesExtended,
-	gameGridCellMaskSpriteFixed,
-	GameMap,
-} from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, gameGridCellMaskSpriteFixed, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -1056,15 +1049,11 @@ class VideoMainEngine {
 						}
 
 						// Render: Asset Selection
-						if ((gameMapGridCell2 & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell2 & gameGridCellMaskExtendedDoor) !== 0) {
+						if ((gameMapGridCell2 & GameGridCellMasksAndValues.DOOR) !== 0) {
 							asset = renderAssets.get(AssetIdImg.SPRITE_METAL_DOOR_INSIDE) || renderDebugImage;
 						} else {
 							gameMapGridCell = gameMapGridData[gameMapGridIndex];
-							renderAssetId =
-								(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-									? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-									: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-
+							renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
 							asset = renderAssets.get(renderAssetId) || renderDebugImage;
 						}
 						// asset = renderDebugImage;
@@ -1121,12 +1110,10 @@ class VideoMainEngine {
 						renderGlobalShadow = false;
 						renderSkip = false;
 
-						if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) === 0) {
-							renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-
-							if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_ARROW_WEST) {
-								renderSkip = true;
-							}
+						// Skip arrows
+						renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
+						if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_ARROW_WEST) {
+							renderSkip = true;
 						}
 
 						// Environment
@@ -1151,9 +1138,9 @@ class VideoMainEngine {
 								 */
 								asset = <any>undefined;
 								renderSpriteFixedDoorOffset = 0;
-								if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
+								if ((gameMapGridCell & GameGridCellMasksAndValues.DOOR) !== 0) {
 									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gameMapGridIndex);
-									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderDebugImage;
+									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 									// Door in a non-closed state
 									if (
@@ -1373,12 +1360,7 @@ class VideoMainEngine {
 								/**
 								 * Draw: Sprites - Rotating
 								 */
-								asset =
-									assetImagesInvertHorizontal.get(
-										(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-											? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-											: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-									) || renderDebugImage;
+								asset = assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;

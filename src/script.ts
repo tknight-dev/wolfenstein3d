@@ -4,7 +4,6 @@ import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
 import { Game } from './modules/game.js';
-import { GameMap } from './models/game.model.js';
 import { GamingCanvas, GamingCanvasAudioType, GamingCanvasStat, GamingCanvasStatCalcType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
