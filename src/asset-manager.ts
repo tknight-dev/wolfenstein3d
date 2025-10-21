@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { GameMap } from './models/game.model.js';
-import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridUint16Array, GamingCanvasGridUint32Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -352,7 +352,7 @@ export const assetLoaderMap = async (): Promise<Map<AssetIdMap, GameMap>> => {
 					),
 				),
 			);
-			gameMap.grid = GamingCanvasGridUint16Array.from(<Uint16Array>gameMap.grid.data);
+			gameMap.grid = GamingCanvasGridUint32Array.from(<Uint32Array>gameMap.grid.data);
 
 			data.set(assetId, gameMap);
 		} catch (error) {

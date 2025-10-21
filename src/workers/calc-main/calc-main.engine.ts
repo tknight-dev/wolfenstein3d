@@ -76,6 +76,7 @@ import {
 	GamingCanvasGridRaycastResult,
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridUint16Array,
+	GamingCanvasGridUint32Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { RaycastQuality } from '../../models/settings.model.js';
 import {
@@ -656,8 +657,8 @@ class CalcMainEngine {
 			distance: number,
 			distance2: number,
 			gameMap: GameMap = CalcMainEngine.gameMap,
-			gameMapGrid: GamingCanvasGridUint16Array,
-			gameMapGridData: Uint16Array,
+			gameMapGrid: GamingCanvasGridUint32Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridDataCell: number,
 			gameMapIndexEff: number,
 			gameMapControlBlocking = (cell: number, gridIndex: number) => {

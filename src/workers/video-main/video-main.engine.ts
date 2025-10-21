@@ -328,7 +328,7 @@ class VideoMainEngine {
 	}
 
 	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
-		const gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data;
+		const gameMapGridData: Uint32Array = VideoMainEngine.gameMap.grid.data;
 
 		// Cache: store the timestamp for animation
 		VideoMainEngine.actionWall.set(data.gridIndex, data);
@@ -543,7 +543,7 @@ class VideoMainEngine {
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
 			gameMapGridIndex: number,
-			gameMapGridData: Uint16Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
 			gameMapNPCById: Map<number, CharacterNPC>,
 			gameMapNPCDead: Set<number> = new Set(),
@@ -757,7 +757,7 @@ class VideoMainEngine {
 					actionWall.clear();
 					timers.clearAll();
 
-					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
+					gameMapGridData = <Uint32Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
 					gameMapNPCById = VideoMainEngine.gameMap.npcById;
 

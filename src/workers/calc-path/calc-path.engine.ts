@@ -16,6 +16,7 @@ import {
 	GamingCanvasGridPathAStarOptionsPathHeuristic,
 	GamingCanvasGridUtilDistance,
 	GamingCanvasGridRaycastCellSide,
+	GamingCanvasGridUint32Array,
 } from '@tknight-dev/gaming-canvas/grid';
 import { GamingCanvasGridPathAStar, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
 import { Assets } from '../../modules/assets.js';
@@ -101,7 +102,7 @@ class CalcPathEngine {
 	 * Input
 	 */
 	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
-		const gameMapGridData: Uint16Array = CalcPathEngine.gameMap.grid.data;
+		const gameMapGridData: Uint32Array = CalcPathEngine.gameMap.grid.data;
 
 		// Calc: Offset
 		let offset: number, spriteType: number;
@@ -198,7 +199,7 @@ class CalcPathEngine {
 			characterPlayer2GridIndex: number = 0,
 			count: number = 0,
 			gameMap: GameMap,
-			gameMapGrid: GamingCanvasGridUint16Array,
+			gameMapGrid: GamingCanvasGridUint32Array,
 			gameMapGridIndex: number,
 			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
 				// pathClosest: false,

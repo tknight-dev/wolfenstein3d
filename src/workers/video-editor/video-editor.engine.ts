@@ -304,7 +304,7 @@ class VideoEditorEngine {
 			characterPlayer2: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer2Camera,
 			characterPlayer2XEff: number,
 			characterPlayer2YEff: number,
-			gameMapGridData: Uint16Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
 			gameMapNPC: CharacterNPC,
 			gameMapNPCId: number,
