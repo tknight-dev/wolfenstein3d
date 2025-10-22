@@ -363,6 +363,8 @@ export class Settings {
 
 	public static setMetaMap(apply: boolean): void {
 		if (apply === true) {
+			Game.map.colorCeiling = Number.parseInt(DOM.elMetaMapValueColorCeiling.value.replace('#', ''), 16);
+			Game.map.colorFloor = Number.parseInt(DOM.elMetaMapValueColorFloor.value.replace('#', ''), 16);
 			Game.map.id = Number(DOM.elMetaMapValueId.value);
 			Game.map.music = Number(DOM.elMetaMapValueMusic.value);
 			Game.map.position.r = ((Number(DOM.elMetaMapValueStartingPositionR.value) % 360) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
@@ -373,7 +375,11 @@ export class Settings {
 			if (Game.map.position.r < 0) {
 				Game.map.position.r += GamingCanvasConstPI_2_000;
 			}
+
+			Game.mapUpdated = true;
 		} else {
+			DOM.elMetaMapValueColorCeiling.value = '#' + (Game.map.colorCeiling || 0).toString(16).padStart(6, '0');
+			DOM.elMetaMapValueColorFloor.value = '#' + (Game.map.colorFloor || 0).toString(16).padStart(6, '0');
 			DOM.elMetaMapValueId.value = String(Game.map.id);
 			DOM.elMetaMapValueMusic.value = String(Game.map.music);
 			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);

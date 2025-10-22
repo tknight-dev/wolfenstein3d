@@ -524,6 +524,7 @@ class VideoMainEngine {
 			characterNPC: CharacterNPC,
 			characterNPCId: number,
 			characterNPCUpdateEncoded: Float32Array,
+			color: string,
 			countFrame: number = 0,
 			countRays: number = 0,
 			countSprites: number = 0,
@@ -533,6 +534,8 @@ class VideoMainEngine {
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
+			gameMapColorCeiling: number = 0,
+			gameMapColorFloor: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
 			gameMapGridIndex: number,
@@ -745,10 +748,14 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.gameMapNew === true) {
 					VideoMainEngine.gameMapNew = false;
+					VideoMainEngine.reportNew = true; // force gradient re-render
 
 					actionDoors.clear();
 					actionWall.clear();
 					timers.clearAll();
+
+					gameMapColorCeiling = VideoMainEngine.gameMap.colorCeiling || 0;
+					gameMapColorFloor = VideoMainEngine.gameMap.colorFloor || 0;
 
 					gameMapGridData = <Uint32Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
@@ -908,10 +915,27 @@ class VideoMainEngine {
 
 					if (renderLightingQuality >= LightingQuality.FULL) {
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx); // Ceiling
-						renderGradientCanvasGradient.addColorStop(0, '#383838');
-						renderGradientCanvasGradient.addColorStop(0.5, '#181818');
-						renderGradientCanvasGradient.addColorStop(0.5, '#313131');
-						renderGradientCanvasGradient.addColorStop(1, '#717171');
+
+						color = gameMapColorCeiling.toString(16).padStart(6, '0');
+						renderGradientCanvasGradient.addColorStop(0, '#' + color);
+						i = (Number(color.substring(0, 2)) * 0.3) | 0;
+						x = (Number(color.substring(2, 4)) * 0.3) | 0;
+						y = (Number(color.substring(4, 6)) * 0.3) | 0;
+						renderGradientCanvasGradient.addColorStop(
+							0.5,
+							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
+						);
+
+						color = gameMapColorFloor.toString(16).padStart(6, '0');
+						i = (Number(color.substring(0, 2)) * 0.3) | 0;
+						x = (Number(color.substring(2, 4)) * 0.3) | 0;
+						y = (Number(color.substring(4, 6)) * 0.3) | 0;
+						renderGradientCanvasGradient.addColorStop(
+							0.5,
+							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
+						);
+						renderGradientCanvasGradient.addColorStop(1, '#' + color);
+
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
 						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 					}
@@ -983,11 +1007,11 @@ class VideoMainEngine {
 					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx * renderTilt);
 				} else {
 					// Ceiling
-					offscreenCanvasContext.fillStyle = '#383838';
+					offscreenCanvasContext.fillStyle = '#' + gameMapColorCeiling.toString(16).padStart(6, '0');
 					offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf * renderTilt);
 
 					// Floor
-					offscreenCanvasContext.fillStyle = '#717171';
+					offscreenCanvasContext.fillStyle = '#' + gameMapColorFloor.toString(16).padStart(6, '0');
 					offscreenCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf * renderTilt, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 				}
 				// offscreenCanvasContext.fillStyle = 'black';

@@ -168,6 +168,8 @@ export class DOM {
 	public static elMetaMapApply: HTMLElement;
 	public static elMetaMapCancel: HTMLElement;
 	public static elMetaMapLocation: HTMLElement;
+	public static elMetaMapValueColorCeiling: HTMLInputElement;
+	public static elMetaMapValueColorFloor: HTMLInputElement;
 	public static elMetaMapValueId: HTMLInputElement;
 	public static elMetaMapValueMusic: HTMLInputElement;
 	public static elMetaMapValueStartingPositionR: HTMLInputElement;
@@ -562,6 +564,8 @@ export class DOM {
 		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
 		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
 		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
+		DOM.elMetaMapValueColorCeiling = <HTMLInputElement>document.getElementById('meta-map-value-color-ceiling');
+		DOM.elMetaMapValueColorFloor = <HTMLInputElement>document.getElementById('meta-map-value-color-floor');
 		DOM.elMetaMapValueId = <HTMLInputElement>document.getElementById('meta-map-value-id');
 		DOM.elMetaMapValueMusic = <HTMLInputElement>document.getElementById('meta-map-value-music');
 		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');

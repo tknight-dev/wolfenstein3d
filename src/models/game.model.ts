@@ -52,6 +52,8 @@ export enum GameDifficulty {
  * Data: table cell accessed via (64 * x + y)
  */
 export interface GameMap {
+	colorCeiling: number;
+	colorFloor: number;
 	id: AssetIdMap;
 	grid: GamingCanvasGridUint32Array;
 	music: AssetIdAudio;

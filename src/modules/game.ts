@@ -141,6 +141,7 @@ export class Game {
 	public static mapEnding: boolean;
 	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
+	public static mapUpdated: boolean;
 	public static modeEdit: boolean;
 	public static modeEditApplyType: EditApplyType = EditApplyType.PENCIL;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
@@ -2329,8 +2330,9 @@ export class Game {
 
 		// Data
 		setInterval(() => {
-			if (dataUpdated === true) {
+			if (dataUpdated === true || Game.mapUpdated === true) {
 				dataUpdated = false;
+				Game.mapUpdated = false;
 
 				CalcMainBus.outputMap(Game.map);
 				CalcPathBus.outputMap(Game.map);
