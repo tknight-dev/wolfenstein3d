@@ -1,4 +1,4 @@
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasConstPI_2_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
@@ -365,10 +365,14 @@ export class Settings {
 		if (apply === true) {
 			Game.map.id = Number(DOM.elMetaMapValueId.value);
 			Game.map.music = Number(DOM.elMetaMapValueMusic.value);
-			Game.map.position.r = (Number(DOM.elMetaMapValueStartingPositionR.value) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
+			Game.map.position.r = ((Number(DOM.elMetaMapValueStartingPositionR.value) % 360) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
 			Game.map.position.x = (Number(DOM.elMetaMapValueStartingPositionX.value) | 0) + 0.5;
 			Game.map.position.y = (Number(DOM.elMetaMapValueStartingPositionY.value) | 0) + 0.5;
 			Game.map.timeParInMS = Number(DOM.elMetaMapValueTimeParInSeconds.value) * 1000;
+
+			if (Game.map.position.r < 0) {
+				Game.map.position.r += GamingCanvasConstPI_2_000;
+			}
 		} else {
 			DOM.elMetaMapValueId.value = String(Game.map.id);
 			DOM.elMetaMapValueMusic.value = String(Game.map.music);

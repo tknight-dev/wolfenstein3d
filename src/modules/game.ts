@@ -1380,16 +1380,17 @@ export class Game {
 
 			// Restore map
 			Game.gameOver = false;
+			Game.map = parsed;
 			Game.mapBackup.npcById = npcById;
+			Game.mapBackupRestored = true;
+			Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
+			Game.mapEnded = false;
+			Game.mapEnding = false;
 
 			Game.camera.r = parsed.position.r;
 			Game.camera.x = parsed.position.x;
 			Game.camera.y = parsed.position.y;
 			Game.camera.z = parsed.position.z;
-			Game.map = parsed;
-			Game.mapBackupRestored = true;
-			Game.mapEnded = false;
-			Game.mapEnding = false;
 
 			DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
@@ -1987,9 +1988,9 @@ export class Game {
 			setTimeout(() => {
 				Game.mapEndingSkip = false;
 				if (data.player1Meta.bonus === 0) {
-					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
 				} else {
-					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 				}
 				utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
 
@@ -1997,11 +1998,11 @@ export class Game {
 					() => {
 						if (Game.mapEndingSkip !== true) {
 							if (ratioKill === 0) {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
 							} else if (ratioKill < 10) {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 							} else {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 							}
 						}
 						utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
@@ -2010,11 +2011,11 @@ export class Game {
 							() => {
 								if (Game.mapEndingSkip !== true) {
 									if (ratioSecret === 0) {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
 									} else if (ratioSecret < 10) {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 									} else {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 									}
 								}
 								utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
@@ -2023,11 +2024,11 @@ export class Game {
 									() => {
 										if (Game.mapEndingSkip !== true) {
 											if (ratioTreasure === 0) {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
 											} else if (ratioTreasure < 10) {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 											} else {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 											}
 										}
 										utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`, true);
@@ -2909,6 +2910,7 @@ Y: ${camera.y | 0}`);
 							if (keyState.get('ShiftLeft') === true) {
 								Game.map.npcById.clear();
 								Game.map.grid.data.fill(0);
+								Game.mapEditor.historyClear();
 								dataUpdated = true;
 							} else {
 								DOM.elEditorCommandResetMap.click();

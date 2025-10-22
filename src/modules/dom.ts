@@ -878,8 +878,8 @@ export class DOM {
 
 		DOM.elGameMenuPistol.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.MENU_PISTOL)})`;
 
-		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_1);
-		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_LEVEL_PISTOL_2);
+		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_1);
+		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_2);
 		DOM.elScreenRating.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.RATING)})`;
 		DOM.elScreenStats.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_STATS)})`;
 		DOM.elScreenTitle.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_TITLE)})`;
