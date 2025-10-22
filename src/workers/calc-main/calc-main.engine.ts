@@ -1885,6 +1885,26 @@ class CalcMainEngine {
 					characterPlayer2.camera.y = gameMap.position.y;
 					characterPlayer2.camera.z = gameMap.position.z;
 
+					characterPlayer1Meta.bonus = 0;
+					characterPlayer1Meta.damageInstances = 0;
+					characterPlayer1Meta.damageTaken = 0;
+					characterPlayer1Meta.ratioKill = 0;
+					characterPlayer1Meta.ratioSecret = 0;
+					characterPlayer1Meta.ratioTreasure = 0;
+					characterPlayer1Meta.shotsFired = 0;
+					characterPlayer1Meta.shotsHit = 0;
+					characterPlayer1Meta.timeInMS = 0;
+
+					characterPlayer2Meta.bonus = 0;
+					characterPlayer2Meta.damageInstances = 0;
+					characterPlayer2Meta.damageTaken = 0;
+					characterPlayer2Meta.ratioKill = 0;
+					characterPlayer2Meta.ratioSecret = 0;
+					characterPlayer2Meta.ratioTreasure = 0;
+					characterPlayer2Meta.shotsFired = 0;
+					characterPlayer2Meta.shotsHit = 0;
+					characterPlayer2Meta.timeInMS = 0;
+
 					CalcMainEngine.characterPlayer1.key1 = false;
 					CalcMainEngine.characterPlayer1.key2 = false;
 					CalcMainEngine.characterPlayer2.key1 = false;
