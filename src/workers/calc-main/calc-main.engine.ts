@@ -199,7 +199,7 @@ class CalcMainEngine {
 			camera: new GamingCanvasGridCamera(),
 			cameraPrevious: <GamingCanvasGridICamera>{},
 			fov: 0,
-			fovDistanceMax: 30, // WeaponFOVDistanceMax
+			fovDistanceMax: 40, // WeaponFOVDistanceMax
 			gridIndex: 0,
 			health: 100,
 			id: -1,
@@ -1633,7 +1633,10 @@ class CalcMainEngine {
 						if (gameMapNPCPath.length < 20) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
-								if ((gameMapGridData[gridIndex] & GameGridCellMasksAndValues.DOOR) !== 0) {
+								if (
+									(gameMapGridData[gridIndex] & GameGridCellMasksAndValues.DISABLED) === 0 &&
+									(gameMapGridData[gridIndex] & GameGridCellMasksAndValues.DOOR) !== 0
+								) {
 									// Closed doors block sounds
 									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
@@ -1882,6 +1885,12 @@ class CalcMainEngine {
 					characterPlayer2.camera.y = gameMap.position.y;
 					characterPlayer2.camera.z = gameMap.position.z;
 
+					CalcMainEngine.characterPlayer1.key1 = false;
+					CalcMainEngine.characterPlayer1.key2 = false;
+					CalcMainEngine.characterPlayer2.key1 = false;
+					CalcMainEngine.characterPlayer2.key2 = false;
+					CalcMainEngine.characterPlayerMetaReport = true;
+
 					gameMapMetaNPCCount = 0;
 					gameMapMetaSecretsCount = 0;
 					gameMapMetaTreasureCount = 0;
@@ -2120,7 +2129,10 @@ class CalcMainEngine {
 							}
 
 							gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
-							if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+							if (
+								(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+								(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
+							) {
 								if (
 									(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0 &&
 									(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0
@@ -2172,9 +2184,16 @@ class CalcMainEngine {
 								} else {
 									actionDoor(cellSide, gameMapIndexEff);
 								}
-							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) {
+							} else if (
+								((gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+									(gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) ||
+								(gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0
+							) {
 								actionSwitch(gameMapIndexEff);
-							} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+							} else if (
+								(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+								(gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0
+							) {
 								actionWallMovable(cellSide, gameMapIndexEff, true);
 							} else {
 								audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
@@ -2213,7 +2232,10 @@ class CalcMainEngine {
 								}
 
 								gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
-								if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+								if (
+									(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+									(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
+								) {
 									if (
 										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0 &&
 										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0
@@ -2265,9 +2287,16 @@ class CalcMainEngine {
 									} else {
 										actionDoor(cellSide, gameMapIndexEff);
 									}
-								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) {
+								} else if (
+									((gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+										(gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH) !== 0) ||
+									(gameMapGridDataCell & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0
+								) {
 									actionSwitch(gameMapIndexEff);
-								} else if ((gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
+								} else if (
+									(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+									(gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0
+								) {
 									actionWallMovable(cellSide, gameMapIndexEff, false);
 								} else {
 									audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
@@ -2674,7 +2703,10 @@ class CalcMainEngine {
 											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
 											gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
-											if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+											if (
+												(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+												(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
+											) {
 												// Open door
 												actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
 												if (actionDoorState === undefined || actionDoorState.open !== true) {
@@ -2887,7 +2919,10 @@ class CalcMainEngine {
 											characterNPCGridIndex = characterNPC.gridIndex + (characterNPCInput.x * gameMapSideLength + characterNPCInput.y);
 											gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
-											if ((gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0) {
+											if (
+												(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
+												(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
+											) {
 												// Open door
 												actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(characterNPCGridIndex);
 												if (actionDoorState === undefined || actionDoorState.open !== true) {

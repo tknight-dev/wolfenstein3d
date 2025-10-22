@@ -421,11 +421,12 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_WALL_MOVE,
 	AUDIO_MUSIC_END_OF_LEVEL = 10000,
 	AUDIO_MUSIC_GET_THEM = 10001,
+	AUDIO_MUSIC_POW = 10004,
 	AUDIO_MUSIC_SEARCHN = 10002,
 	AUDIO_MUSIC_WONDERING = 10003,
 }
 
-export const AssetIdMusicLevels: AssetIdAudio[] = [AssetIdAudio.AUDIO_MUSIC_GET_THEM, AssetIdAudio.AUDIO_MUSIC_SEARCHN];
+export const AssetIdMusicLevels: AssetIdAudio[] = [AssetIdAudio.AUDIO_MUSIC_GET_THEM, AssetIdAudio.AUDIO_MUSIC_POW, AssetIdAudio.AUDIO_MUSIC_SEARCHN];
 
 export enum AssetIdImg {
 	MISC_ARROW_EAST = 1,
@@ -824,9 +825,9 @@ export enum AssetIdImgCharacterType {
 }
 
 export enum AssetIdMap {
-	EPISODE_01_LEVEL_01 = 0,
-	EPISODE_01_LEVEL_02 = 1,
-	EPISODE_01_LEVEL_03 = 2,
+	EPISODE_01_FLOOR_01 = 0,
+	EPISODE_01_FLOOR_02 = 1,
+	EPISODE_01_FLOOR_03 = 2,
 	EPISODE_01_LEVEL_04 = 3,
 	EPISODE_01_LEVEL_05 = 4,
 	EPISODE_01_LEVEL_06 = 5,
@@ -1362,6 +1363,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_POW, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/pow.mp3',
+		title: 'P.O.W.',
+		volume: 0.6,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_SEARCHN, {
 		author: 'Id Software',
 		effect: false,
@@ -1581,17 +1591,23 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 */
 
 	if (audioOnly !== true) {
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_01, {
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_01, {
 			episode: 1,
-			file: 'map/episode_01_level_01.map',
+			file: 'map/episode_01_floor_01.map',
 			level: 1,
-			title: 'Episode 01: Level 01',
+			title: 'Episode 01: Floor 01',
 		});
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_02, {
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_02, {
 			episode: 1,
-			file: 'map/episode_01_level_02.map',
+			file: 'map/episode_01_floor_02.map',
 			level: 2,
-			title: 'Episode 01: Level 02',
+			title: 'Episode 01: Floor 02',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_03, {
+			episode: 1,
+			file: 'map/episode_01_floor_03.map',
+			level: 2,
+			title: 'Episode 01: Floor 03',
 		});
 	}
 

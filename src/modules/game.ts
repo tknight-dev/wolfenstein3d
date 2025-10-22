@@ -74,6 +74,7 @@ import {
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridInputToCoordinate,
 	GamingCanvasGridICamera,
+	GamingCanvasGridEditor,
 } from '@tknight-dev/gaming-canvas/grid';
 import { Character, CharacterInput, CharacterMetaDecode, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
@@ -89,6 +90,11 @@ import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
 
 // ESBuild live reloader
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
+
+enum EditApplyType {
+	FILL,
+	PENCIL,
+}
 
 enum EditType {
 	APPLY,
@@ -114,6 +120,8 @@ export class Game {
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
+	public static elButtonApplyApplied: boolean;
+	public static elButtonApplyTimeout: ReturnType<typeof setTimeout>;
 	public static fullscreen: boolean;
 	public static gameOver: boolean;
 	public static gameMenuActive: boolean;
@@ -128,11 +136,13 @@ export class Game {
 	public static map: GameMap;
 	public static mapBackup: GameMap;
 	public static mapBackupRestored: boolean;
+	public static mapEditor: GamingCanvasGridEditor;
 	public static mapEnded: boolean;
 	public static mapEnding: boolean;
 	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
 	public static modeEdit: boolean;
+	public static modeEditApplyType: EditApplyType = EditApplyType.PENCIL;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
 	public static modePerformance: boolean;
 	public static musicInstance: number | null = null;
@@ -230,6 +240,7 @@ export class Game {
 				// GameMap
 				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 				Game.mapEnded = false;
 				Game.mapEnding = false;
 
@@ -517,8 +528,8 @@ export class Game {
 		// GameMap
 		switch (Game.gameMenuEpisode) {
 			case 0:
-				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
-				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
 
 				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 				break;
@@ -528,6 +539,7 @@ export class Game {
 		Game.camera.y = Game.map.position.y + 0.5;
 		Game.camera.z = Game.map.position.z;
 
+		Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 		Game.mapEnded = false;
 		Game.mapEnding = false;
 
@@ -603,6 +615,7 @@ export class Game {
 				Game.camera.z = parsed.position.z;
 				Game.map = parsed;
 				Game.mapBackup = parsed2;
+				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 				Game.mapEnded = false;
 				Game.mapEnding = false;
 
@@ -1107,8 +1120,38 @@ export class Game {
 				DOM.elVideoInteractive.classList.remove('cursor-grab');
 				DOM.elVideoInteractive.classList.add('cursor-pointer');
 				Game.editorCellHighlightEnable = true;
+
+				Game.modeEditApplyType = EditApplyType.PENCIL;
+				DOM.elButtonApply.children[0].classList.remove('fill');
+				DOM.elButtonApply.children[0].classList.add('pencil');
+
 				Game.modeEditType = EditType.APPLY;
+			} else if (Game.elButtonApplyApplied !== true) {
+				Game.modeEditApplyType = EditApplyType.PENCIL;
+				DOM.elButtonApply.children[0].classList.remove('fill');
+				DOM.elButtonApply.children[0].classList.add('pencil');
 			}
+			Game.elButtonApplyApplied = false;
+		};
+		DOM.elButtonApply.onmousedown = () => {
+			if (DOM.elButtonApply.classList.contains('active') === true) {
+				clearTimeout(Game.elButtonApplyTimeout);
+				Game.elButtonApplyTimeout = setTimeout(() => {
+					Game.elButtonApplyApplied = true;
+					if (Game.modeEditApplyType !== EditApplyType.FILL) {
+						Game.modeEditApplyType = EditApplyType.FILL;
+						DOM.elButtonApply.children[0].classList.add('fill');
+						DOM.elButtonApply.children[0].classList.remove('pencil');
+					} else {
+						Game.modeEditApplyType = EditApplyType.PENCIL;
+						DOM.elButtonApply.children[0].classList.remove('fill');
+						DOM.elButtonApply.children[0].classList.add('pencil');
+					}
+				}, 750);
+			}
+		};
+		DOM.elButtonApply.onmouseup = () => {
+			clearTimeout(Game.elButtonApplyTimeout);
 		};
 
 		DOM.elButtonDownload.onclick = () => {
@@ -1249,6 +1292,7 @@ export class Game {
 							Game.camera.z = parsed.position.z;
 							Game.map = parsed;
 							Game.mapBackup = parsed2;
+							Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 							Game.mapEnded = false;
 							Game.mapEnding = false;
 
@@ -1723,8 +1767,9 @@ export class Game {
 		Game.report = GamingCanvas.getReport();
 
 		// GameMap
-		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
-		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+		Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 		Game.mapEnded = false;
 		Game.mapEnding = false;
 
@@ -2306,7 +2351,7 @@ export class Game {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					Game.map.npcById.delete(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				} else {
-					Game.map.grid.setBasic(cooridnate, 0);
+					Game.mapEditor.singleErase(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				}
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
@@ -2354,7 +2399,14 @@ export class Game {
 					DOM.elEditorPropertiesCharacterInputFOV.value = String(120) + '°';
 				} else {
 					// Cell
-					Game.map.grid.setBasic(cooridnate, Game.editorCellValue);
+					switch (Game.modeEditApplyType) {
+						case EditApplyType.FILL:
+							Game.mapEditor.fillApply(cooridnate.x * Game.map.grid.sideLength + cooridnate.y, Game.editorCellValue);
+							break;
+						case EditApplyType.PENCIL:
+							Game.mapEditor.singleApply(cooridnate.x * Game.map.grid.sideLength + cooridnate.y, Game.editorCellValue);
+							break;
+					}
 				}
 			}
 
@@ -2794,6 +2846,7 @@ Y: ${camera.y | 0}`);
 								// GameMap
 								Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 								Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+								Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 								Game.mapEnded = false;
 								Game.mapEnding = false;
 
@@ -2843,21 +2896,33 @@ Y: ${camera.y | 0}`);
 						updated = true;
 						break;
 				}
-			} else if (down === true) {
+			} else {
 				switch (input.propriatary.action.code) {
 					case 'KeyF':
-						DOM.elEditorCommandFindAndReplace.click();
+						down === true && DOM.elEditorCommandFindAndReplace.click();
 						break;
 					case 'KeyM':
-						DOM.elEditorCommandMetaMenu.click();
+						down === true && DOM.elEditorCommandMetaMenu.click();
 						break;
 					case 'KeyR':
-						if (keyState.get('ShiftLeft') === true && down) {
-							Game.map.npcById.clear();
-							Game.map.grid.data.fill(0);
-							dataUpdated = true;
-						} else {
-							DOM.elEditorCommandResetMap.click();
+						if (down === true) {
+							if (keyState.get('ShiftLeft') === true) {
+								Game.map.npcById.clear();
+								Game.map.grid.data.fill(0);
+								dataUpdated = true;
+							} else {
+								DOM.elEditorCommandResetMap.click();
+							}
+						}
+						break;
+					case 'KeyY':
+						if (keyState.get('ControlLeft') === true && down) {
+							dataUpdated = Game.mapEditor.historyRedo();
+						}
+						break;
+					case 'KeyZ':
+						if (keyState.get('ControlLeft') === true && down) {
+							dataUpdated = Game.mapEditor.historyUndo();
 						}
 						break;
 				}
