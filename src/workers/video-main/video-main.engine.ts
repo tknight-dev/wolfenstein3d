@@ -918,9 +918,9 @@ class VideoMainEngine {
 
 						color = gameMapColorCeiling.toString(16).padStart(6, '0');
 						renderGradientCanvasGradient.addColorStop(0, '#' + color);
-						i = (Number(color.substring(0, 2)) * 0.3) | 0;
-						x = (Number(color.substring(2, 4)) * 0.3) | 0;
-						y = (Number(color.substring(4, 6)) * 0.3) | 0;
+						i = (Number(color.substring(0, 2)) * 0.4) | 0;
+						x = (Number(color.substring(2, 4)) * 0.4) | 0;
+						y = (Number(color.substring(4, 6)) * 0.4) | 0;
 						renderGradientCanvasGradient.addColorStop(
 							0.5,
 							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
@@ -1598,9 +1598,9 @@ class VideoMainEngine {
 
 										// Calc: Movement
 										if (renderCharacterNPC.running === true) {
-											renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+											renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
 										} else if (renderCharacterNPC.walking === true) {
-											renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+											renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
 										} else {
 											renderCharacterNPCState = 0;
 										}

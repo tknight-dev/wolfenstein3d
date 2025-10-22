@@ -1630,6 +1630,12 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			floor: 4,
 			title: 'Episode 01: Floor 04',
 		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_05, {
+			episode: 1,
+			file: 'map/episode_01_floor_05.map',
+			floor: 5,
+			title: 'Episode 01: Floor 05',
+		});
 	}
 
 	/**
