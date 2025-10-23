@@ -165,6 +165,14 @@
 											<td colspan="2" style="text-align: center;">--- Editor ---</td>
 										</tr>
 										<tr>
+											<td>Download</td>
+											<td><input autocomplete="off" disabled readonly value = "d" /></td>
+										</tr>
+										<tr>
+											<td>Erase Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "e" /></td>
+										</tr>
+										<tr>
 											<td>Erase All</td>
 											<td><input autocomplete="off" disabled readonly value = "left-shift + r" /></td>
 										</tr>
@@ -176,6 +184,19 @@
 											<td>History Undo</td>
 											<td><input autocomplete="off" disabled readonly value = "left-control + z" /></td>
 										</tr>
+										<tr>
+											<td>Inspect (eye-dropper) Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "i" /></td>
+										</tr>
+										<tr>
+											<td>Move Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "m" /></td>
+										</tr>
+										<tr>
+											<td>Upload</td>
+											<td><input autocomplete="off" disabled readonly value = "u" /></td>
+										</tr>
+										<tr>
 										<tr>
 											<td colspan="2" style="text-align: center;">--- Debug (Goobers) ---</td>
 										</tr>
@@ -277,6 +298,10 @@
 							</div>
 							<div class="container" id="editor-cell-container-characters" style="display:none">
 								<div class="group">
+									<div class="name">Bosses</div>
+									<div class="content" id="editor-cell-container-characters-boss-content"></div>
+								</div>
+								<div class="group">
 									<div class="name">Guard</div>
 									<div class="content" id="editor-cell-container-characters-guard-content"></div>
 								</div>
@@ -328,7 +353,7 @@
 							</div>
 							<div class="commands">
 								<div class="command clickable" id="editor-cell-command-toggle-find-and-replace">F = Find & Replace</div>
-								<div class="command clickable" id="editor-cell-command-toggle-meta">M = Meta Menu</div>
+								<div class="command clickable" id="editor-cell-command-toggle-options">O = Options</div>
 								<div class="command clickable" id="editor-cell-command-toggle-reset">R = Reset Map</div>
 							</div>
 						</div>
@@ -623,62 +648,62 @@
 					<div class="fps" id="stat-fps"></div>
 					<div class="meta map" id="meta-map">
 						<div class="wrapper">
-							<div class="header">Meta</div>
+							<div class="header">Options</div>
 							<div class="body">
 								<table>
 									<tbody>
 										<tr style="height: 55px">
 											<td>Use Current Location</td>
 											<td>
-												<span class="button" id="meta-map-location"><span class="main-icon location"></span></span>
+												<span class="button" id="map-options-location"><span class="main-icon location"></span></span>
 											</td>
 										</tr>
 										<tr>
 											<td>Color: Ceiling (hex)</td>
 											<td>
-												<input autocomplete="off" id="meta-map-value-color-ceiling" />
+												<input autocomplete="off" id="map-options-value-color-ceiling" />
 											</td>
 										</tr>
 										<tr>
 											<td>Color: Floor (hex)</td>
 											<td>
-												<input autocomplete="off" id="meta-map-value-color-floor" />
+												<input autocomplete="off" id="map-options-value-color-floor" />
 											</td>
 										</tr>
 										<tr>
 											<td>ID</td>
 											<td>
-												<select autocomplete="off" id="meta-map-value-id"></select>
+												<select autocomplete="off" id="map-options-value-id"></select>
 											</td>
 										</tr>
 										<tr>
 											<td>Music</td>
 											<td>
-												<select autocomplete="off" id="meta-map-value-music"></select>
+												<select autocomplete="off" id="map-options-value-music"></select>
 											</td>
 										</tr>
 										<tr>
 											<td>Starting Angle (degrees)</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Starting Position X</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-x" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-x" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Starting Position Y</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-y" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-y" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Time: Par in Seconds</td>
-											<td><input autocomplete="off" id="meta-map-value-time-par-seconds" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-time-par-seconds" min="0" step="1" type="number" /></td>
 										</tr>
 									</tbody>
 								</table>
 							</div>
 							<div class="buttons">
-								<button class="cancel" id="meta-map-cancel">Cancel</button>
-								<button id="meta-map-apply">Apply</button>
+								<button class="cancel" id="map-options-cancel">Cancel</button>
+								<button id="map-options-apply">Apply</button>
 							</div>
 						</div>
 					</div>

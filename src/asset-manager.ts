@@ -377,6 +377,9 @@ export enum AssetExtImg {
 
 export enum AssetIdAudio {
 	AUDIO_EFFECT_AMMO,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_DEATH,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE,
 	AUDIO_EFFECT_DOOR_CLOSE,
 	AUDIO_EFFECT_DOOR_OPEN,
 	AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE,
@@ -419,8 +422,12 @@ export enum AssetIdAudio {
 	AUDIO_EFFECT_TREASURE_CUP,
 	AUDIO_EFFECT_WALL_HIT,
 	AUDIO_EFFECT_WALL_MOVE,
+	AUDIO_EFFECT_YEAH,
 	AUDIO_MUSIC_END_OF_LEVEL = 10000,
+	AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER = 10007,
+	AUDIO_MUSIC_EPISODE_END = 10008,
 	AUDIO_MUSIC_GET_THEM = 10001,
+	AUDIO_MUSIC_MARCH_TO_WAR = 10006,
 	AUDIO_MUSIC_POW = 10004,
 	AUDIO_MUSIC_SEARCHN = 10002,
 	AUDIO_MUSIC_SUSPENSE = 10005,
@@ -428,7 +435,9 @@ export enum AssetIdAudio {
 }
 
 export const AssetIdMusicLevels: AssetIdAudio[] = [
+	AssetIdAudio.AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER,
 	AssetIdAudio.AUDIO_MUSIC_GET_THEM,
+	AssetIdAudio.AUDIO_MUSIC_MARCH_TO_WAR,
 	AssetIdAudio.AUDIO_MUSIC_POW,
 	AssetIdAudio.AUDIO_MUSIC_SEARCHN,
 	AssetIdAudio.AUDIO_MUSIC_SUSPENSE,
@@ -589,6 +598,7 @@ export enum AssetIdImgCharacter {
 	DIE3 = 4,
 	DIE4 = 5,
 	FIRE = 6,
+	FIRE2 = 50,
 	HIT1 = 7,
 	HIT2 = 50,
 	MOVE1_E = 8,
@@ -633,6 +643,111 @@ export enum AssetIdImgCharacter {
 	STAND_W = 48,
 	SUPRISE = 49,
 }
+
+export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.DIE1,
+	AssetIdImgCharacter.DIE2,
+	AssetIdImgCharacter.DIE3,
+	AssetIdImgCharacter.DIE4,
+	AssetIdImgCharacter.CORPSE,
+];
+
+export const assetIdImgCharacterFire: AssetIdImgCharacter[] = [AssetIdImgCharacter.FIRE, AssetIdImgCharacter.FIRE2];
+
+export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.MOVE1_E,
+	AssetIdImgCharacter.STAND_E,
+	AssetIdImgCharacter.MOVE1_N,
+	AssetIdImgCharacter.STAND_N,
+	AssetIdImgCharacter.MOVE1_NE,
+	AssetIdImgCharacter.STAND_NE,
+	AssetIdImgCharacter.MOVE1_NW,
+	AssetIdImgCharacter.STAND_NW,
+	AssetIdImgCharacter.MOVE1_S,
+	AssetIdImgCharacter.STAND_S,
+	AssetIdImgCharacter.MOVE1_SE,
+	AssetIdImgCharacter.STAND_SE,
+	AssetIdImgCharacter.MOVE1_SW,
+	AssetIdImgCharacter.STAND_SW,
+	AssetIdImgCharacter.MOVE1_W,
+	AssetIdImgCharacter.STAND_W,
+];
+
+export const assetIdImgCharacterMoveE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_E,
+	AssetIdImgCharacter.MOVE1_E,
+	AssetIdImgCharacter.MOVE2_E,
+	AssetIdImgCharacter.MOVE3_E,
+	AssetIdImgCharacter.MOVE4_E,
+];
+
+export const assetIdImgCharacterMoveN: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_N,
+	AssetIdImgCharacter.MOVE1_N,
+	AssetIdImgCharacter.MOVE2_N,
+	AssetIdImgCharacter.MOVE3_N,
+	AssetIdImgCharacter.MOVE4_N,
+];
+
+export const assetIdImgCharacterMoveNE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_NE,
+	AssetIdImgCharacter.MOVE1_NE,
+	AssetIdImgCharacter.MOVE2_NE,
+	AssetIdImgCharacter.MOVE3_NE,
+	AssetIdImgCharacter.MOVE4_NE,
+];
+
+export const assetIdImgCharacterMoveNW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_NW,
+	AssetIdImgCharacter.MOVE1_NW,
+	AssetIdImgCharacter.MOVE2_NW,
+	AssetIdImgCharacter.MOVE3_NW,
+	AssetIdImgCharacter.MOVE4_NW,
+];
+
+export const assetIdImgCharacterMoveS: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_S,
+	AssetIdImgCharacter.MOVE1_S,
+	AssetIdImgCharacter.MOVE2_S,
+	AssetIdImgCharacter.MOVE3_S,
+	AssetIdImgCharacter.MOVE4_S,
+];
+
+export const assetIdImgCharacterMoveSE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_SE,
+	AssetIdImgCharacter.MOVE1_SE,
+	AssetIdImgCharacter.MOVE2_SE,
+	AssetIdImgCharacter.MOVE3_SE,
+	AssetIdImgCharacter.MOVE4_SE,
+];
+
+export const assetIdImgCharacterMoveSW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_SW,
+	AssetIdImgCharacter.MOVE1_SW,
+	AssetIdImgCharacter.MOVE2_SW,
+	AssetIdImgCharacter.MOVE3_SW,
+	AssetIdImgCharacter.MOVE4_SW,
+];
+
+export const assetIdImgCharacterMoveW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_W,
+	AssetIdImgCharacter.MOVE1_W,
+	AssetIdImgCharacter.MOVE2_W,
+	AssetIdImgCharacter.MOVE3_W,
+	AssetIdImgCharacter.MOVE4_W,
+];
+
+const assetIdImgCharacterMoveAll: AssetIdImgCharacter[][] = [
+	assetIdImgCharacterMoveE,
+	assetIdImgCharacterMoveN,
+	assetIdImgCharacterMoveNE,
+	assetIdImgCharacterMoveNW,
+	assetIdImgCharacterMoveS,
+	assetIdImgCharacterMoveSE,
+	assetIdImgCharacterMoveSW,
+	assetIdImgCharacterMoveW,
+];
+const assetIdImgCharacterMoveAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
 
 export enum AssetIdImgMenu {
 	BANNER_BAR,
@@ -720,110 +835,8 @@ export enum AssetIdImgMenu {
 	WEAPONS_4,
 }
 
-export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.DIE1,
-	AssetIdImgCharacter.DIE2,
-	AssetIdImgCharacter.DIE3,
-	AssetIdImgCharacter.DIE4,
-	AssetIdImgCharacter.CORPSE,
-];
-
-export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.MOVE1_E,
-	AssetIdImgCharacter.STAND_E,
-	AssetIdImgCharacter.MOVE1_N,
-	AssetIdImgCharacter.STAND_N,
-	AssetIdImgCharacter.MOVE1_NE,
-	AssetIdImgCharacter.STAND_NE,
-	AssetIdImgCharacter.MOVE1_NW,
-	AssetIdImgCharacter.STAND_NW,
-	AssetIdImgCharacter.MOVE1_S,
-	AssetIdImgCharacter.STAND_S,
-	AssetIdImgCharacter.MOVE1_SE,
-	AssetIdImgCharacter.STAND_SE,
-	AssetIdImgCharacter.MOVE1_SW,
-	AssetIdImgCharacter.STAND_SW,
-	AssetIdImgCharacter.MOVE1_W,
-	AssetIdImgCharacter.STAND_W,
-];
-
-export const assetIdImgCharacterMovementE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_E,
-	AssetIdImgCharacter.MOVE1_E,
-	AssetIdImgCharacter.MOVE2_E,
-	AssetIdImgCharacter.MOVE3_E,
-	AssetIdImgCharacter.MOVE4_E,
-];
-
-export const assetIdImgCharacterMovementN: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_N,
-	AssetIdImgCharacter.MOVE1_N,
-	AssetIdImgCharacter.MOVE2_N,
-	AssetIdImgCharacter.MOVE3_N,
-	AssetIdImgCharacter.MOVE4_N,
-];
-
-export const assetIdImgCharacterMovementNE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_NE,
-	AssetIdImgCharacter.MOVE1_NE,
-	AssetIdImgCharacter.MOVE2_NE,
-	AssetIdImgCharacter.MOVE3_NE,
-	AssetIdImgCharacter.MOVE4_NE,
-];
-
-export const assetIdImgCharacterMovementNW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_NW,
-	AssetIdImgCharacter.MOVE1_NW,
-	AssetIdImgCharacter.MOVE2_NW,
-	AssetIdImgCharacter.MOVE3_NW,
-	AssetIdImgCharacter.MOVE4_NW,
-];
-
-export const assetIdImgCharacterMovementS: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_S,
-	AssetIdImgCharacter.MOVE1_S,
-	AssetIdImgCharacter.MOVE2_S,
-	AssetIdImgCharacter.MOVE3_S,
-	AssetIdImgCharacter.MOVE4_S,
-];
-
-export const assetIdImgCharacterMovementSE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_SE,
-	AssetIdImgCharacter.MOVE1_SE,
-	AssetIdImgCharacter.MOVE2_SE,
-	AssetIdImgCharacter.MOVE3_SE,
-	AssetIdImgCharacter.MOVE4_SE,
-];
-
-export const assetIdImgCharacterMovementSW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_SW,
-	AssetIdImgCharacter.MOVE1_SW,
-	AssetIdImgCharacter.MOVE2_SW,
-	AssetIdImgCharacter.MOVE3_SW,
-	AssetIdImgCharacter.MOVE4_SW,
-];
-
-export const assetIdImgCharacterMovementW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_W,
-	AssetIdImgCharacter.MOVE1_W,
-	AssetIdImgCharacter.MOVE2_W,
-	AssetIdImgCharacter.MOVE3_W,
-	AssetIdImgCharacter.MOVE4_W,
-];
-
-const assetIdImgCharacterMovementAll: AssetIdImgCharacter[][] = [
-	assetIdImgCharacterMovementE,
-	assetIdImgCharacterMovementN,
-	assetIdImgCharacterMovementNE,
-	assetIdImgCharacterMovementNW,
-	assetIdImgCharacterMovementS,
-	assetIdImgCharacterMovementSE,
-	assetIdImgCharacterMovementSW,
-	assetIdImgCharacterMovementW,
-];
-const assetIdImgCharacterMovementAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
-
 export enum AssetIdImgCharacterType {
+	BOSS_HANS_GROSSE = 4,
 	GUARD = 0,
 	OFFICER = 1,
 	RAT = 3,
@@ -948,6 +961,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	let cAngle: number,
 		cAssetIdImgCharacter: AssetIdImgCharacter,
 		cAuthor: string,
+		cBoss: boolean,
 		cDir: string,
 		cFilePrefix: string,
 		cHide: boolean,
@@ -967,6 +981,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		file: 'audio/effect/ammo.mp3',
 		title: 'Ammo',
 		volume: 0.4,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_DEATH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_death.mp3',
+		title: 'Hans Grosse Death',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_fire.mp3',
+		title: 'Hans Grosse Fire',
+		volume: 0.75,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_surprise.mp3',
+		title: 'Hans Grosse Surprise',
+		volume: 0.75,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
@@ -1347,6 +1388,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.8,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_YEAH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/yeah.mp3',
+		title: 'Yeah',
+		volume: 0.8,
+	});
+
 	/**
 	 * Assets: Audio - Music
 	 */
@@ -1360,12 +1410,39 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/enemy_around_the_corner.mp3',
+		title: 'Enemy Around the Corner',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_EPISODE_END, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/episode_end.mp3',
+		title: 'Episode End',
+		volume: 0.6,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_GET_THEM, {
 		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/get_them_before_they_get_you.mp3',
 		title: 'Get Them Before They Get You',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MARCH_TO_WAR, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/march_to_war.mp3',
+		title: 'March to War',
 		volume: 0.6,
 	});
 
@@ -1418,24 +1495,35 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			switch (characterType) {
 				case AssetIdImgCharacterType.GUARD:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'guard';
 					cHide = false;
 					cName = 'Guard';
 					break;
+				case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+					cAuthor = 'Id Software';
+					cBoss = true;
+					cDir = 'hans_grosse';
+					cHide = true;
+					cName = 'Hans Grosse';
+					break;
 				case AssetIdImgCharacterType.OFFICER:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'officer';
 					cHide = true;
 					cName = 'Officer';
 					break;
 				case AssetIdImgCharacterType.RAT:
 					cAuthor = 'Capstone Software';
+					cBoss = false;
 					cDir = 'rat';
 					cHide = true;
 					cName = 'Rat';
 					break;
 				case AssetIdImgCharacterType.SS:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'ss';
 					cHide = true;
 					cName = 'SS';
@@ -1519,41 +1607,55 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 				title: `${cName} Fire`,
 			});
 
-			cInstance.set(AssetIdImgCharacter.HIT1, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit1.png`,
-				hide: cHide,
-				title: `${cName} Hit1`,
-			});
+			if (cBoss === true) {
+				cInstance.set(AssetIdImgCharacter.FIRE2, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/fire2.png`,
+					hide: cHide,
+					title: `${cName} Fire`,
+				});
+			}
 
-			cInstance.set(AssetIdImgCharacter.HIT2, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit2.png`,
-				hide: cHide,
-				title: `${cName} Hit2`,
-			});
+			if (cBoss !== true) {
+				cInstance.set(AssetIdImgCharacter.HIT1, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/hit1.png`,
+					hide: cHide,
+					title: `${cName} Hit1`,
+				});
 
-			cInstance.set(AssetIdImgCharacter.SUPRISE, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/surprise.png`,
-				hide: cHide,
-				title: `${cName} Surprise`,
-			});
+				cInstance.set(AssetIdImgCharacter.HIT2, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/hit2.png`,
+					hide: cHide,
+					title: `${cName} Hit2`,
+				});
+
+				cInstance.set(AssetIdImgCharacter.SUPRISE, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/surprise.png`,
+					hide: cHide,
+					title: `${cName} Surprise`,
+				});
+			}
 
 			/**
 			 * Movement
 			 */
-			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
-				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
+			for ([cI, cMovement] of assetIdImgCharacterMoveAll.entries()) {
+				cFilePrefix = assetIdImgCharacterMoveAllFilePrefixes[cI];
 
 				switch (cFilePrefix) {
 					case 'e':
@@ -1585,17 +1687,19 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 						break;
 				}
 
-				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
-					cInstance.set(cAssetIdImgCharacter, {
-						alpha: true,
-						angle: cAngle,
-						author: cAuthor,
-						category: AssetImgCategory.CHARACTER,
-						ext: AssetExtImg.PNG,
-						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
-						hide: cHide,
-						title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
-					});
+				if (cBoss !== true || cAngle === 4.7124) {
+					for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
+						cInstance.set(cAssetIdImgCharacter, {
+							alpha: true,
+							angle: cAngle,
+							author: cAuthor,
+							category: AssetImgCategory.CHARACTER,
+							ext: AssetExtImg.PNG,
+							file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
+							hide: cHide,
+							title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
+						});
+					}
 				}
 			}
 		}
@@ -1651,8 +1755,20 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_08, {
 			episode: 1,
 			file: 'map/episode_01_floor_08.map',
-			floor: 7,
+			floor: 8,
 			title: 'Episode 01: Floor 08',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_09, {
+			episode: 1,
+			file: 'map/episode_01_floor_09.map',
+			floor: 9,
+			title: 'Episode 01: Floor 09',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_10, {
+			episode: 1,
+			file: 'map/episode_01_floor_10.map',
+			floor: 10,
+			title: 'Episode 01: Floor 10',
 		});
 	}
 

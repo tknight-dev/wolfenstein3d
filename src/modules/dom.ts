@@ -48,9 +48,10 @@ export class DOM {
 	public static elEdit: HTMLElement;
 	public static elEditor: HTMLElement;
 	public static elEditorCommandFindAndReplace: HTMLElement;
-	public static elEditorCommandMetaMenu: HTMLElement;
+	public static elEditorCommandOptions: HTMLElement;
 	public static elEditorCommandResetMap: HTMLElement;
 	public static elEditorContainerCharacters: HTMLElement;
+	public static elEditorContainerCharactersBossContent: HTMLElement;
 	public static elEditorContainerCharactersGuardContent: HTMLElement;
 	public static elEditorContainerCharactersOfficerContent: HTMLElement;
 	public static elEditorContainerCharactersRatContent: HTMLElement;
@@ -164,18 +165,18 @@ export class DOM {
 	public static elInfoSettings: HTMLElement;
 	public static elLogo: HTMLElement;
 	public static elMenuContent: HTMLElement;
-	public static elMetaMap: HTMLElement;
-	public static elMetaMapApply: HTMLElement;
-	public static elMetaMapCancel: HTMLElement;
-	public static elMetaMapLocation: HTMLElement;
-	public static elMetaMapValueColorCeiling: HTMLInputElement;
-	public static elMetaMapValueColorFloor: HTMLInputElement;
-	public static elMetaMapValueId: HTMLInputElement;
-	public static elMetaMapValueMusic: HTMLInputElement;
-	public static elMetaMapValueStartingPositionR: HTMLInputElement;
-	public static elMetaMapValueStartingPositionX: HTMLInputElement;
-	public static elMetaMapValueStartingPositionY: HTMLInputElement;
-	public static elMetaMapValueTimeParInSeconds: HTMLInputElement;
+	public static elMapOptions: HTMLElement;
+	public static elMapOptionsApply: HTMLElement;
+	public static elMapOptionsCancel: HTMLElement;
+	public static elMapOptionsLocation: HTMLElement;
+	public static elMapOptionsValueColorCeiling: HTMLInputElement;
+	public static elMapOptionsValueColorFloor: HTMLInputElement;
+	public static elMapOptionsValueId: HTMLInputElement;
+	public static elMapOptionsValueMusic: HTMLInputElement;
+	public static elMapOptionsValueStartingPositionR: HTMLInputElement;
+	public static elMapOptionsValueStartingPositionX: HTMLInputElement;
+	public static elMapOptionsValueStartingPositionY: HTMLInputElement;
+	public static elMapOptionsValueTimeParInSeconds: HTMLInputElement;
 	public static elPerformance: HTMLElement;
 	public static elPerformanceCalcMain: HTMLElement;
 	public static elPerformanceCalcMainAll: HTMLElement;
@@ -329,9 +330,10 @@ export class DOM {
 
 		DOM.elEditor = <HTMLElement>document.getElementById('editor');
 		DOM.elEditorCommandFindAndReplace = <HTMLElement>document.getElementById('editor-cell-command-toggle-find-and-replace');
-		DOM.elEditorCommandMetaMenu = <HTMLElement>document.getElementById('editor-cell-command-toggle-meta');
+		DOM.elEditorCommandOptions = <HTMLElement>document.getElementById('editor-cell-command-toggle-options');
 		DOM.elEditorCommandResetMap = <HTMLElement>document.getElementById('editor-cell-command-toggle-reset');
 		DOM.elEditorContainerCharacters = <HTMLElement>document.getElementById('editor-cell-container-characters');
+		DOM.elEditorContainerCharactersBossContent = <HTMLElement>document.getElementById('editor-cell-container-characters-boss-content');
 		DOM.elEditorContainerCharactersGuardContent = <HTMLElement>document.getElementById('editor-cell-container-characters-guard-content');
 		DOM.elEditorContainerCharactersOfficerContent = <HTMLElement>document.getElementById('editor-cell-container-characters-officer-content');
 		DOM.elEditorContainerCharactersRatContent = <HTMLElement>document.getElementById('editor-cell-container-characters-rat-content');
@@ -560,18 +562,18 @@ export class DOM {
 		DOM.elLogo = <HTMLElement>document.getElementById('logo');
 		DOM.elMenuContent = <HTMLElement>document.getElementById('menu-content');
 
-		DOM.elMetaMap = <HTMLElement>document.getElementById('meta-map');
-		DOM.elMetaMapApply = <HTMLElement>document.getElementById('meta-map-apply');
-		DOM.elMetaMapCancel = <HTMLElement>document.getElementById('meta-map-cancel');
-		DOM.elMetaMapLocation = <HTMLElement>document.getElementById('meta-map-location');
-		DOM.elMetaMapValueColorCeiling = <HTMLInputElement>document.getElementById('meta-map-value-color-ceiling');
-		DOM.elMetaMapValueColorFloor = <HTMLInputElement>document.getElementById('meta-map-value-color-floor');
-		DOM.elMetaMapValueId = <HTMLInputElement>document.getElementById('meta-map-value-id');
-		DOM.elMetaMapValueMusic = <HTMLInputElement>document.getElementById('meta-map-value-music');
-		DOM.elMetaMapValueStartingPositionR = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-r');
-		DOM.elMetaMapValueStartingPositionX = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-x');
-		DOM.elMetaMapValueStartingPositionY = <HTMLInputElement>document.getElementById('meta-map-value-starting-position-y');
-		DOM.elMetaMapValueTimeParInSeconds = <HTMLInputElement>document.getElementById('meta-map-value-time-par-seconds');
+		DOM.elMapOptions = <HTMLElement>document.getElementById('meta-map');
+		DOM.elMapOptionsApply = <HTMLElement>document.getElementById('map-options-apply');
+		DOM.elMapOptionsCancel = <HTMLElement>document.getElementById('map-options-cancel');
+		DOM.elMapOptionsLocation = <HTMLElement>document.getElementById('map-options-location');
+		DOM.elMapOptionsValueColorCeiling = <HTMLInputElement>document.getElementById('map-options-value-color-ceiling');
+		DOM.elMapOptionsValueColorFloor = <HTMLInputElement>document.getElementById('map-options-value-color-floor');
+		DOM.elMapOptionsValueId = <HTMLInputElement>document.getElementById('map-options-value-id');
+		DOM.elMapOptionsValueMusic = <HTMLInputElement>document.getElementById('map-options-value-music');
+		DOM.elMapOptionsValueStartingPositionR = <HTMLInputElement>document.getElementById('map-options-value-starting-position-r');
+		DOM.elMapOptionsValueStartingPositionX = <HTMLInputElement>document.getElementById('map-options-value-starting-position-x');
+		DOM.elMapOptionsValueStartingPositionY = <HTMLInputElement>document.getElementById('map-options-value-starting-position-y');
+		DOM.elMapOptionsValueTimeParInSeconds = <HTMLInputElement>document.getElementById('map-options-value-time-par-seconds');
 
 		DOM.elPerformance = <HTMLElement>document.getElementById('performance');
 		DOM.elPerformanceCalcMain = <HTMLElement>document.getElementById('performance-calc-main');
@@ -734,6 +736,7 @@ export class DOM {
 			assetImageDataCharacters: Map<AssetIdImgCharacterType, Map<AssetIdImgCharacter, string>> = Assets.dataImageCharacters,
 			assetImageDataCharactersInstance: Map<AssetIdImgCharacter, string>,
 			assetId: AssetIdImg,
+			boss: boolean,
 			character: AssetIdImgCharacter,
 			characterMenu: AssetIdImgCharacter[] = assetIdImgCharacterMenu,
 			characterType: AssetIdImgCharacterType,
@@ -753,18 +756,30 @@ export class DOM {
 				properties = (<any>assetsImageCharacters.get(characterType)).get(character);
 
 				switch (characterType) {
+					case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+						boss = true;
+						elementContainer = DOM.elEditorContainerCharactersBossContent;
+						break;
 					case AssetIdImgCharacterType.GUARD:
+						boss = false;
 						elementContainer = DOM.elEditorContainerCharactersGuardContent;
 						break;
 					case AssetIdImgCharacterType.OFFICER:
+						boss = false;
 						elementContainer = DOM.elEditorContainerCharactersOfficerContent;
 						break;
 					case AssetIdImgCharacterType.RAT:
+						boss = false;
 						elementContainer = DOM.elEditorContainerCharactersRatContent;
 						break;
 					case AssetIdImgCharacterType.SS:
+						boss = false;
 						elementContainer = DOM.elEditorContainerCharactersSSContent;
 						break;
+				}
+
+				if (boss === true && character !== AssetIdImgCharacter.MOVE1_S && character !== AssetIdImgCharacter.STAND_S) {
+					continue;
 				}
 
 				elementContent = document.createElement('div');
@@ -852,13 +867,13 @@ export class DOM {
 			option = document.createElement('option');
 			option.innerText = AssetIdMap[i];
 			option.value = String(i);
-			DOM.elMetaMapValueId.appendChild(option);
+			DOM.elMapOptionsValueId.appendChild(option);
 		}
 		for (let assetIdAudio of AssetIdMusicLevels) {
 			option = document.createElement('option');
 			option.innerText = (assetsAudio.get(assetIdAudio) || {}).title || '???';
 			option.value = String(assetIdAudio);
-			DOM.elMetaMapValueMusic.appendChild(option);
+			DOM.elMapOptionsValueMusic.appendChild(option);
 		}
 
 		DOM.elPlayerOverlay1AmmoTitle.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.HUD_AMMO)})`;

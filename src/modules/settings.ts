@@ -361,16 +361,16 @@ export class Settings {
 		}
 	}
 
-	public static setMetaMap(apply: boolean): void {
+	public static setMapOptions(apply: boolean): void {
 		if (apply === true) {
-			Game.map.colorCeiling = Number.parseInt(DOM.elMetaMapValueColorCeiling.value.replace('#', ''), 16);
-			Game.map.colorFloor = Number.parseInt(DOM.elMetaMapValueColorFloor.value.replace('#', ''), 16);
-			Game.map.id = Number(DOM.elMetaMapValueId.value);
-			Game.map.music = Number(DOM.elMetaMapValueMusic.value);
-			Game.map.position.r = ((Number(DOM.elMetaMapValueStartingPositionR.value) % 360) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
-			Game.map.position.x = (Number(DOM.elMetaMapValueStartingPositionX.value) | 0) + 0.5;
-			Game.map.position.y = (Number(DOM.elMetaMapValueStartingPositionY.value) | 0) + 0.5;
-			Game.map.timeParInMS = Number(DOM.elMetaMapValueTimeParInSeconds.value) * 1000;
+			Game.map.colorCeiling = Number.parseInt(DOM.elMapOptionsValueColorCeiling.value.replace('#', ''), 16);
+			Game.map.colorFloor = Number.parseInt(DOM.elMapOptionsValueColorFloor.value.replace('#', ''), 16);
+			Game.map.id = Number(DOM.elMapOptionsValueId.value);
+			Game.map.music = Number(DOM.elMapOptionsValueMusic.value);
+			Game.map.position.r = ((Number(DOM.elMapOptionsValueStartingPositionR.value) % 360) * GamingCanvasConstPI_1_000) / 180 + 0.0001;
+			Game.map.position.x = (Number(DOM.elMapOptionsValueStartingPositionX.value) | 0) + 0.5;
+			Game.map.position.y = (Number(DOM.elMapOptionsValueStartingPositionY.value) | 0) + 0.5;
+			Game.map.timeParInMS = Number(DOM.elMapOptionsValueTimeParInSeconds.value) * 1000;
 
 			if (Game.map.position.r < 0) {
 				Game.map.position.r += GamingCanvasConstPI_2_000;
@@ -378,16 +378,16 @@ export class Settings {
 
 			Game.mapUpdated = true;
 		} else {
-			DOM.elMetaMapValueColorCeiling.value = '#' + (Game.map.colorCeiling || 0).toString(16).padStart(6, '0');
-			DOM.elMetaMapValueColorFloor.value = '#' + (Game.map.colorFloor || 0).toString(16).padStart(6, '0');
-			DOM.elMetaMapValueId.value = String(Game.map.id);
-			DOM.elMetaMapValueMusic.value = String(Game.map.music);
-			DOM.elMetaMapValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
-			DOM.elMetaMapValueStartingPositionX.max = String(Game.map.grid.sideLength);
-			DOM.elMetaMapValueStartingPositionX.value = String(Game.map.position.x | 0);
-			DOM.elMetaMapValueStartingPositionY.max = String(Game.map.grid.sideLength);
-			DOM.elMetaMapValueStartingPositionY.value = String(Game.map.position.y | 0);
-			DOM.elMetaMapValueTimeParInSeconds.value = String((Game.map.timeParInMS / 1000) | 0);
+			DOM.elMapOptionsValueColorCeiling.value = '#' + (Game.map.colorCeiling || 0).toString(16).padStart(6, '0');
+			DOM.elMapOptionsValueColorFloor.value = '#' + (Game.map.colorFloor || 0).toString(16).padStart(6, '0');
+			DOM.elMapOptionsValueId.value = String(Game.map.id);
+			DOM.elMapOptionsValueMusic.value = String(Game.map.music);
+			DOM.elMapOptionsValueStartingPositionR.value = String((((Game.map.position.r - 0.0001) * 180) / GamingCanvasConstPI_1_000) | 0);
+			DOM.elMapOptionsValueStartingPositionX.max = String(Game.map.grid.sideLength);
+			DOM.elMapOptionsValueStartingPositionX.value = String(Game.map.position.x | 0);
+			DOM.elMapOptionsValueStartingPositionY.max = String(Game.map.grid.sideLength);
+			DOM.elMapOptionsValueStartingPositionY.value = String(Game.map.position.y | 0);
+			DOM.elMapOptionsValueTimeParInSeconds.value = String((Game.map.timeParInMS / 1000) | 0);
 		}
 
 		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.map.id];

@@ -8,14 +8,14 @@ import {
 	initializeAssetManager,
 	AssetIdImgCharacterType,
 	AssetIdImgCharacter,
-	assetIdImgCharacterMovementS,
-	assetIdImgCharacterMovementSE,
-	assetIdImgCharacterMovementSW,
-	assetIdImgCharacterMovementW,
-	assetIdImgCharacterMovementNW,
-	assetIdImgCharacterMovementN,
-	assetIdImgCharacterMovementNE,
-	assetIdImgCharacterMovementE,
+	assetIdImgCharacterMoveS,
+	assetIdImgCharacterMoveSE,
+	assetIdImgCharacterMoveSW,
+	assetIdImgCharacterMoveW,
+	assetIdImgCharacterMoveNW,
+	assetIdImgCharacterMoveN,
+	assetIdImgCharacterMoveNE,
+	assetIdImgCharacterMoveE,
 	AssetIdImgWeaponSequenceKnife,
 	AssetIdImgWeaponSequenceMachineGun,
 	AssetIdImgWeaponSequencePistol,
@@ -1498,23 +1498,23 @@ class VideoMainEngine {
 
 							// Calc: Asset
 							if (renderAngle < GamingCanvasConstPI_0_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_0_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
 							} else if (renderAngle < GamingCanvasConstPI_1_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
 							} else {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
+								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
 							}
 
 							// Render: Lighting
@@ -1588,42 +1588,53 @@ class VideoMainEngine {
 										// Calc: Angle (always facing camera)
 										asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
 									} else {
-										// Calc: Angle
-										renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
-										if (renderAngle < 0) {
-											renderAngle += GamingCanvasConstPI_2_000;
-										} else if (renderAngle >= GamingCanvasConstPI_2_000) {
-											renderAngle -= GamingCanvasConstPI_2_000;
-										}
-
-										// Calc: Movement
-										if (renderCharacterNPC.running === true) {
-											renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
-										} else if (renderCharacterNPC.walking === true) {
-											renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+										// Is boss?
+										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+											// Calc: Angle (always facing camera)
+											if (renderCharacterNPC.running === true || renderCharacterNPC.walking === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+											} else {
+												asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_S) || renderDebugImage;
+											}
 										} else {
-											renderCharacterNPCState = 0;
-										}
+											// Calc: Angle
+											renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+											if (renderAngle < 0) {
+												renderAngle += GamingCanvasConstPI_2_000;
+											} else if (renderAngle >= GamingCanvasConstPI_2_000) {
+												renderAngle -= GamingCanvasConstPI_2_000;
+											}
 
-										// Calc: Asset
-										if (renderAngle < GamingCanvasConstPI_0_125) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_375) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_625) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_875) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_125) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_375) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_625) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_875) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
-										} else {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
+											// Calc: Movement
+											if (renderCharacterNPC.running === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+											} else if (renderCharacterNPC.walking === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+											} else {
+												renderCharacterNPCState = 0;
+											}
+
+											// Calc: Asset
+											if (renderAngle < GamingCanvasConstPI_0_125) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_375) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_625) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_875) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_125) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_375) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_625) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_875) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
+											} else {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+											}
 										}
 									}
 

@@ -1141,22 +1141,30 @@ class CalcMainEngine {
 				characterPlayer2Meta.ratioTreasure /= gameMapMetaTreasureCount;
 			}
 
-			// Meta Bonus
-			let bonus: number = 0,
-				ratioKill: number = characterPlayer1Meta.ratioKill + characterPlayer2Meta.ratioKill,
-				ratioSecret: number = characterPlayer1Meta.ratioSecret + characterPlayer2Meta.ratioSecret,
-				ratioTreasure: number = characterPlayer1Meta.ratioTreasure + characterPlayer2Meta.ratioTreasure,
-				timeInSPar: number = (gameMap.timeParInMS / 1000) | 0,
-				timeInSPlayer = (characterPlayer1Meta.timeInMS / 1000) | 0;
+			// Calc: bonus
+			let bonus: number = 0;
+			if (gameMap.id % 10 === 9) {
+				// Secret floor
+				bonus = 15000;
+			} else {
+				// Meta Bonus
+				let bonus: number = 0,
+					ratioKill: number = characterPlayer1Meta.ratioKill + characterPlayer2Meta.ratioKill,
+					ratioSecret: number = characterPlayer1Meta.ratioSecret + characterPlayer2Meta.ratioSecret,
+					ratioTreasure: number = characterPlayer1Meta.ratioTreasure + characterPlayer2Meta.ratioTreasure,
+					timeInSPar: number = (gameMap.timeParInMS / 1000) | 0,
+					timeInSPlayer = (characterPlayer1Meta.timeInMS / 1000) | 0;
 
-			// Stats: Bonus
-			bonus += ratioKill * 10000;
-			bonus += ratioSecret * 10000;
-			bonus += ratioTreasure * 10000;
-			if (timeInSPlayer < timeInSPar) {
-				bonus += (timeInSPar - timeInSPlayer) * 500;
+				// Stats: Bonus
+				bonus += ratioKill * 10000;
+				bonus += ratioSecret * 10000;
+				bonus += ratioTreasure * 10000;
+				if (timeInSPlayer < timeInSPar) {
+					bonus += (timeInSPar - timeInSPlayer) * 500;
+				}
+				bonus = bonus | 0;
 			}
-			bonus = bonus | 0;
+
 			characterPlayer1.score += bonus;
 			characterPlayer1Meta.bonus = bonus;
 			characterPlayer2.score += bonus;
