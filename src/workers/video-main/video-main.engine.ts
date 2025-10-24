@@ -1024,8 +1024,8 @@ class VideoMainEngine {
 				// offscreenCanvasContext.fillStyle = 'black';
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
-				// Weapon
-				if (renderModeEdit !== true && settingsDebug === true) {
+				// Debug: Weapon hit area
+				if (renderModeEdit !== true && settingsDebug === true && VideoMainEngine.dead === false) {
 					x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV / 2;
 					offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.25)';
 					offscreenCanvasContext.strokeStyle = 'rgba(255,247,0,0.75)';
