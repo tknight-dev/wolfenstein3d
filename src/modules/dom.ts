@@ -350,7 +350,6 @@ export class DOM {
 		DOM.elEditorContainerObjectsSpritesContent = <HTMLElement>document.getElementById('editor-cell-container-sprites-content');
 		DOM.elEditorContainerObjectsSpritesLights = <HTMLElement>document.getElementById('editor-cell-container-sprites-lights');
 		DOM.elEditorContainerObjectsSpritesLightsContent = <HTMLElement>document.getElementById('editor-cell-container-sprites-lights-content');
-		DOM.elEditorContainerObjectsTagsContent = <HTMLElement>document.getElementById('editor-cell-container-tags-content');
 		DOM.elEditorContainerObjectsWalls = <HTMLElement>document.getElementById('editor-cell-container-walls');
 		DOM.elEditorContainerObjectsWallsContent = <HTMLElement>document.getElementById('editor-cell-container-walls-content');
 		DOM.elEditorContainerObjectsWaypointsContent = <HTMLElement>document.getElementById('editor-cell-container-waypoints-content');
@@ -822,6 +821,7 @@ export class DOM {
 			switch ((<AssetPropertiesImage>properties).category) {
 				case AssetImgCategory.CHARACTER:
 				case AssetImgCategory.MENU:
+				case AssetImgCategory.TAG:
 				case AssetImgCategory.WEAPON:
 					continue;
 				case AssetImgCategory.EXTENDED:
@@ -835,9 +835,6 @@ export class DOM {
 					break;
 				case AssetImgCategory.SPRITE_PICKUP:
 					elementContainer = DOM.elEditorContainerObjectsPickupsContent;
-					break;
-				case AssetImgCategory.TAG:
-					elementContainer = DOM.elEditorContainerObjectsTagsContent;
 					break;
 				case AssetImgCategory.WALL:
 					elementContainer = DOM.elEditorContainerObjectsWallsContent;

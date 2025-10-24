@@ -807,6 +807,8 @@ export enum AssetIdImgMenu {
 	EPISODE_4,
 	EPISODE_5,
 	EPISODE_6,
+	EPISODE_END_DOUBLE,
+	EPISODE_END_SINGLE,
 	GET_PSYCHED,
 	HUD_AMMO,
 	HUD_FONT_0,
@@ -2821,6 +2823,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Episode 6',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_END_DOUBLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode_end_double.png',
+			title: 'Episode End Double',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_END_SINGLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode_end_single.png',
+			title: 'Episode End Single',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.HUD_AMMO, {
 			alpha: true,
 			author: 'Id Software',
@@ -3129,6 +3149,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			category: AssetImgCategory.TAG,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/x.png',
+			hide: true,
 			title: 'X',
 		});
 

@@ -165,6 +165,7 @@ export class Settings {
 		 */
 		Game.settings.threadGamingCanvas = {
 			audioEnable: true,
+			audioBufferCount: 30,
 			canvasCount: 3,
 			canvasSplit: [1, 2],
 			canvasSplitLandscapeVertical: true,

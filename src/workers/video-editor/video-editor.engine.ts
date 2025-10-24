@@ -669,6 +669,15 @@ class VideoEditorEngine {
 										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 									);
 								}
+
+								// Special Property: Tag
+								if ((value & GameGridCellMasksAndValues.TAG) !== 0) {
+									offscreenCanvasContext.drawImage(
+										cacheCanvasImages.get(AssetIdImg.MISC_X) || testImage,
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									);
+								}
 							}
 
 							/**

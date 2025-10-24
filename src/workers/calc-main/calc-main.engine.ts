@@ -31,7 +31,14 @@ import {
 	CalcMainBusWeaponDamage,
 	CalcMainBusWeaponFireDurationsInMS,
 } from './calc-main.model.js';
-import { GameDifficulty, GameGridCellMaskBlockingAll, GameGridCellMaskBlockingVisible, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import {
+	GameDifficulty,
+	GameGridCellMaskBlockingAll,
+	GameGridCellMaskBlockingVisible,
+	GameGridCellMasksAndValues,
+	GameGridCellMasksAndValuesTag,
+	GameMap,
+} from '../../models/game.model.js';
 import {
 	GamingCanvasConstIntegerMaxSafe,
 	GamingCanvasConstPI_0_125,
@@ -331,7 +338,6 @@ class CalcMainEngine {
 			characterPlayer.weapon = CharacterWeapon.MACHINE_GUN;
 			characterPlayer.weapons = [CharacterWeapon.KNIFE, CharacterWeapon.PISTOL, CharacterWeapon.SUB_MACHINE_GUN, CharacterWeapon.MACHINE_GUN];
 
-			CalcMainEngine.characterPlayerMetaReport = true;
 			CalcMainEngine.post([
 				{
 					cmd: CalcMainBusOutputCmd.WEAPON_SELECT,
@@ -342,6 +348,8 @@ class CalcMainEngine {
 				},
 			]);
 		}
+
+		CalcMainEngine.characterPlayerMetaReport = true;
 	}
 
 	public static inputDebugHit(): void {
@@ -949,7 +957,7 @@ class CalcMainEngine {
 				Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
 
 			if (type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
-				damage = (damage / 2) | 0;
+				damage = Math.max(1, (damage * 0.5) | 0);
 			}
 
 			if (player1 === true) {
@@ -1047,46 +1055,61 @@ class CalcMainEngine {
 							}
 
 							if (characterNPCReset === true) {
-								cameraInstance = characterNPC.camera;
-								cameraInstance.r = Math.atan2(-(characterPlayer.camera.y - cameraInstance.y), characterPlayer.camera.x - cameraInstance.x);
-								if (cameraInstance.r < 0) {
-									cameraInstance.r += GamingCanvasConstPI_2_000;
-								} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
-									cameraInstance.r -= GamingCanvasConstPI_2_000;
-								}
+								// Small delay to make sure fire animation are complete and these new settings will take
+								setTimeout(() => {
+									if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+										characterNPC.assetId = AssetIdImgCharacter.STAND_S;
+										characterNPC.running = false;
+										characterNPC.timestampUnixState = timestampUnix;
+										characterNPC.walking = false;
 
-								if (cameraInstance.r < GamingCanvasConstPI_0_125) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-								} else if (cameraInstance.r < GamingCanvasConstPI_0_375) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
-								} else if (cameraInstance.r < GamingCanvasConstPI_0_625) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
-								} else if (cameraInstance.r < GamingCanvasConstPI_0_875) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
-								} else if (cameraInstance.r < GamingCanvasConstPI_1_125) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
-								} else if (cameraInstance.r < GamingCanvasConstPI_1_375) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
-								} else if (cameraInstance.r < GamingCanvasConstPI_1_625) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
-								} else if (cameraInstance.r < GamingCanvasConstPI_1_875) {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
-								} else {
-									characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-								}
+										characterNPCStates.set(characterNPC.id, CharacterNPCState.STANDING);
+									} else {
+										cameraInstance = characterNPC.camera;
+										cameraInstance.r = Math.atan2(
+											-(characterPlayer.camera.y - cameraInstance.y),
+											characterPlayer.camera.x - cameraInstance.x,
+										);
+										if (cameraInstance.r < 0) {
+											cameraInstance.r += GamingCanvasConstPI_2_000;
+										} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
+											cameraInstance.r -= GamingCanvasConstPI_2_000;
+										}
 
-								characterNPC.running = false;
-								characterNPC.timestampUnixState = timestampUnix;
-								characterNPC.walking = true;
+										if (cameraInstance.r < GamingCanvasConstPI_0_125) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+										} else if (cameraInstance.r < GamingCanvasConstPI_0_375) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
+										} else if (cameraInstance.r < GamingCanvasConstPI_0_625) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
+										} else if (cameraInstance.r < GamingCanvasConstPI_0_875) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
+										} else if (cameraInstance.r < GamingCanvasConstPI_1_125) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
+										} else if (cameraInstance.r < GamingCanvasConstPI_1_375) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
+										} else if (cameraInstance.r < GamingCanvasConstPI_1_625) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
+										} else if (cameraInstance.r < GamingCanvasConstPI_1_875) {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
+										} else {
+											characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+										}
 
-								if (characterNPCState === CharacterNPCState.RUNNING_DOOR) {
-									characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING_DOOR);
-								} else {
-									characterNPC.timestampUnixState = timestampUnix;
-									characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
-								}
+										characterNPC.running = false;
+										characterNPC.timestampUnixState = timestampUnix;
+										characterNPC.walking = true;
 
-								characterNPCUpdated.add(characterNPC.id);
+										if (characterNPCState === CharacterNPCState.RUNNING_DOOR) {
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING_DOOR);
+										} else {
+											characterNPC.timestampUnixState = timestampUnix;
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.WALKING);
+										}
+									}
+
+									characterNPCUpdated.add(characterNPC.id);
+								}, 50);
 							}
 						}
 					}
@@ -1194,6 +1217,23 @@ class CalcMainEngine {
 					},
 				},
 			]);
+		};
+
+		const actionTag = (gridIndex: number, player1: boolean) => {
+			const tag: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
+
+			console.log('actionTag', gridIndex, player1);
+
+			switch (tag) {
+				case GameGridCellMasksAndValuesTag.EPISODE_END:
+					// Only fire once
+					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.TAG;
+
+					// move camera forward and spin 180deg
+					// player run forward and camera maintains distance
+					// player jumps in slowmo and then game pause (episode end)
+					break;
+			}
 		};
 
 		const actionWallMovable = (cellSide: GamingCanvasGridRaycastCellSide, gridIndex: number, player1: boolean) => {
@@ -2528,6 +2568,11 @@ class CalcMainEngine {
 								gameMapUpdate[gameMapUpdateIndex++] = characterPlayerGridIndex;
 								gameMapUpdate[gameMapUpdateIndex++] = GameGridCellMasksAndValues.FLOOR;
 							}
+
+							// Tag
+							if ((gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.TAG) !== 0) {
+								actionTag(characterPlayerGridIndex, characterPlayer.id === -1);
+							}
 						}
 					}
 
@@ -2739,8 +2784,6 @@ class CalcMainEngine {
 											characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
 											characterNPC.camera.r = 0;
 										}
-
-										// console.log(AssetIdImgCharacter[characterNPC.assetId], cameraInstance.r);
 
 										// Move
 										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);

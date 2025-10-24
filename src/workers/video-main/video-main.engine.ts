@@ -1592,8 +1592,19 @@ class VideoMainEngine {
 
 									// Calc: Asset by rotation
 									if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
-										// Calc: Angle (always facing camera)
-										asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+											if (renderCharacterNPC.assetId === AssetIdImgCharacter.FIRE) {
+												if (((timestampUnix / 100) | 0) % 2 === 0) {
+													asset = assetImageCharacterInstance.get(AssetIdImgCharacter.FIRE) || renderDebugImage;
+												} else {
+													asset = assetImageCharacterInstance.get(AssetIdImgCharacter.FIRE2) || renderDebugImage;
+												}
+											} else {
+												asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+											}
+										} else {
+											asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+										}
 									} else {
 										// Is boss?
 										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
