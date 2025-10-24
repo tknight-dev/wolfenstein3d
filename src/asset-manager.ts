@@ -751,6 +751,7 @@ const assetIdImgCharacterMoveAll: AssetIdImgCharacter[][] = [
 const assetIdImgCharacterMoveAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
 
 export enum AssetIdImgMenu {
+	CREDITS,
 	BANNER_BAR,
 	BANNER_GAME_LOAD,
 	BANNER_GAME_SAVE,
@@ -2318,6 +2319,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		/**
 		 * Assets: Images - Menu
 		 */
+
+		assetsImageMenus.set(AssetIdImgMenu.CREDITS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/credits.png',
+			title: 'Credits',
+		});
 
 		assetsImageMenus.set(AssetIdImgMenu.BANNER_BAR, {
 			alpha: true,

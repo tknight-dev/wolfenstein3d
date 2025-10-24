@@ -235,6 +235,7 @@ export class DOM {
 	public static elPlayerOverlay2LivesTitle: HTMLElement;
 	public static elScreenActive: HTMLElement;
 	public static elScreenBlack: HTMLElement;
+	public static elScreenCredits: HTMLElement;
 	public static elScreenLevelEnd: HTMLElement;
 	public static elScreenLevelEndBonus: HTMLElement;
 	public static elScreenLevelEndCompleted: HTMLElement;
@@ -657,6 +658,7 @@ export class DOM {
 		DOM.elPlayerOverlay2LivesTitle = <HTMLElement>document.getElementById('player-overlay-2-lives-title');
 
 		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
+		DOM.elScreenCredits = <HTMLElement>document.getElementById('screen-credits');
 
 		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
 		DOM.elScreenLevelEndBonus = <HTMLElement>document.getElementById('screen-level-end-bonus');
@@ -912,6 +914,7 @@ export class DOM {
 
 		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_1);
 		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_2);
+		DOM.elScreenCredits.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.CREDITS)})`;
 		DOM.elScreenRating.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.RATING)})`;
 		DOM.elScreenStats.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_STATS)})`;
 		DOM.elScreenTitle.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.SCREEN_TITLE)})`;
