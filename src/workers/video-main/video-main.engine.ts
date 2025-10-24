@@ -798,13 +798,14 @@ class VideoMainEngine {
 						if (characterNPC === undefined) {
 							continue;
 						}
+						gameMapGridIndex = characterNPC.gridIndex;
 
 						// Prepare
-						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(characterNPC.gridIndex);
+						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(gameMapGridIndex);
 						if (gameMapNPCByGridIndexInstance !== undefined) {
-							gameMapNPCByGridIndexInstance.delete(characterNPC.gridIndex);
+							gameMapNPCByGridIndexInstance.delete(gameMapGridIndex);
 							if (gameMapNPCByGridIndexInstance.size === 0) {
-								gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+								gameMapNPCByGridIndex.delete(gameMapGridIndex);
 							}
 						}
 
@@ -818,18 +819,24 @@ class VideoMainEngine {
 							gameMapNPCDead.add(characterNPC.id);
 							actionDie(characterNPC);
 
-							// Spawn ammo drop
+							// Spawn drop
+							if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+								renderAssetId = AssetIdImg.SPRITE_KEY1;
+							} else {
+								renderAssetId = AssetIdImg.SPRITE_AMMO_DROPPED;
+							}
+
 							if (characterNPC.type !== AssetIdImgCharacterType.RAT) {
-								if (gameMapGridData[characterNPC.gridIndex] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								if (gameMapGridData[gameMapGridIndex] === GameGridCellMasksAndValues.FLOOR && renderAssetId !== AssetIdImg.SPRITE_KEY1) {
+									gameMapGridData[gameMapGridIndex] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex + 1] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex - 1] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex + gameMapGridSideLength] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex - gameMapGridSideLength] |= renderAssetId;
 								}
 							}
 						}
@@ -1136,7 +1143,7 @@ class VideoMainEngine {
 
 						// Skip arrows
 						renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-						if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_ARROW_WEST) {
+						if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_X) {
 							renderSkip = true;
 						}
 

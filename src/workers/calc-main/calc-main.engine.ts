@@ -929,7 +929,7 @@ class CalcMainEngine {
 			}, CalcMainBusActionDoorStateAutoCloseDurationInMS);
 		};
 
-		const actionPlayerHit = (player1: boolean, angle: number, distance: number, distanceMax: number, _weapon: CharacterWeapon) => {
+		const actionPlayerHit = (player1: boolean, angle: number, distance: number, distanceMax: number, type: AssetIdImgCharacterType) => {
 			if (player1 === true) {
 				characterPlayer = CalcMainEngine.characterPlayer1;
 				characterPlayerChangedMetaReport[0] = true;
@@ -947,6 +947,10 @@ class CalcMainEngine {
 			// Damage decreases with distance
 			let damage: number =
 				Math.max(3, <number>CalcMainBusPlayerDamageByDifficulty.get(settingsDifficulty) * ((distanceMax - distance) / distanceMax) * Math.random()) | 0;
+
+			if (type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+				damage = (damage / 2) | 0;
+			}
 
 			if (player1 === true) {
 				characterPlayer1Meta.damageInstances++;
@@ -1437,6 +1441,7 @@ class CalcMainEngine {
 
 		const actionWeaponFireHitDetection = (characterPlayer: Character, weapon: CharacterWeapon) => {
 			let angle: number,
+				assetId: number,
 				characterNPC: CharacterNPC | undefined,
 				characterNPC2: CharacterNPC | undefined,
 				characterNPCId: number,
@@ -1481,27 +1486,27 @@ class CalcMainEngine {
 			}
 
 			if (characterNPC !== undefined) {
+				// Calculate the angle to the NPC from the player to compare against the current player r-direction to determine how accurate the shot was
+				angle = Math.atan2(-(characterNPC.camera.y - characterPlayer.camera.y), characterNPC.camera.x - characterPlayer.camera.x);
+				if (angle < 0) {
+					angle += GamingCanvasConstPI_2_000;
+				} else if (angle >= GamingCanvasConstPI_2_000) {
+					angle -= GamingCanvasConstPI_2_000;
+				}
+
+				// Calculate the difference in angles between the player r-direction and the angle to the NPC
+				angle = Math.abs(characterPlayer.camera.r - angle);
+
+				// Headshot range
+				angle = Math.max(0, angle - 0.025);
+
+				// Percentage of the weapon fov that the angle lands on
+				// 0.2 is the min damage delivered
+				angle = Math.max(0.2, 1 - angle / <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)); // WeaponFOV
+
 				if (weapon === CharacterWeapon.KNIFE) {
 					damage = <number>CalcMainBusWeaponDamage.get(CharacterWeapon.KNIFE);
 				} else {
-					// Calculate the angle to the NPC from the player to compare against the current player r-direction to determine how accurate the shot was
-					angle = Math.atan2(-(characterNPC.camera.y - characterPlayer.camera.y), characterNPC.camera.x - characterPlayer.camera.x);
-					if (angle < 0) {
-						angle += GamingCanvasConstPI_2_000;
-					} else if (angle >= GamingCanvasConstPI_2_000) {
-						angle -= GamingCanvasConstPI_2_000;
-					}
-
-					// Calculate the difference in angles between the player r-direction and the angle to the NPC
-					angle = Math.abs(characterPlayer.camera.r - angle);
-
-					// Headshot range
-					angle = Math.max(0, angle - 0.025);
-
-					// Percentage of the weapon fov that the angle lands on
-					// 0.2 is the min damage delivered
-					angle = Math.max(0.2, 1 - angle / <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)); // WeaponFOV
-
 					damage = <number>CalcMainBusWeaponDamage.get(weapon) * angle;
 
 					if (characterPlayer.id === -1) {
@@ -1513,6 +1518,9 @@ class CalcMainEngine {
 
 				// Scale damage based on type
 				switch (characterNPC.type) {
+					case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+						characterNPC.health -= damage / 40;
+						break;
 					case AssetIdImgCharacterType.GUARD:
 						characterNPC.health -= damage;
 						break;
@@ -1527,17 +1535,21 @@ class CalcMainEngine {
 						break;
 				}
 
-				if (characterNPC.health <= 0) {
-					if (characterPlayer.id === -1) {
-						characterPlayer1Meta.ratioKill++;
-					} else {
-						characterPlayer2Meta.ratioKill++;
+				// Update the npc state based on the new situation for it
+				if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+					// Getting hit doesn't interrupt the aim/fire state cycle
+					if (characterNPC.running !== true) {
+						characterNPC.camera.r = angle; // Face the attacker
+						characterNPC.running = true;
+						characterNPC.timestampUnixState = timestampUnix;
+						characterNPC.walking = false;
 					}
+				} else {
+					characterNPC.camera.r = angle; // Face the attacker
+					characterNPC.running = true;
+					characterNPC.timestampUnixState = timestampUnix;
+					characterNPC.walking = false;
 				}
-
-				characterNPC.running = true;
-				characterNPC.timestampUnixState = timestampUnix;
-				characterNPC.walking = false;
 
 				if (characterNPC.health <= 0) {
 					characterNPC.assetId = AssetIdImgCharacter.DIE1;
@@ -1545,6 +1557,7 @@ class CalcMainEngine {
 					characterNPCStates.set(characterNPC.id, CharacterNPCState.CORPSE);
 					gridIndex = characterNPC.gridIndex;
 
+					// Audio: Halt current
 					audioRequest = <number>gameMapNPCAudioSurpiseRequestById.get(characterNPC.id);
 					if (audioRequest !== undefined && audioRequest !== null) {
 						audioInstance = <AudioInstance>audio.get(audioRequest);
@@ -1562,8 +1575,11 @@ class CalcMainEngine {
 						}
 					}
 
-					// Audio
+					// Audio: Death
 					switch (characterNPC.type) {
+						case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+							audioPlay(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_DEATH, gridIndex);
+							break;
 						case AssetIdImgCharacterType.GUARD:
 							while (audioDeath === audioDeathLast) {
 								audioDeath = Math.floor(Math.random() * 5) + 1;
@@ -1597,21 +1613,34 @@ class CalcMainEngine {
 							break;
 					}
 
-					// Spawn ammo drop
+					// Meta
+					if (characterPlayer.id === -1) {
+						characterPlayer1Meta.ratioKill++;
+					} else {
+						characterPlayer2Meta.ratioKill++;
+					}
+
+					// Spawn drop
+					if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+						assetId = AssetIdImg.SPRITE_KEY1;
+					} else {
+						assetId = AssetIdImg.SPRITE_AMMO_DROPPED;
+					}
+
 					if (characterNPC.type !== AssetIdImgCharacterType.RAT) {
-						if (gameMapGridData[gridIndex] === GameGridCellMasksAndValues.FLOOR) {
-							gameMapGridData[gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+						if (gameMapGridData[gridIndex] === GameGridCellMasksAndValues.FLOOR && assetId !== AssetIdImg.SPRITE_KEY1) {
+							gameMapGridData[gridIndex] |= assetId;
 						} else if (gameMapGridData[gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
-							gameMapGridData[gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							gameMapGridData[gridIndex + 1] |= assetId;
 						} else if (gameMapGridData[gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
-							gameMapGridData[gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							gameMapGridData[gridIndex - 1] |= assetId;
 						} else if (gameMapGridData[gridIndex + gameMapSideLength] === GameGridCellMasksAndValues.FLOOR) {
-							gameMapGridData[gridIndex + gameMapSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							gameMapGridData[gridIndex + gameMapSideLength] |= assetId;
 						} else if (gameMapGridData[gridIndex - gameMapSideLength] === GameGridCellMasksAndValues.FLOOR) {
-							gameMapGridData[gridIndex - gameMapSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+							gameMapGridData[gridIndex - gameMapSideLength] |= assetId;
 						}
 					}
-				} else {
+				} else if (characterNPC.type !== AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
 					if (Math.random() < 0.5) {
 						characterNPC.assetId = AssetIdImgCharacter.HIT1;
 					} else {
@@ -1660,6 +1689,12 @@ class CalcMainEngine {
 
 							// Enemy contact!
 							switch (characterNPC.type) {
+								case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+									gameMapNPCAudioSurpiseRequestById.set(
+										characterNPC.id,
+										audioPlay(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE, characterNPC.gridIndex),
+									);
+									break;
 								case AssetIdImgCharacterType.GUARD:
 									gameMapNPCAudioSurpiseRequestById.set(
 										characterNPC.id,
@@ -1682,13 +1717,25 @@ class CalcMainEngine {
 									break;
 							}
 
-							characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
-							characterNPC.running = true;
-							characterNPC.timestampUnixState = timestampUnix;
-							characterNPC.walking = false;
+							if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+								if (characterNPC.running !== true) {
+									characterNPC.running = true;
+									characterNPC.timestampUnixState = timestampUnix;
+									characterNPC.walking = false;
 
-							characterNPCUpdated.add(characterNPC.id);
-							characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+									characterNPC.assetId = AssetIdImgCharacter.AIM;
+									characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+									characterNPCUpdated.add(characterNPC.id);
+								}
+							} else {
+								characterNPC.running = true;
+								characterNPC.timestampUnixState = timestampUnix;
+								characterNPC.walking = false;
+
+								characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
+								characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+								characterNPCUpdated.add(characterNPC.id);
+							}
 						}
 					}
 				}
@@ -1860,10 +1907,10 @@ class CalcMainEngine {
 
 				if (CalcMainEngine.debugHit === true) {
 					CalcMainEngine.debugHit = false;
-					actionPlayerHit(true, 0, 20, 20, CharacterWeapon.PISTOL);
+					actionPlayerHit(true, 0, 20, 20, AssetIdImgCharacterType.GUARD);
 
 					if (settingsPlayer2Enable === true) {
-						actionPlayerHit(false, 0, 20, 20, CharacterWeapon.PISTOL);
+						actionPlayerHit(false, 0, 20, 20, AssetIdImgCharacterType.GUARD);
 					}
 				}
 
@@ -2545,6 +2592,10 @@ class CalcMainEngine {
 												// Fire at player intended
 
 												switch (characterNPC.type) {
+													case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+														audioPlay(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE, characterNPC.gridIndex);
+														weapon = CharacterWeapon.MACHINE_GUN;
+														break;
 													case AssetIdImgCharacterType.GUARD:
 														audioPlay(AssetIdAudio.AUDIO_EFFECT_GUARD_FIRE, characterNPC.gridIndex);
 														weapon = CharacterWeapon.PISTOL;
@@ -2576,9 +2627,9 @@ class CalcMainEngine {
 												}
 
 												if (characterPlayerId === -1) {
-													actionPlayerHit(true, x, characterNPCDistance, characterNPC.fovDistanceMax, weapon);
+													actionPlayerHit(true, x, characterNPCDistance, characterNPC.fovDistanceMax, characterNPC.type);
 												} else {
-													actionPlayerHit(false, x, characterNPCDistance, characterNPC.fovDistanceMax, weapon);
+													actionPlayerHit(false, x, characterNPCDistance, characterNPC.fovDistanceMax, characterNPC.type);
 												}
 
 												characterNPC.assetId = AssetIdImgCharacter.FIRE;
@@ -2601,6 +2652,14 @@ class CalcMainEngine {
 										break;
 									case CharacterNPCState.FIRE:
 										if (
+											characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE &&
+											(<any>characterNPC).fireCount < 16 &&
+											characterNPCDistance !== GamingCanvasConstIntegerMaxSafe
+										) {
+											characterNPC.timestampUnixState = timestampUnix - 450;
+											characterNPCUpdated.add(characterNPC.id);
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+										} else if (
 											characterNPC.type === AssetIdImgCharacterType.SS &&
 											(<any>characterNPC).fireCount < 8 &&
 											characterNPCDistance !== GamingCanvasConstIntegerMaxSafe
@@ -2687,6 +2746,9 @@ class CalcMainEngine {
 										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
 
 										switch (characterNPC.type) {
+											case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+												gameMapNPCSpeed = 0.00165;
+												break;
 											case AssetIdImgCharacterType.GUARD:
 												gameMapNPCSpeed = 0.00165;
 												break;
@@ -2697,7 +2759,7 @@ class CalcMainEngine {
 												gameMapNPCSpeed = 0.0033;
 												break;
 											case AssetIdImgCharacterType.SS:
-												gameMapNPCSpeed = 0.00165;
+												gameMapNPCSpeed = 0.002;
 												break;
 										}
 
@@ -2831,6 +2893,9 @@ class CalcMainEngine {
 										characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
 
 										switch (characterNPC.type) {
+											case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+												gameMapNPCSpeed = 0.000275;
+												break;
 											case AssetIdImgCharacterType.GUARD:
 												gameMapNPCSpeed = 0.000275;
 												break;
@@ -3066,6 +3131,12 @@ class CalcMainEngine {
 									if (timestampUnix - characterNPC.timestampUnixState > 300) {
 										// Enemy contact!
 										switch (characterNPC.type) {
+											case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+												gameMapNPCAudioSurpiseRequestById.set(
+													characterNPC.id,
+													audioPlay(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE, characterNPC.gridIndex),
+												);
+												break;
 											case AssetIdImgCharacterType.GUARD:
 												gameMapNPCAudioSurpiseRequestById.set(
 													characterNPC.id,
@@ -3088,13 +3159,19 @@ class CalcMainEngine {
 												break;
 										}
 
-										characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
 										characterNPC.running = true;
 										characterNPC.timestampUnixState = timestampUnix;
 										characterNPC.walking = false;
 
 										characterNPCUpdated.add(characterNPC.id);
-										characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+
+										if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+											characterNPC.assetId = AssetIdImgCharacter.AIM;
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+										} else {
+											characterNPC.assetId = AssetIdImgCharacter.SUPRISE;
+											characterNPCStates.set(characterNPC.id, CharacterNPCState.SURPRISE);
+										}
 									}
 								}
 							}

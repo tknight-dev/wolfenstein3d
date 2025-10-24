@@ -452,6 +452,7 @@ export enum AssetIdImg {
 	MISC_ARROW_SOUTH_EAST = 6,
 	MISC_ARROW_SOUTH_WEST = 7,
 	MISC_ARROW_WEST = 8,
+	MISC_X = 9,
 	NULL = 0,
 	SPRITE_AMMO = 1000,
 	SPRITE_AMMO_DROPPED = 1001,
@@ -913,6 +914,7 @@ export enum AssetImgCategory {
 	MENU,
 	SPRITE,
 	SPRITE_PICKUP,
+	TAG,
 	WALL,
 	WEAPON,
 	WAYPOINT,
@@ -989,7 +991,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/boss_hans_grosse_death.mp3',
 		title: 'Hans Grosse Death',
-		volume: 0.75,
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE, {
@@ -998,7 +1000,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/boss_hans_grosse_fire.mp3',
 		title: 'Hans Grosse Fire',
-		volume: 0.75,
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE, {
@@ -1007,7 +1009,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/boss_hans_grosse_surprise.mp3',
 		title: 'Hans Grosse Surprise',
-		volume: 0.75,
+		volume: 1,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
@@ -3120,6 +3122,17 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		assetsImageMenusFontHUD.set('%', AssetIdImgMenu.HUD_FONT_PERCENT);
 
 		/**
+		 * Assets: Images - Tags
+		 */
+		assetsImages.set(AssetIdImg.MISC_X, {
+			alpha: true,
+			category: AssetImgCategory.TAG,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/x.png',
+			title: 'X',
+		});
+
+		/**
 		 * Assets: Images - Walls
 		 */
 
@@ -3387,35 +3400,35 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_nw.png',
-			title: 'Arrow (North West)',
+			title: 'Arrow: North West',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_s.png',
-			title: 'Arrow (South)',
+			title: 'Arrow: South',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_EAST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_se.png',
-			title: 'Arrow (South East)',
+			title: 'Arrow: South East',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_WEST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_sw.png',
-			title: 'Arrow (South West)',
+			title: 'Arrow: South West',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_WEST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_w.png',
-			title: 'Arrow (West)',
+			title: 'Arrow: West',
 		});
 
 		/**

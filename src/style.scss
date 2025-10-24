@@ -424,9 +424,9 @@ $main-z-index-video-interactive: 50;
 				}
 			}
 
-			.extended {
+			.tag {
 				border: 2px solid white;
-				height: 255px;
+				height: 55px;
 				left: auto;
 				overflow: hidden;
 				position: absolute;
@@ -537,7 +537,7 @@ $main-z-index-video-interactive: 50;
 					}
 				}
 
-				.extended {
+				.tag {
 					left: 244px;
 					right: auto;
 
@@ -612,7 +612,7 @@ $main-z-index-video-interactive: 50;
 
 				.commands,
 				.container,
-				.extended {
+				.tag {
 					display: none;
 				}
 			}

@@ -37,7 +37,7 @@ import {
 	CalcMainBusOutputDataActionDoorLocked,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
-import { gameGridCellMaskMux, GameGridCellMasksAndValues, GameMap } from '../models/game.model.js';
+import { gameGridCellMaskMux, GameGridCellMasksAndValues, GameGridCellMasksAndValuesTag, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -190,6 +190,13 @@ export class Game {
 
 		DOM.elEditorPropertiesCellInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SWITCH);
 		DOM.elEditorPropertiesCellInputSwitchSecret.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SWITCH_SECRET);
+
+		if (DOM.elEditorPropertiesCellInputTag.checked === true) {
+			Game.editorCellValue |= GameGridCellMasksAndValues.TAG;
+
+			DOM.elEditorPropertiesCellTagInputEpisodeEnd.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesTag.EPISODE_END);
+		}
+
 		DOM.elEditorPropertiesCellInputWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
 		DOM.elEditorPropertiesCellInputWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
 		DOM.elEditorPropertiesCellInputWallMovable.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_MOVABLE);
@@ -208,6 +215,10 @@ export class Game {
 
 		let element: HTMLInputElement;
 		for (element of DOM.elEditorPropertiesCellInputs) {
+			element.checked = false;
+		}
+		DOM.elEditorPropertiesCellTag.classList.remove('show');
+		for (element of DOM.elEditorPropertiesCellTags) {
 			element.checked = false;
 		}
 
@@ -1509,6 +1520,11 @@ export class Game {
 						case AssetImgCategory.SPRITE_PICKUP:
 							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							break;
+						case AssetImgCategory.TAG:
+							DOM.elEditorPropertiesCellTag.classList.add('show');
+							DOM.elEditorPropertiesCellInputFloor.checked = true;
+							DOM.elEditorPropertiesCellInputTag.checked = true;
+							break;
 						case AssetImgCategory.WALL:
 							DOM.elEditorPropertiesCellInputWall.checked = true;
 							break;
@@ -2556,6 +2572,16 @@ export class Game {
 				}
 				DOM.elEditorPropertiesCellInputSwitch.checked = (cell & GameGridCellMasksAndValues.SWITCH) !== 0;
 				DOM.elEditorPropertiesCellInputSwitchSecret.checked = (cell & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0;
+
+				DOM.elEditorPropertiesCellInputTag.checked = (cell & GameGridCellMasksAndValues.TAG) !== 0;
+				if (DOM.elEditorPropertiesCellInputTag.checked === true) {
+					DOM.elEditorPropertiesCellTag.classList.add('show');
+					DOM.elEditorPropertiesCellTagInputEpisodeEnd.checked = (cell & GameGridCellMasksAndValuesTag.EPISODE_END) !== 0;
+				} else {
+					DOM.elEditorPropertiesCellTag.classList.remove('show');
+					DOM.elEditorPropertiesCellTagInputEpisodeEnd.checked = false;
+				}
+
 				DOM.elEditorPropertiesCellInputWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
 				DOM.elEditorPropertiesCellInputWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
 				DOM.elEditorPropertiesCellInputWallMovable.checked = (cell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0;
@@ -3473,6 +3499,10 @@ Y: ${camera.y | 0}`);
 			for (element of DOM.elEditorPropertiesCellInputs) {
 				element.checked = false;
 			}
+			DOM.elEditorPropertiesCellTag.classList.remove('show');
+			for (element of DOM.elEditorPropertiesCellTags) {
+				element.checked = false;
+			}
 
 			// Overlay
 			DOM.elPlayerOverlay1.style.display = 'flex';
@@ -3542,6 +3572,10 @@ Y: ${camera.y | 0}`);
 
 			let element: HTMLInputElement;
 			for (element of DOM.elEditorPropertiesCellInputs) {
+				element.checked = false;
+			}
+			DOM.elEditorPropertiesCellTag.classList.remove('show');
+			for (element of DOM.elEditorPropertiesCellTags) {
 				element.checked = false;
 			}
 

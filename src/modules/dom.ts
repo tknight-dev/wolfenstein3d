@@ -63,6 +63,7 @@ export class DOM {
 	public static elEditorContainerObjectsSpritesContent: HTMLElement;
 	public static elEditorContainerObjectsSpritesLights: HTMLElement;
 	public static elEditorContainerObjectsSpritesLightsContent: HTMLElement;
+	public static elEditorContainerObjectsTagsContent: HTMLElement;
 	public static elEditorContainerObjectsWalls: HTMLElement;
 	public static elEditorContainerObjectsWallsContent: HTMLElement;
 	public static elEditorContainerObjectsWaypointsContent: HTMLElement;
@@ -88,6 +89,7 @@ export class DOM {
 	public static elEditorPropertiesCellInputLight: HTMLInputElement;
 	public static elEditorPropertiesCellInputLocked1: HTMLInputElement;
 	public static elEditorPropertiesCellInputLocked2: HTMLInputElement;
+	public static elEditorPropertiesCellInputTag: HTMLInputElement;
 	public static elEditorPropertiesCellInputSpriteFixedH: HTMLInputElement;
 	public static elEditorPropertiesCellInputSpriteFixedV: HTMLInputElement;
 	public static elEditorPropertiesCellInputSwitch: HTMLInputElement;
@@ -100,6 +102,9 @@ export class DOM {
 	public static elEditorPropertiesCellOutputPosition: HTMLElement;
 	public static elEditorPropertiesCellOutputProperties: HTMLElement;
 	public static elEditorPropertiesCellOutputValue: HTMLElement;
+	public static elEditorPropertiesCellTag: HTMLElement;
+	public static elEditorPropertiesCellTags: HTMLInputElement[];
+	public static elEditorPropertiesCellTagInputEpisodeEnd: HTMLInputElement;
 	public static elEditorPropertiesCharacterContainer: HTMLElement;
 	public static elEditorPropertiesCharacterInputAngle: HTMLInputElement;
 	public static elEditorPropertiesCharacterInputDifficulty: HTMLInputElement;
@@ -345,6 +350,7 @@ export class DOM {
 		DOM.elEditorContainerObjectsSpritesContent = <HTMLElement>document.getElementById('editor-cell-container-sprites-content');
 		DOM.elEditorContainerObjectsSpritesLights = <HTMLElement>document.getElementById('editor-cell-container-sprites-lights');
 		DOM.elEditorContainerObjectsSpritesLightsContent = <HTMLElement>document.getElementById('editor-cell-container-sprites-lights-content');
+		DOM.elEditorContainerObjectsTagsContent = <HTMLElement>document.getElementById('editor-cell-container-tags-content');
 		DOM.elEditorContainerObjectsWalls = <HTMLElement>document.getElementById('editor-cell-container-walls');
 		DOM.elEditorContainerObjectsWallsContent = <HTMLElement>document.getElementById('editor-cell-container-walls-content');
 		DOM.elEditorContainerObjectsWaypointsContent = <HTMLElement>document.getElementById('editor-cell-container-waypoints-content');
@@ -396,14 +402,6 @@ export class DOM {
 		DOM.elEditorFindAndReplaceValueReplace = <HTMLInputElement>document.getElementById('editor-cell-find-and-replace-value-replace');
 
 		DOM.elEditorPropertiesCellContainer = <HTMLInputElement>document.getElementById('editor-properties-cell-container');
-		// DOM.elEditorPropertiesCellInputExtended = <HTMLInputElement>document.getElementById('editor-cell-mux-1');
-		// DOM.elEditorPropertiesCellInputExtended.oninput = () => {
-		// 	if (DOM.elEditorPropertiesCellInputExtended.checked === true) {
-		// 		DOM.elEditorPropertiesCellExtended.classList.add('show');
-		// 	} else {
-		// 		DOM.elEditorPropertiesCellExtended.classList.remove('show');
-		// 	}
-		// };
 
 		DOM.elEditorPropertiesCellInputDisabled = <HTMLInputElement>document.getElementById('editor-cell-disabled');
 		DOM.elEditorPropertiesCellInputDoor = <HTMLInputElement>document.getElementById('editor-cell-door');
@@ -428,6 +426,20 @@ export class DOM {
 
 		DOM.elEditorPropertiesCellInputSwitch = <HTMLInputElement>document.getElementById('editor-cell-switch');
 		DOM.elEditorPropertiesCellInputSwitchSecret = <HTMLInputElement>document.getElementById('editor-cell-switch-secret');
+
+		DOM.elEditorPropertiesCellInputTag = <HTMLInputElement>document.getElementById('editor-cell-tag');
+		DOM.elEditorPropertiesCellInputTag.oninput = () => {
+			if (DOM.elEditorPropertiesCellInputTag.checked === true) {
+				DOM.elEditorPropertiesCellTag.classList.add('show');
+			} else {
+				DOM.elEditorPropertiesCellTag.classList.remove('show');
+			}
+		};
+
+		DOM.elEditorPropertiesCellTag = <HTMLElement>document.getElementById('editor-properties-cell-tag');
+		DOM.elEditorPropertiesCellTagInputEpisodeEnd = <HTMLInputElement>document.getElementById('editor-properties-cell-tag-episode-end');
+		DOM.elEditorPropertiesCellTags = [DOM.elEditorPropertiesCellTagInputEpisodeEnd];
+
 		DOM.elEditorPropertiesCellInputWall = <HTMLInputElement>document.getElementById('editor-cell-wall');
 		DOM.elEditorPropertiesCellInputWallInvisible = <HTMLInputElement>document.getElementById('editor-cell-wall-invisible');
 		DOM.elEditorPropertiesCellInputWallMovable = <HTMLInputElement>document.getElementById('editor-cell-wall-movable');
@@ -442,6 +454,7 @@ export class DOM {
 			DOM.elEditorPropertiesCellInputSpriteFixedV,
 			DOM.elEditorPropertiesCellInputSwitch,
 			DOM.elEditorPropertiesCellInputSwitchSecret,
+			DOM.elEditorPropertiesCellInputTag,
 			DOM.elEditorPropertiesCellInputWallMovable,
 			DOM.elEditorPropertiesCellInputWall,
 			DOM.elEditorPropertiesCellInputWallInvisible,
@@ -814,9 +827,6 @@ export class DOM {
 				case AssetImgCategory.EXTENDED:
 					elementContainer = DOM.elEditorContainerExtendedContent;
 					break;
-				case AssetImgCategory.WAYPOINT:
-					elementContainer = DOM.elEditorContainerObjectsWaypointsContent;
-					break;
 				case AssetImgCategory.LIGHT:
 					elementContainer = DOM.elEditorContainerObjectsSpritesLightsContent;
 					break;
@@ -826,8 +836,14 @@ export class DOM {
 				case AssetImgCategory.SPRITE_PICKUP:
 					elementContainer = DOM.elEditorContainerObjectsPickupsContent;
 					break;
+				case AssetImgCategory.TAG:
+					elementContainer = DOM.elEditorContainerObjectsTagsContent;
+					break;
 				case AssetImgCategory.WALL:
 					elementContainer = DOM.elEditorContainerObjectsWallsContent;
+					break;
+				case AssetImgCategory.WAYPOINT:
+					elementContainer = DOM.elEditorContainerObjectsWaypointsContent;
 					break;
 			}
 
