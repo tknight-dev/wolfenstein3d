@@ -424,25 +424,6 @@ $main-z-index-video-interactive: 50;
 				}
 			}
 
-			.tag {
-				border: 2px solid white;
-				height: 55px;
-				left: auto;
-				overflow: hidden;
-				position: absolute;
-				right: 244px;
-				top: 18px; // -2px for borders
-				transition: width 0.125s linear;
-				white-space: nowrap;
-				width: 0;
-				z-index: 1;
-
-				&.show {
-					right: 246px;
-					width: 160px;
-				}
-			}
-
 			.handle {
 				align-items: center;
 				display: flex;
@@ -536,16 +517,6 @@ $main-z-index-video-interactive: 50;
 						}
 					}
 				}
-
-				.tag {
-					left: 244px;
-					right: auto;
-
-					&.show {
-						left: 246px;
-						width: 160px;
-					}
-				}
 			}
 
 			&.offset {
@@ -611,8 +582,7 @@ $main-z-index-video-interactive: 50;
 				width: 60px;
 
 				.commands,
-				.container,
-				.tag {
+				.container {
 					display: none;
 				}
 			}

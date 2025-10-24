@@ -443,6 +443,7 @@ export const AssetIdMusicLevels: AssetIdAudio[] = [
 	AssetIdAudio.AUDIO_MUSIC_SUSPENSE,
 ];
 
+// Values less than 1000 are not rendered by VideoMain
 export enum AssetIdImg {
 	MISC_ARROW_EAST = 1,
 	MISC_ARROW_NORTH = 2,

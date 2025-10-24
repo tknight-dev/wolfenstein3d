@@ -1143,7 +1143,7 @@ class VideoMainEngine {
 
 						// Skip arrows
 						renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-						if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_X) {
+						if (renderAssetId < 1000) {
 							renderSkip = true;
 						}
 

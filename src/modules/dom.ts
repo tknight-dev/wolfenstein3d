@@ -89,11 +89,11 @@ export class DOM {
 	public static elEditorPropertiesCellInputLight: HTMLInputElement;
 	public static elEditorPropertiesCellInputLocked1: HTMLInputElement;
 	public static elEditorPropertiesCellInputLocked2: HTMLInputElement;
-	public static elEditorPropertiesCellInputTag: HTMLInputElement;
 	public static elEditorPropertiesCellInputSpriteFixedH: HTMLInputElement;
 	public static elEditorPropertiesCellInputSpriteFixedV: HTMLInputElement;
 	public static elEditorPropertiesCellInputSwitch: HTMLInputElement;
 	public static elEditorPropertiesCellInputSwitchSecret: HTMLInputElement;
+	public static elEditorPropertiesCellInputTagRunAndJump: HTMLInputElement;
 	public static elEditorPropertiesCellInputWallMovable: HTMLInputElement;
 	public static elEditorPropertiesCellInputWall: HTMLInputElement;
 	public static elEditorPropertiesCellInputWallInvisible: HTMLInputElement;
@@ -102,9 +102,6 @@ export class DOM {
 	public static elEditorPropertiesCellOutputPosition: HTMLElement;
 	public static elEditorPropertiesCellOutputProperties: HTMLElement;
 	public static elEditorPropertiesCellOutputValue: HTMLElement;
-	public static elEditorPropertiesCellTag: HTMLElement;
-	public static elEditorPropertiesCellTags: HTMLInputElement[];
-	public static elEditorPropertiesCellTagInputEpisodeEnd: HTMLInputElement;
 	public static elEditorPropertiesCharacterContainer: HTMLElement;
 	public static elEditorPropertiesCharacterInputAngle: HTMLInputElement;
 	public static elEditorPropertiesCharacterInputDifficulty: HTMLInputElement;
@@ -426,20 +423,7 @@ export class DOM {
 
 		DOM.elEditorPropertiesCellInputSwitch = <HTMLInputElement>document.getElementById('editor-cell-switch');
 		DOM.elEditorPropertiesCellInputSwitchSecret = <HTMLInputElement>document.getElementById('editor-cell-switch-secret');
-
-		DOM.elEditorPropertiesCellInputTag = <HTMLInputElement>document.getElementById('editor-cell-tag');
-		DOM.elEditorPropertiesCellInputTag.oninput = () => {
-			if (DOM.elEditorPropertiesCellInputTag.checked === true) {
-				DOM.elEditorPropertiesCellTag.classList.add('show');
-			} else {
-				DOM.elEditorPropertiesCellTag.classList.remove('show');
-			}
-		};
-
-		DOM.elEditorPropertiesCellTag = <HTMLElement>document.getElementById('editor-properties-cell-tag');
-		DOM.elEditorPropertiesCellTagInputEpisodeEnd = <HTMLInputElement>document.getElementById('editor-properties-cell-tag-episode-end');
-		DOM.elEditorPropertiesCellTags = [DOM.elEditorPropertiesCellTagInputEpisodeEnd];
-
+		DOM.elEditorPropertiesCellInputTagRunAndJump = <HTMLInputElement>document.getElementById('editor-cell-tag-run-and-jump');
 		DOM.elEditorPropertiesCellInputWall = <HTMLInputElement>document.getElementById('editor-cell-wall');
 		DOM.elEditorPropertiesCellInputWallInvisible = <HTMLInputElement>document.getElementById('editor-cell-wall-invisible');
 		DOM.elEditorPropertiesCellInputWallMovable = <HTMLInputElement>document.getElementById('editor-cell-wall-movable');
@@ -454,7 +438,7 @@ export class DOM {
 			DOM.elEditorPropertiesCellInputSpriteFixedV,
 			DOM.elEditorPropertiesCellInputSwitch,
 			DOM.elEditorPropertiesCellInputSwitchSecret,
-			DOM.elEditorPropertiesCellInputTag,
+			DOM.elEditorPropertiesCellInputTagRunAndJump,
 			DOM.elEditorPropertiesCellInputWallMovable,
 			DOM.elEditorPropertiesCellInputWall,
 			DOM.elEditorPropertiesCellInputWallInvisible,

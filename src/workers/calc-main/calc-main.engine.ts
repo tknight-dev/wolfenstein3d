@@ -36,7 +36,7 @@ import {
 	GameGridCellMaskBlockingAll,
 	GameGridCellMaskBlockingVisible,
 	GameGridCellMasksAndValues,
-	GameGridCellMasksAndValuesTag,
+	gameGridCellMaskTag,
 	GameMap,
 } from '../../models/game.model.js';
 import {
@@ -1220,19 +1220,15 @@ class CalcMainEngine {
 		};
 
 		const actionTag = (gridIndex: number, player1: boolean) => {
-			const tag: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
-
 			console.log('actionTag', gridIndex, player1);
 
-			switch (tag) {
-				case GameGridCellMasksAndValuesTag.EPISODE_END:
-					// Only fire once
-					gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.TAG;
+			if ((gameMapGridData[gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+				// Only fire once
+				gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.TAG_RUN_AND_JUMP;
 
-					// move camera forward and spin 180deg
-					// player run forward and camera maintains distance
-					// player jumps in slowmo and then game pause (episode end)
-					break;
+				// move camera forward and spin 180deg
+				// player run forward and camera maintains distance
+				// player jumps in slowmo and then game pause (episode end)
 			}
 		};
 
@@ -2570,7 +2566,7 @@ class CalcMainEngine {
 							}
 
 							// Tag
-							if ((gameMapGridData[characterPlayerGridIndex] & GameGridCellMasksAndValues.TAG) !== 0) {
+							if ((gameMapGridData[characterPlayerGridIndex] & gameGridCellMaskTag) !== 0) {
 								actionTag(characterPlayerGridIndex, characterPlayer.id === -1);
 							}
 						}

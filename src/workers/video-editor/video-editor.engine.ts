@@ -1,5 +1,5 @@
 import { GamingCanvas, GamingCanvasConstPI_2_000, GamingCanvasReport, GamingCanvasRenderStyle, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
-import { GameDifficulty, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, gameGridCellMaskTag, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -671,7 +671,7 @@ class VideoEditorEngine {
 								}
 
 								// Special Property: Tag
-								if ((value & GameGridCellMasksAndValues.TAG) !== 0) {
+								if ((value & gameGridCellMaskTag) !== 0) {
 									offscreenCanvasContext.drawImage(
 										cacheCanvasImages.get(AssetIdImg.MISC_X) || testImage,
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
