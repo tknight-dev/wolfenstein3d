@@ -1577,6 +1577,11 @@ $main-z-index-video-interactive: 50;
 									width: 90%;
 								}
 
+								#screen-episode-end-image1,
+								#screen-episode-end-image2 {
+									display: none;
+								}
+
 								#screen-level-end-image2 {
 									z-index: 2;
 

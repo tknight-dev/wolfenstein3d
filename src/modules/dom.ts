@@ -233,6 +233,8 @@ export class DOM {
 	public static elScreenActive: HTMLElement;
 	public static elScreenBlack: HTMLElement;
 	public static elScreenCredits: HTMLElement;
+	public static elScreenEpisodeEndImage1: HTMLImageElement;
+	public static elScreenEpisodeEndImage2: HTMLImageElement;
 	public static elScreenLevelEnd: HTMLElement;
 	public static elScreenLevelEndBonus: HTMLElement;
 	public static elScreenLevelEndCompleted: HTMLElement;
@@ -644,6 +646,8 @@ export class DOM {
 		DOM.elScreenBlack = <HTMLElement>document.getElementById('screen-black');
 		DOM.elScreenCredits = <HTMLElement>document.getElementById('screen-credits');
 
+		DOM.elScreenEpisodeEndImage1 = <HTMLImageElement>document.getElementById('screen-episode-end-image1');
+		DOM.elScreenEpisodeEndImage2 = <HTMLImageElement>document.getElementById('screen-episode-end-image2');
 		DOM.elScreenLevelEnd = <HTMLElement>document.getElementById('screen-level-end');
 		DOM.elScreenLevelEndBonus = <HTMLElement>document.getElementById('screen-level-end-bonus');
 		DOM.elScreenLevelEndCompleted = <HTMLElement>document.getElementById('screen-level-end-completed');
@@ -896,6 +900,8 @@ export class DOM {
 
 		DOM.elGameMenuPistol.style.backgroundImage = `url(${Assets.dataImageMenus.get(AssetIdImgMenu.MENU_PISTOL)})`;
 
+		DOM.elScreenEpisodeEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_END_SINGLE);
+		DOM.elScreenEpisodeEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.EPISODE_END_DOUBLE);
 		DOM.elScreenLevelEndImage1.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_1);
 		DOM.elScreenLevelEndImage2.src = <string>Assets.dataImageMenus.get(AssetIdImgMenu.END_FLOOR_PISTOL_2);
 		DOM.elScreenCredits.style.backgroundImage = `url(${<string>Assets.dataImageMenus.get(AssetIdImgMenu.CREDITS)})`;

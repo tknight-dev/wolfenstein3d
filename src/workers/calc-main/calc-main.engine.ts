@@ -1128,18 +1128,24 @@ class CalcMainEngine {
 		};
 
 		const actionSwitch = (gridIndex: number) => {
-			// Calc: AssetId
-			let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
-			gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.ID_MASK;
-			if (assetId === AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN) {
-				assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_UP;
-			} else {
-				assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN;
-			}
+			let assetId: number = 0,
+				gridSwitch: boolean = false,
+				gridSwitchAlt: boolean = false;
 
-			// Meta
-			let gridSwitch: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH) !== 0,
-				gridSwitchAlt: boolean = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0;
+			if (gridIndex !== -1) {
+				// Calc: AssetId
+				let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
+				gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.ID_MASK;
+				if (assetId === AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN) {
+					assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_UP;
+				} else {
+					assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN;
+				}
+
+				// Meta
+				gridSwitch = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH) !== 0;
+				gridSwitchAlt = (gameMapGridData[gridIndex] & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0;
+			}
 
 			// Update here as settings can change after map load
 			gameMapMetaNPCCount = 0;
@@ -1197,12 +1203,14 @@ class CalcMainEngine {
 			characterPlayer2.score += bonus;
 			characterPlayer2Meta.bonus = bonus;
 
-			// Set: Grid
-			gameMapGridData[gridIndex] |= assetId;
-			gameMapGridData[gridIndex] &= ~(GameGridCellMasksAndValues.SWITCH | GameGridCellMasksAndValues.SWITCH_SECRET);
+			if (gridIndex !== -1) {
+				// Set: Grid
+				gameMapGridData[gridIndex] |= assetId;
+				gameMapGridData[gridIndex] &= ~(GameGridCellMasksAndValues.SWITCH | GameGridCellMasksAndValues.SWITCH_SECRET);
 
-			// Post to other threads
-			audioPlay(AssetIdAudio.AUDIO_EFFECT_SWITCH, gridIndex);
+				// Post to other threads
+				audioPlay(AssetIdAudio.AUDIO_EFFECT_SWITCH, gridIndex);
+			}
 			CalcMainEngine.post([
 				{
 					cmd: CalcMainBusOutputCmd.ACTION_SWITCH,
@@ -1229,6 +1237,8 @@ class CalcMainEngine {
 				// move camera forward and spin 180deg
 				// player run forward and camera maintains distance
 				// player jumps in slowmo and then game pause (episode end)
+
+				actionSwitch(-1);
 			}
 		};
 
@@ -1952,7 +1962,7 @@ class CalcMainEngine {
 
 				if (CalcMainEngine.gameMapEnd === true) {
 					CalcMainEngine.gameMapEnd = false;
-					actionSwitch(0);
+					actionSwitch(-1);
 				}
 
 				if (CalcMainEngine.gameMapNew === true) {

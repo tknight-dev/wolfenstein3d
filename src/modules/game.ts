@@ -6,6 +6,7 @@ import {
 	AssetIdImgCharacterType,
 	AssetIdImgMenu,
 	AssetIdMap,
+	AssetIdMusicLevels,
 	AssetImgCategory,
 	AssetPropertiesAudio,
 	AssetPropertiesCharacter,
@@ -221,12 +222,21 @@ export class Game {
 		if (Game.inputSuspend === true) {
 			return;
 		}
-		Game.inputSuspend = true;
 
 		if (Game.mapBackup.id % 10 === 8) {
 			// episode complete
+			DOM.elGameMenuMainGameSave.classList.add('disable');
+			Game.mapEnded = false;
+			Game.mapEnding = false;
+			Game.mapEndingSkip = false;
+			Game.started = false;
+
+			Game.gameMenu(true);
+			Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
 		} else {
 			let assetIdMapNext: AssetIdMap;
+
+			Game.inputSuspend = true;
 
 			if (Game.mapBackup.id % 10 === 9) {
 				// secret level complete
@@ -1942,7 +1952,7 @@ export class Game {
 		// Calc: Action Switch
 		CalcMainBus.setCallbackActionSwitch((data: CalcMainBusOutputDataActionSwitch) => {
 			Game.mapEnding = true;
-			VideoMainBus.outputActionSwitch(data);
+			data.gridIndex !== -1 && VideoMainBus.outputActionSwitch(data);
 
 			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
@@ -1960,115 +1970,137 @@ export class Game {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
 				setTimeout(async () => {
-					Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
+					if (Game.mapBackup.id % 10 === 8) {
+						Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_EPISODE_END);
+					} else {
+						Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
+					}
 				}, 1500);
 			}, 500);
 
-			// Stats
-			let floor: number = (Game.mapBackup.id % 10) + 1,
-				ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
-				ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
-				ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
-				timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
-				timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
-
 			// Stats: Display
-			if (Game.mapBackup.id % 10 === 9) {
-				// Secret floor
-				utilStringToHTML(DOM.elScreenLevelEndBonus, ` Completed`, true);
-				utilStringToHTML(DOM.elScreenLevelEndCompleted, `Secret Floor`, true);
+			if (Game.mapBackup.id % 10 === 8) {
+				// Episode End
+				utilStringToHTML(DOM.elScreenLevelEndBonus, ``, true);
+				utilStringToHTML(DOM.elScreenLevelEndCompleted, `You Win!`, true);
 				utilStringToHTML(DOM.elScreenLevelEndFloor, ``, true);
 				utilStringToHTML(DOM.elScreenLevelEndTime, ``, true);
 				utilStringToHTML(DOM.elScreenLevelEndTimePar, ``, true);
 				utilStringToHTML(DOM.elScreenLevelEndRatioKill, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `${data.player1Meta.bonus} Bonus!   `, true);
+				utilStringToHTML(DOM.elScreenLevelEndRatioSecret, ``, true);
 				utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, ``, true);
 
 				Game.mapEndingSkip = false;
 				setTimeout(() => {
 					Game.mapEnded = true;
-				}, 2500);
+				}, 3500);
 			} else {
-				// Normal floor
-				utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
-				utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
-				utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
-				utilStringToHTML(
-					DOM.elScreenLevelEndTime,
-					` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
-					true,
-				);
-				utilStringToHTML(
-					DOM.elScreenLevelEndTimePar,
-					`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
-					true,
-				);
-				utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+				// Stats
+				let floor: number = (Game.mapBackup.id % 10) + 1,
+					ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
+					ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
+					ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
+					timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
+					timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
 
-				setTimeout(() => {
+				// Stats: Display
+				if (Game.mapBackup.id % 10 === 9) {
+					// Secret floor
+					utilStringToHTML(DOM.elScreenLevelEndBonus, ` Completed`, true);
+					utilStringToHTML(DOM.elScreenLevelEndCompleted, `Secret Floor`, true);
+					utilStringToHTML(DOM.elScreenLevelEndFloor, ``, true);
+					utilStringToHTML(DOM.elScreenLevelEndTime, ``, true);
+					utilStringToHTML(DOM.elScreenLevelEndTimePar, ``, true);
+					utilStringToHTML(DOM.elScreenLevelEndRatioKill, ``, true);
+					utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `${data.player1Meta.bonus} Bonus!   `, true);
+					utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, ``, true);
+
 					Game.mapEndingSkip = false;
-					if (data.player1Meta.bonus === 0) {
-						Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
-					} else {
-						Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
-					}
-					utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
-
-					setTimeout(
-						() => {
-							if (Game.mapEndingSkip !== true) {
-								if (ratioKill === 0) {
-									Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
-								} else if (ratioKill < 10) {
-									Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
-								} else {
-									Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
-								}
-							}
-							utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
-
-							setTimeout(
-								() => {
-									if (Game.mapEndingSkip !== true) {
-										if (ratioSecret === 0) {
-											Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
-										} else if (ratioSecret < 10) {
-											Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
-										} else {
-											Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
-										}
-									}
-									utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
-
-									setTimeout(
-										() => {
-											if (Game.mapEndingSkip !== true) {
-												if (ratioTreasure === 0) {
-													Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
-												} else if (ratioTreasure < 10) {
-													Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
-												} else {
-													Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
-												}
-											}
-											utilStringToHTML(
-												DOM.elScreenLevelEndRatioTreasure,
-												`Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`,
-												true,
-											);
-											Game.mapEnded = true;
-										},
-										Game.mapEndingSkip === true ? 0 : 1000,
-									);
-								},
-								Game.mapEndingSkip === true ? 0 : 1000,
-							);
-						},
-						<any>Game.mapEndingSkip === true ? 0 : 1000,
+					setTimeout(() => {
+						Game.mapEnded = true;
+					}, 2500);
+				} else {
+					// Normal floor
+					utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
+					utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
+					utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
+					utilStringToHTML(
+						DOM.elScreenLevelEndTime,
+						` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
+						true,
 					);
-				}, 2500);
+					utilStringToHTML(
+						DOM.elScreenLevelEndTimePar,
+						`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
+						true,
+					);
+					utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+
+					setTimeout(() => {
+						Game.mapEndingSkip = false;
+						if (data.player1Meta.bonus === 0) {
+							Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+						} else {
+							Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
+						}
+						utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
+
+						setTimeout(
+							() => {
+								if (Game.mapEndingSkip !== true) {
+									if (ratioKill === 0) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+									} else if (ratioKill < 10) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
+									} else {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
+									}
+								}
+								utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
+
+								setTimeout(
+									() => {
+										if (Game.mapEndingSkip !== true) {
+											if (ratioSecret === 0) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+											} else if (ratioSecret < 10) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
+											} else {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
+											}
+										}
+										utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+
+										setTimeout(
+											() => {
+												if (Game.mapEndingSkip !== true) {
+													if (ratioTreasure === 0) {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+													} else if (ratioTreasure < 10) {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
+													} else {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
+													}
+												}
+												utilStringToHTML(
+													DOM.elScreenLevelEndRatioTreasure,
+													`Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`,
+													true,
+												);
+												Game.mapEnded = true;
+											},
+											Game.mapEndingSkip === true ? 0 : 1000,
+										);
+									},
+									Game.mapEndingSkip === true ? 0 : 1000,
+								);
+							},
+							<any>Game.mapEndingSkip === true ? 0 : 1000,
+						);
+					}, 2500);
+				}
 			}
 		});
 
