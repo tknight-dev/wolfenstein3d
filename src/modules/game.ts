@@ -223,20 +223,26 @@ export class Game {
 			return;
 		}
 
+		Game.inputSuspend = true;
+
 		if (Game.mapBackup.id % 10 === 8) {
 			// episode complete
+			if (Game.musicInstance !== null) {
+				GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
+			}
+			setTimeout(async () => {
+				Game.inputSuspend = false;
+				Game.gameMenu(true);
+				Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
+			}, 1500);
+
 			DOM.elGameMenuMainGameSave.classList.add('disable');
 			Game.mapEnded = false;
 			Game.mapEnding = false;
 			Game.mapEndingSkip = false;
 			Game.started = false;
-
-			Game.gameMenu(true);
-			Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
 		} else {
 			let assetIdMapNext: AssetIdMap;
-
-			Game.inputSuspend = true;
 
 			if (Game.mapBackup.id % 10 === 9) {
 				// secret level complete
@@ -292,6 +298,9 @@ export class Game {
 	 */
 	public static gameMenu(enable?: boolean, pauseAudio?: boolean): void {
 		if (Game.gameMenuActive === enable) {
+			if (Game.gameMenuActive === true) {
+				GamingCanvas.audioControlPauseAll(pauseAudio === true);
+			}
 			return;
 		}
 
@@ -338,7 +347,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true && pauseAudio !== true);
+			Game.pause(true, !pauseAudio);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
 			DOM.elIconsTop.classList.remove('intro');
 			DOM.elGameMenu.classList.remove('show');
@@ -350,7 +359,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true && pauseAudio !== true);
+			Game.pause(true, !pauseAudio);
 		}
 	}
 
@@ -1963,7 +1972,7 @@ export class Game {
 
 			setTimeout(() => {
 				DOM.elIconsTop.classList.add('intro');
-				DOM.screenControl(DOM.elScreenLevelEnd);
+				DOM.screenControl(DOM.elScreenEnding);
 
 				// Music
 				if (Game.musicInstance !== null) {
@@ -1981,14 +1990,19 @@ export class Game {
 			// Stats: Display
 			if (Game.mapBackup.id % 10 === 8) {
 				// Episode End
-				utilStringToHTML(DOM.elScreenLevelEndBonus, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndCompleted, `You Win!`, true);
-				utilStringToHTML(DOM.elScreenLevelEndFloor, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndTime, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndTimePar, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioKill, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioSecret, ``, true);
-				utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, ``, true);
+				DOM.elScreenEndingEpisodeImage1.style.display = 'block';
+				// DOM.elScreenEndingEpisodeImage2.style.display = 'block';
+				DOM.elScreenEndingFloorImage1.style.display = 'none';
+				DOM.elScreenEndingFloorImage2.style.display = 'none';
+
+				utilStringToHTML(DOM.elScreenEndingFloorBonus, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorCompleted, `You Win!`, true);
+				utilStringToHTML(DOM.elScreenEndingFloorFloor, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorTime, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorTimePar, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioKill, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, ``, true);
 
 				Game.mapEndingSkip = false;
 				setTimeout(() => {
@@ -2003,17 +2017,23 @@ export class Game {
 					timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
 					timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
 
+				// Image
+				DOM.elScreenEndingEpisodeImage1.style.display = 'none';
+				DOM.elScreenEndingEpisodeImage2.style.display = 'none';
+				DOM.elScreenEndingFloorImage1.style.display = 'block';
+				DOM.elScreenEndingFloorImage2.style.display = 'block';
+
 				// Stats: Display
 				if (Game.mapBackup.id % 10 === 9) {
 					// Secret floor
-					utilStringToHTML(DOM.elScreenLevelEndBonus, ` Completed`, true);
-					utilStringToHTML(DOM.elScreenLevelEndCompleted, `Secret Floor`, true);
-					utilStringToHTML(DOM.elScreenLevelEndFloor, ``, true);
-					utilStringToHTML(DOM.elScreenLevelEndTime, ``, true);
-					utilStringToHTML(DOM.elScreenLevelEndTimePar, ``, true);
-					utilStringToHTML(DOM.elScreenLevelEndRatioKill, ``, true);
-					utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `${data.player1Meta.bonus} Bonus!   `, true);
-					utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorBonus, ` Completed`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorCompleted, `Secret Floor`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorFloor, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorTime, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorTimePar, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioKill, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `${data.player1Meta.bonus} Bonus!   `, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, ``, true);
 
 					Game.mapEndingSkip = false;
 					setTimeout(() => {
@@ -2021,22 +2041,22 @@ export class Game {
 					}, 2500);
 				} else {
 					// Normal floor
-					utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
-					utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
-					utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorBonus, `Bonus`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorCompleted, `Completed`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorFloor, `Floor ${floor}`, true);
 					utilStringToHTML(
-						DOM.elScreenLevelEndTime,
+						DOM.elScreenEndingFloorTime,
 						` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
 						true,
 					);
 					utilStringToHTML(
-						DOM.elScreenLevelEndTimePar,
+						DOM.elScreenEndingFloorTimePar,
 						`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
 						true,
 					);
-					utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
-					utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
-					utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Kill Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `Secret Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, `Treasure Ratio    %`, true);
 
 					setTimeout(() => {
 						Game.mapEndingSkip = false;
@@ -2045,7 +2065,7 @@ export class Game {
 						} else {
 							Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 						}
-						utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
+						utilStringToHTML(DOM.elScreenEndingFloorBonus, `Bonus ${data.player1Meta.bonus}`, true);
 
 						setTimeout(
 							() => {
@@ -2058,7 +2078,7 @@ export class Game {
 										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 									}
 								}
-								utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
+								utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
 
 								setTimeout(
 									() => {
@@ -2071,7 +2091,7 @@ export class Game {
 												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 											}
 										}
-										utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+										utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
 
 										setTimeout(
 											() => {
@@ -2085,7 +2105,7 @@ export class Game {
 													}
 												}
 												utilStringToHTML(
-													DOM.elScreenLevelEndRatioTreasure,
+													DOM.elScreenEndingFloorRatioTreasure,
 													`Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`,
 													true,
 												);
@@ -2643,11 +2663,17 @@ export class Game {
 
 					if (Game.inputSuspend === true) {
 						continue;
-					} else if (Game.mapEnded === true) {
-						Game.loadNextLevel();
+					}
+
+					if (Game.mapEnded === true) {
+						if (queueInput.type !== GamingCanvasInputType.MOUSE) {
+							Game.loadNextLevel();
+						}
 						continue;
 					} else if (Game.mapEnding === true) {
-						Game.mapEndingSkip = true;
+						if (queueInput.type !== GamingCanvasInputType.MOUSE) {
+							Game.mapEndingSkip = true;
+						}
 						continue;
 					}
 

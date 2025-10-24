@@ -1134,7 +1134,7 @@ class CalcMainEngine {
 
 			if (gridIndex !== -1) {
 				// Calc: AssetId
-				let assetId: number = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
+				assetId = gameMapGridData[gridIndex] & GameGridCellMasksAndValues.ID_MASK;
 				gameMapGridData[gridIndex] &= ~GameGridCellMasksAndValues.ID_MASK;
 				if (assetId === AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN) {
 					assetId = AssetIdImg.WALL_ELEVATOR_SWITCH_UP;

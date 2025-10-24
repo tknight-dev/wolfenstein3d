@@ -1553,7 +1553,7 @@ $main-z-index-video-interactive: 50;
 				}
 			}
 
-			&.level-end {
+			&.ending {
 				background-color: #004141;
 				z-index: $main-z-index-screen-end-level;
 
@@ -1577,23 +1577,23 @@ $main-z-index-video-interactive: 50;
 									width: 90%;
 								}
 
-								#screen-episode-end-image1,
-								#screen-episode-end-image2 {
+								#screen-ending-episode-image1,
+								#screen-ending-episode-image2 {
 									display: none;
 								}
 
-								#screen-level-end-image2 {
+								#screen-ending-floor-image2 {
 									z-index: 2;
 
 									&.animate {
 										animation-duration: 0.85s;
-										animation-name: screen-level-end-image-rotation;
+										animation-name: screen-ending-floor-image-rotation;
 										animation-iteration-count: infinite;
 										animation-direction: alternate;
 									}
 								}
 
-								@keyframes screen-level-end-image-rotation {
+								@keyframes screen-ending-floor-image-rotation {
 									from {
 										opacity: 0;
 									}
