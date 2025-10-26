@@ -204,6 +204,8 @@ export class Settings {
 			DOM.elPlayerOverlay2.classList.remove('multiplayer');
 		}
 
+		DOM.elStatFPS.style.display = Game.settings.graphicsFPSDisplay === true ? 'block' : 'none';
+
 		/**
 		 * HTML
 		 */
@@ -323,6 +325,7 @@ export class Settings {
 			} else {
 				DOM.elPerformanceVideoPlayer2.style.display = 'none';
 			}
+			DOM.elStatFPS.style.display = Game.settings.graphicsFPSDisplay === true ? 'block' : 'none';
 
 			// Done
 			localStorage.setItem(Game.localStoragePrefix + 'settings', JSON.stringify(Game.settings));
