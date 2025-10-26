@@ -669,7 +669,7 @@ class CalcMainEngine {
 			gameMapIndexEff: number,
 			gameMapControlBlocking = (cell: number, gridIndex: number) => {
 				// Can Player walk here?
-				characterNPC = <CharacterNPC>gameMapNPCByGridIndex.get(gridIndex);
+				const characterNPC: CharacterNPC = <CharacterNPC>gameMapNPCByGridIndex.get(gridIndex);
 				if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
 					return true;
 				}
@@ -677,10 +677,16 @@ class CalcMainEngine {
 				return (cell & GameGridCellMaskBlockingAll) !== 0;
 			},
 			gameMapControlNPCBlocking = (cell: number, gridIndex: number) => {
-				// Can NPC walk here?
+				// Can NPC walk here? (human player)
 				if (gridIndex === CalcMainEngine.characterPlayer1.gridIndex && CalcMainEngine.characterPlayer1.health > 0) {
 					return true;
 				} else if (gridIndex === CalcMainEngine.characterPlayer2.gridIndex && CalcMainEngine.characterPlayer2.health > 0) {
+					return true;
+				}
+
+				// Can Player walk here? (fellow npc)
+				const characterNPC: CharacterNPC = <CharacterNPC>gameMapNPCByGridIndex.get(gridIndex);
+				if (characterNPC !== undefined && characterNPC.difficulty <= settingsDifficulty && characterNPC.health > 0) {
 					return true;
 				}
 
@@ -689,7 +695,7 @@ class CalcMainEngine {
 			gameMapLookBlocking = (cell: number, gridIndex: number) => {
 				// Can NPC see player
 				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
-					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+					const actionDoorState: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
 					if (actionDoorState === undefined || actionDoorState.open !== true) {
 						return true;
@@ -703,7 +709,7 @@ class CalcMainEngine {
 			gameMapLookPlayerBlocking = (cell: number, gridIndex: number) => {
 				// Can player weapon hit NPC?
 				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
-					actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+					const actionDoorState: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
 
 					if (actionDoorState === undefined || actionDoorState.closed === true) {
 						return true;
@@ -3009,90 +3015,93 @@ class CalcMainEngine {
 										case CharacterNPCState.RUNNING:
 											// Path
 											gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
-											gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 1];
 
-											// Select the next path cell if already in the current one
-											if (gameMapNPCPathInstance === characterNPC.gridIndex && gameMapNPCPath.length > 1) {
-												gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 2];
+											if (gameMapNPCPath !== undefined) {
+												gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 1];
+
+												// Select the next path cell if already in the current one
+												if (gameMapNPCPathInstance === characterNPC.gridIndex && gameMapNPCPath.length > 1) {
+													gameMapNPCPathInstance = gameMapNPCPath[gameMapNPCPath.length - 2];
+												}
+
+												y = (gameMapNPCPathInstance % gameMapSideLength) + 0.5;
+												x = (gameMapNPCPathInstance - y) / gameMapSideLength + 0.5;
+
+												// Camera
+												cameraInstance = characterNPC.camera;
+												cameraInstance.r = Math.atan2(-(y - cameraInstance.y), x - cameraInstance.x);
+												if (cameraInstance.r < 0) {
+													cameraInstance.r += GamingCanvasConstPI_2_000;
+												} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
+													cameraInstance.r -= GamingCanvasConstPI_2_000;
+												}
+
+												// AssetId
+												if (cameraInstance.r < GamingCanvasConstPI_0_125) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+													characterNPC.camera.r = 0;
+												} else if (cameraInstance.r < GamingCanvasConstPI_0_375) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
+													characterNPC.camera.r = GamingCanvasConstPI_0_250;
+												} else if (cameraInstance.r < GamingCanvasConstPI_0_625) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
+													characterNPC.camera.r = GamingCanvasConstPI_0_500;
+												} else if (cameraInstance.r < GamingCanvasConstPI_0_875) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
+													characterNPC.camera.r = GamingCanvasConstPI_0_750;
+												} else if (cameraInstance.r < GamingCanvasConstPI_1_125) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
+													characterNPC.camera.r = GamingCanvasConstPI_1_000;
+												} else if (cameraInstance.r < GamingCanvasConstPI_1_375) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
+													characterNPC.camera.r = GamingCanvasConstPI_1_250;
+												} else if (cameraInstance.r < GamingCanvasConstPI_1_625) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
+													characterNPC.camera.r = GamingCanvasConstPI_1_500;
+												} else if (cameraInstance.r < GamingCanvasConstPI_1_875) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
+													characterNPC.camera.r = GamingCanvasConstPI_1_750;
+												} else {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+													characterNPC.camera.r = 0;
+												}
+
+												// Move
+												characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
+
+												switch (characterNPC.type) {
+													case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+														gameMapNPCSpeed = 0.00165;
+														break;
+													case AssetIdImgCharacterType.GUARD:
+														gameMapNPCSpeed = 0.00165;
+														break;
+													case AssetIdImgCharacterType.OFFICER:
+														gameMapNPCSpeed = 0.00165;
+														break;
+													case AssetIdImgCharacterType.RAT:
+														gameMapNPCSpeed = 0.0033;
+														break;
+													case AssetIdImgCharacterType.SS:
+														gameMapNPCSpeed = 0.002;
+														break;
+												}
+
+												gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+												characterNPCInputChanged = GamingCanvasGridCharacterControl(
+													characterNPC,
+													characterNPCInput,
+													gameMapGrid,
+													gameMapControlNPCBlocking,
+													{
+														clip: true,
+														factorPosition: gameMapNPCSpeed,
+														factorRotation: 0.00225,
+														style: GamingCanvasGridCharacterControlStyle.FIXED,
+													},
+												);
+												gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 											}
-
-											y = (gameMapNPCPathInstance % gameMapSideLength) + 0.5;
-											x = (gameMapNPCPathInstance - y) / gameMapSideLength + 0.5;
-
-											// Camera
-											cameraInstance = characterNPC.camera;
-											cameraInstance.r = Math.atan2(-(y - cameraInstance.y), x - cameraInstance.x);
-											if (cameraInstance.r < 0) {
-												cameraInstance.r += GamingCanvasConstPI_2_000;
-											} else if (cameraInstance.r >= GamingCanvasConstPI_2_000) {
-												cameraInstance.r -= GamingCanvasConstPI_2_000;
-											}
-
-											// AssetId
-											if (cameraInstance.r < GamingCanvasConstPI_0_125) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-												characterNPC.camera.r = 0;
-											} else if (cameraInstance.r < GamingCanvasConstPI_0_375) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_NE;
-												characterNPC.camera.r = GamingCanvasConstPI_0_250;
-											} else if (cameraInstance.r < GamingCanvasConstPI_0_625) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_N;
-												characterNPC.camera.r = GamingCanvasConstPI_0_500;
-											} else if (cameraInstance.r < GamingCanvasConstPI_0_875) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_NW;
-												characterNPC.camera.r = GamingCanvasConstPI_0_750;
-											} else if (cameraInstance.r < GamingCanvasConstPI_1_125) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_W;
-												characterNPC.camera.r = GamingCanvasConstPI_1_000;
-											} else if (cameraInstance.r < GamingCanvasConstPI_1_375) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_SW;
-												characterNPC.camera.r = GamingCanvasConstPI_1_250;
-											} else if (cameraInstance.r < GamingCanvasConstPI_1_625) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
-												characterNPC.camera.r = GamingCanvasConstPI_1_500;
-											} else if (cameraInstance.r < GamingCanvasConstPI_1_875) {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_SE;
-												characterNPC.camera.r = GamingCanvasConstPI_1_750;
-											} else {
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-												characterNPC.camera.r = 0;
-											}
-
-											// Move
-											characterNPCInput = <GamingCanvasGridCharacterInput>characterNPCInputs.get(characterNPC.assetId);
-
-											switch (characterNPC.type) {
-												case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
-													gameMapNPCSpeed = 0.00165;
-													break;
-												case AssetIdImgCharacterType.GUARD:
-													gameMapNPCSpeed = 0.00165;
-													break;
-												case AssetIdImgCharacterType.OFFICER:
-													gameMapNPCSpeed = 0.00165;
-													break;
-												case AssetIdImgCharacterType.RAT:
-													gameMapNPCSpeed = 0.0033;
-													break;
-												case AssetIdImgCharacterType.SS:
-													gameMapNPCSpeed = 0.002;
-													break;
-											}
-
-											gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
-											characterNPCInputChanged = GamingCanvasGridCharacterControl(
-												characterNPC,
-												characterNPCInput,
-												gameMapGrid,
-												gameMapControlNPCBlocking,
-												{
-													clip: true,
-													factorPosition: gameMapNPCSpeed,
-													factorRotation: 0.00225,
-													style: GamingCanvasGridCharacterControlStyle.FIXED,
-												},
-											);
-											gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
 											if (
 												(characterNPC.type === AssetIdImgCharacterType.RAT && characterNPCDistance < 2) ||
