@@ -1,4 +1,4 @@
-import { GamingCanvasGridCamera, GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridCamera, GamingCanvasGridUint16Array, GamingCanvasGridUint32Array } from '@tknight-dev/gaming-canvas/grid';
 import {
 	AssetIdAudio,
 	AssetIdImg,
@@ -71,7 +71,7 @@ export class Assets {
 	public static mapParse(map: GameMap): GameMap {
 		let key: string, npc: Map<number, CharacterNPC>, value: any;
 
-		map.grid = GamingCanvasGridUint16Array.from(<Uint16Array>map.grid.data);
+		map.grid = GamingCanvasGridUint32Array.from(<Uint32Array>map.grid.data);
 
 		if (map.npcById !== undefined) {
 			if (map.npcById instanceof Map !== true) {

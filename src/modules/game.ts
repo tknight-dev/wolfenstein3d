@@ -6,6 +6,7 @@ import {
 	AssetIdImgCharacterType,
 	AssetIdImgMenu,
 	AssetIdMap,
+	AssetIdMusicLevels,
 	AssetImgCategory,
 	AssetPropertiesAudio,
 	AssetPropertiesCharacter,
@@ -35,9 +36,10 @@ import {
 	CalcMainBusOutputDataWeaponSave,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataActionDoorLocked,
+	CalcMainBusOutputDataActionTag,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
-import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../models/game.model.js';
+import { GameGridCellMasksAndValues, GameMap } from '../models/game.model.js';
 import { InputDevice, Resolution } from '../models/settings.model.js';
 import { VideoEditorBus } from '../workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusInputDataSettings } from '../workers/video-editor/video-editor.model.js';
@@ -74,6 +76,7 @@ import {
 	GamingCanvasGridRaycastResultDistanceMapInstance,
 	GamingCanvasGridInputToCoordinate,
 	GamingCanvasGridICamera,
+	GamingCanvasGridEditor,
 } from '@tknight-dev/gaming-canvas/grid';
 import { Character, CharacterInput, CharacterMetaDecode, CharacterNPC, CharacterWeapon } from '../models/character.model.js';
 import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
@@ -89,6 +92,11 @@ import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
 
 // ESBuild live reloader
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
+
+enum EditApplyType {
+	FILL,
+	PENCIL,
+}
 
 enum EditType {
 	APPLY,
@@ -114,6 +122,8 @@ export class Game {
 	public static editorCellHighlightEnable: boolean;
 	public static editorCellValue: number = 0;
 	public static editorHide: boolean;
+	public static elButtonApplyApplied: boolean;
+	public static elButtonApplyTimeout: ReturnType<typeof setTimeout>;
 	public static fullscreen: boolean;
 	public static gameOver: boolean;
 	public static gameMenuActive: boolean;
@@ -128,11 +138,14 @@ export class Game {
 	public static map: GameMap;
 	public static mapBackup: GameMap;
 	public static mapBackupRestored: boolean;
+	public static mapEditor: GamingCanvasGridEditor;
 	public static mapEnded: boolean;
 	public static mapEnding: boolean;
 	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
+	public static mapUpdated: boolean;
 	public static modeEdit: boolean;
+	public static modeEditApplyType: EditApplyType = EditApplyType.PENCIL;
 	public static modeEditType: EditType = EditType.PAN_ZOOM;
 	public static modePerformance: boolean;
 	public static musicInstance: number | null = null;
@@ -159,24 +172,19 @@ export class Game {
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
 	} = {} as any;
 	public static started: boolean;
+	public static switchAlt: boolean;
+	public static tagRunAndJump: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
 	private static cellApply(): void {
 		Game.editorCellValue = Game.editorAssetIdImg;
 
-		if (DOM.elEditorPropertiesCellInputExtended.checked === true) {
-			Game.editorCellValue &= GameGridCellMasksAndValuesExtended.ID_MASK;
-			Game.editorCellValue |= GameGridCellMasksAndValues.EXTENDED;
-
-			DOM.elEditorPropertiesCellExtendedInputDoor.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR);
-			DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1);
-			DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2);
-			DOM.elEditorPropertiesCellExtendedInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH);
-			DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked && (Game.editorCellValue |= GameGridCellMasksAndValuesExtended.SWITCH_ALT);
-		}
-
+		DOM.elEditorPropertiesCellInputDisabled.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.DISABLED);
+		DOM.elEditorPropertiesCellInputDoor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.DOOR);
 		DOM.elEditorPropertiesCellInputFloor.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.FLOOR);
 		DOM.elEditorPropertiesCellInputLight.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LIGHT);
+		DOM.elEditorPropertiesCellInputLocked1.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LOCKED_1);
+		DOM.elEditorPropertiesCellInputLocked2.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.LOCKED_2);
 		DOM.elEditorPropertiesCellInputSpriteFixedH.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_NS);
 
 		if (DOM.elEditorPropertiesCellInputSpriteFixedH.checked !== true && DOM.elEditorPropertiesCellInputSpriteFixedV.checked === true) {
@@ -184,6 +192,9 @@ export class Game {
 			Game.editorCellValue |= GameGridCellMasksAndValues.SPRITE_FIXED_EW;
 		}
 
+		DOM.elEditorPropertiesCellInputSwitch.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SWITCH);
+		DOM.elEditorPropertiesCellInputSwitchSecret.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.SWITCH_SECRET);
+		DOM.elEditorPropertiesCellInputTagRunAndJump.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.TAG_RUN_AND_JUMP);
 		DOM.elEditorPropertiesCellInputWall.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL);
 		DOM.elEditorPropertiesCellInputWallInvisible.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_INVISIBLE);
 		DOM.elEditorPropertiesCellInputWallMovable.checked && (Game.editorCellValue |= GameGridCellMasksAndValues.WALL_MOVABLE);
@@ -201,9 +212,6 @@ export class Game {
 		Game.editorCellValue = 0;
 
 		let element: HTMLInputElement;
-		for (element of DOM.elEditorPropertiesCellExtendedInputs) {
-			element.checked = false;
-		}
 		for (element of DOM.elEditorPropertiesCellInputs) {
 			element.checked = false;
 		}
@@ -217,10 +225,25 @@ export class Game {
 		if (Game.inputSuspend === true) {
 			return;
 		}
+
 		Game.inputSuspend = true;
 
 		if (Game.mapBackup.id % 10 === 8) {
 			// episode complete
+			if (Game.musicInstance !== null) {
+				GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
+			}
+			setTimeout(async () => {
+				Game.inputSuspend = false;
+				Game.gameMenu(true);
+				Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
+			}, 1500);
+
+			DOM.elGameMenuMainGameSave.classList.add('disable');
+			Game.mapEnded = false;
+			Game.mapEnding = false;
+			Game.mapEndingSkip = false;
+			Game.started = false;
 		} else {
 			let assetIdMapNext: AssetIdMap;
 
@@ -228,8 +251,14 @@ export class Game {
 				// secret level complete
 				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
 			} else {
-				// regular level complete
-				assetIdMapNext = Game.mapBackup.id + 1;
+				if (Game.switchAlt === true) {
+					// regular level complete: goto secret level
+					assetIdMapNext = Game.mapBackup.id + 9;
+					Game.switchAlt = false;
+				} else {
+					// regular level complete
+					assetIdMapNext = Game.mapBackup.id + 1;
+				}
 			}
 
 			if (Assets.dataMap.has(assetIdMapNext) !== true) {
@@ -238,6 +267,7 @@ export class Game {
 				// GameMap
 				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 				Game.mapEnded = false;
 				Game.mapEnding = false;
 
@@ -251,6 +281,7 @@ export class Game {
 				Game.viewport.apply(Game.camera, false);
 
 				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				Game.tagRunAndJump = false;
 
 				Game.gameMusicPlay(Game.mapBackup.music);
 
@@ -277,6 +308,9 @@ export class Game {
 	 */
 	public static gameMenu(enable?: boolean, pauseAudio?: boolean): void {
 		if (Game.gameMenuActive === enable) {
+			if (Game.gameMenuActive === true) {
+				GamingCanvas.audioControlPauseAll(pauseAudio === true);
+			}
 			return;
 		}
 
@@ -323,7 +357,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true && pauseAudio !== true);
+			Game.pause(true, !pauseAudio);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
 			DOM.elIconsTop.classList.remove('intro');
 			DOM.elGameMenu.classList.remove('show');
@@ -335,7 +369,7 @@ export class Game {
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
 			Game.gameMenuActive = true;
-			Game.pause(true, Game.started !== true && pauseAudio !== true);
+			Game.pause(true, !pauseAudio);
 		}
 	}
 
@@ -525,10 +559,11 @@ export class Game {
 		// GameMap
 		switch (Game.gameMenuEpisode) {
 			case 0:
-				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
-				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
-
-				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+				break;
+			default:
+				console.error('Game > gameMenuActionLoad: unsupported episode', Game.gameMenuEpisode);
 				break;
 		}
 		Game.camera.r = Game.map.position.r;
@@ -536,6 +571,9 @@ export class Game {
 		Game.camera.y = Game.map.position.y + 0.5;
 		Game.camera.z = Game.map.position.z;
 
+		Game.gameOver = false;
+		Game.mapBackupRestored = false;
+		Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 		Game.mapEnded = false;
 		Game.mapEnding = false;
 
@@ -544,6 +582,7 @@ export class Game {
 		Game.viewport.apply(Game.camera, false);
 
 		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+		Game.tagRunAndJump = false;
 
 		Game.gameMusicPlay(Game.mapBackup.music);
 
@@ -611,6 +650,7 @@ export class Game {
 				Game.camera.z = parsed.position.z;
 				Game.map = parsed;
 				Game.mapBackup = parsed2;
+				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 				Game.mapEnded = false;
 				Game.mapEnding = false;
 
@@ -625,6 +665,8 @@ export class Game {
 				VideoEditorBus.outputMap(parsed);
 				VideoMainBus.outputMap(parsed);
 				VideoOverlayBus.outputReset();
+
+				Game.gameMusicPlay(parsed.music);
 
 				setTimeout(() => {
 					CalcMainBus.outputMeta(rawMeta);
@@ -1115,8 +1157,38 @@ export class Game {
 				DOM.elVideoInteractive.classList.remove('cursor-grab');
 				DOM.elVideoInteractive.classList.add('cursor-pointer');
 				Game.editorCellHighlightEnable = true;
+
+				Game.modeEditApplyType = EditApplyType.PENCIL;
+				DOM.elButtonApply.children[0].classList.remove('fill');
+				DOM.elButtonApply.children[0].classList.add('pencil');
+
 				Game.modeEditType = EditType.APPLY;
+			} else if (Game.elButtonApplyApplied !== true) {
+				Game.modeEditApplyType = EditApplyType.PENCIL;
+				DOM.elButtonApply.children[0].classList.remove('fill');
+				DOM.elButtonApply.children[0].classList.add('pencil');
 			}
+			Game.elButtonApplyApplied = false;
+		};
+		DOM.elButtonApply.onmousedown = () => {
+			if (DOM.elButtonApply.classList.contains('active') === true) {
+				clearTimeout(Game.elButtonApplyTimeout);
+				Game.elButtonApplyTimeout = setTimeout(() => {
+					Game.elButtonApplyApplied = true;
+					if (Game.modeEditApplyType !== EditApplyType.FILL) {
+						Game.modeEditApplyType = EditApplyType.FILL;
+						DOM.elButtonApply.children[0].classList.add('fill');
+						DOM.elButtonApply.children[0].classList.remove('pencil');
+					} else {
+						Game.modeEditApplyType = EditApplyType.PENCIL;
+						DOM.elButtonApply.children[0].classList.remove('fill');
+						DOM.elButtonApply.children[0].classList.add('pencil');
+					}
+				}, 750);
+			}
+		};
+		DOM.elButtonApply.onmouseup = () => {
+			clearTimeout(Game.elButtonApplyTimeout);
 		};
 
 		DOM.elButtonDownload.onclick = () => {
@@ -1257,6 +1329,7 @@ export class Game {
 							Game.camera.z = parsed.position.z;
 							Game.map = parsed;
 							Game.mapBackup = parsed2;
+							Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 							Game.mapEnded = false;
 							Game.mapEnding = false;
 
@@ -1319,6 +1392,7 @@ export class Game {
 
 			DOM.elEditorFindAndReplace.style.display = 'none';
 			Game.inputSuspend = false;
+			Game.tagRunAndJump = false;
 		};
 
 		DOM.elEditorFindAndReplaceCancel.onclick = () => {
@@ -1326,9 +1400,9 @@ export class Game {
 			Game.inputSuspend = false;
 		};
 
-		DOM.elEditorCommandMetaMenu.onclick = () => {
-			Settings.setMetaMap(false);
-			DOM.elMetaMap.style.display = 'block';
+		DOM.elEditorCommandOptions.onclick = () => {
+			Settings.setMapOptions(false);
+			DOM.elMapOptions.style.display = 'block';
 			Game.inputSuspend = true;
 		};
 
@@ -1344,16 +1418,17 @@ export class Game {
 
 			// Restore map
 			Game.gameOver = false;
+			Game.map = parsed;
 			Game.mapBackup.npcById = npcById;
+			Game.mapBackupRestored = true;
+			Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
+			Game.mapEnded = false;
+			Game.mapEnding = false;
 
 			Game.camera.r = parsed.position.r;
 			Game.camera.x = parsed.position.x;
 			Game.camera.y = parsed.position.y;
 			Game.camera.z = parsed.position.z;
-			Game.map = parsed;
-			Game.mapBackupRestored = true;
-			Game.mapEnded = false;
-			Game.mapEnding = false;
 
 			DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
@@ -1369,11 +1444,6 @@ export class Game {
 		};
 
 		// Editor items
-		DOM.elEditorPropertiesCellExtendedInputs.forEach((element: HTMLInputElement) => {
-			element.onchange = () => {
-				Game.cellApply();
-			};
-		});
 		DOM.elEditorPropertiesCellInputs.forEach((element: HTMLInputElement) => {
 			element.onchange = () => {
 				Game.cellApply();
@@ -1394,7 +1464,6 @@ export class Game {
 					// Containers
 					DOM.elEditorProperties.classList.add('character');
 					DOM.elEditorPropertiesCellContainer.style.display = 'none';
-					DOM.elEditorPropertiesCellExtended.style.display = 'none';
 					DOM.elEditorPropertiesCharacterContainer.style.display = 'block';
 					DOM.elEditorPropertiesCommandsCell.style.display = 'none';
 
@@ -1432,7 +1501,6 @@ export class Game {
 					// Containers
 					DOM.elEditorProperties.classList.remove('character');
 					DOM.elEditorPropertiesCellContainer.style.display = 'block';
-					DOM.elEditorPropertiesCellExtended.style.display = 'block';
 					DOM.elEditorPropertiesCharacterContainer.style.display = 'none';
 					DOM.elEditorPropertiesCommandsCell.style.display = 'block';
 
@@ -1447,25 +1515,25 @@ export class Game {
 
 					switch (Game.editorAssetProperties.category) {
 						case AssetImgCategory.EXTENDED:
-							DOM.elEditorPropertiesCellInputExtended.checked = true;
-							DOM.elEditorPropertiesCellExtended.classList.add('show');
-
 							switch (Game.editorAssetIdImg) {
+								case AssetIdImg.NULL:
+									DOM.elEditorPropertiesCellInputFloor.checked = true;
+									break;
 								case AssetIdImg.SPRITE_ELEVATOR_DOOR:
 								case AssetIdImg.SPRITE_METAL_DOOR:
-									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
-									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
+									DOM.elEditorPropertiesCellInputDoor.checked = true;
+									DOM.elEditorPropertiesCellInputSpriteFixedV.checked = true;
 									DOM.elEditorPropertiesCellInputWallInvisible.checked = true;
 									break;
-								case AssetIdImg.SPRITE_METAL_DOOR_LOCKED:
-									DOM.elEditorPropertiesCellExtendedInputDoor.checked = true;
-									DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = true;
-									DOM.elEditorPropertiesCellInputSpriteFixedH.checked = true;
+								case AssetIdImg.SPRITE_METAL_LOCKED:
+									DOM.elEditorPropertiesCellInputDoor.checked = true;
+									DOM.elEditorPropertiesCellInputLocked1.checked = true;
+									DOM.elEditorPropertiesCellInputSpriteFixedV.checked = true;
 									DOM.elEditorPropertiesCellInputWallInvisible.checked = true;
 									break;
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_DOWN:
 								case AssetIdImg.WALL_ELEVATOR_SWITCH_UP:
-									DOM.elEditorPropertiesCellExtendedInputSwitch.checked = true;
+									DOM.elEditorPropertiesCellInputSwitch.checked = true;
 									DOM.elEditorPropertiesCellInputWall.checked = true;
 									break;
 							}
@@ -1473,20 +1541,19 @@ export class Game {
 						case AssetImgCategory.LIGHT:
 							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							DOM.elEditorPropertiesCellInputLight.checked = true;
-							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.SPRITE:
 						case AssetImgCategory.SPRITE_PICKUP:
 							DOM.elEditorPropertiesCellInputFloor.checked = true;
-							DOM.elEditorPropertiesCellExtended.classList.remove('show');
+							break;
+						case AssetImgCategory.TAG:
+							DOM.elEditorPropertiesCellInputFloor.checked = true;
 							break;
 						case AssetImgCategory.WALL:
 							DOM.elEditorPropertiesCellInputWall.checked = true;
-							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 						case AssetImgCategory.WAYPOINT:
 							DOM.elEditorPropertiesCellInputFloor.checked = true;
-							DOM.elEditorPropertiesCellExtended.classList.remove('show');
 							break;
 					}
 					Game.cellApply();
@@ -1572,7 +1639,7 @@ export class Game {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');
 
-			if (GamingCanvas.detectDevice(true, true) === true) {
+			if (GamingCanvas.detectDevice() === true) {
 				DOM.elControlsSubTouch.click();
 			} else {
 				DOM.elControlsSubKeyboard.click();
@@ -1626,22 +1693,22 @@ export class Game {
 		});
 
 		// Meta: Map
-		DOM.elMetaMapApply.onclick = () => {
-			Settings.setMetaMap(true);
-			DOM.elMetaMap.style.display = 'none';
+		DOM.elMapOptionsApply.onclick = () => {
+			Settings.setMapOptions(true);
+			DOM.elMapOptions.style.display = 'none';
 			Game.inputSuspend = false;
 		};
 
-		DOM.elMetaMapCancel.onclick = () => {
-			Settings.setMetaMap(false);
-			DOM.elMetaMap.style.display = 'none';
+		DOM.elMapOptionsCancel.onclick = () => {
+			Settings.setMapOptions(false);
+			DOM.elMapOptions.style.display = 'none';
 			Game.inputSuspend = false;
 		};
 
-		DOM.elMetaMapLocation.onclick = () => {
-			DOM.elMetaMapValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI_1_000) | 0);
-			DOM.elMetaMapValueStartingPositionX.value = String(Game.camera.x | 0);
-			DOM.elMetaMapValueStartingPositionY.value = String(Game.camera.y | 0);
+		DOM.elMapOptionsLocation.onclick = () => {
+			DOM.elMapOptionsValueStartingPositionR.value = String(((Game.camera.r * 180) / GamingCanvasConstPI_1_000) | 0);
+			DOM.elMapOptionsValueStartingPositionX.value = String(Game.camera.x | 0);
+			DOM.elMapOptionsValueStartingPositionY.value = String(Game.camera.y | 0);
 		};
 
 		// Mute
@@ -1742,8 +1809,9 @@ export class Game {
 		Game.report = GamingCanvas.getReport();
 
 		// GameMap
-		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
-		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_LEVEL_01))));
+		Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+		Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
+		Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 		Game.mapEnded = false;
 		Game.mapEnding = false;
 
@@ -1910,9 +1978,10 @@ export class Game {
 		// Calc: Action Switch
 		CalcMainBus.setCallbackActionSwitch((data: CalcMainBusOutputDataActionSwitch) => {
 			Game.mapEnding = true;
-			VideoMainBus.outputActionSwitch(data);
+			data.gridIndex !== -1 && VideoMainBus.outputActionSwitch(data);
 
-			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+			Game.switchAlt = data.gridSwitchAlt;
+			Game.tagRunAndJump !== true && GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
@@ -1921,101 +1990,175 @@ export class Game {
 
 			setTimeout(() => {
 				DOM.elIconsTop.classList.add('intro');
-				DOM.screenControl(DOM.elScreenLevelEnd);
+				DOM.screenControl(DOM.elScreenEnding);
 
 				// Music
 				if (Game.musicInstance !== null) {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
 				setTimeout(async () => {
-					Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
+					Settings.singleVideoFeedOverride(false);
+
+					if (Game.mapBackup.id % 10 === 8) {
+						Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_EPISODE_END);
+					} else {
+						Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_END_OF_LEVEL);
+					}
 				}, 1500);
 			}, 500);
 
-			// Stats
-			let floor: number = (Game.mapBackup.id % 10) + 1,
-				ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
-				ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
-				ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
-				timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
-				timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
-
 			// Stats: Display
-			utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus`, true);
-			utilStringToHTML(DOM.elScreenLevelEndCompleted, `Completed`, true);
-			utilStringToHTML(DOM.elScreenLevelEndFloor, `Floor ${floor}`, true);
-			utilStringToHTML(
-				DOM.elScreenLevelEndTime,
-				` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
-				true,
-			);
-			utilStringToHTML(
-				DOM.elScreenLevelEndTimePar,
-				`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
-				true,
-			);
-			utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio    %`, true);
-			utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio    %`, true);
-			utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio    %`, true);
+			if (Game.mapBackup.id % 10 === 8) {
+				// Episode End
+				DOM.elScreenEndingEpisodeImage1.style.display = 'block';
+				// DOM.elScreenEndingEpisodeImage2.style.display = 'block';
+				DOM.elScreenEndingFloorImage1.style.display = 'none';
+				DOM.elScreenEndingFloorImage2.style.display = 'none';
 
-			setTimeout(() => {
+				utilStringToHTML(DOM.elScreenEndingFloorBonus, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorCompleted, `You Win!`, true);
+				utilStringToHTML(DOM.elScreenEndingFloorFloor, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorTime, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorTimePar, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Thanks for playing my`, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `JS remake of        `, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, `Wolfenstein3D! -TK `, true);
+
 				Game.mapEndingSkip = false;
-				if (data.player1Meta.bonus === 0) {
-					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
-				} else {
-					Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
-				}
-				utilStringToHTML(DOM.elScreenLevelEndBonus, `Bonus ${data.player1Meta.bonus}`, true);
+				setTimeout(() => {
+					Game.mapEnded = true;
+				}, 3500);
+			} else {
+				// Stats
+				let floor: number = (Game.mapBackup.id % 10) + 1,
+					ratioKill: number = ((data.player1Meta.ratioKill + data.player2Meta.ratioKill) * 100) | 0,
+					ratioSecret: number = ((data.player1Meta.ratioSecret + data.player2Meta.ratioSecret) * 100) | 0,
+					ratioTreasure: number = ((data.player1Meta.ratioTreasure + data.player2Meta.ratioTreasure) * 100) | 0,
+					timeInSPar: number = (Game.map.timeParInMS / 1000) | 0,
+					timeInSPlayer = (data.player1Meta.timeInMS / 1000) | 0;
 
-				setTimeout(
-					() => {
-						if (Game.mapEndingSkip !== true) {
-							if (ratioKill === 0) {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
-							} else if (ratioKill < 10) {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
-							} else {
-								Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
-							}
+				// Image
+				DOM.elScreenEndingEpisodeImage1.style.display = 'none';
+				DOM.elScreenEndingEpisodeImage2.style.display = 'none';
+				DOM.elScreenEndingFloorImage1.style.display = 'block';
+				DOM.elScreenEndingFloorImage2.style.display = 'block';
+
+				// Stats: Display
+				if (Game.mapBackup.id % 10 === 9) {
+					// Secret floor
+					utilStringToHTML(DOM.elScreenEndingFloorBonus, ` Completed`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorCompleted, `Secret Floor`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorFloor, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorTime, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorTimePar, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioKill, ``, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `${data.player1Meta.bonus} Bonus!   `, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, ``, true);
+
+					Game.mapEndingSkip = false;
+					setTimeout(() => {
+						Game.mapEnded = true;
+					}, 2500);
+				} else {
+					// Normal floor
+					utilStringToHTML(DOM.elScreenEndingFloorBonus, `Bonus`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorCompleted, `Completed`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorFloor, `Floor ${floor}`, true);
+					utilStringToHTML(
+						DOM.elScreenEndingFloorTime,
+						` Time ${((timeInSPlayer / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPlayer % 60).toFixed(0).padStart(2, '0')}`,
+						true,
+					);
+					utilStringToHTML(
+						DOM.elScreenEndingFloorTimePar,
+						`  Par ${((timeInSPar / 60) | 0).toFixed(0).padStart(2, '0')}:${(timeInSPar % 60).toFixed(0).padStart(2, '0')}`,
+						true,
+					);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Kill Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `Secret Ratio    %`, true);
+					utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, `Treasure Ratio    %`, true);
+
+					setTimeout(() => {
+						Game.mapEndingSkip = false;
+						if (data.player1Meta.bonus === 0) {
+							Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+						} else {
+							Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 						}
-						utilStringToHTML(DOM.elScreenLevelEndRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
+						utilStringToHTML(DOM.elScreenEndingFloorBonus, `Bonus ${data.player1Meta.bonus}`, true);
 
 						setTimeout(
 							() => {
 								if (Game.mapEndingSkip !== true) {
-									if (ratioSecret === 0) {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
-									} else if (ratioSecret < 10) {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+									if (ratioKill === 0) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+									} else if (ratioKill < 10) {
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 									} else {
-										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+										Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 									}
 								}
-								utilStringToHTML(DOM.elScreenLevelEndRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+								utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Kill Ratio ${String(ratioKill).padStart(3, ' ')}%`, true);
 
 								setTimeout(
 									() => {
 										if (Game.mapEndingSkip !== true) {
-											if (ratioTreasure === 0) {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE);
-											} else if (ratioTreasure < 10) {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE);
+											if (ratioSecret === 0) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+											} else if (ratioSecret < 10) {
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
 											} else {
-												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE);
+												Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
 											}
 										}
-										utilStringToHTML(DOM.elScreenLevelEndRatioTreasure, `Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`, true);
-										Game.mapEnded = true;
+										utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `Secret Ratio ${String(ratioSecret).padStart(3, ' ')}%`, true);
+
+										setTimeout(
+											() => {
+												if (Game.mapEndingSkip !== true) {
+													if (ratioTreasure === 0) {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE);
+													} else if (ratioTreasure < 10) {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE);
+													} else {
+														Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE);
+													}
+												}
+												utilStringToHTML(
+													DOM.elScreenEndingFloorRatioTreasure,
+													`Treasure Ratio ${String(ratioTreasure).padStart(3, ' ')}%`,
+													true,
+												);
+												Game.mapEnded = true;
+											},
+											Game.mapEndingSkip === true ? 0 : 1000,
+										);
 									},
 									Game.mapEndingSkip === true ? 0 : 1000,
 								);
 							},
-							Game.mapEndingSkip === true ? 0 : 1000,
+							<any>Game.mapEndingSkip === true ? 0 : 1000,
 						);
-					},
-					<any>Game.mapEndingSkip === true ? 0 : 1000,
-				);
-			}, 2500);
+					}, 2500);
+				}
+			}
+		});
+
+		CalcMainBus.setCallbackActionTag((data: CalcMainBusOutputDataActionTag) => {
+			VideoMainBus.outputActionTag(data);
+			VideoOverlayBus.outputActionTag(data);
+			if ((Game.map.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+				DOM.elIconsTop.classList.add('intro');
+				Game.tagRunAndJump = true;
+				Settings.singleVideoFeedOverride(true);
+
+				setTimeout(() => {
+					// Stop all audio for the end animation
+					// Normally the callback back for ActionSwitch does this
+					// But that would cut off the "yeah!" audio at the end
+					GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+				}, 3000);
+			}
 		});
 
 		// Calc: Action Wall Move
@@ -2302,8 +2445,10 @@ export class Game {
 
 		// Data
 		setInterval(() => {
-			if (dataUpdated === true) {
+			if (dataUpdated === true || Game.mapUpdated === true) {
 				dataUpdated = false;
+				Game.mapUpdated = false;
+				Game.tagRunAndJump = false;
 
 				CalcMainBus.outputMap(Game.map);
 				CalcPathBus.outputMap(Game.map);
@@ -2325,7 +2470,7 @@ export class Game {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
 					Game.map.npcById.delete(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				} else {
-					Game.map.grid.setBasic(cooridnate, 0);
+					Game.mapEditor.singleErase(cooridnate.x * Game.map.grid.sideLength + cooridnate.y);
 				}
 			} else {
 				if (DOM.elEditorSectionCharacters.classList.contains('active') === true) {
@@ -2373,7 +2518,14 @@ export class Game {
 					DOM.elEditorPropertiesCharacterInputFOV.value = String(120) + '°';
 				} else {
 					// Cell
-					Game.map.grid.setBasic(cooridnate, Game.editorCellValue);
+					switch (Game.modeEditApplyType) {
+						case EditApplyType.FILL:
+							Game.mapEditor.fillApply(cooridnate.x * Game.map.grid.sideLength + cooridnate.y, Game.editorCellValue);
+							break;
+						case EditApplyType.PENCIL:
+							Game.mapEditor.singleApply(cooridnate.x * Game.map.grid.sideLength + cooridnate.y, Game.editorCellValue);
+							break;
+					}
 				}
 			}
 
@@ -2381,6 +2533,9 @@ export class Game {
 		};
 
 		const inspect = (position: GamingCanvasInputPosition) => {
+			let clicked: boolean = false,
+				element: HTMLElement;
+
 			down = false;
 			downMode = false;
 
@@ -2395,10 +2550,21 @@ export class Game {
 					return;
 				}
 
+				// Click associated asset
+				DOM.elEditorSectionCharacters.click();
+				for (element of DOM.elEditorItemsCharacters) {
+					if (element.id === `${characterNPC.type}__${characterNPC.assetId}`) {
+						clicked = true;
+						DOM.elEditorItemActive = undefined;
+						element.click();
+						element.scrollIntoView({ behavior: 'smooth' });
+						break;
+					}
+				}
+
 				// Containers
 				DOM.elEditorProperties.classList.add('character');
 				DOM.elEditorPropertiesCellContainer.style.display = 'none';
-				DOM.elEditorPropertiesCellExtended.style.display = 'none';
 				DOM.elEditorPropertiesCharacterContainer.style.display = 'block';
 				DOM.elEditorPropertiesCommandsCell.style.display = 'none';
 
@@ -2416,10 +2582,12 @@ export class Game {
 				DOM.elEditorPropertiesCharacterInputFOV.value = String(Math.round((characterNPC.fov * 180) / GamingCanvasConstPI_1_000)) + '°';
 				DOM.elEditorPropertiesCharacterInputId.value = String(characterNPC.id);
 
-				// Highlighter based on asset
-				Game.editorCellHighlightEnable = true;
-				DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
-				DOM.elEdit.style.backgroundColor = '#980066';
+				if (clicked === false) {
+					// Highlighter based on asset
+					Game.editorCellHighlightEnable = true;
+					DOM.elEdit.style.background = `url(${(<any>Assets.dataImageCharacters.get(Game.editorAssetCharacterType)).get(Game.editorAssetCharacterId)})`;
+					DOM.elEdit.style.backgroundColor = '#980066';
+				}
 			} else {
 				const cell: number | undefined = Game.map.grid.getBasic(GamingCanvasGridInputToCoordinate(position, viewport));
 
@@ -2427,22 +2595,22 @@ export class Game {
 					return;
 				}
 
-				const assetId: number =
-					cell &
-					((cell & GameGridCellMasksAndValues.EXTENDED) !== 0 ? GameGridCellMasksAndValuesExtended.ID_MASK : GameGridCellMasksAndValues.ID_MASK);
+				const assetId: number = cell & GameGridCellMasksAndValues.ID_MASK;
 				const assetIdStr: String = String(assetId);
-				let clicked: boolean = false,
-					element: HTMLElement;
 
 				// Values
 				Game.editorAssetIdImg = assetId;
 				Game.editorAssetProperties = <AssetPropertiesImage>assetsImages.get(Game.editorAssetIdImg);
 
+				if (Game.editorAssetProperties.category === AssetImgCategory.EXTENDED) {
+					DOM.elEditorSectionExtended.click();
+				} else {
+					DOM.elEditorSectionObjects.click();
+				}
 				if (cell === GameGridCellMasksAndValues.FLOOR) {
 					// Containers
 					DOM.elEditorProperties.classList.remove('character');
 					DOM.elEditorPropertiesCellContainer.style.display = 'block';
-					DOM.elEditorPropertiesCellExtended.style.display = 'block';
 					DOM.elEditorPropertiesCharacterContainer.style.display = 'none';
 					DOM.elEditorPropertiesCommandsCell.style.display = 'block';
 				} else {
@@ -2467,26 +2635,12 @@ export class Game {
 				}
 
 				// Apply
-				DOM.elEditorPropertiesCellInputExtended.checked = (cell & GameGridCellMasksAndValues.EXTENDED) !== 0;
-
-				if (DOM.elEditorPropertiesCellInputExtended.checked === true) {
-					DOM.elEditorPropertiesCellExtended.classList.add('show');
-
-					DOM.elEditorPropertiesCellExtendedInputDoor.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR) !== 0;
-					DOM.elEditorPropertiesCellExtendedInputDoorLocked1.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0;
-					DOM.elEditorPropertiesCellExtendedInputDoorLocked2.checked = (cell & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0;
-					DOM.elEditorPropertiesCellExtendedInputSwitch.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH) !== 0;
-					DOM.elEditorPropertiesCellExtendedInputSwitchAlt.checked = (cell & GameGridCellMasksAndValuesExtended.SWITCH_ALT) !== 0;
-				} else {
-					DOM.elEditorPropertiesCellExtended.classList.remove('show');
-
-					for (element of DOM.elEditorPropertiesCellExtendedInputs) {
-						(<HTMLInputElement>element).checked = false;
-					}
-				}
-
+				DOM.elEditorPropertiesCellInputDisabled.checked = (cell & GameGridCellMasksAndValues.DISABLED) !== 0;
+				DOM.elEditorPropertiesCellInputDoor.checked = (cell & GameGridCellMasksAndValues.DOOR) !== 0;
 				DOM.elEditorPropertiesCellInputFloor.checked = (cell & GameGridCellMasksAndValues.FLOOR) !== 0;
 				DOM.elEditorPropertiesCellInputLight.checked = (cell & GameGridCellMasksAndValues.LIGHT) !== 0;
+				DOM.elEditorPropertiesCellInputLocked1.checked = (cell & GameGridCellMasksAndValues.LOCKED_1) !== 0;
+				DOM.elEditorPropertiesCellInputLocked2.checked = (cell & GameGridCellMasksAndValues.LOCKED_2) !== 0;
 				DOM.elEditorPropertiesCellInputSpriteFixedH.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_NS) !== 0;
 
 				if (DOM.elEditorPropertiesCellInputSpriteFixedH.checked === true) {
@@ -2494,16 +2648,13 @@ export class Game {
 				} else {
 					DOM.elEditorPropertiesCellInputSpriteFixedV.checked = (cell & GameGridCellMasksAndValues.SPRITE_FIXED_EW) !== 0;
 				}
+				DOM.elEditorPropertiesCellInputSwitch.checked = (cell & GameGridCellMasksAndValues.SWITCH) !== 0;
+				DOM.elEditorPropertiesCellInputSwitchSecret.checked = (cell & GameGridCellMasksAndValues.SWITCH_SECRET) !== 0;
+				DOM.elEditorPropertiesCellInputTagRunAndJump.checked = (cell & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0;
 				DOM.elEditorPropertiesCellInputWall.checked = (cell & GameGridCellMasksAndValues.WALL) !== 0;
 				DOM.elEditorPropertiesCellInputWallInvisible.checked = (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0;
 				DOM.elEditorPropertiesCellInputWallMovable.checked = (cell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0;
 				Game.cellApply();
-
-				if (DOM.elEditorPropertiesCellInputExtended.checked) {
-					DOM.elEditorSectionExtended.click();
-				} else {
-					DOM.elEditorSectionObjects.click();
-				}
 			}
 		};
 
@@ -2550,11 +2701,17 @@ export class Game {
 
 					if (Game.inputSuspend === true) {
 						continue;
-					} else if (Game.mapEnded === true) {
-						Game.loadNextLevel();
+					}
+
+					if (Game.mapEnded === true) {
+						if (queueInput.type !== GamingCanvasInputType.MOUSE) {
+							Game.loadNextLevel();
+						}
 						continue;
 					} else if (Game.mapEnding === true) {
-						Game.mapEndingSkip = true;
+						if (queueInput.type !== GamingCanvasInputType.MOUSE) {
+							Game.mapEndingSkip = true;
+						}
 						continue;
 					}
 
@@ -2815,6 +2972,7 @@ Y: ${camera.y | 0}`);
 								// GameMap
 								Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
 								Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+								Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 								Game.mapEnded = false;
 								Game.mapEnding = false;
 
@@ -2828,6 +2986,7 @@ Y: ${camera.y | 0}`);
 								Game.viewport.apply(Game.camera, false);
 
 								DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+								Game.tagRunAndJump = false;
 
 								Game.gameMusicPlay(Game.mapBackup.music);
 
@@ -2864,21 +3023,49 @@ Y: ${camera.y | 0}`);
 						updated = true;
 						break;
 				}
-			} else if (down === true) {
+			} else {
 				switch (input.propriatary.action.code) {
+					case 'KeyD':
+						down === true && DOM.elButtonDownload.click();
+						break;
+					case 'KeyE':
+						down === true && DOM.elButtonEraser.click();
+						break;
+					case 'KeyI':
+						down === true && DOM.elButtonInspect.click();
+						break;
 					case 'KeyF':
-						DOM.elEditorCommandFindAndReplace.click();
+						down === true && DOM.elEditorCommandFindAndReplace.click();
 						break;
 					case 'KeyM':
-						DOM.elEditorCommandMetaMenu.click();
+						down === true && DOM.elButtonMove.click();
+						break;
+					case 'KeyO':
+						down === true && DOM.elEditorCommandOptions.click();
 						break;
 					case 'KeyR':
-						if (keyState.get('ShiftLeft') === true && down) {
-							Game.map.npcById.clear();
-							Game.map.grid.data.fill(0);
-							dataUpdated = true;
-						} else {
-							DOM.elEditorCommandResetMap.click();
+						if (down === true) {
+							if (keyState.get('ShiftLeft') === true) {
+								Game.map.npcById.clear();
+								Game.map.grid.data.fill(0);
+								Game.mapEditor.historyClear();
+								dataUpdated = true;
+							} else {
+								DOM.elEditorCommandResetMap.click();
+							}
+						}
+						break;
+					case 'KeyU':
+						down === true && DOM.elButtonUpload.click();
+						break;
+					case 'KeyY':
+						if (keyState.get('ControlLeft') === true && down) {
+							dataUpdated = Game.mapEditor.historyRedo();
+						}
+						break;
+					case 'KeyZ':
+						if (keyState.get('ControlLeft') === true && down) {
+							dataUpdated = Game.mapEditor.historyUndo();
 						}
 						break;
 				}
@@ -3330,7 +3517,6 @@ Y: ${camera.y | 0}`);
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.remove('hide');
 			DOM.elEditorProperties.style.display = 'flex';
-			DOM.elEditorPropertiesCellExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.remove('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
@@ -3366,7 +3552,6 @@ Y: ${camera.y | 0}`);
 			DOM.elEditor.style.display = 'flex';
 			DOM.elEditorProperties.classList.add('hide');
 			DOM.elEditorProperties.style.display = 'flex';
-			DOM.elEditorPropertiesCellExtended.classList.remove('show');
 			DOM.elIconsBottom.classList.add('hide');
 			DOM.elIconsBottom.style.display = 'flex';
 			DOM.elIconsTop.style.display = 'flex';
@@ -3387,9 +3572,6 @@ Y: ${camera.y | 0}`);
 			Game.modeEditType = EditType.PAN_ZOOM;
 
 			let element: HTMLInputElement;
-			for (element of DOM.elEditorPropertiesCellExtendedInputs) {
-				element.checked = false;
-			}
 			for (element of DOM.elEditorPropertiesCellInputs) {
 				element.checked = false;
 			}
@@ -3461,9 +3643,6 @@ Y: ${camera.y | 0}`);
 			Game.modeEditType = EditType.PAN_ZOOM;
 
 			let element: HTMLInputElement;
-			for (element of DOM.elEditorPropertiesCellExtendedInputs) {
-				element.checked = false;
-			}
 			for (element of DOM.elEditorPropertiesCellInputs) {
 				element.checked = false;
 			}

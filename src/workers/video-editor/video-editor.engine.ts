@@ -1,5 +1,5 @@
 import { GamingCanvas, GamingCanvasConstPI_2_000, GamingCanvasReport, GamingCanvasRenderStyle, GamingCanvasStat } from '@tknight-dev/gaming-canvas';
-import { GameGridCellMasksAndValues, GameGridCellMasksAndValuesExtended, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, gameGridCellMaskTag, GameMap } from '../../models/game.model.js';
 import {
 	VideoEditorBusInputCmd,
 	VideoEditorBusInputDataCalculations,
@@ -304,7 +304,7 @@ class VideoEditorEngine {
 			characterPlayer2: GamingCanvasGridCamera = VideoEditorEngine.characterPlayer2Camera,
 			characterPlayer2XEff: number,
 			characterPlayer2YEff: number,
-			gameMapGridData: Uint16Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
 			gameMapNPC: CharacterNPC,
 			gameMapNPCId: number,
@@ -600,30 +600,54 @@ class VideoEditorEngine {
 							gridIndex = x * gameMapGridSideLength + y;
 							value = gameMapGridData[gridIndex];
 
-							// Floor
-							if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
-								offscreenCanvasContext.fillStyle = 'black';
-								offscreenCanvasContext.fillRect(
-									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
-									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
-									calculationsViewportCellSizePxEff,
-									calculationsViewportCellSizePxEff,
-								);
-							}
+							/**
+							 * Assets: Floors/Sprites/Walls
+							 */
 							if (value !== GameGridCellMasksAndValues.NULL) {
-								// Sprite/Wall
-								if (value !== GameGridCellMasksAndValues.FLOOR) {
-									if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-										assetId = value & GameGridCellMasksAndValuesExtended.ID_MASK;
-									} else {
-										assetId = value & GameGridCellMasksAndValues.ID_MASK;
-									}
-									offscreenCanvasContext.drawImage(
-										cacheCanvasImages.get(assetId) || testImage,
+								// Floor
+								if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
+									offscreenCanvasContext.fillStyle = 'black';
+									offscreenCanvasContext.fillRect(
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										calculationsViewportCellSizePxEff,
+										calculationsViewportCellSizePxEff,
 									);
 								}
+
+								// Everything that's not just a floor cell
+								if (value !== GameGridCellMasksAndValues.FLOOR) {
+									assetId = value & GameGridCellMasksAndValues.ID_MASK;
+
+									if (assetId !== AssetIdImg.NULL) {
+										offscreenCanvasContext.drawImage(
+											cacheCanvasImages.get(assetId) || testImage,
+											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+										);
+									}
+								}
+
+								// Special Property: Locked
+								if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0 || (value & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+									if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0 && (value & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+										offscreenCanvasContext.strokeStyle = '#f700f7';
+									} else if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0) {
+										offscreenCanvasContext.strokeStyle = '#fff700';
+									} else {
+										offscreenCanvasContext.strokeStyle = '#00f7ff';
+									}
+
+									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+									offscreenCanvasContext.strokeRect(
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+									);
+								}
+
+								// Special Property: Wall Movable
 								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
 									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 									offscreenCanvasContext.strokeStyle = 'white';
@@ -635,34 +659,30 @@ class VideoEditorEngine {
 									);
 								}
 
-								// Extended
-								if ((value & GameGridCellMasksAndValues.EXTENDED) !== 0) {
-									if (
-										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 ||
-										(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
-									) {
-										if (
-											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0 &&
-											(value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_2) !== 0
-										) {
-											offscreenCanvasContext.strokeStyle = '#f700f7';
-										} else if ((value & GameGridCellMasksAndValuesExtended.DOOR_LOCKED_1) !== 0) {
-											offscreenCanvasContext.strokeStyle = '#fff700';
-										} else {
-											offscreenCanvasContext.strokeStyle = '#00f7ff';
-										}
+								// Special Property: Disabled
+								if ((value & GameGridCellMasksAndValues.DISABLED) !== 0) {
+									offscreenCanvasContext.fillStyle = 'rgba(0, 0, 0, 0.5)';
+									offscreenCanvasContext.fillRect(
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+										calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+									);
+								}
 
-										offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
-										offscreenCanvasContext.strokeRect(
-											(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-											(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
-											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-											calculationsViewportCellSizePxEff - renderCellOutlineWidth,
-										);
-									}
+								// Special Property: Tag
+								if ((value & gameGridCellMaskTag) !== 0) {
+									offscreenCanvasContext.drawImage(
+										cacheCanvasImages.get(AssetIdImg.MISC_X) || testImage,
+										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx,
+										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
+									);
 								}
 							}
-							// Character
+
+							/**
+							 * Assets: Characters
+							 */
 							characterNPC = gameMapNPCByGridIndex.get(gridIndex);
 							if (characterNPC !== undefined) {
 								offscreenCanvasInstance = (<any>assetImageCharacters.get(characterNPC.type)).get(characterNPC.assetId) || testImage;
@@ -676,6 +696,29 @@ class VideoEditorEngine {
 									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx,
 									calculationsViewportCellSizePxEff,
 									calculationsViewportCellSizePxEff,
+								);
+
+								switch (characterNPC.difficulty) {
+									case GameDifficulty.EASY:
+										offscreenCanvasContext.strokeStyle = '#00007f';
+										break;
+									case GameDifficulty.NORMAL:
+										offscreenCanvasContext.strokeStyle = '#0000f7';
+										break;
+									case GameDifficulty.HARD:
+										offscreenCanvasContext.strokeStyle = '#007f77';
+										break;
+									case GameDifficulty.INSANE:
+										offscreenCanvasContext.strokeStyle = '#00f7ff';
+										break;
+								}
+
+								offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
+								offscreenCanvasContext.strokeRect(
+									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
+									calculationsViewportCellSizePxEff - renderCellOutlineWidth,
+									calculationsViewportCellSizePxEff - renderCellOutlineWidth,
 								);
 							}
 						}

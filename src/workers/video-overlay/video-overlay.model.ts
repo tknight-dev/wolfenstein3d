@@ -1,5 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
+import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -9,6 +10,7 @@ import { GameMap } from '../../models/game.model.js';
  * Input
  */
 export enum VideoOverlayBusInputCmd {
+	ACTION_TAG,
 	GAME_OVER,
 	INIT,
 	LOCKED,
@@ -37,6 +39,7 @@ export interface VideoOverlayBusInputPayload {
 	cmd: VideoOverlayBusInputCmd;
 	data:
 		| boolean
+		| CalcMainBusOutputDataActionTag
 		| Float32Array[]
 		| Float64Array
 		| GameMap

@@ -4,7 +4,6 @@ import { Assets } from './modules/assets.js';
 import { DOM } from './modules/dom.js';
 import { Settings } from './modules/settings.js';
 import { Game } from './modules/game.js';
-import { GameMap } from './models/game.model.js';
 import { GamingCanvas, GamingCanvasAudioType, GamingCanvasStat, GamingCanvasStatCalcType } from '@tknight-dev/gaming-canvas';
 import { VideoEditorBus } from './workers/video-editor/video-editor.bus.js';
 import { VideoEditorBusOutputDataStats } from './workers/video-editor/video-editor.model.js';
@@ -274,14 +273,18 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 			console.log('System Loaded in', (performance.now() - then) | 0, 'ms');
 
 			// Start the game!
-			let suspend: boolean = false,
+			let intervalAutoAdvance: ReturnType<typeof setInterval>,
+				suspend: boolean = false,
 				state: number = 0,
-				timeout: ReturnType<typeof setTimeout>;
+				timeout: ReturnType<typeof setTimeout>,
+				timeoutAutoAdvance: ReturnType<typeof setTimeout>;
 			let click = async () => {
 				if (suspend === true) {
 					return;
 				}
+				clearInterval(intervalAutoAdvance);
 				clearTimeout(timeout);
+				clearTimeout(timeoutAutoAdvance);
 				suspend = true;
 
 				switch (state) {
@@ -290,6 +293,9 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 
 						if (Game.settings.intro === true) {
 							DOM.screenControl(DOM.elScreenRating);
+							timeoutAutoAdvance = setTimeout(() => {
+								click();
+							}, 10000);
 						} else {
 							DOM.elIconsTop.classList.remove('intro');
 							DOM.elScreenActive.style.display = 'none';
@@ -305,6 +311,13 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 					case 1:
 						Blockenstein.introMusic();
 						DOM.screenControl(DOM.elScreenTitle);
+						intervalAutoAdvance = setInterval(() => {
+							if (DOM.elScreenTitle.style.display === 'none') {
+								DOM.screenControl(DOM.elScreenTitle);
+							} else {
+								DOM.screenControl(DOM.elScreenCredits);
+							}
+						}, 10000);
 						break;
 					case 2:
 						Blockenstein.introMusic();

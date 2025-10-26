@@ -8,14 +8,14 @@ import {
 	initializeAssetManager,
 	AssetIdImgCharacterType,
 	AssetIdImgCharacter,
-	assetIdImgCharacterMovementS,
-	assetIdImgCharacterMovementSE,
-	assetIdImgCharacterMovementSW,
-	assetIdImgCharacterMovementW,
-	assetIdImgCharacterMovementNW,
-	assetIdImgCharacterMovementN,
-	assetIdImgCharacterMovementNE,
-	assetIdImgCharacterMovementE,
+	assetIdImgCharacterMoveS,
+	assetIdImgCharacterMoveSE,
+	assetIdImgCharacterMoveSW,
+	assetIdImgCharacterMoveW,
+	assetIdImgCharacterMoveNW,
+	assetIdImgCharacterMoveN,
+	assetIdImgCharacterMoveNE,
+	assetIdImgCharacterMoveE,
 	AssetIdImgWeaponSequenceKnife,
 	AssetIdImgWeaponSequenceMachineGun,
 	AssetIdImgWeaponSequencePistol,
@@ -32,14 +32,7 @@ import {
 	GamingCanvasUtilTimers,
 	GamingCanvasStat,
 } from '@tknight-dev/gaming-canvas';
-import {
-	GameDifficulty,
-	gameGridCellMaskExtendedDoor,
-	GameGridCellMasksAndValues,
-	GameGridCellMasksAndValuesExtended,
-	gameGridCellMaskSpriteFixed,
-	GameMap,
-} from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, gameGridCellMaskSpriteFixed, GameMap } from '../../models/game.model.js';
 import {
 	VideoMainBusInputCmd,
 	VideoMainBusInputDataCalculations,
@@ -71,6 +64,7 @@ import {
 	CalcMainBusDieFrameDurationInMS,
 	CalcMainBusFOVByDifficulty,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusPlayerDeadFadeDurationInMS,
@@ -96,6 +90,9 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case VideoMainBusInputCmd.ACTION_SWITCH:
 			VideoMainEngine.inputActionSwitch(<CalcMainBusOutputDataActionSwitch>payload.data);
+			break;
+		case VideoMainBusInputCmd.ACTION_TAG:
+			VideoMainEngine.inputActionTag(<CalcMainBusOutputDataActionTag>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
 			VideoMainEngine.inputActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
@@ -163,6 +160,8 @@ class VideoMainEngine {
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static stats: { [key: number]: GamingCanvasStat } = {};
+	private static tagRunAndJump: boolean;
+	private static tagRunAndJumpOptions: any;
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 	private static weapon: CharacterWeapon = CharacterWeapon.PISTOL;
 	private static weaponFrame: number = 0;
@@ -327,8 +326,15 @@ class VideoMainEngine {
 		VideoMainEngine.gameMap.grid.data[data.gridIndex] = data.cellValue;
 	}
 
+	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		if (data.type === GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) {
+			VideoMainEngine.tagRunAndJump = true;
+			VideoMainEngine.tagRunAndJumpOptions = data.options;
+		}
+	}
+
 	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
-		const gameMapGridData: Uint16Array = VideoMainEngine.gameMap.grid.data;
+		const gameMapGridData: Uint32Array = VideoMainEngine.gameMap.grid.data;
 
 		// Cache: store the timestamp for animation
 		VideoMainEngine.actionWall.set(data.gridIndex, data);
@@ -531,6 +537,7 @@ class VideoMainEngine {
 			characterNPC: CharacterNPC,
 			characterNPCId: number,
 			characterNPCUpdateEncoded: Float32Array,
+			color: string,
 			countFrame: number = 0,
 			countRays: number = 0,
 			countSprites: number = 0,
@@ -540,10 +547,12 @@ class VideoMainEngine {
 			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
 			offscreenCanvasWidthPx: number = VideoMainEngine.report.canvasWidthSplit,
 			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
+			gameMapColorCeiling: number = 0,
+			gameMapColorFloor: number = 0,
 			gameMapGridCell: number,
 			gameMapGridCell2: number,
 			gameMapGridIndex: number,
-			gameMapGridData: Uint16Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
 			gameMapNPCById: Map<number, CharacterNPC>,
 			gameMapNPCDead: Set<number> = new Set(),
@@ -620,6 +629,8 @@ class VideoMainEngine {
 			statSprite: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.SPRITE],
 			statSpriteRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
+			tagRunAndJump: boolean,
+			tagRunAndJumpOptions: any,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
@@ -752,12 +763,16 @@ class VideoMainEngine {
 
 				if (VideoMainEngine.gameMapNew === true) {
 					VideoMainEngine.gameMapNew = false;
+					VideoMainEngine.reportNew = true; // force gradient re-render
 
 					actionDoors.clear();
 					actionWall.clear();
 					timers.clearAll();
 
-					gameMapGridData = <Uint16Array>VideoMainEngine.gameMap.grid.data;
+					gameMapColorCeiling = VideoMainEngine.gameMap.colorCeiling || 0;
+					gameMapColorFloor = VideoMainEngine.gameMap.colorFloor || 0;
+
+					gameMapGridData = <Uint32Array>VideoMainEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoMainEngine.gameMap.grid.sideLength;
 					gameMapNPCById = VideoMainEngine.gameMap.npcById;
 
@@ -776,6 +791,9 @@ class VideoMainEngine {
 					characterIdByGridIndexSorted.push(-1); // Player1ID
 					characterIdByGridIndexSorted.push(-2); // Player2ID
 					characterIdByGridIndexSorted = characterIdByGridIndexSorted.sort();
+
+					VideoMainEngine.tagRunAndJump = false;
+					tagRunAndJump = false;
 				}
 
 				if (VideoMainEngine.gameMapUpdateNew === true) {
@@ -798,13 +816,14 @@ class VideoMainEngine {
 						if (characterNPC === undefined) {
 							continue;
 						}
+						gameMapGridIndex = characterNPC.gridIndex;
 
 						// Prepare
-						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(characterNPC.gridIndex);
+						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(gameMapGridIndex);
 						if (gameMapNPCByGridIndexInstance !== undefined) {
-							gameMapNPCByGridIndexInstance.delete(characterNPC.gridIndex);
+							gameMapNPCByGridIndexInstance.delete(gameMapGridIndex);
 							if (gameMapNPCByGridIndexInstance.size === 0) {
-								gameMapNPCByGridIndex.delete(characterNPC.gridIndex);
+								gameMapNPCByGridIndex.delete(gameMapGridIndex);
 							}
 						}
 
@@ -818,18 +837,24 @@ class VideoMainEngine {
 							gameMapNPCDead.add(characterNPC.id);
 							actionDie(characterNPC);
 
-							// Spawn ammo drop
+							// Spawn drop
+							if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+								renderAssetId = AssetIdImg.SPRITE_KEY1;
+							} else {
+								renderAssetId = AssetIdImg.SPRITE_AMMO_DROPPED;
+							}
+
 							if (characterNPC.type !== AssetIdImgCharacterType.RAT) {
-								if (gameMapGridData[characterNPC.gridIndex] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex + 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex - 1] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex + gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
-								} else if (gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
-									gameMapGridData[characterNPC.gridIndex - gameMapGridSideLength] |= AssetIdImg.SPRITE_AMMO_DROPPED;
+								if (gameMapGridData[gameMapGridIndex] === GameGridCellMasksAndValues.FLOOR && renderAssetId !== AssetIdImg.SPRITE_KEY1) {
+									gameMapGridData[gameMapGridIndex] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex + 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex + 1] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex - 1] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex - 1] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex + gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex + gameMapGridSideLength] |= renderAssetId;
+								} else if (gameMapGridData[gameMapGridIndex - gameMapGridSideLength] === GameGridCellMasksAndValues.FLOOR) {
+									gameMapGridData[gameMapGridIndex - gameMapGridSideLength] |= renderAssetId;
 								}
 							}
 						}
@@ -915,13 +940,35 @@ class VideoMainEngine {
 
 					if (renderLightingQuality >= LightingQuality.FULL) {
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx); // Ceiling
-						renderGradientCanvasGradient.addColorStop(0, '#383838');
-						renderGradientCanvasGradient.addColorStop(0.5, '#181818');
-						renderGradientCanvasGradient.addColorStop(0.5, '#313131');
-						renderGradientCanvasGradient.addColorStop(1, '#717171');
+
+						color = gameMapColorCeiling.toString(16).padStart(6, '0');
+						renderGradientCanvasGradient.addColorStop(0, '#' + color);
+						i = (Number(color.substring(0, 2)) * 0.4) | 0;
+						x = (Number(color.substring(2, 4)) * 0.4) | 0;
+						y = (Number(color.substring(4, 6)) * 0.4) | 0;
+						renderGradientCanvasGradient.addColorStop(
+							0.5,
+							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
+						);
+
+						color = gameMapColorFloor.toString(16).padStart(6, '0');
+						i = (Number(color.substring(0, 2)) * 0.3) | 0;
+						x = (Number(color.substring(2, 4)) * 0.3) | 0;
+						y = (Number(color.substring(4, 6)) * 0.3) | 0;
+						renderGradientCanvasGradient.addColorStop(
+							0.5,
+							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
+						);
+						renderGradientCanvasGradient.addColorStop(1, '#' + color);
+
 						renderGradientCanvasContext.fillStyle = renderGradientCanvasGradient;
 						renderGradientCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 					}
+				}
+
+				if (tagRunAndJump !== VideoMainEngine.tagRunAndJump) {
+					tagRunAndJump = VideoMainEngine.tagRunAndJump;
+					tagRunAndJumpOptions = VideoMainEngine.tagRunAndJumpOptions;
 				}
 
 				if (renderWeapon !== VideoMainEngine.weapon) {
@@ -932,6 +979,9 @@ class VideoMainEngine {
 				countRays = 0;
 				countSprites = 0;
 				if (calculationsRays === undefined || gameMapGridData === undefined) {
+					return;
+				} else if (player1 !== true && tagRunAndJump === true) {
+					// Run and jump animation only happens for one player
 					return;
 				}
 
@@ -990,18 +1040,18 @@ class VideoMainEngine {
 					offscreenCanvasContext.drawImage(renderGradientCanvas, 0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx * renderTilt);
 				} else {
 					// Ceiling
-					offscreenCanvasContext.fillStyle = '#383838';
+					offscreenCanvasContext.fillStyle = '#' + gameMapColorCeiling.toString(16).padStart(6, '0');
 					offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf * renderTilt);
 
 					// Floor
-					offscreenCanvasContext.fillStyle = '#717171';
+					offscreenCanvasContext.fillStyle = '#' + gameMapColorFloor.toString(16).padStart(6, '0');
 					offscreenCanvasContext.fillRect(0, offscreenCanvasHeightPxHalf * renderTilt, offscreenCanvasWidthPx, offscreenCanvasHeightPxHalf);
 				}
 				// offscreenCanvasContext.fillStyle = 'black';
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
-				// Weapon
-				if (renderModeEdit !== true && settingsDebug === true) {
+				// Debug: Weapon hit area
+				if (renderModeEdit !== true && settingsDebug === true && tagRunAndJump !== true && VideoMainEngine.dead === false) {
 					x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV / 2;
 					offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.25)';
 					offscreenCanvasContext.strokeStyle = 'rgba(255,247,0,0.75)';
@@ -1056,15 +1106,11 @@ class VideoMainEngine {
 						}
 
 						// Render: Asset Selection
-						if ((gameMapGridCell2 & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell2 & gameGridCellMaskExtendedDoor) !== 0) {
+						if ((gameMapGridCell2 & GameGridCellMasksAndValues.DOOR) !== 0) {
 							asset = renderAssets.get(AssetIdImg.SPRITE_METAL_DOOR_INSIDE) || renderDebugImage;
 						} else {
 							gameMapGridCell = gameMapGridData[gameMapGridIndex];
-							renderAssetId =
-								(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-									? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-									: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-
+							renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
 							asset = renderAssets.get(renderAssetId) || renderDebugImage;
 						}
 						// asset = renderDebugImage;
@@ -1121,12 +1167,10 @@ class VideoMainEngine {
 						renderGlobalShadow = false;
 						renderSkip = false;
 
-						if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) === 0) {
-							renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
-
-							if (renderAssetId >= AssetIdImg.MISC_ARROW_EAST && renderAssetId <= AssetIdImg.MISC_ARROW_WEST) {
-								renderSkip = true;
-							}
+						// Skip arrows
+						renderAssetId = gameMapGridCell & GameGridCellMasksAndValues.ID_MASK;
+						if (renderAssetId < 1000) {
+							renderSkip = true;
 						}
 
 						// Environment
@@ -1151,9 +1195,9 @@ class VideoMainEngine {
 								 */
 								asset = <any>undefined;
 								renderSpriteFixedDoorOffset = 0;
-								if ((gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0 && (gameMapGridCell & gameGridCellMaskExtendedDoor) !== 0) {
+								if ((gameMapGridCell & GameGridCellMasksAndValues.DOOR) !== 0) {
 									actionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gameMapGridIndex);
-									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK) || renderDebugImage;
+									asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 									// Door in a non-closed state
 									if (
@@ -1373,12 +1417,7 @@ class VideoMainEngine {
 								/**
 								 * Draw: Sprites - Rotating
 								 */
-								asset =
-									assetImagesInvertHorizontal.get(
-										(gameMapGridCell & GameGridCellMasksAndValues.EXTENDED) !== 0
-											? gameMapGridCell & GameGridCellMasksAndValuesExtended.ID_MASK
-											: gameMapGridCell & GameGridCellMasksAndValues.ID_MASK,
-									) || renderDebugImage;
+								asset = assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;
@@ -1445,7 +1484,11 @@ class VideoMainEngine {
 						 * Draw: Sprite - Human Player Alt
 						 */
 						if (calculationsCameraAltGridIndex === gameMapGridIndex) {
-							assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.OFFICER);
+							if (tagRunAndJump === true) {
+								assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ);
+							} else {
+								assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.OFFICER);
+							}
 
 							// Calc: Position
 							x = calculationsCameraAlt.x - calculationsCamera.x;
@@ -1490,25 +1533,42 @@ class VideoMainEngine {
 								renderCharacterNPCState = 0;
 							}
 
-							// Calc: Asset
-							if (renderAngle < GamingCanvasConstPI_0_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
+							if (tagRunAndJump === true) {
+								x = timestampUnix - tagRunAndJumpOptions.timestampUnix;
+								y = tagRunAndJumpOptions.durationRunInMS;
+
+								if (x < y) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.1) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP1_S) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.2) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP2_S) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.3) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP3_S) || renderDebugImage;
+								} else {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP4_S) || renderDebugImage;
+								}
 							} else {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
+								// Calc: Asset
+								if (renderAngle < GamingCanvasConstPI_0_125) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_375) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_625) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_875) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_125) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_375) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_625) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_875) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
+								} else {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+								}
 							}
 
 							// Render: Lighting
@@ -1579,45 +1639,67 @@ class VideoMainEngine {
 
 									// Calc: Asset by rotation
 									if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
-										// Calc: Angle (always facing camera)
-										asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+											if (renderCharacterNPC.assetId === AssetIdImgCharacter.FIRE) {
+												if (((timestampUnix / 100) | 0) % 2 === 0) {
+													asset = assetImageCharacterInstance.get(AssetIdImgCharacter.FIRE) || renderDebugImage;
+												} else {
+													asset = assetImageCharacterInstance.get(AssetIdImgCharacter.FIRE2) || renderDebugImage;
+												}
+											} else {
+												asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+											}
+										} else {
+											asset = assetImageCharacterInstance.get(renderCharacterNPC.assetId) || renderDebugImage;
+										}
 									} else {
-										// Calc: Angle
-										renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
-										if (renderAngle < 0) {
-											renderAngle += GamingCanvasConstPI_2_000;
-										} else if (renderAngle >= GamingCanvasConstPI_2_000) {
-											renderAngle -= GamingCanvasConstPI_2_000;
-										}
-
-										// Calc: Movement
-										if (renderCharacterNPC.running === true) {
-											renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
-										} else if (renderCharacterNPC.walking === true) {
-											renderCharacterNPCState = ((((timestampUnixEff - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+										// Is boss?
+										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+											// Calc: Angle (always facing camera)
+											if (renderCharacterNPC.running === true || renderCharacterNPC.walking === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+											} else {
+												asset = assetImageCharacterInstance.get(AssetIdImgCharacter.STAND_S) || renderDebugImage;
+											}
 										} else {
-											renderCharacterNPCState = 0;
-										}
+											// Calc: Angle
+											renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+											if (renderAngle < 0) {
+												renderAngle += GamingCanvasConstPI_2_000;
+											} else if (renderAngle >= GamingCanvasConstPI_2_000) {
+												renderAngle -= GamingCanvasConstPI_2_000;
+											}
 
-										// Calc: Asset
-										if (renderAngle < GamingCanvasConstPI_0_125) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_375) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNE[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_625) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementN[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_0_875) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementNW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_125) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_375) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSW[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_625) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementS[renderCharacterNPCState]) || renderDebugImage;
-										} else if (renderAngle < GamingCanvasConstPI_1_875) {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementSE[renderCharacterNPCState]) || renderDebugImage;
-										} else {
-											asset = assetImageCharacterInstance.get(assetIdImgCharacterMovementE[renderCharacterNPCState]) || renderDebugImage;
+											// Calc: Movement
+											if (renderCharacterNPC.running === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
+											} else if (renderCharacterNPC.walking === true) {
+												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
+											} else {
+												renderCharacterNPCState = 0;
+											}
+
+											// Calc: Asset
+											if (renderAngle < GamingCanvasConstPI_0_125) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_375) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_625) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_0_875) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_125) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_375) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_625) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+											} else if (renderAngle < GamingCanvasConstPI_1_875) {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
+											} else {
+												asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+											}
 										}
 									}
 
@@ -1660,7 +1742,7 @@ class VideoMainEngine {
 				}
 
 				// Weapon
-				if (renderModeEdit !== true) {
+				if (renderModeEdit !== true && tagRunAndJump !== true) {
 					if (settingsCrosshair === true) {
 						// Crosshair
 						offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.75)';

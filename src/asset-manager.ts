@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { GameMap } from './models/game.model.js';
-import { GamingCanvasGridUint16Array } from '@tknight-dev/gaming-canvas/grid';
+import { GamingCanvasGridUint16Array, GamingCanvasGridUint32Array } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -352,7 +352,7 @@ export const assetLoaderMap = async (): Promise<Map<AssetIdMap, GameMap>> => {
 					),
 				),
 			);
-			gameMap.grid = GamingCanvasGridUint16Array.from(<Uint16Array>gameMap.grid.data);
+			gameMap.grid = GamingCanvasGridUint32Array.from(<Uint32Array>gameMap.grid.data);
 
 			data.set(assetId, gameMap);
 		} catch (error) {
@@ -376,149 +376,168 @@ export enum AssetExtImg {
 }
 
 export enum AssetIdAudio {
-	AUDIO_EFFECT_AMMO = 0,
-	AUDIO_EFFECT_DOOR_CLOSE = 1,
-	AUDIO_EFFECT_DOOR_OPEN = 2,
-	AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE = 38,
-	AUDIO_EFFECT_END_LEVEL_SCORE_NONE = 39,
-	AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE = 40,
-	AUDIO_EFFECT_EVIL_LAUGH = 35,
-	AUDIO_EFFECT_EXTRA_LIFE = 3,
-	AUDIO_EFFECT_FOOD = 4,
-	AUDIO_EFFECT_FOOD_DOG = 5,
-	AUDIO_EFFECT_GUARD_DEATH = 6,
-	AUDIO_EFFECT_GUARD_DEATH2 = 7,
-	AUDIO_EFFECT_GUARD_DEATH3 = 8,
-	AUDIO_EFFECT_GUARD_DEATH4 = 9,
-	AUDIO_EFFECT_GUARD_DEATH5 = 34,
-	AUDIO_EFFECT_GUARD_FIRE = 10,
-	AUDIO_EFFECT_GUARD_SURPRISE = 11,
-	AUDIO_EFFECT_KEY = 37,
-	AUDIO_EFFECT_KNIFE = 12,
-	AUDIO_EFFECT_MACHINE_GUN = 33,
-	AUDIO_EFFECT_MACHINE_GUN_PICKUP = 36,
-	AUDIO_EFFECT_MEDKIT = 13,
-	AUDIO_EFFECT_MENU_EXIT = 14,
-	AUDIO_EFFECT_MENU_OPEN = 15,
-	AUDIO_EFFECT_MENU_SELECT = 16,
-	AUDIO_EFFECT_MENU_SELECT_DOUBLE = 17,
-	AUDIO_EFFECT_NOTHING_TO_DO = 18,
-	AUDIO_EFFECT_PISTOL = 19,
-	AUDIO_EFFECT_RAT_DEATH = 41,
-	AUDIO_EFFECT_RAT_FIRE = 42,
-	AUDIO_EFFECT_RAT_SURPRISE = 43,
-	AUDIO_EFFECT_SS_DEATH = 44,
-	AUDIO_EFFECT_SS_FIRE = 45,
-	AUDIO_EFFECT_SS_SURPRISE = 46,
-	AUDIO_EFFECT_SUB_MACHINE_GUN = 20,
-	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP = 21,
-	AUDIO_EFFECT_SWITCH = 22,
-	AUDIO_EFFECT_TREASURE_CHEST = 23,
-	AUDIO_EFFECT_TREASURE_CROSS = 24,
-	AUDIO_EFFECT_TREASURE_CROWN = 25,
-	AUDIO_EFFECT_TREASURE_CUP = 26,
-	AUDIO_EFFECT_WALL_HIT = 27,
-	AUDIO_EFFECT_WALL_MOVE = 28,
+	AUDIO_EFFECT_AMMO,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_DEATH,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE,
+	AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE,
+	AUDIO_EFFECT_DOOR_CLOSE,
+	AUDIO_EFFECT_DOOR_OPEN,
+	AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE,
+	AUDIO_EFFECT_END_FLOOR_SCORE_NONE,
+	AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE,
+	AUDIO_EFFECT_EVIL_LAUGH,
+	AUDIO_EFFECT_EXTRA_LIFE,
+	AUDIO_EFFECT_FOOD,
+	AUDIO_EFFECT_FOOD_DOG,
+	AUDIO_EFFECT_GUARD_DEATH,
+	AUDIO_EFFECT_GUARD_DEATH2,
+	AUDIO_EFFECT_GUARD_DEATH3,
+	AUDIO_EFFECT_GUARD_DEATH4,
+	AUDIO_EFFECT_GUARD_DEATH5,
+	AUDIO_EFFECT_GUARD_FIRE,
+	AUDIO_EFFECT_GUARD_SURPRISE,
+	AUDIO_EFFECT_KEY,
+	AUDIO_EFFECT_KNIFE,
+	AUDIO_EFFECT_MACHINE_GUN,
+	AUDIO_EFFECT_MACHINE_GUN_PICKUP,
+	AUDIO_EFFECT_MEDKIT,
+	AUDIO_EFFECT_MENU_EXIT,
+	AUDIO_EFFECT_MENU_OPEN,
+	AUDIO_EFFECT_MENU_SELECT,
+	AUDIO_EFFECT_MENU_SELECT_DOUBLE,
+	AUDIO_EFFECT_NOTHING_TO_DO,
+	AUDIO_EFFECT_PISTOL,
+	AUDIO_EFFECT_RAT_DEATH,
+	AUDIO_EFFECT_RAT_FIRE,
+	AUDIO_EFFECT_RAT_SURPRISE,
+	AUDIO_EFFECT_SS_DEATH,
+	AUDIO_EFFECT_SS_FIRE,
+	AUDIO_EFFECT_SS_SURPRISE,
+	AUDIO_EFFECT_SUB_MACHINE_GUN,
+	AUDIO_EFFECT_SUB_MACHINE_GUN_PICKUP,
+	AUDIO_EFFECT_SWITCH,
+	AUDIO_EFFECT_TREASURE_CHEST,
+	AUDIO_EFFECT_TREASURE_CROSS,
+	AUDIO_EFFECT_TREASURE_CROWN,
+	AUDIO_EFFECT_TREASURE_CUP,
+	AUDIO_EFFECT_WALL_HIT,
+	AUDIO_EFFECT_WALL_MOVE,
+	AUDIO_EFFECT_YEAH,
 	AUDIO_MUSIC_END_OF_LEVEL = 10000,
+	AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER = 10007,
+	AUDIO_MUSIC_EPISODE_END = 10008,
 	AUDIO_MUSIC_GET_THEM = 10001,
+	AUDIO_MUSIC_MARCH_TO_WAR = 10006,
+	AUDIO_MUSIC_POW = 10004,
 	AUDIO_MUSIC_SEARCHN = 10002,
+	AUDIO_MUSIC_SUSPENSE = 10005,
 	AUDIO_MUSIC_WONDERING = 10003,
 }
 
-export const AssetIdMusicLevels: AssetIdAudio[] = [AssetIdAudio.AUDIO_MUSIC_GET_THEM, AssetIdAudio.AUDIO_MUSIC_SEARCHN];
+export const AssetIdMusicLevels: AssetIdAudio[] = [
+	AssetIdAudio.AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER,
+	AssetIdAudio.AUDIO_MUSIC_GET_THEM,
+	AssetIdAudio.AUDIO_MUSIC_MARCH_TO_WAR,
+	AssetIdAudio.AUDIO_MUSIC_POW,
+	AssetIdAudio.AUDIO_MUSIC_SEARCHN,
+	AssetIdAudio.AUDIO_MUSIC_SUSPENSE,
+];
 
+// Values less than 1000 are not rendered by VideoMain
 export enum AssetIdImg {
+	MISC_ARROW_EAST = 1,
+	MISC_ARROW_NORTH = 2,
+	MISC_ARROW_NORTH_EAST = 3,
+	MISC_ARROW_NORTH_WEST = 4,
+	MISC_ARROW_SOUTH = 5,
+	MISC_ARROW_SOUTH_EAST = 6,
+	MISC_ARROW_SOUTH_WEST = 7,
+	MISC_ARROW_WEST = 8,
+	MISC_X = 9,
 	NULL = 0,
-	MISC_ARROW_EAST = 64,
-	MISC_ARROW_NORTH = 65,
-	MISC_ARROW_NORTH_EAST = 66,
-	MISC_ARROW_NORTH_WEST = 67,
-	MISC_ARROW_SOUTH = 68,
-	MISC_ARROW_SOUTH_EAST = 69,
-	MISC_ARROW_SOUTH_WEST = 70,
-	MISC_ARROW_WEST = 71,
-	SPRITE_ELEVATOR_DOOR = 1, // Extended AssetId
-	SPRITE_METAL_DOOR = 2, // Extended AssetId
-	SPRITE_METAL_DOOR_LOCKED = 3, // Extended AssetId
-	WALL_ELEVATOR_SWITCH_UP = 4, // Extended AssetId
-	WALL_ELEVATOR_SWITCH_DOWN = 5, // Extended AssetId
-	EXTENDED_RESERVED6 = 6, // Extended AssetId
-	EXTENDED_RESERVED7 = 7, // Extended AssetId
-	SPRITE_AMMO = 57,
-	SPRITE_AMMO_DROPPED = 20,
-	SPRITE_ARMOR = 58,
-	SPRITE_BANNER_BARREL_GREEN = 59,
-	SPRITE_BANNER_BARREL_WOOD = 60,
-	SPRITE_BASKET = 61,
-	SPRITE_BED = 80,
-	SPRITE_BLOOD = 81,
-	SPRITE_BONE_RUBISH_1 = 75,
-	SPRITE_BONE_RUBISH_2 = 76,
-	SPRITE_BONE_RUBISH_3 = 77,
-	SPRITE_BONE_PILE = 62,
-	SPRITE_CAGE = 78,
-	SPRITE_CAGE_SKELETON = 79,
-	SPRITE_EXTRA_LIFE = 63,
-	SPRITE_FAUCET = 81,
-	SPRITE_FLAG = 8,
-	SPRITE_FURNACE = 82,
-	SPRITE_FOOD = 9,
-	SPRITE_FOOD_DOG = 10,
-	SPRITE_GUARD_CORPSE = 56,
-	SPRITE_KEY1 = 72,
-	SPRITE_KEY2 = 73,
-	SPRITE_KITCHEN_UTENSILS_1 = 83,
-	SPRITE_KITCHEN_UTENSILS_2 = 84,
-	SPRITE_LIGHT_CEILING_OFF = 11,
-	SPRITE_LIGHT_CEILING_ON = 12,
-	SPRITE_LIGHT_CHANDELIER_OFF = 13,
-	SPRITE_LIGHT_CHANDELIER_ON = 14,
-	SPRITE_LIGHT_FLOOR_OFF = 15,
-	SPRITE_LIGHT_FLOOR_ON = 16,
-	SPRITE_MACHINE_GUN = 74,
-	SPRITE_MEDKIT = 17,
-	SPRITE_VINES = 18,
-	SPRITE_METAL_DOOR_INSIDE = 19,
-	// SPRITE_METAL_DOOR_INSIDE2 = 20,
-	// SPRITE_METAL_DOOR_LOCKED = 21,
-	SPRITE_PILLAR_STONE = 85,
-	SPRITE_POTTED_PLANT = 22,
-	SPRITE_POTTED_TREE = 23,
-	SPRITE_SKELETON = 25,
-	SPRITE_SKELETON_BLOOD = 86,
-	SPRITE_SKELETON_HANGING = 87,
-	SPRITE_SPEARS = 88,
-	SPRITE_SUB_MACHINE_GUN = 24,
-	SPRITE_TABLE = 26,
-	SPRITE_TABLE_CHAIRS = 27,
-	SPRITE_TREASURE_CHEST = 28,
-	SPRITE_TREASURE_CROSS = 29,
-	SPRITE_TREASURE_CROWN = 30,
-	SPRITE_TREASURE_CUP = 31,
-	SPRITE_VASE = 32,
-	SPRITE_WATER = 33,
-	SPRITE_WELL_WATER = 34,
-	SPRITE_WELL_EMPTY = 35,
-	WALL_BRICK_BLUE = 36,
-	WALL_BRICK_BLUE2 = 37,
-	WALL_BRICK_BLUE_CELL = 38,
-	WALL_BRICK_BLUE_CELL_SKELETON = 39,
-	// SPRITE_ELEVATOR_DOOR = 40,
-	WALL_ELEVATOR_SIDE = 41,
-	// WALL_ELEVATOR_SWITCH_UP = 42,
-	// WALL_ELEVATOR_SWITCH_DOWN = 43,
-	WALL_OUTSIDE_DAY = 44,
-	WALL_OUTSIDE_NIGHT = 45,
-	WALL_STONE_GREY = 46,
-	WALL_STONE_GREY2 = 47,
-	WALL_STONE_GREY3 = 48,
-	WALL_STONE_GREY_EAGLE = 49,
-	WALL_STONE_GREY_FLAG = 50,
-	WALL_STONE_GREY_HITLER = 51,
-	WALL_STONE_GREY_SIGN_VERBOTEM = 52,
-	WALL_WOOD = 53,
-	WALL_WOOD_EAGLE = 54,
-	WALL_WOOD_HITLER = 55,
+	SPRITE_AMMO = 1000,
+	SPRITE_AMMO_DROPPED = 1001,
+	SPRITE_ARMOR = 1002,
+	SPRITE_BARREL_GREEN = 1003,
+	SPRITE_BARREL_WOOD = 1004,
+	SPRITE_BASKET = 1005,
+	SPRITE_BED = 1006,
+	SPRITE_BLOOD = 1007,
+	SPRITE_BONE_PILE = 1008,
+	SPRITE_BONE_RUBISH_1 = 1009,
+	SPRITE_BONE_RUBISH_2 = 1010,
+	SPRITE_BONE_RUBISH_3 = 1011,
+	SPRITE_CAGE = 1012,
+	SPRITE_CAGE_SKELETON = 1013,
+	SPRITE_ELEVATOR_DOOR = 1014,
+	SPRITE_EXTRA_LIFE = 1015,
+	SPRITE_FAUCET = 1016,
+	SPRITE_FLAG = 1017,
+	SPRITE_FOOD = 1018,
+	SPRITE_FOOD_DOG = 1019,
+	SPRITE_FURNACE = 1020,
+	SPRITE_GUARD_CORPSE = 1021,
+	SPRITE_KEY1 = 1022,
+	SPRITE_KEY2 = 1023,
+	SPRITE_KITCHEN_UTENSILS_1 = 1024,
+	SPRITE_KITCHEN_UTENSILS_2 = 1025,
+	SPRITE_LIGHT_CEILING_OFF = 1026,
+	SPRITE_LIGHT_CEILING_ON = 1027,
+	SPRITE_LIGHT_CHANDELIER_OFF = 1028,
+	SPRITE_LIGHT_CHANDELIER_ON = 1029,
+	SPRITE_LIGHT_FLOOR_OFF = 1030,
+	SPRITE_LIGHT_FLOOR_ON = 1031,
+	SPRITE_MACHINE_GUN = 1032,
+	SPRITE_MEDKIT = 1033,
+	SPRITE_METAL_DOOR = 1034,
+	SPRITE_METAL_DOOR_INSIDE = 1035,
+	SPRITE_METAL_LOCKED = 1036,
+	SPRITE_PILLAR_STONE = 1037,
+	SPRITE_POTTED_PLANT = 1038,
+	SPRITE_POTTED_TREE = 1039,
+	SPRITE_SKELETON = 1040,
+	SPRITE_SKELETON_BLOOD = 1041,
+	SPRITE_SKELETON_HANGING = 1042,
+	SPRITE_SPEARS = 1043,
+	SPRITE_SUB_MACHINE_GUN = 1044,
+	SPRITE_TABLE = 1045,
+	SPRITE_TABLE_CHAIRS = 1046,
+	SPRITE_TREASURE_CHEST = 1047,
+	SPRITE_TREASURE_CROSS = 1048,
+	SPRITE_TREASURE_CROWN = 1049,
+	SPRITE_TREASURE_CUP = 1050,
+	SPRITE_VASE = 1051,
+	SPRITE_VINES = 1052,
+	SPRITE_WATER = 1053,
+	SPRITE_WELL_EMPTY = 1054,
+	SPRITE_WELL_WATER = 1055,
+	WALL_BRICK_BLUE = 2000,
+	WALL_BRICK_BLUE2 = 2001,
+	WALL_BRICK_BLUE_CELL = 2002,
+	WALL_BRICK_BLUE_CELL_SKELETON = 2003,
+	WALL_BRICK_RED = 2004,
+	WALL_BRICK_RED_EAGLE = 2005,
+	WALL_BRICK_RED_LAURAL = 2006,
+	WALL_ELEVATOR_SIDE = 2007,
+	WALL_ELEVATOR_SWITCH_DOWN = 2008,
+	WALL_ELEVATOR_SWITCH_UP = 2009,
+	WALL_METAL = 2010,
+	WALL_METAL_ACHTUNG = 2011,
+	WALL_METAL_VERBOTEM = 2012,
+	WALL_OUTSIDE_DAY = 2013,
+	WALL_OUTSIDE_NIGHT = 2014,
+	WALL_ROCK_PURPLE = 2015,
+	WALL_ROCK_PURPLE_BLOOD = 2016,
+	WALL_STONE_GREY = 2017,
+	WALL_STONE_GREY2 = 2018,
+	// WALL_STONE_GREY3 = 2019,
+	WALL_STONE_GREY_EAGLE = 2020,
+	WALL_STONE_GREY_FLAG = 2021,
+	WALL_STONE_GREY_HITLER = 2022,
+	WALL_STONE_GREY_SIGN_VERBOTEM = 2023,
+	WALL_WOOD = 2024,
+	WALL_WOOD_EAGLE = 2025,
+	WALL_WOOD_HITLER = 2026,
 	WEAPON_KNIFE_1 = 10000,
 	WEAPON_KNIFE_2 = 10001,
 	WEAPON_KNIFE_3 = 10002,
@@ -581,8 +600,13 @@ export enum AssetIdImgCharacter {
 	DIE3 = 4,
 	DIE4 = 5,
 	FIRE = 6,
+	FIRE2 = 50,
 	HIT1 = 7,
-	HIT2 = 50,
+	HIT2 = 51,
+	JUMP1_S = 52,
+	JUMP2_S = 53,
+	JUMP3_S = 54,
+	JUMP4_S = 55,
 	MOVE1_E = 8,
 	MOVE1_N = 9,
 	MOVE1_NE = 10,
@@ -626,7 +650,129 @@ export enum AssetIdImgCharacter {
 	SUPRISE = 49,
 }
 
+export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.DIE1,
+	AssetIdImgCharacter.DIE2,
+	AssetIdImgCharacter.DIE3,
+	AssetIdImgCharacter.DIE4,
+	AssetIdImgCharacter.CORPSE,
+];
+
+export const assetIdImgCharacterFire: AssetIdImgCharacter[] = [AssetIdImgCharacter.FIRE, AssetIdImgCharacter.FIRE2];
+
+export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.MOVE1_E,
+	AssetIdImgCharacter.STAND_E,
+	AssetIdImgCharacter.MOVE1_N,
+	AssetIdImgCharacter.STAND_N,
+	AssetIdImgCharacter.MOVE1_NE,
+	AssetIdImgCharacter.STAND_NE,
+	AssetIdImgCharacter.MOVE1_NW,
+	AssetIdImgCharacter.STAND_NW,
+	AssetIdImgCharacter.MOVE1_S,
+	AssetIdImgCharacter.STAND_S,
+	AssetIdImgCharacter.MOVE1_SE,
+	AssetIdImgCharacter.STAND_SE,
+	AssetIdImgCharacter.MOVE1_SW,
+	AssetIdImgCharacter.STAND_SW,
+	AssetIdImgCharacter.MOVE1_W,
+	AssetIdImgCharacter.STAND_W,
+];
+
+export const assetIdImgCharacterJumpS: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.JUMP1_S,
+	AssetIdImgCharacter.JUMP2_S,
+	AssetIdImgCharacter.JUMP3_S,
+	AssetIdImgCharacter.JUMP4_S,
+];
+
+export const assetIdImgCharacterMoveE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_E,
+	AssetIdImgCharacter.MOVE1_E,
+	AssetIdImgCharacter.MOVE2_E,
+	AssetIdImgCharacter.MOVE3_E,
+	AssetIdImgCharacter.MOVE4_E,
+];
+
+export const assetIdImgCharacterMoveN: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_N,
+	AssetIdImgCharacter.MOVE1_N,
+	AssetIdImgCharacter.MOVE2_N,
+	AssetIdImgCharacter.MOVE3_N,
+	AssetIdImgCharacter.MOVE4_N,
+];
+
+export const assetIdImgCharacterMoveNE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_NE,
+	AssetIdImgCharacter.MOVE1_NE,
+	AssetIdImgCharacter.MOVE2_NE,
+	AssetIdImgCharacter.MOVE3_NE,
+	AssetIdImgCharacter.MOVE4_NE,
+];
+
+export const assetIdImgCharacterMoveNW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_NW,
+	AssetIdImgCharacter.MOVE1_NW,
+	AssetIdImgCharacter.MOVE2_NW,
+	AssetIdImgCharacter.MOVE3_NW,
+	AssetIdImgCharacter.MOVE4_NW,
+];
+
+export const assetIdImgCharacterMoveS: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_S,
+	AssetIdImgCharacter.MOVE1_S,
+	AssetIdImgCharacter.MOVE2_S,
+	AssetIdImgCharacter.MOVE3_S,
+	AssetIdImgCharacter.MOVE4_S,
+];
+
+export const assetIdImgCharacterMoveSE: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_SE,
+	AssetIdImgCharacter.MOVE1_SE,
+	AssetIdImgCharacter.MOVE2_SE,
+	AssetIdImgCharacter.MOVE3_SE,
+	AssetIdImgCharacter.MOVE4_SE,
+];
+
+export const assetIdImgCharacterMoveSW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_SW,
+	AssetIdImgCharacter.MOVE1_SW,
+	AssetIdImgCharacter.MOVE2_SW,
+	AssetIdImgCharacter.MOVE3_SW,
+	AssetIdImgCharacter.MOVE4_SW,
+];
+
+export const assetIdImgCharacterMoveW: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.STAND_W,
+	AssetIdImgCharacter.MOVE1_W,
+	AssetIdImgCharacter.MOVE2_W,
+	AssetIdImgCharacter.MOVE3_W,
+	AssetIdImgCharacter.MOVE4_W,
+];
+
+const assetIdImgCharacterMoveAll: AssetIdImgCharacter[][] = [
+	assetIdImgCharacterMoveE,
+	assetIdImgCharacterMoveN,
+	assetIdImgCharacterMoveNE,
+	assetIdImgCharacterMoveNW,
+	assetIdImgCharacterMoveS,
+	assetIdImgCharacterMoveSE,
+	assetIdImgCharacterMoveSW,
+	assetIdImgCharacterMoveW,
+];
+const assetIdImgCharacterMoveAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
+
+export enum AssetIdImgCharacterType {
+	BOSS_HANS_GROSSE = 4,
+	GUARD = 0,
+	OFFICER = 1,
+	RAT = 3,
+	SS = 2,
+	WILLIAM_BJ_BLAZKOWICZ = 5,
+}
+
 export enum AssetIdImgMenu {
+	CREDITS,
 	BANNER_BAR,
 	BANNER_GAME_LOAD,
 	BANNER_GAME_SAVE,
@@ -635,54 +781,57 @@ export enum AssetIdImgMenu {
 	DIFFICULTY_NORMAL,
 	DIFFICULTY_HARD,
 	DIFFICULTY_INSANE,
-	END_LEVEL_FONT_0,
-	END_LEVEL_FONT_1,
-	END_LEVEL_FONT_2,
-	END_LEVEL_FONT_3,
-	END_LEVEL_FONT_4,
-	END_LEVEL_FONT_5,
-	END_LEVEL_FONT_6,
-	END_LEVEL_FONT_7,
-	END_LEVEL_FONT_8,
-	END_LEVEL_FONT_9,
-	END_LEVEL_FONT_A,
-	END_LEVEL_FONT_APOSTROPHE,
-	END_LEVEL_FONT_B,
-	END_LEVEL_FONT_C,
-	END_LEVEL_FONT_COLON,
-	END_LEVEL_FONT_D,
-	END_LEVEL_FONT_E,
-	END_LEVEL_FONT_EXCLAMATION,
-	END_LEVEL_FONT_F,
-	END_LEVEL_FONT_G,
-	END_LEVEL_FONT_H,
-	END_LEVEL_FONT_I,
-	END_LEVEL_FONT_J,
-	END_LEVEL_FONT_K,
-	END_LEVEL_FONT_L,
-	END_LEVEL_FONT_M,
-	END_LEVEL_FONT_N,
-	END_LEVEL_FONT_O,
-	END_LEVEL_FONT_P,
-	END_LEVEL_FONT_PERCENT,
-	END_LEVEL_FONT_Q,
-	END_LEVEL_FONT_R,
-	END_LEVEL_FONT_S,
-	END_LEVEL_FONT_T,
-	END_LEVEL_FONT_U,
-	END_LEVEL_FONT_V,
-	END_LEVEL_FONT_W,
-	END_LEVEL_FONT_X,
-	END_LEVEL_FONT_Y,
-	END_LEVEL_FONT_Z,
-	END_LEVEL_PISTOL_1,
-	END_LEVEL_PISTOL_2,
+	END_FLOOR_FONT_0,
+	END_FLOOR_FONT_1,
+	END_FLOOR_FONT_2,
+	END_FLOOR_FONT_3,
+	END_FLOOR_FONT_4,
+	END_FLOOR_FONT_5,
+	END_FLOOR_FONT_6,
+	END_FLOOR_FONT_7,
+	END_FLOOR_FONT_8,
+	END_FLOOR_FONT_9,
+	END_FLOOR_FONT_A,
+	END_FLOOR_FONT_APOSTROPHE,
+	END_FLOOR_FONT_B,
+	END_FLOOR_FONT_C,
+	END_FLOOR_FONT_COLON,
+	END_FLOOR_FONT_D,
+	END_FLOOR_FONT_E,
+	END_FLOOR_FONT_EXCLAMATION,
+	END_FLOOR_FONT_F,
+	END_FLOOR_FONT_G,
+	END_FLOOR_FONT_H,
+	END_FLOOR_FONT_HYPHON,
+	END_FLOOR_FONT_I,
+	END_FLOOR_FONT_J,
+	END_FLOOR_FONT_K,
+	END_FLOOR_FONT_L,
+	END_FLOOR_FONT_M,
+	END_FLOOR_FONT_N,
+	END_FLOOR_FONT_O,
+	END_FLOOR_FONT_P,
+	END_FLOOR_FONT_PERCENT,
+	END_FLOOR_FONT_Q,
+	END_FLOOR_FONT_R,
+	END_FLOOR_FONT_S,
+	END_FLOOR_FONT_T,
+	END_FLOOR_FONT_U,
+	END_FLOOR_FONT_V,
+	END_FLOOR_FONT_W,
+	END_FLOOR_FONT_X,
+	END_FLOOR_FONT_Y,
+	END_FLOOR_FONT_Z,
+	END_FLOOR_PISTOL_1,
+	END_FLOOR_PISTOL_2,
 	EPISODE_1,
 	EPISODE_2,
 	EPISODE_3,
 	EPISODE_4,
 	EPISODE_5,
 	EPISODE_6,
+	EPISODE_END_DOUBLE,
+	EPISODE_END_SINGLE,
 	GET_PSYCHED,
 	HUD_AMMO,
 	HUD_FONT_0,
@@ -712,177 +861,67 @@ export enum AssetIdImgMenu {
 	WEAPONS_4,
 }
 
-export const assetIdImgCharacterDie: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.DIE1,
-	AssetIdImgCharacter.DIE2,
-	AssetIdImgCharacter.DIE3,
-	AssetIdImgCharacter.DIE4,
-	AssetIdImgCharacter.CORPSE,
-];
-
-export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.MOVE1_S,
-	AssetIdImgCharacter.STAND_S,
-	AssetIdImgCharacter.MOVE1_SW,
-	AssetIdImgCharacter.STAND_SW,
-	AssetIdImgCharacter.MOVE1_W,
-	AssetIdImgCharacter.STAND_W,
-	AssetIdImgCharacter.MOVE1_NW,
-	AssetIdImgCharacter.STAND_NW,
-	AssetIdImgCharacter.MOVE1_N,
-	AssetIdImgCharacter.STAND_N,
-	AssetIdImgCharacter.MOVE1_NE,
-	AssetIdImgCharacter.STAND_NE,
-	AssetIdImgCharacter.MOVE1_E,
-	AssetIdImgCharacter.STAND_E,
-	AssetIdImgCharacter.MOVE1_SE,
-	AssetIdImgCharacter.STAND_SE,
-];
-
-export const assetIdImgCharacterMovementE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_E,
-	AssetIdImgCharacter.MOVE1_E,
-	AssetIdImgCharacter.MOVE2_E,
-	AssetIdImgCharacter.MOVE3_E,
-	AssetIdImgCharacter.MOVE4_E,
-];
-
-export const assetIdImgCharacterMovementN: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_N,
-	AssetIdImgCharacter.MOVE1_N,
-	AssetIdImgCharacter.MOVE2_N,
-	AssetIdImgCharacter.MOVE3_N,
-	AssetIdImgCharacter.MOVE4_N,
-];
-
-export const assetIdImgCharacterMovementNE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_NE,
-	AssetIdImgCharacter.MOVE1_NE,
-	AssetIdImgCharacter.MOVE2_NE,
-	AssetIdImgCharacter.MOVE3_NE,
-	AssetIdImgCharacter.MOVE4_NE,
-];
-
-export const assetIdImgCharacterMovementNW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_NW,
-	AssetIdImgCharacter.MOVE1_NW,
-	AssetIdImgCharacter.MOVE2_NW,
-	AssetIdImgCharacter.MOVE3_NW,
-	AssetIdImgCharacter.MOVE4_NW,
-];
-
-export const assetIdImgCharacterMovementS: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_S,
-	AssetIdImgCharacter.MOVE1_S,
-	AssetIdImgCharacter.MOVE2_S,
-	AssetIdImgCharacter.MOVE3_S,
-	AssetIdImgCharacter.MOVE4_S,
-];
-
-export const assetIdImgCharacterMovementSE: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_SE,
-	AssetIdImgCharacter.MOVE1_SE,
-	AssetIdImgCharacter.MOVE2_SE,
-	AssetIdImgCharacter.MOVE3_SE,
-	AssetIdImgCharacter.MOVE4_SE,
-];
-
-export const assetIdImgCharacterMovementSW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_SW,
-	AssetIdImgCharacter.MOVE1_SW,
-	AssetIdImgCharacter.MOVE2_SW,
-	AssetIdImgCharacter.MOVE3_SW,
-	AssetIdImgCharacter.MOVE4_SW,
-];
-
-export const assetIdImgCharacterMovementW: AssetIdImgCharacter[] = [
-	AssetIdImgCharacter.STAND_W,
-	AssetIdImgCharacter.MOVE1_W,
-	AssetIdImgCharacter.MOVE2_W,
-	AssetIdImgCharacter.MOVE3_W,
-	AssetIdImgCharacter.MOVE4_W,
-];
-
-const assetIdImgCharacterMovementAll: AssetIdImgCharacter[][] = [
-	assetIdImgCharacterMovementE,
-	assetIdImgCharacterMovementN,
-	assetIdImgCharacterMovementNE,
-	assetIdImgCharacterMovementNW,
-	assetIdImgCharacterMovementS,
-	assetIdImgCharacterMovementSE,
-	assetIdImgCharacterMovementSW,
-	assetIdImgCharacterMovementW,
-];
-const assetIdImgCharacterMovementAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
-
-export enum AssetIdImgCharacterType {
-	GUARD = 0,
-	OFFICER = 1,
-	RAT = 3,
-	SS = 2,
-}
-
 export enum AssetIdMap {
-	EPISODE_01_LEVEL_01 = 0,
-	EPISODE_01_LEVEL_02 = 1,
-	EPISODE_01_LEVEL_03 = 2,
-	EPISODE_01_LEVEL_04 = 3,
-	EPISODE_01_LEVEL_05 = 4,
-	EPISODE_01_LEVEL_06 = 5,
-	EPISODE_01_LEVEL_07 = 6,
-	EPISODE_01_LEVEL_08 = 7,
-	EPISODE_01_LEVEL_09 = 8,
-	EPISODE_01_LEVEL_10 = 9,
-	EPISODE_02_LEVEL_01 = 10,
-	EPISODE_02_LEVEL_02 = 11,
-	EPISODE_02_LEVEL_03 = 12,
-	EPISODE_02_LEVEL_04 = 13,
-	EPISODE_02_LEVEL_05 = 14,
-	EPISODE_02_LEVEL_06 = 15,
-	EPISODE_02_LEVEL_07 = 16,
-	EPISODE_02_LEVEL_08 = 17,
-	EPISODE_02_LEVEL_09 = 18,
-	EPISODE_02_LEVEL_10 = 19,
-	EPISODE_03_LEVEL_01 = 20,
-	EPISODE_03_LEVEL_02 = 21,
-	EPISODE_03_LEVEL_03 = 22,
-	EPISODE_03_LEVEL_04 = 23,
-	EPISODE_03_LEVEL_05 = 24,
-	EPISODE_03_LEVEL_06 = 25,
-	EPISODE_03_LEVEL_07 = 26,
-	EPISODE_03_LEVEL_08 = 27,
-	EPISODE_03_LEVEL_09 = 28,
-	EPISODE_03_LEVEL_10 = 29,
-	EPISODE_04_LEVEL_01 = 30,
-	EPISODE_04_LEVEL_02 = 31,
-	EPISODE_04_LEVEL_03 = 32,
-	EPISODE_04_LEVEL_04 = 33,
-	EPISODE_04_LEVEL_05 = 34,
-	EPISODE_04_LEVEL_06 = 35,
-	EPISODE_04_LEVEL_07 = 36,
-	EPISODE_04_LEVEL_08 = 37,
-	EPISODE_04_LEVEL_09 = 38,
-	EPISODE_04_LEVEL_10 = 39,
-	EPISODE_05_LEVEL_01 = 40,
-	EPISODE_05_LEVEL_02 = 41,
-	EPISODE_05_LEVEL_03 = 42,
-	EPISODE_05_LEVEL_04 = 43,
-	EPISODE_05_LEVEL_05 = 44,
-	EPISODE_05_LEVEL_06 = 45,
-	EPISODE_05_LEVEL_07 = 46,
-	EPISODE_05_LEVEL_08 = 47,
-	EPISODE_05_LEVEL_09 = 48,
-	EPISODE_05_LEVEL_10 = 49,
-	EPISODE_06_LEVEL_01 = 50,
-	EPISODE_06_LEVEL_02 = 51,
-	EPISODE_06_LEVEL_03 = 52,
-	EPISODE_06_LEVEL_04 = 53,
-	EPISODE_06_LEVEL_05 = 54,
-	EPISODE_06_LEVEL_06 = 55,
-	EPISODE_06_LEVEL_07 = 56,
-	EPISODE_06_LEVEL_08 = 57,
-	EPISODE_06_LEVEL_09 = 58,
-	EPISODE_06_LEVEL_10 = 59,
+	EPISODE_01_FLOOR_01 = 0,
+	EPISODE_01_FLOOR_02 = 1,
+	EPISODE_01_FLOOR_03 = 2,
+	EPISODE_01_FLOOR_04 = 3,
+	EPISODE_01_FLOOR_05 = 4,
+	EPISODE_01_FLOOR_06 = 5,
+	EPISODE_01_FLOOR_07 = 6,
+	EPISODE_01_FLOOR_08 = 7,
+	EPISODE_01_FLOOR_09 = 8,
+	EPISODE_01_FLOOR_10 = 9,
+	EPISODE_02_FLOOR_01 = 10,
+	EPISODE_02_FLOOR_02 = 11,
+	EPISODE_02_FLOOR_03 = 12,
+	EPISODE_02_FLOOR_04 = 13,
+	EPISODE_02_FLOOR_05 = 14,
+	EPISODE_02_FLOOR_06 = 15,
+	EPISODE_02_FLOOR_07 = 16,
+	EPISODE_02_FLOOR_08 = 17,
+	EPISODE_02_FLOOR_09 = 18,
+	EPISODE_02_FLOOR_10 = 19,
+	EPISODE_03_FLOOR_01 = 20,
+	EPISODE_03_FLOOR_02 = 21,
+	EPISODE_03_FLOOR_03 = 22,
+	EPISODE_03_FLOOR_04 = 23,
+	EPISODE_03_FLOOR_05 = 24,
+	EPISODE_03_FLOOR_06 = 25,
+	EPISODE_03_FLOOR_07 = 26,
+	EPISODE_03_FLOOR_08 = 27,
+	EPISODE_03_FLOOR_09 = 28,
+	EPISODE_03_FLOOR_10 = 29,
+	EPISODE_04_FLOOR_01 = 30,
+	EPISODE_04_FLOOR_02 = 31,
+	EPISODE_04_FLOOR_03 = 32,
+	EPISODE_04_FLOOR_04 = 33,
+	EPISODE_04_FLOOR_05 = 34,
+	EPISODE_04_FLOOR_06 = 35,
+	EPISODE_04_FLOOR_07 = 36,
+	EPISODE_04_FLOOR_08 = 37,
+	EPISODE_04_FLOOR_09 = 38,
+	EPISODE_04_FLOOR_10 = 39,
+	EPISODE_05_FLOOR_01 = 40,
+	EPISODE_05_FLOOR_02 = 41,
+	EPISODE_05_FLOOR_03 = 42,
+	EPISODE_05_FLOOR_04 = 43,
+	EPISODE_05_FLOOR_05 = 44,
+	EPISODE_05_FLOOR_06 = 45,
+	EPISODE_05_FLOOR_07 = 46,
+	EPISODE_05_FLOOR_08 = 47,
+	EPISODE_05_FLOOR_09 = 48,
+	EPISODE_05_FLOOR_10 = 49,
+	EPISODE_06_FLOOR_01 = 50,
+	EPISODE_06_FLOOR_02 = 51,
+	EPISODE_06_FLOOR_03 = 52,
+	EPISODE_06_FLOOR_04 = 53,
+	EPISODE_06_FLOOR_05 = 54,
+	EPISODE_06_FLOOR_06 = 55,
+	EPISODE_06_FLOOR_07 = 56,
+	EPISODE_06_FLOOR_08 = 57,
+	EPISODE_06_FLOOR_09 = 58,
+	EPISODE_06_FLOOR_10 = 59,
 }
 
 export enum AssetImgCategory {
@@ -892,6 +931,7 @@ export enum AssetImgCategory {
 	MENU,
 	SPRITE,
 	SPRITE_PICKUP,
+	TAG,
 	WALL,
 	WEAPON,
 	WAYPOINT,
@@ -925,7 +965,7 @@ export interface AssetPropertiesImage extends AssetProperties {
 
 export interface AssetPropertiesMap extends AssetProperties {
 	episode: number;
-	level: number;
+	floor: number;
 }
 
 export const assetsAudio: Map<AssetIdAudio, AssetPropertiesAudio> = new Map();
@@ -940,6 +980,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	let cAngle: number,
 		cAssetIdImgCharacter: AssetIdImgCharacter,
 		cAuthor: string,
+		cBoss: boolean,
 		cDir: string,
 		cFilePrefix: string,
 		cHide: boolean,
@@ -961,6 +1002,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.4,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_DEATH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_death.mp3',
+		title: 'Hans Grosse Death',
+		volume: 1,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_FIRE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_fire.mp3',
+		title: 'Hans Grosse Fire',
+		volume: 1,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_BOSS_HANS_GROSSE_SURPRISE, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/boss_hans_grosse_surprise.mp3',
+		title: 'Hans Grosse Surprise',
+		volume: 1,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_DOOR_CLOSE, {
 		author: 'Id Software',
 		effect: true,
@@ -979,7 +1047,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.8,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_MULTIPLE, {
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_MULTIPLE, {
 		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
@@ -988,7 +1056,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.4,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_NONE, {
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_NONE, {
 		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
@@ -997,7 +1065,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.4,
 	});
 
-	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_LEVEL_SCORE_SINGLE, {
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_END_FLOOR_SCORE_SINGLE, {
 		author: 'Id Software',
 		effect: true,
 		ext: AssetExtAudio.MP3,
@@ -1129,7 +1197,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/machine_gun.mp3',
 		title: 'Machine Gun Fire',
-		volume: 0.75,
+		volume: 0.5,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP, {
@@ -1339,6 +1407,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.8,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_YEAH, {
+		author: 'Id Software',
+		effect: true,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/effect/yeah.mp3',
+		title: 'Yeah',
+		volume: 0.8,
+	});
+
 	/**
 	 * Assets: Audio - Music
 	 */
@@ -1352,6 +1429,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_ENEMY_AROUND_THE_CORNER, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/enemy_around_the_corner.mp3',
+		title: 'Enemy Around the Corner',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_EPISODE_END, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/episode_end.mp3',
+		title: 'Episode End',
+		volume: 0.6,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_GET_THEM, {
 		author: 'Id Software',
 		effect: false,
@@ -1361,12 +1456,39 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		volume: 0.6,
 	});
 
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_MARCH_TO_WAR, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/march_to_war.mp3',
+		title: 'March to War',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_POW, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/pow.mp3',
+		title: 'P.O.W.',
+		volume: 0.4,
+	});
+
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_SEARCHN, {
 		author: 'Id Software',
 		effect: false,
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/searching_for_the_enemy.mp3',
 		title: 'Searching For The Enemy',
+		volume: 0.6,
+	});
+
+	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_SUSPENSE, {
+		author: 'Id Software',
+		effect: false,
+		ext: AssetExtAudio.MP3,
+		file: 'audio/music/suspense.mp3',
+		title: 'Suspense',
 		volume: 0.6,
 	});
 
@@ -1392,27 +1514,45 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			switch (characterType) {
 				case AssetIdImgCharacterType.GUARD:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'guard';
 					cHide = false;
 					cName = 'Guard';
 					break;
+				case AssetIdImgCharacterType.BOSS_HANS_GROSSE:
+					cAuthor = 'Id Software';
+					cBoss = true;
+					cDir = 'hans_grosse';
+					cHide = true;
+					cName = 'Hans Grosse';
+					break;
 				case AssetIdImgCharacterType.OFFICER:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'officer';
 					cHide = true;
 					cName = 'Officer';
 					break;
 				case AssetIdImgCharacterType.RAT:
 					cAuthor = 'Capstone Software';
+					cBoss = false;
 					cDir = 'rat';
 					cHide = true;
 					cName = 'Rat';
 					break;
 				case AssetIdImgCharacterType.SS:
 					cAuthor = 'Id Software';
+					cBoss = false;
 					cDir = 'ss';
 					cHide = true;
 					cName = 'SS';
+					break;
+				case AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ:
+					cAuthor = 'Id Software';
+					cBoss = true;
+					cDir = 'bj';
+					cHide = true;
+					cName = 'William Joseph "BJ" Blazkowics';
 					break;
 			}
 
@@ -1493,41 +1633,55 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 				title: `${cName} Fire`,
 			});
 
-			cInstance.set(AssetIdImgCharacter.HIT1, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit1.png`,
-				hide: cHide,
-				title: `${cName} Hit1`,
-			});
+			if (cBoss === true) {
+				cInstance.set(AssetIdImgCharacter.FIRE2, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/fire2.png`,
+					hide: cHide,
+					title: `${cName} Fire`,
+				});
+			}
 
-			cInstance.set(AssetIdImgCharacter.HIT2, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/hit2.png`,
-				hide: cHide,
-				title: `${cName} Hit2`,
-			});
+			if (cBoss !== true) {
+				cInstance.set(AssetIdImgCharacter.HIT1, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/hit1.png`,
+					hide: cHide,
+					title: `${cName} Hit1`,
+				});
 
-			cInstance.set(AssetIdImgCharacter.SUPRISE, {
-				alpha: true,
-				author: cAuthor,
-				category: AssetImgCategory.CHARACTER,
-				ext: AssetExtImg.PNG,
-				file: `img/character/${cDir}/surprise.png`,
-				hide: cHide,
-				title: `${cName} Surprise`,
-			});
+				cInstance.set(AssetIdImgCharacter.HIT2, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/hit2.png`,
+					hide: cHide,
+					title: `${cName} Hit2`,
+				});
+
+				cInstance.set(AssetIdImgCharacter.SUPRISE, {
+					alpha: true,
+					author: cAuthor,
+					category: AssetImgCategory.CHARACTER,
+					ext: AssetExtImg.PNG,
+					file: `img/character/${cDir}/surprise.png`,
+					hide: cHide,
+					title: `${cName} Surprise`,
+				});
+			}
 
 			/**
 			 * Movement
 			 */
-			for ([cI, cMovement] of assetIdImgCharacterMovementAll.entries()) {
-				cFilePrefix = assetIdImgCharacterMovementAllFilePrefixes[cI];
+			for ([cI, cMovement] of assetIdImgCharacterMoveAll.entries()) {
+				cFilePrefix = assetIdImgCharacterMoveAllFilePrefixes[cI];
 
 				switch (cFilePrefix) {
 					case 'e':
@@ -1559,17 +1713,34 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 						break;
 				}
 
-				for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
-					cInstance.set(cAssetIdImgCharacter, {
-						alpha: true,
-						angle: cAngle,
-						author: cAuthor,
-						category: AssetImgCategory.CHARACTER,
-						ext: AssetExtImg.PNG,
-						file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
-						hide: cHide,
-						title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
-					});
+				if (cBoss !== true || cAngle === 4.7124) {
+					for ([cI, cAssetIdImgCharacter] of cMovement.entries()) {
+						cInstance.set(cAssetIdImgCharacter, {
+							alpha: true,
+							angle: cAngle,
+							author: cAuthor,
+							category: AssetImgCategory.CHARACTER,
+							ext: AssetExtImg.PNG,
+							file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
+							hide: cHide,
+							title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
+						});
+					}
+				}
+
+				if (cAngle === 4.7124 && characterType === AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ) {
+					for ([cI, cAssetIdImgCharacter] of assetIdImgCharacterJumpS.entries()) {
+						cInstance.set(cAssetIdImgCharacter, {
+							alpha: true,
+							angle: cAngle,
+							author: cAuthor,
+							category: AssetImgCategory.CHARACTER,
+							ext: AssetExtImg.PNG,
+							file: `img/character/${cDir}/${cFilePrefix}_${`jump${cI + 1}`}.png`,
+							hide: cHide,
+							title: `${cName} ${'Jump'} ${cFilePrefix.toUpperCase()}`,
+						});
+					}
 				}
 			}
 		}
@@ -1580,17 +1751,65 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 	 */
 
 	if (audioOnly !== true) {
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_01, {
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_01, {
 			episode: 1,
-			file: 'map/episode_01_level_01.map',
-			level: 1,
-			title: 'Episode 01: Level 01',
+			file: 'map/episode_01_floor_01.map',
+			floor: 1,
+			title: 'Episode 01: Floor 01',
 		});
-		assetsMaps.set(AssetIdMap.EPISODE_01_LEVEL_02, {
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_02, {
 			episode: 1,
-			file: 'map/episode_01_level_02.map',
-			level: 2,
-			title: 'Episode 01: Level 02',
+			file: 'map/episode_01_floor_02.map',
+			floor: 2,
+			title: 'Episode 01: Floor 02',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_03, {
+			episode: 1,
+			file: 'map/episode_01_floor_03.map',
+			floor: 3,
+			title: 'Episode 01: Floor 03',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_04, {
+			episode: 1,
+			file: 'map/episode_01_floor_04.map',
+			floor: 4,
+			title: 'Episode 01: Floor 04',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_05, {
+			episode: 1,
+			file: 'map/episode_01_floor_05.map',
+			floor: 5,
+			title: 'Episode 01: Floor 05',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_06, {
+			episode: 1,
+			file: 'map/episode_01_floor_06.map',
+			floor: 6,
+			title: 'Episode 01: Floor 06',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_07, {
+			episode: 1,
+			file: 'map/episode_01_floor_07.map',
+			floor: 7,
+			title: 'Episode 01: Floor 07',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_08, {
+			episode: 1,
+			file: 'map/episode_01_floor_08.map',
+			floor: 8,
+			title: 'Episode 01: Floor 08',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_09, {
+			episode: 1,
+			file: 'map/episode_01_floor_09.map',
+			floor: 9,
+			title: 'Episode 01: Floor 09',
+		});
+		assetsMaps.set(AssetIdMap.EPISODE_01_FLOOR_10, {
+			episode: 1,
+			file: 'map/episode_01_floor_10.map',
+			floor: 10,
+			title: 'Episode 01: Floor 10',
 		});
 	}
 
@@ -1601,6 +1820,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		/**
 		 * Assets: Images - Sprites
 		 */
+		assetsImages.set(AssetIdImg.NULL, {
+			alpha: true,
+			author: 'tknight-dev',
+			category: AssetImgCategory.EXTENDED,
+			ext: AssetExtImg.PNG,
+			file: 'img/null.png',
+			title: 'Null',
+		});
+
 		assetsImages.set(AssetIdImg.SPRITE_AMMO, {
 			alpha: true,
 			author: 'Id Software',
@@ -1628,6 +1856,26 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/armor.png',
 			title: 'Armor',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BARREL_GREEN, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/barrel_green.png',
+			title: 'Barrel Green',
+		});
+
+		assetsImages.set(AssetIdImg.SPRITE_BARREL_WOOD, {
+			alpha: true,
+			author: 'Id Software',
+			blocking: true,
+			category: AssetImgCategory.SPRITE,
+			ext: AssetExtImg.PNG,
+			file: 'img/sprite/barrel_wood.png',
+			title: 'Barrel Wood',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_BASKET, {
@@ -1691,26 +1939,6 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/sprite/bone_rubish_3.png',
 			title: 'Bone Rubish 3',
-		});
-
-		assetsImages.set(AssetIdImg.SPRITE_BANNER_BARREL_GREEN, {
-			alpha: true,
-			author: 'Id Software',
-			blocking: true,
-			category: AssetImgCategory.SPRITE,
-			ext: AssetExtImg.PNG,
-			file: 'img/sprite/barrel_green.png',
-			title: 'Barrel Green',
-		});
-
-		assetsImages.set(AssetIdImg.SPRITE_BANNER_BARREL_WOOD, {
-			alpha: true,
-			author: 'Id Software',
-			blocking: true,
-			category: AssetImgCategory.SPRITE,
-			ext: AssetExtImg.PNG,
-			file: 'img/sprite/barrel_wood.png',
-			title: 'Barrel Wood',
 		});
 
 		assetsImages.set(AssetIdImg.SPRITE_CAGE, {
@@ -1935,7 +2163,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Metal Door Inside',
 		});
 
-		assetsImages.set(AssetIdImg.SPRITE_METAL_DOOR_LOCKED, {
+		assetsImages.set(AssetIdImg.SPRITE_METAL_LOCKED, {
 			alpha: false,
 			author: 'Id Software',
 			category: AssetImgCategory.EXTENDED,
@@ -2128,6 +2356,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		 * Assets: Images - Menu
 		 */
 
+		assetsImageMenus.set(AssetIdImgMenu.CREDITS, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/credits.png',
+			title: 'Credits',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.BANNER_BAR, {
 			alpha: true,
 			author: 'Id Software',
@@ -2200,7 +2437,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Difficulty Insane',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_1, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_PISTOL_1, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2209,7 +2446,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Pistol 1',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_PISTOL_2, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_PISTOL_2, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2218,7 +2455,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Pistol 2',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_0, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_0, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2227,7 +2464,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 0',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_1, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_1, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2236,7 +2473,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 1',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_2, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_2, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2245,7 +2482,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 2',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_3, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_3, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2254,7 +2491,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 3',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_4, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_4, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2263,7 +2500,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 4',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_5, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_5, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2272,7 +2509,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 5',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_6, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_6, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2281,7 +2518,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 6',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_7, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_7, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2290,7 +2527,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 7',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_8, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_8, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2299,7 +2536,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 8',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_9, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_9, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2308,7 +2545,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font 9',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_A, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_A, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2317,7 +2554,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font A',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_APOSTROPHE, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_APOSTROPHE, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2326,7 +2563,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Apostrophe',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_B, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_B, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2335,7 +2572,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font B',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_C, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_C, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2344,7 +2581,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font C',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_COLON, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_COLON, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2353,7 +2590,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Colon',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_D, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_D, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2362,7 +2599,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font D',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_E, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_E, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2371,7 +2608,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font E',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_EXCLAMATION, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_EXCLAMATION, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2380,7 +2617,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Exclamation',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_F, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_F, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2389,7 +2626,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font F',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_G, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_G, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2398,7 +2635,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font G',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_H, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_H, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2407,7 +2644,16 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font H',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_I, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_HYPHON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/hyphon.png',
+			title: 'End Level Font Hyphon',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_I, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2416,7 +2662,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font I',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_J, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_J, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2425,7 +2671,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font J',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_K, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_K, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2434,7 +2680,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font K',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_L, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_L, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2443,7 +2689,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font L',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_M, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_M, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2452,7 +2698,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font M',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_N, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_N, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2461,7 +2707,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font N',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_O, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_O, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2470,7 +2716,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font O',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_P, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_P, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2479,7 +2725,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font P',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_PERCENT, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_PERCENT, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2488,7 +2734,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Percent',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Q, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_Q, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2497,7 +2743,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Q',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_R, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_R, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2506,7 +2752,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font R',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_S, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_S, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2515,7 +2761,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font S',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_T, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_T, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2524,7 +2770,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font T',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_U, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_U, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2533,7 +2779,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font U',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_V, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_V, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2542,7 +2788,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font V',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_W, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_W, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2551,7 +2797,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font W',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_X, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_X, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2560,7 +2806,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font X',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Y, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_Y, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2569,7 +2815,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font Y',
 		});
 
-		assetsImageMenus.set(AssetIdImgMenu.END_LEVEL_FONT_Z, {
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_Z, {
 			alpha: true,
 			author: 'Id Software',
 			category: AssetImgCategory.MENU,
@@ -2630,6 +2876,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/menu/episode6.png',
 			title: 'Episode 6',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_END_DOUBLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode_end_double.png',
+			title: 'Episode End Double',
+		});
+
+		assetsImageMenus.set(AssetIdImgMenu.EPISODE_END_SINGLE, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/menu/episode_end_single.png',
+			title: 'Episode End Single',
 		});
 
 		assetsImageMenus.set(AssetIdImgMenu.HUD_AMMO, {
@@ -2879,46 +3143,47 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		 * Assets: Menu Fonts
 		 */
 
-		assetsImageMenusFontEndLevel.set('0', AssetIdImgMenu.END_LEVEL_FONT_0);
-		assetsImageMenusFontEndLevel.set('1', AssetIdImgMenu.END_LEVEL_FONT_1);
-		assetsImageMenusFontEndLevel.set('2', AssetIdImgMenu.END_LEVEL_FONT_2);
-		assetsImageMenusFontEndLevel.set('3', AssetIdImgMenu.END_LEVEL_FONT_3);
-		assetsImageMenusFontEndLevel.set('4', AssetIdImgMenu.END_LEVEL_FONT_4);
-		assetsImageMenusFontEndLevel.set('5', AssetIdImgMenu.END_LEVEL_FONT_5);
-		assetsImageMenusFontEndLevel.set('6', AssetIdImgMenu.END_LEVEL_FONT_6);
-		assetsImageMenusFontEndLevel.set('7', AssetIdImgMenu.END_LEVEL_FONT_7);
-		assetsImageMenusFontEndLevel.set('8', AssetIdImgMenu.END_LEVEL_FONT_8);
-		assetsImageMenusFontEndLevel.set('9', AssetIdImgMenu.END_LEVEL_FONT_9);
-		assetsImageMenusFontEndLevel.set('a', AssetIdImgMenu.END_LEVEL_FONT_A);
-		assetsImageMenusFontEndLevel.set("'", AssetIdImgMenu.END_LEVEL_FONT_APOSTROPHE);
-		assetsImageMenusFontEndLevel.set('b', AssetIdImgMenu.END_LEVEL_FONT_B);
-		assetsImageMenusFontEndLevel.set('c', AssetIdImgMenu.END_LEVEL_FONT_C);
-		assetsImageMenusFontEndLevel.set(':', AssetIdImgMenu.END_LEVEL_FONT_COLON);
-		assetsImageMenusFontEndLevel.set('d', AssetIdImgMenu.END_LEVEL_FONT_D);
-		assetsImageMenusFontEndLevel.set('e', AssetIdImgMenu.END_LEVEL_FONT_E);
-		assetsImageMenusFontEndLevel.set('!', AssetIdImgMenu.END_LEVEL_FONT_EXCLAMATION);
-		assetsImageMenusFontEndLevel.set('f', AssetIdImgMenu.END_LEVEL_FONT_F);
-		assetsImageMenusFontEndLevel.set('g', AssetIdImgMenu.END_LEVEL_FONT_G);
-		assetsImageMenusFontEndLevel.set('h', AssetIdImgMenu.END_LEVEL_FONT_H);
-		assetsImageMenusFontEndLevel.set('i', AssetIdImgMenu.END_LEVEL_FONT_I);
-		assetsImageMenusFontEndLevel.set('j', AssetIdImgMenu.END_LEVEL_FONT_J);
-		assetsImageMenusFontEndLevel.set('k', AssetIdImgMenu.END_LEVEL_FONT_K);
-		assetsImageMenusFontEndLevel.set('l', AssetIdImgMenu.END_LEVEL_FONT_L);
-		assetsImageMenusFontEndLevel.set('m', AssetIdImgMenu.END_LEVEL_FONT_M);
-		assetsImageMenusFontEndLevel.set('n', AssetIdImgMenu.END_LEVEL_FONT_N);
-		assetsImageMenusFontEndLevel.set('o', AssetIdImgMenu.END_LEVEL_FONT_O);
-		assetsImageMenusFontEndLevel.set('p', AssetIdImgMenu.END_LEVEL_FONT_P);
-		assetsImageMenusFontEndLevel.set('%', AssetIdImgMenu.END_LEVEL_FONT_PERCENT);
-		assetsImageMenusFontEndLevel.set('q', AssetIdImgMenu.END_LEVEL_FONT_Q);
-		assetsImageMenusFontEndLevel.set('r', AssetIdImgMenu.END_LEVEL_FONT_R);
-		assetsImageMenusFontEndLevel.set('s', AssetIdImgMenu.END_LEVEL_FONT_S);
-		assetsImageMenusFontEndLevel.set('t', AssetIdImgMenu.END_LEVEL_FONT_T);
-		assetsImageMenusFontEndLevel.set('u', AssetIdImgMenu.END_LEVEL_FONT_U);
-		assetsImageMenusFontEndLevel.set('v', AssetIdImgMenu.END_LEVEL_FONT_V);
-		assetsImageMenusFontEndLevel.set('w', AssetIdImgMenu.END_LEVEL_FONT_W);
-		assetsImageMenusFontEndLevel.set('x', AssetIdImgMenu.END_LEVEL_FONT_X);
-		assetsImageMenusFontEndLevel.set('y', AssetIdImgMenu.END_LEVEL_FONT_Y);
-		assetsImageMenusFontEndLevel.set('z', AssetIdImgMenu.END_LEVEL_FONT_Z);
+		assetsImageMenusFontEndLevel.set('0', AssetIdImgMenu.END_FLOOR_FONT_0);
+		assetsImageMenusFontEndLevel.set('1', AssetIdImgMenu.END_FLOOR_FONT_1);
+		assetsImageMenusFontEndLevel.set('2', AssetIdImgMenu.END_FLOOR_FONT_2);
+		assetsImageMenusFontEndLevel.set('3', AssetIdImgMenu.END_FLOOR_FONT_3);
+		assetsImageMenusFontEndLevel.set('4', AssetIdImgMenu.END_FLOOR_FONT_4);
+		assetsImageMenusFontEndLevel.set('5', AssetIdImgMenu.END_FLOOR_FONT_5);
+		assetsImageMenusFontEndLevel.set('6', AssetIdImgMenu.END_FLOOR_FONT_6);
+		assetsImageMenusFontEndLevel.set('7', AssetIdImgMenu.END_FLOOR_FONT_7);
+		assetsImageMenusFontEndLevel.set('8', AssetIdImgMenu.END_FLOOR_FONT_8);
+		assetsImageMenusFontEndLevel.set('9', AssetIdImgMenu.END_FLOOR_FONT_9);
+		assetsImageMenusFontEndLevel.set('a', AssetIdImgMenu.END_FLOOR_FONT_A);
+		assetsImageMenusFontEndLevel.set("'", AssetIdImgMenu.END_FLOOR_FONT_APOSTROPHE);
+		assetsImageMenusFontEndLevel.set('b', AssetIdImgMenu.END_FLOOR_FONT_B);
+		assetsImageMenusFontEndLevel.set('c', AssetIdImgMenu.END_FLOOR_FONT_C);
+		assetsImageMenusFontEndLevel.set(':', AssetIdImgMenu.END_FLOOR_FONT_COLON);
+		assetsImageMenusFontEndLevel.set('d', AssetIdImgMenu.END_FLOOR_FONT_D);
+		assetsImageMenusFontEndLevel.set('e', AssetIdImgMenu.END_FLOOR_FONT_E);
+		assetsImageMenusFontEndLevel.set('!', AssetIdImgMenu.END_FLOOR_FONT_EXCLAMATION);
+		assetsImageMenusFontEndLevel.set('f', AssetIdImgMenu.END_FLOOR_FONT_F);
+		assetsImageMenusFontEndLevel.set('g', AssetIdImgMenu.END_FLOOR_FONT_G);
+		assetsImageMenusFontEndLevel.set('h', AssetIdImgMenu.END_FLOOR_FONT_H);
+		assetsImageMenusFontEndLevel.set('-', AssetIdImgMenu.END_FLOOR_FONT_HYPHON);
+		assetsImageMenusFontEndLevel.set('i', AssetIdImgMenu.END_FLOOR_FONT_I);
+		assetsImageMenusFontEndLevel.set('j', AssetIdImgMenu.END_FLOOR_FONT_J);
+		assetsImageMenusFontEndLevel.set('k', AssetIdImgMenu.END_FLOOR_FONT_K);
+		assetsImageMenusFontEndLevel.set('l', AssetIdImgMenu.END_FLOOR_FONT_L);
+		assetsImageMenusFontEndLevel.set('m', AssetIdImgMenu.END_FLOOR_FONT_M);
+		assetsImageMenusFontEndLevel.set('n', AssetIdImgMenu.END_FLOOR_FONT_N);
+		assetsImageMenusFontEndLevel.set('o', AssetIdImgMenu.END_FLOOR_FONT_O);
+		assetsImageMenusFontEndLevel.set('p', AssetIdImgMenu.END_FLOOR_FONT_P);
+		assetsImageMenusFontEndLevel.set('%', AssetIdImgMenu.END_FLOOR_FONT_PERCENT);
+		assetsImageMenusFontEndLevel.set('q', AssetIdImgMenu.END_FLOOR_FONT_Q);
+		assetsImageMenusFontEndLevel.set('r', AssetIdImgMenu.END_FLOOR_FONT_R);
+		assetsImageMenusFontEndLevel.set('s', AssetIdImgMenu.END_FLOOR_FONT_S);
+		assetsImageMenusFontEndLevel.set('t', AssetIdImgMenu.END_FLOOR_FONT_T);
+		assetsImageMenusFontEndLevel.set('u', AssetIdImgMenu.END_FLOOR_FONT_U);
+		assetsImageMenusFontEndLevel.set('v', AssetIdImgMenu.END_FLOOR_FONT_V);
+		assetsImageMenusFontEndLevel.set('w', AssetIdImgMenu.END_FLOOR_FONT_W);
+		assetsImageMenusFontEndLevel.set('x', AssetIdImgMenu.END_FLOOR_FONT_X);
+		assetsImageMenusFontEndLevel.set('y', AssetIdImgMenu.END_FLOOR_FONT_Y);
+		assetsImageMenusFontEndLevel.set('z', AssetIdImgMenu.END_FLOOR_FONT_Z);
 
 		assetsImageMenusFontHUD.set('0', AssetIdImgMenu.HUD_FONT_0);
 		assetsImageMenusFontHUD.set('1', AssetIdImgMenu.HUD_FONT_1);
@@ -2931,6 +3196,18 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		assetsImageMenusFontHUD.set('8', AssetIdImgMenu.HUD_FONT_8);
 		assetsImageMenusFontHUD.set('9', AssetIdImgMenu.HUD_FONT_9);
 		assetsImageMenusFontHUD.set('%', AssetIdImgMenu.HUD_FONT_PERCENT);
+
+		/**
+		 * Assets: Images - Tags
+		 */
+		assetsImages.set(AssetIdImg.MISC_X, {
+			alpha: true,
+			category: AssetImgCategory.TAG,
+			ext: AssetExtImg.PNG,
+			file: 'img/misc/x.png',
+			hide: true,
+			title: 'X',
+		});
 
 		/**
 		 * Assets: Images - Walls
@@ -2972,6 +3249,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Brick Blue Cell Skeleton',
 		});
 
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red.png',
+			title: 'Brick Red',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED_EAGLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red_eagle.png',
+			title: 'Brick Red Eagle',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_BRICK_RED_LAURAL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/brick_red_laural.png',
+			title: 'Brick Red Laural',
+		});
+
 		assetsImages.set(AssetIdImg.WALL_ELEVATOR_SIDE, {
 			alpha: false,
 			author: 'Id Software',
@@ -2999,6 +3303,33 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Switch Up',
 		});
 
+		assetsImages.set(AssetIdImg.WALL_METAL, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal.png',
+			title: 'Metal',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_METAL_ACHTUNG, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal_achtung.png',
+			title: 'Metal Auchtung',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_METAL_VERBOTEM, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/metal_verbotem.png',
+			title: 'Metal Verbotem',
+		});
+
 		assetsImages.set(AssetIdImg.WALL_OUTSIDE_DAY, {
 			alpha: false,
 			author: 'Id Software',
@@ -3017,6 +3348,24 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'Outside Night',
 		});
 
+		assetsImages.set(AssetIdImg.WALL_ROCK_PURPLE, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/rock_purple.png',
+			title: 'Rock Purple',
+		});
+
+		assetsImages.set(AssetIdImg.WALL_ROCK_PURPLE_BLOOD, {
+			alpha: false,
+			author: 'Id Software',
+			category: AssetImgCategory.WALL,
+			ext: AssetExtImg.PNG,
+			file: 'img/wall/rock_purple_blood.png',
+			title: 'Rock Purple Blood',
+		});
+
 		assetsImages.set(AssetIdImg.WALL_STONE_GREY, {
 			alpha: false,
 			author: 'Id Software',
@@ -3033,15 +3382,6 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			ext: AssetExtImg.PNG,
 			file: 'img/wall/stone_grey2.png',
 			title: 'Stone Grey2',
-		});
-
-		assetsImages.set(AssetIdImg.WALL_STONE_GREY3, {
-			alpha: false,
-			author: 'Id Software',
-			category: AssetImgCategory.WALL,
-			ext: AssetExtImg.PNG,
-			file: 'img/wall/stone_grey3.png',
-			title: 'Stone Grey3',
 		});
 
 		assetsImages.set(AssetIdImg.WALL_STONE_GREY_EAGLE, {
@@ -3137,35 +3477,35 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_nw.png',
-			title: 'Arrow (North West)',
+			title: 'Arrow: North West',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_s.png',
-			title: 'Arrow (South)',
+			title: 'Arrow: South',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_EAST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_se.png',
-			title: 'Arrow (South East)',
+			title: 'Arrow: South East',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_SOUTH_WEST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_sw.png',
-			title: 'Arrow (South West)',
+			title: 'Arrow: South West',
 		});
 		assetsImages.set(AssetIdImg.MISC_ARROW_WEST, {
 			alpha: true,
 			category: AssetImgCategory.WAYPOINT,
 			ext: AssetExtImg.PNG,
 			file: 'img/misc/arrow_w.png',
-			title: 'Arrow (West)',
+			title: 'Arrow: West',
 		});
 
 		/**

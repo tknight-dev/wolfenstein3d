@@ -9,10 +9,12 @@ import {
 } from './video-overlay.model.js';
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import {
+	CalcMainBusOutputDataActionTag,
 	CalcMainBusPlayerDeadFadeDurationInMS,
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusPlayerHitDurationInMS,
 } from '../calc-main/calc-main.model.js';
+import { GameGridCellMasksAndValues } from '../../models/game.model.js';
 
 /**
  * @author tknight-dev
@@ -25,6 +27,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoOverlayBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case VideoOverlayBusInputCmd.ACTION_TAG:
+			VideoOverlayEngine.inputActionTag(<CalcMainBusOutputDataActionTag>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.GAME_OVER:
 			VideoOverlayEngine.inputGameOver();
 			break;
@@ -74,6 +79,8 @@ class VideoOverlayEngine {
 	private static reset: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
+	private static tagRunAndJump: boolean;
+	private static tagRunAndJumpOptions: any;
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: VideoOverlayBusInputDataInit): Promise<void> {
@@ -96,7 +103,6 @@ class VideoOverlayEngine {
 
 		// Start
 		if (VideoOverlayEngine.offscreenCanvasContext === null) {
-			console.error('VideoOverlayEngine: failed acquire context');
 			VideoOverlayEngine.post([
 				{
 					cmd: VideoOverlayBusOutputCmd.INIT_COMPLETE,
@@ -120,6 +126,13 @@ class VideoOverlayEngine {
 	/*
 	 * Input
 	 */
+
+	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		if (data.type === GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) {
+			VideoOverlayEngine.tagRunAndJump = true;
+			VideoOverlayEngine.tagRunAndJumpOptions = data.options;
+		}
+	}
 
 	public static inputGameOver(): void {
 		VideoOverlayEngine.dead = true;
@@ -217,6 +230,8 @@ class VideoOverlayEngine {
 			renderLocked: number[],
 			renderLockedDelta: number,
 			renderLockedTimestampUnix: number,
+			tagRunAndJump: boolean,
+			tagRunAndJumpOptions: any,
 			timerId: number,
 			timers: GamingCanvasUtilTimers = VideoOverlayEngine.timers,
 			timestampDelta: number,
@@ -341,9 +356,16 @@ class VideoOverlayEngine {
 					VideoOverlayEngine.timers.clearAll();
 					VideoOverlayEngine.hitsByTimerId.clear();
 					VideoOverlayEngine.hitGradientsByTimerId.clear();
+					VideoOverlayEngine.tagRunAndJump = false;
 
 					renderDead = false;
 					renderGameOver = false;
+					tagRunAndJump = false;
+				}
+
+				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {
+					tagRunAndJump = VideoOverlayEngine.tagRunAndJump;
+					tagRunAndJumpOptions = VideoOverlayEngine.tagRunAndJumpOptions;
 				}
 
 				/*
@@ -357,6 +379,11 @@ class VideoOverlayEngine {
 					renderFilter = renderFilterNone;
 				}
 				offscreenCanvasContext.filter = renderFilter;
+
+				if (tagRunAndJump === true) {
+					offscreenCanvasContext.clearRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
+					return;
+				}
 
 				if (pause !== true) {
 					if (renderDead === true || renderGameOver === true) {

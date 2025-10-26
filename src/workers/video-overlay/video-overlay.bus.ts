@@ -7,6 +7,7 @@ import {
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
+import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
 
 /**
  * @author tknight-dev
@@ -228,5 +229,17 @@ export class VideoOverlayBus {
 
 	public static setCallbackStats(callbackStats: (player1: boolean, data: VideoOverlayBusOutputDataStats) => void): void {
 		VideoOverlayBus.callbackStats = callbackStats;
+	}
+
+	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
 	}
 }

@@ -165,9 +165,38 @@
 											<td colspan="2" style="text-align: center;">--- Editor ---</td>
 										</tr>
 										<tr>
+											<td>Download</td>
+											<td><input autocomplete="off" disabled readonly value = "d" /></td>
+										</tr>
+										<tr>
+											<td>Erase Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "e" /></td>
+										</tr>
+										<tr>
 											<td>Erase All</td>
 											<td><input autocomplete="off" disabled readonly value = "left-shift + r" /></td>
 										</tr>
+										<tr>
+											<td>History Redo</td>
+											<td><input autocomplete="off" disabled readonly value = "left-control + y" /></td>
+										</tr>
+										<tr>
+											<td>History Undo</td>
+											<td><input autocomplete="off" disabled readonly value = "left-control + z" /></td>
+										</tr>
+										<tr>
+											<td>Inspect (eye-dropper) Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "i" /></td>
+										</tr>
+										<tr>
+											<td>Move Mode</td>
+											<td><input autocomplete="off" disabled readonly value = "m" /></td>
+										</tr>
+										<tr>
+											<td>Upload</td>
+											<td><input autocomplete="off" disabled readonly value = "u" /></td>
+										</tr>
+										<tr>
 										<tr>
 											<td colspan="2" style="text-align: center;">--- Debug (Goobers) ---</td>
 										</tr>
@@ -198,12 +227,20 @@
 											<td colspan="2" style="text-align: center;">--- Editor ---</td>
 										</tr>
 										<tr>
-											<td>Camera: Move</td>
+											<td>Camera: Move (move mode)</td>
 											<td><input autocomplete="off" disabled readonly value = "L + Move Down/Left/Right/Up" /></td>
+										</tr>
+										<tr>
+											<td>Camera: Move (edit mode)</td>
+											<td><input autocomplete="off" disabled readonly value = "M + Move Down/Left/Right/Up" /></td>
 										</tr>
 										<tr>
 											<td>Camera: Rotate</td>
 											<td><input autocomplete="off" disabled readonly value = "M + Move Left/Right" /></td>
+										</tr>
+										<tr>
+											<td>Fill Mode Toggle</td>
+											<td><input autocomplete="off" disabled readonly value = "hold L on pencil-icon when active" /></td>
 										</tr>
 										<tr>
 											<td>Place/Inspect</td>
@@ -261,6 +298,10 @@
 							</div>
 							<div class="container" id="editor-cell-container-characters" style="display:none">
 								<div class="group">
+									<div class="name">Bosses</div>
+									<div class="content" id="editor-cell-container-characters-boss-content"></div>
+								</div>
+								<div class="group">
 									<div class="name">Guard</div>
 									<div class="content" id="editor-cell-container-characters-guard-content"></div>
 								</div>
@@ -282,6 +323,10 @@
 									<div class="name">Interactive</div>
 									<div class="content" id="editor-cell-container-interactive-content"></div>
 								</div>
+								<div class="group" id="editor-cell-container-waypoints-group">
+									<div class="name">Waypoints</div>
+									<div class="content" id="editor-cell-container-waypoints-content"></div>
+								</div>
 							</div>
 							<div class="container" id="editor-cell-container-objects">
 								<div class="group" id="editor-cell-container-pickups">
@@ -292,13 +337,13 @@
 									<div class="name">Sprites</div>
 									<div class="content" id="editor-cell-container-sprites-content"></div>
 								</div>
+								<div class="group" id="editor-cell-container-sprites-lights">
+									<div class="name">Sprites: Lights</div>
+									<div class="content" id="editor-cell-container-sprites-lights-content"></div>
+								</div>
 								<div class="group" id="editor-cell-container-walls">
 									<div class="name">Walls</div>
 									<div class="content" id="editor-cell-container-walls-content"></div>
-								</div>
-								<div class="group" id="editor-cell-container-waypoints-group">
-									<div class="name">Waypoints</div>
-									<div class="content" id="editor-cell-container-waypoints-content"></div>
 								</div>
 							</div>
 							<div class="sections">
@@ -308,39 +353,13 @@
 							</div>
 							<div class="commands">
 								<div class="command clickable" id="editor-cell-command-toggle-find-and-replace">F = Find & Replace</div>
-								<div class="command clickable" id="editor-cell-command-toggle-meta">M = Meta Menu</div>
+								<div class="command clickable" id="editor-cell-command-toggle-options">O = Options</div>
 								<div class="command clickable" id="editor-cell-command-toggle-reset">R = Reset Map</div>
 							</div>
 						</div>
 					</div>
 					<div class="editor hide left properties" id="editor-properties">
 						<div class="wrapper">
-							<div class="container extended" id="editor-properties-cell-extended">
-								<div class="group">
-									<div class="content">
-										<label class="item" for="editor-cell-cell-extended-door">
-											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door" name="editor-cell-cell-extended-door" type="checkbox" />
-											<div class="title">Door</div>
-										</label>
-										<label class="item" for="editor-cell-cell-extended-door-locked1">
-											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door-locked1" name="editor-cell-cell-extended-door-locked1" type="checkbox" />
-											<div class="title">Door Locked 1</div>
-										</label>
-										<label class="item" for="editor-cell-cell-extended-door-locked2">
-											<input autocomplete="off" class="input" id="editor-cell-cell-extended-door-locked2" name="editor-cell-cell-extended-door-locked2" type="checkbox" />
-											<div class="title">Door Locked 2</div>
-										</label>
-										<label class="item" for="editor-cell-extended-switch">
-											<input autocomplete="off" class="input" id="editor-cell-extended-switch" name="editor-cell-extended-switch" type="checkbox" />
-											<div class="title">Switch</div>
-										</label>
-										<label class="item" for="editor-cell-extended-switch-alt">
-											<input autocomplete="off" class="input" id="editor-cell-extended-switch-alt" name="editor-cell-extended-switch-alt" type="checkbox" />
-											<div class="title">Switch Alt</div>
-										</label>
-									</div>
-								</div>
-							</div>
 							<div class="handle">
 								<div class="arrow" id="editor-properties-handle-arrow">🡢</div>
 								<div class="hide" id="editor-properties-handle-hide">_</div>
@@ -348,9 +367,13 @@
 							<div class="container" id="editor-properties-cell-container">
 								<div class="group">
 									<div class="content">
-										<label class="item" for="editor-cell-extended">
-											<input autocomplete="off" class="input" id="editor-cell-extended" name="editor-cell-extended" type="checkbox" />
-											<div class="title">Extended</div>
+										<label class="item" for="editor-cell-disabled">
+											<input autocomplete="off" class="input" id="editor-cell-disabled" name="editor-cell-disabled" type="checkbox" />
+											<div class="title">Disabled</div>
+										</label>
+										<label class="item" for="editor-cell-door">
+											<input autocomplete="off" class="input" id="editor-cell-door" name="editor-cell-door" type="checkbox" />
+											<div class="title">Door</div>
 										</label>
 										<label class="item" for="editor-cell-floor">
 											<input autocomplete="off" class="input" id="editor-cell-floor" name="editor-cell-floor" type="checkbox" />
@@ -360,13 +383,33 @@
 											<input autocomplete="off" class="input" id="editor-cell-light" name="editor-cell-light" type="checkbox" />
 											<div class="title">Light</div>
 										</label>
+										<label class="item" for="editor-cell-locked-1">
+											<input autocomplete="off" class="input" id="editor-cell-locked-1" name="editor-cell-locked-1" type="checkbox" />
+											<div class="title">Locked: 1</div>
+										</label>
+										<label class="item" for="editor-cell-locked-2">
+											<input autocomplete="off" class="input" id="editor-cell-locked-2" name="editor-cell-locked-2" type="checkbox" />
+											<div class="title">Locked: 2</div>
+										</label>
 										<label class="item" for="editor-cell-sprite-fixed-ew">
 											<input autocomplete="off" class="input" id="editor-cell-sprite-fixed-ew" name="editor-cell-sprite-fixed-ew" type="checkbox" />
-											<div class="title">Sprite Fixed East/West</div>
+											<div class="title">Sprite: Fixed East/West</div>
 										</label>
 										<label class="item" for="editor-cell-sprite-fixed-ns">
 											<input autocomplete="off" class="input" id="editor-cell-sprite-fixed-ns" name="editor-cell-sprite-fixed-ns" type="checkbox" />
-											<div class="title">Sprite Fixed North/South</div>
+											<div class="title">Sprite: Fixed North/South</div>
+										</label>
+										<label class="item" for="editor-cell-switch">
+											<input autocomplete="off" class="input" id="editor-cell-switch" name="editor-cell-switch" type="checkbox" />
+											<div class="title">Switch</div>
+										</label>
+										<label class="item" for="editor-cell-switch-secret">
+											<input autocomplete="off" class="input" id="editor-cell-switch-secret" name="editor-cell-switch-secret" type="checkbox" />
+											<div class="title">Switch: Secret</div>
+										</label>
+										<label class="item" for="editor-cell-tag-run-and-jump">
+											<input autocomplete="off" class="input" id="editor-cell-tag-run-and-jump" name="editor-cell-tag-run-and-jump" type="checkbox" />
+											<div class="title">Tag: Run And Jump</div>
 										</label>
 										<label class="item" for="editor-cell-wall">
 											<input autocomplete="off" class="input" id="editor-cell-wall" name="editor-cell-wall" type="checkbox" />
@@ -374,12 +417,28 @@
 										</label>
 										<label class="item" for="editor-cell-wall-invisible">
 											<input autocomplete="off" class="input" id="editor-cell-wall-invisible" name="editor-cell-wall-invisible" type="checkbox" />
-											<div class="title">Wall Invisible</div>
+											<div class="title">Wall: Invisible</div>
 										</label>
 										<label class="item" for="editor-cell-wall-movable">
 											<input autocomplete="off" class="input" id="editor-cell-wall-movable" name="editor-cell-wall-movable" type="checkbox" />
-											<div class="title">Wall Movable</div>
+											<div class="title">Wall: Movable</div>
 										</label>
+			<!-- 							<label class="item" for="editor-cell-mux-1">
+											<input autocomplete="off" class="input" id="editor-cell-mux-1" name="editor-cell-mux-1" type="checkbox" />
+											<div class="title">Mux 01</div>
+										</label>
+										<label class="item" for="editor-cell-mux-2">
+											<input autocomplete="off" class="input" id="editor-cell-mux-2" name="editor-cell-mux-2" type="checkbox" />
+											<div class="title">Mux 02</div>
+										</label>
+										<label class="item" for="editor-cell-mux-3">
+											<input autocomplete="off" class="input" id="editor-cell-mux-3" name="editor-cell-mux-3" type="checkbox" />
+											<div class="title">Mux 03</div>
+										</label>
+										<label class="item" for="editor-cell-mux-4">
+											<input autocomplete="off" class="input" id="editor-cell-mux-4" name="editor-cell-mux-4" type="checkbox" />
+											<div class="title">Mux 04</div>
+										</label> -->
 									</div>
 								</div>
 							</div>
@@ -567,50 +626,62 @@
 					<div class="fps" id="stat-fps"></div>
 					<div class="meta map" id="meta-map">
 						<div class="wrapper">
-							<div class="header">Meta</div>
+							<div class="header">Options</div>
 							<div class="body">
 								<table>
 									<tbody>
 										<tr style="height: 55px">
 											<td>Use Current Location</td>
 											<td>
-												<span class="button" id="meta-map-location"><span class="main-icon location"></span></span>
+												<span class="button" id="map-options-location"><span class="main-icon location"></span></span>
 											</td>
 										</tr>
 										<tr>
-											<td>Id</td>
+											<td>Color: Ceiling (hex)</td>
 											<td>
-												<select autocomplete="off" id="meta-map-value-id"></select>
+												<input autocomplete="off" id="map-options-value-color-ceiling" />
+											</td>
+										</tr>
+										<tr>
+											<td>Color: Floor (hex)</td>
+											<td>
+												<input autocomplete="off" id="map-options-value-color-floor" />
+											</td>
+										</tr>
+										<tr>
+											<td>ID</td>
+											<td>
+												<select autocomplete="off" id="map-options-value-id"></select>
 											</td>
 										</tr>
 										<tr>
 											<td>Music</td>
 											<td>
-												<select autocomplete="off" id="meta-map-value-music"></select>
+												<select autocomplete="off" id="map-options-value-music"></select>
 											</td>
 										</tr>
 										<tr>
 											<td>Starting Angle (degrees)</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-r" max="360" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Starting Position X</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-x" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-x" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Starting Position Y</td>
-											<td><input autocomplete="off" id="meta-map-value-starting-position-y" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-starting-position-y" min="0" step="1" type="number" /></td>
 										</tr>
 										<tr>
 											<td>Time: Par in Seconds</td>
-											<td><input autocomplete="off" id="meta-map-value-time-par-seconds" min="0" step="1" type="number" /></td>
+											<td><input autocomplete="off" id="map-options-value-time-par-seconds" min="0" step="1" type="number" /></td>
 										</tr>
 									</tbody>
 								</table>
 							</div>
 							<div class="buttons">
-								<button class="cancel" id="meta-map-cancel">Cancel</button>
-								<button id="meta-map-apply">Apply</button>
+								<button class="cancel" id="map-options-cancel">Cancel</button>
+								<button id="map-options-apply">Apply</button>
 							</div>
 						</div>
 					</div>
@@ -770,38 +841,41 @@
 						</div>
 					</div>
 					<div class="screen black" id="screen-black"></div>
-					<div class="screen level-end" id="screen-level-end">
+					<div class="screen credits" id="screen-credits"></div>
+					<div class="screen ending" id="screen-ending">
 						<div class="wrapper">
 							<table class="top">
 								<tr>
 									<td class="image" rowspan="5">
-										<img id="screen-level-end-image1"/>
-										<img id="screen-level-end-image2" class="animate"/>
+										<img id="screen-ending-episode-image1"/>
+										<img id="screen-ending-episode-image2"/>
+										<img id="screen-ending-floor-image1"/>
+										<img id="screen-ending-floor-image2" class="animate"/>
 									</td>
-									<td class="text" id="screen-level-end-floor"></td>
+									<td class="text" id="screen-ending-floor-floor"></td>
 								</tr>
 								<tr>
-									<td class="text" id="screen-level-end-completed"></td>
+									<td class="text" id="screen-ending-floor-completed"></td>
 								</tr>
 								<tr>
-									<td class="text" id="screen-level-end-bonus"></td>
+									<td class="text" id="screen-ending-floor-bonus"></td>
 								</tr>
 								<tr>
-									<td class="text" id="screen-level-end-time"></td>
+									<td class="text" id="screen-ending-floor-time"></td>
 								</tr>
 								<tr>
-									<td class="text" id="screen-level-end-time-par"></td>
+									<td class="text" id="screen-ending-floor-time-par"></td>
 								</tr>
 							</table>
 							<table class="bottom">
 								<tr>
-									<td class="text"  id="screen-level-end-ratio-kill"></td>
+									<td class="text"  id="screen-ending-floor-ratio-kill"></td>
 								</tr>
 								<tr>
-									<td class="text"  id="screen-level-end-ratio-secret"></td>
+									<td class="text"  id="screen-ending-floor-ratio-secret"></td>
 								</tr>
 								<tr>
-									<td class="text"  id="screen-level-end-ratio-treasure"></td>
+									<td class="text"  id="screen-ending-floor-ratio-treasure"></td>
 								</tr>
 							</table>
 						</div>
@@ -923,6 +997,13 @@
 											<td><input autocomplete="off" id="settings-value-graphics-dpi" type="checkbox" /></td>
 										</tr>
 										<tr>
+											<td>FOV</td>
+											<td class="range">
+												<input autocomplete="off" id="settings-value-graphics-fov" min="30" max="120" step="1" type="range" />
+												<input autocomplete="off" id="settings-value-graphics-fov-readout" disabled readonly />
+											</td>
+										</tr>
+										<tr>
 											<td>FPS</td>
 											<td>
 												<select autocomplete="off" id="settings-value-graphics-fps">
@@ -933,13 +1014,6 @@
 													<option autocomplete="off" value="144">144</option>
 													<option autocomplete="off" value="0">Unlimited</option>
 												</select>
-											</td>
-										</tr>
-										<tr>
-											<td>FOV</td>
-											<td class="range">
-												<input autocomplete="off" id="settings-value-graphics-fov" min="30" max="120" step="1" type="range" />
-												<input autocomplete="off" id="settings-value-graphics-fov-readout" disabled readonly />
 											</td>
 										</tr>
 										<tr>

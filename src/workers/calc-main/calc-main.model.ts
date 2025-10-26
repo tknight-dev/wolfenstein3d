@@ -1,5 +1,5 @@
 import { GamingCanvasConstPI_1_000, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameDifficulty, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput, CharacterWeapon } from '../../models/character.model.js';
@@ -62,7 +62,7 @@ CalcMainBusWeaponDamage.set(CharacterWeapon.SUB_MACHINE_GUN, 100);
 export const CalcMainBusWeaponFireDurationsInMS: Map<CharacterWeapon, number[]> = new Map();
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.KNIFE, [100, 100, 100, 100, 100]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.MACHINE_GUN, [100, 100, 100, 100, 100]);
-CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [100, 100, 100, 100, 100]);
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [80, 80, 80, 80, 80]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.SUB_MACHINE_GUN, [100, 100, 100, 100, 100]);
 
 export const CalcMainBusWeaponFireFrame: Map<number, number> = new Map();
@@ -154,6 +154,7 @@ export enum CalcMainBusOutputCmd {
 	ACTION_DOOR,
 	ACTION_DOOR_LOCKED,
 	ACTION_SWITCH,
+	ACTION_TAG,
 	ACTION_WALL_MOVE,
 	AUDIO,
 	CAMERA,
@@ -197,6 +198,13 @@ export interface CalcMainBusOutputDataActionPlayerMeta {
 	shotsFired: number;
 	shotsHit: number;
 	timeInMS: number;
+}
+
+export interface CalcMainBusOutputDataActionTag {
+	gridIndex: number;
+	options: any;
+	player1: boolean;
+	type: GameGridCellMasksAndValues;
 }
 
 export interface CalcMainBusOutputDataActionWallMove {
@@ -278,6 +286,7 @@ export interface CalcMainBusOutputPayload {
 		| boolean
 		| CalcMainBusOutputDataActionDoorLocked
 		| CalcMainBusOutputDataActionSwitch
+		| CalcMainBusOutputDataActionTag
 		| CalcMainBusOutputDataActionWallMove
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataAudio

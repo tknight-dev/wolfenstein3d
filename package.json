@@ -10,9 +10,9 @@
         "prod": "rimraf dist && yarn assets:build && node esbuild.mjs"
     },
     "type": "module",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "dependencies": {
-        "@tknight-dev/gaming-canvas": "1.15.7",
+        "@tknight-dev/gaming-canvas": "1.17.0",
         "jszip": "^3.10.1",
         "node-stream-zip": "^1.15.0"
     },
