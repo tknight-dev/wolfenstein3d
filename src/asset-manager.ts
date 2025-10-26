@@ -1196,7 +1196,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/effect/machine_gun.mp3',
 		title: 'Machine Gun Fire',
-		volume: 0.65,
+		volume: 0.5,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_EFFECT_MACHINE_GUN_PICKUP, {
