@@ -802,6 +802,7 @@ export enum AssetIdImgMenu {
 	END_FLOOR_FONT_F,
 	END_FLOOR_FONT_G,
 	END_FLOOR_FONT_H,
+	END_FLOOR_FONT_HYPHON,
 	END_FLOOR_FONT_I,
 	END_FLOOR_FONT_J,
 	END_FLOOR_FONT_K,
@@ -2643,6 +2644,15 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 			title: 'End Level Font H',
 		});
 
+		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_HYPHON, {
+			alpha: true,
+			author: 'Id Software',
+			category: AssetImgCategory.MENU,
+			ext: AssetExtImg.PNG,
+			file: 'img/font/end_level/hyphon.png',
+			title: 'End Level Font Hyphon',
+		});
+
 		assetsImageMenus.set(AssetIdImgMenu.END_FLOOR_FONT_I, {
 			alpha: true,
 			author: 'Id Software',
@@ -3154,6 +3164,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		assetsImageMenusFontEndLevel.set('f', AssetIdImgMenu.END_FLOOR_FONT_F);
 		assetsImageMenusFontEndLevel.set('g', AssetIdImgMenu.END_FLOOR_FONT_G);
 		assetsImageMenusFontEndLevel.set('h', AssetIdImgMenu.END_FLOOR_FONT_H);
+		assetsImageMenusFontEndLevel.set('-', AssetIdImgMenu.END_FLOOR_FONT_HYPHON);
 		assetsImageMenusFontEndLevel.set('i', AssetIdImgMenu.END_FLOOR_FONT_I);
 		assetsImageMenusFontEndLevel.set('j', AssetIdImgMenu.END_FLOOR_FONT_J);
 		assetsImageMenusFontEndLevel.set('k', AssetIdImgMenu.END_FLOOR_FONT_K);

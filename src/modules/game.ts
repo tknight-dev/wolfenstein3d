@@ -2017,9 +2017,9 @@ export class Game {
 				utilStringToHTML(DOM.elScreenEndingFloorFloor, ``, true);
 				utilStringToHTML(DOM.elScreenEndingFloorTime, ``, true);
 				utilStringToHTML(DOM.elScreenEndingFloorTimePar, ``, true);
-				utilStringToHTML(DOM.elScreenEndingFloorRatioKill, ``, true);
-				utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, ``, true);
-				utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, ``, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioKill, `Thanks for playing my`, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioSecret, `JS remake of        `, true);
+				utilStringToHTML(DOM.elScreenEndingFloorRatioTreasure, `Wolfenstein3D! -TK `, true);
 
 				Game.mapEndingSkip = false;
 				setTimeout(() => {
