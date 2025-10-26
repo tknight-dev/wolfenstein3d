@@ -2588,7 +2588,22 @@ class CalcMainEngine {
 									(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 									(gameMapGridDataCell & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0
 								) {
-									actionWallMovable(cellSide, gameMapIndexEff, true);
+									// Check if cell beyond wall_movable is blocked
+									if (cameraInstance.r > GamingCanvasConstPI_1_750 || cameraInstance.r < GamingCanvasConstPI_0_250) {
+										gameMapGridDataCell = gameMapGridData[gameMapIndexEff + gameMapSideLength];
+									} else if (cameraInstance.r < GamingCanvasConstPI_0_750) {
+										gameMapGridDataCell = gameMapGridData[gameMapIndexEff - 1];
+									} else if (cameraInstance.r < GamingCanvasConstPI_1_250) {
+										gameMapGridDataCell = gameMapGridData[gameMapIndexEff - gameMapSideLength];
+									} else {
+										gameMapGridDataCell = gameMapGridData[gameMapIndexEff + 1];
+									}
+
+									if ((gameMapGridDataCell & GameGridCellMaskBlockingAll) !== 0) {
+										audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
+									} else {
+										actionWallMovable(cellSide, gameMapIndexEff, true);
+									}
 								} else {
 									audioEnableNoAction === true && audioPlay(AssetIdAudio.AUDIO_EFFECT_NOTHING_TO_DO);
 								}
