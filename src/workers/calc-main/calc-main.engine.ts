@@ -1823,6 +1823,7 @@ class CalcMainEngine {
 				if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
 					// Getting hit doesn't interrupt the aim/fire state cycle
 					if (characterNPC.running !== true) {
+						characterNPC.assetId = AssetIdImgCharacter.MOVE1_S;
 						characterNPC.camera.r = angle; // Face the attacker
 						characterNPC.running = true;
 						characterNPC.timestampUnixState = timestampUnix;
@@ -2002,15 +2003,13 @@ class CalcMainEngine {
 							}
 
 							if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
-								if (characterNPC.running !== true) {
-									characterNPC.running = true;
-									characterNPC.timestampUnixState = timestampUnix;
-									characterNPC.walking = false;
+								characterNPC.running = true;
+								characterNPC.timestampUnixState = timestampUnix;
+								characterNPC.walking = false;
 
-									characterNPC.assetId = AssetIdImgCharacter.AIM;
-									characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
-									characterNPCUpdated.add(characterNPC.id);
-								}
+								characterNPC.assetId = AssetIdImgCharacter.AIM;
+								characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
+								characterNPCUpdated.add(characterNPC.id);
 							} else {
 								characterNPC.running = true;
 								characterNPC.timestampUnixState = timestampUnix;
