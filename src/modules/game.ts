@@ -1994,6 +1994,8 @@ export class Game {
 					GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
 				}
 				setTimeout(async () => {
+					Settings.singleVideoFeedOverride(false);
+
 					if (Game.mapBackup.id % 10 === 8) {
 						Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_EPISODE_END);
 					} else {
@@ -2145,6 +2147,7 @@ export class Game {
 			if ((Game.map.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
 				DOM.elIconsTop.classList.add('intro');
 				Game.tagRunAndJump = true;
+				Settings.singleVideoFeedOverride(true);
 
 				setTimeout(() => {
 					// Stop all audio for the end animation
