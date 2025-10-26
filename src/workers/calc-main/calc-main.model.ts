@@ -62,7 +62,7 @@ CalcMainBusWeaponDamage.set(CharacterWeapon.SUB_MACHINE_GUN, 100);
 export const CalcMainBusWeaponFireDurationsInMS: Map<CharacterWeapon, number[]> = new Map();
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.KNIFE, [100, 100, 100, 100, 100]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.MACHINE_GUN, [100, 100, 100, 100, 100]);
-CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [100, 100, 100, 100, 100]);
+CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.PISTOL, [80, 80, 80, 80, 80]);
 CalcMainBusWeaponFireDurationsInMS.set(CharacterWeapon.SUB_MACHINE_GUN, [100, 100, 100, 100, 100]);
 
 export const CalcMainBusWeaponFireFrame: Map<number, number> = new Map();
