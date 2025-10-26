@@ -561,8 +561,9 @@ export class Game {
 			case 0:
 				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
 				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(AssetIdMap.EPISODE_01_FLOOR_01))));
-
-				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				break;
+			default:
+				console.error('Game > gameMenuActionLoad: unsupported episode', Game.gameMenuEpisode);
 				break;
 		}
 		Game.camera.r = Game.map.position.r;
@@ -570,6 +571,8 @@ export class Game {
 		Game.camera.y = Game.map.position.y + 0.5;
 		Game.camera.z = Game.map.position.z;
 
+		Game.gameOver = false;
+		Game.mapBackupRestored = false;
 		Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
 		Game.mapEnded = false;
 		Game.mapEnding = false;

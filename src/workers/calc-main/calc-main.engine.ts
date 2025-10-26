@@ -760,8 +760,6 @@ class CalcMainEngine {
 			statAudioRaw: Float32Array,
 			tagRunAndJump: boolean,
 			tagRunAndJumpCamera: GamingCanvasGridICamera,
-			tagRunAndJumpCamera1Id: number | null,
-			tagRunAndJumpCamera2Id: number | null,
 			timers: GamingCanvasUtilTimers = CalcMainEngine.timers,
 			timestampAudio: number = 0,
 			timestampDelta: number,
@@ -1060,7 +1058,7 @@ class CalcMainEngine {
 							// Or if player 1 block away
 							if (characterNPCReset === true && gameMapNPCPaths !== undefined) {
 								gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
-								if (gameMapNPCPath.length === 1) {
+								if (gameMapNPCPath !== undefined && gameMapNPCPath.length === 1) {
 									for (characterPlayer2 of characterPlayers) {
 										if (characterPlayer2.gridIndex === gameMapNPCPath[0] && characterPlayer2.health > 0) {
 											characterNPCReset = false;
@@ -1319,7 +1317,7 @@ class CalcMainEngine {
 						break;
 				}
 
-				tagRunAndJumpCamera1Id = GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 3000, {}, (_camera: GamingCanvasGridICamera) => {
+				GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 3000, {}, (_camera: GamingCanvasGridICamera) => {
 					// Push in slightly
 					i = 0.6;
 					r = 0;
@@ -1377,7 +1375,7 @@ class CalcMainEngine {
 						}, 2500); // Camera fade out duration
 					}, 3000);
 
-					tagRunAndJumpCamera1Id = GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 5500);
+					GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 5500);
 				});
 
 				// Player2 Camera: Run forward
@@ -1437,7 +1435,7 @@ class CalcMainEngine {
 							break;
 					}
 
-					tagRunAndJumpCamera2Id = GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 4000, {}, (_camera: GamingCanvasGridICamera) => {
+					GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 4000, {}, (_camera: GamingCanvasGridICamera) => {
 						i = 0.5;
 						r = 0;
 						tagRunAndJumpCamera = CalcMainEngine.characterPlayer2.camera;
@@ -1480,7 +1478,7 @@ class CalcMainEngine {
 								break;
 						}
 
-						tagRunAndJumpCamera2Id = GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 2500);
+						GamingCanvasGridCameraMove(tagRunAndJumpCamera, r, x, y, 0, 2500);
 					});
 				}, 1500);
 			}
@@ -1958,7 +1956,7 @@ class CalcMainEngine {
 					) {
 						gameMapNPCPath = <number[]>gameMapNPCPaths.get(characterNPC.id);
 
-						if (gameMapNPCPath.length < 20) {
+						if (gameMapNPCPath !== undefined && gameMapNPCPath.length < 20) {
 							seen = true;
 							for (gridIndex of gameMapNPCPath) {
 								if (
@@ -2223,7 +2221,9 @@ class CalcMainEngine {
 					gameMap = CalcMainEngine.gameMap;
 					gameMapGrid = CalcMainEngine.gameMap.grid;
 					gameMapGridData = CalcMainEngine.gameMap.grid.data;
+
 					gameMapNPCById = CalcMainEngine.gameMap.npcById;
+
 					gameMapSideLength = CalcMainEngine.gameMap.grid.sideLength;
 
 					characterPlayer1.camera.r = gameMap.position.r;
@@ -2286,8 +2286,11 @@ class CalcMainEngine {
 					gameMapNPCDead.clear();
 					gameMapNPCByGridIndex.clear();
 					gameMapNPCShootAt.clear();
+					gameMapNPCPaths !== undefined && gameMapNPCPaths.clear();
 					for (characterNPC of gameMapNPCById.values()) {
 						characterNPC.fireCount = 0;
+						characterNPC.timestamp = timestampNow;
+						characterNPC.timestampPrevious = timestampNow;
 						characterNPC.timestampUnixState = timestampUnixEff;
 						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 
