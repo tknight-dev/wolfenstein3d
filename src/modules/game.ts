@@ -663,6 +663,8 @@ export class Game {
 				VideoMainBus.outputMap(parsed);
 				VideoOverlayBus.outputReset();
 
+				Game.gameMusicPlay(parsed.music);
+
 				setTimeout(() => {
 					CalcMainBus.outputMeta(rawMeta);
 					Game.gameMenu(false);
