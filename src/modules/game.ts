@@ -172,6 +172,7 @@ export class Game {
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
 	} = {} as any;
 	public static started: boolean;
+	public static switchAlt: boolean;
 	public static tagRunAndJump: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
@@ -250,8 +251,14 @@ export class Game {
 				// secret level complete
 				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
 			} else {
-				// regular level complete
-				assetIdMapNext = Game.mapBackup.id + 1;
+				if (Game.switchAlt === true) {
+					// regular level complete: goto secret level
+					assetIdMapNext = Game.mapBackup.id + 9;
+					Game.switchAlt = false;
+				} else {
+					// regular level complete
+					assetIdMapNext = Game.mapBackup.id + 1;
+				}
 			}
 
 			if (Assets.dataMap.has(assetIdMapNext) !== true) {
@@ -1968,6 +1975,7 @@ export class Game {
 			Game.mapEnding = true;
 			data.gridIndex !== -1 && VideoMainBus.outputActionSwitch(data);
 
+			Game.switchAlt = data.gridSwitchAlt;
 			Game.tagRunAndJump !== true && GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
 			CalcMainBus.outputPause(true);
