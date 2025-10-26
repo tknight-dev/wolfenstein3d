@@ -13,6 +13,7 @@ import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
 import {
 	CalcMainBusActionDoorState,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataWeaponSelect,
@@ -149,6 +150,18 @@ export class VideoMainBus {
 
 		VideoMainBus.workerPlayer2.postMessage({
 			cmd: VideoMainBusInputCmd.ACTION_SWITCH,
+			data: data,
+		});
+	}
+
+	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		VideoMainBus.workerPlayer1.postMessage({
+			cmd: VideoMainBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+
+		VideoMainBus.workerPlayer2.postMessage({
+			cmd: VideoMainBusInputCmd.ACTION_TAG,
 			data: data,
 		});
 	}

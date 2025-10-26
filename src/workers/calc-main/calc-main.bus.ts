@@ -21,6 +21,7 @@ import {
 	CalcMainBusOutputDataWeaponSave,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataActionDoorLocked,
+	CalcMainBusOutputDataActionTag,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -34,6 +35,7 @@ export class CalcMainBus {
 	private static callbackActionDoor: (data: CalcMainBusActionDoorState) => void;
 	private static callbackActionDoorLocked: (data: CalcMainBusOutputDataActionDoorLocked) => void;
 	private static callbackActionSwitch: (data: CalcMainBusOutputDataActionSwitch) => void;
+	private static callbackActionTag: (data: CalcMainBusOutputDataActionTag) => void;
 	private static callbackActionWallMove: (data: CalcMainBusOutputDataActionWallMove) => void;
 	private static callbackAudio: (data: CalcMainBusOutputDataAudio) => void;
 	private static callbackCamera: (data: CalcMainBusOutputDataCamera) => void;
@@ -95,6 +97,9 @@ export class CalcMainBus {
 						break;
 					case CalcMainBusOutputCmd.ACTION_SWITCH:
 						CalcMainBus.callbackActionSwitch(<CalcMainBusOutputDataActionSwitch>payload.data);
+						break;
+					case CalcMainBusOutputCmd.ACTION_TAG:
+						CalcMainBus.callbackActionTag(<CalcMainBusOutputDataActionTag>payload.data);
 						break;
 					case CalcMainBusOutputCmd.ACTION_WALL_MOVE:
 						CalcMainBus.callbackActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
@@ -280,6 +285,10 @@ export class CalcMainBus {
 
 	public static setCallbackActionSwitch(callbackActionSwitch: (data: CalcMainBusOutputDataActionSwitch) => void): void {
 		CalcMainBus.callbackActionSwitch = callbackActionSwitch;
+	}
+
+	public static setCallbackActionTag(callbackActionTag: (data: CalcMainBusOutputDataActionTag) => void): void {
+		CalcMainBus.callbackActionTag = callbackActionTag;
 	}
 
 	public static setCallbackActionWallMove(callbackActionWallMove: (data: CalcMainBusOutputDataActionWallMove) => void): void {

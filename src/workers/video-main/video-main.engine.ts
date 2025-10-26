@@ -64,6 +64,7 @@ import {
 	CalcMainBusDieFrameDurationInMS,
 	CalcMainBusFOVByDifficulty,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusPlayerDeadFadeDurationInMS,
@@ -89,6 +90,9 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case VideoMainBusInputCmd.ACTION_SWITCH:
 			VideoMainEngine.inputActionSwitch(<CalcMainBusOutputDataActionSwitch>payload.data);
+			break;
+		case VideoMainBusInputCmd.ACTION_TAG:
+			VideoMainEngine.inputActionTag(<CalcMainBusOutputDataActionTag>payload.data);
 			break;
 		case VideoMainBusInputCmd.ACTION_WALL_MOVE:
 			VideoMainEngine.inputActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
@@ -156,6 +160,8 @@ class VideoMainEngine {
 	private static settings: VideoMainBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static stats: { [key: number]: GamingCanvasStat } = {};
+	private static tagRunAndJump: boolean;
+	private static tagRunAndJumpOptions: any;
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 	private static weapon: CharacterWeapon = CharacterWeapon.PISTOL;
 	private static weaponFrame: number = 0;
@@ -318,6 +324,13 @@ class VideoMainEngine {
 
 	public static inputActionSwitch(data: CalcMainBusOutputDataActionSwitch): void {
 		VideoMainEngine.gameMap.grid.data[data.gridIndex] = data.cellValue;
+	}
+
+	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		if ((VideoMainEngine.gameMap.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+			VideoMainEngine.tagRunAndJump = true;
+			VideoMainEngine.tagRunAndJumpOptions = data.options;
+		}
 	}
 
 	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
@@ -616,6 +629,8 @@ class VideoMainEngine {
 			statSprite: GamingCanvasStat = VideoMainEngine.stats[VideoMainBusStats.SPRITE],
 			statSpriteRaw: Float32Array,
 			timers: GamingCanvasUtilTimers = VideoMainEngine.timers,
+			tagRunAndJump: boolean,
+			tagRunAndJumpOptions: any,
 			timestampDelta: number,
 			timestampFPS: number = 0,
 			timestampThen: number = 0,
@@ -776,6 +791,9 @@ class VideoMainEngine {
 					characterIdByGridIndexSorted.push(-1); // Player1ID
 					characterIdByGridIndexSorted.push(-2); // Player2ID
 					characterIdByGridIndexSorted = characterIdByGridIndexSorted.sort();
+
+					VideoMainEngine.tagRunAndJump = false;
+					tagRunAndJump = false;
 				}
 
 				if (VideoMainEngine.gameMapUpdateNew === true) {
@@ -948,6 +966,11 @@ class VideoMainEngine {
 					}
 				}
 
+				if (tagRunAndJump !== VideoMainEngine.tagRunAndJump) {
+					tagRunAndJump = VideoMainEngine.tagRunAndJump;
+					tagRunAndJumpOptions = VideoMainEngine.tagRunAndJumpOptions;
+				}
+
 				if (renderWeapon !== VideoMainEngine.weapon) {
 					renderWeapon = VideoMainEngine.weapon;
 				}
@@ -956,6 +979,9 @@ class VideoMainEngine {
 				countRays = 0;
 				countSprites = 0;
 				if (calculationsRays === undefined || gameMapGridData === undefined) {
+					return;
+				} else if (player1 !== true && tagRunAndJump === true) {
+					// Run and jump animation only happens for one player
 					return;
 				}
 
@@ -1025,7 +1051,7 @@ class VideoMainEngine {
 				// offscreenCanvasContext.fillRect(0, 0, offscreenCanvasWidthPx, offscreenCanvasHeightPx);
 
 				// Debug: Weapon hit area
-				if (renderModeEdit !== true && settingsDebug === true && VideoMainEngine.dead === false) {
+				if (renderModeEdit !== true && settingsDebug === true && tagRunAndJump !== true && VideoMainEngine.dead === false) {
 					x = (offscreenCanvasWidthPx * <number>CalcMainBusFOVByDifficulty.get(settingsDifficulty)) / settingsFOV / 2;
 					offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.25)';
 					offscreenCanvasContext.strokeStyle = 'rgba(255,247,0,0.75)';
@@ -1458,7 +1484,11 @@ class VideoMainEngine {
 						 * Draw: Sprite - Human Player Alt
 						 */
 						if (calculationsCameraAltGridIndex === gameMapGridIndex) {
-							assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.OFFICER);
+							if (tagRunAndJump === true) {
+								assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ);
+							} else {
+								assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.OFFICER);
+							}
 
 							// Calc: Position
 							x = calculationsCameraAlt.x - calculationsCamera.x;
@@ -1503,25 +1533,42 @@ class VideoMainEngine {
 								renderCharacterNPCState = 0;
 							}
 
-							// Calc: Asset
-							if (renderAngle < GamingCanvasConstPI_0_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_0_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_125) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_375) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_625) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
-							} else if (renderAngle < GamingCanvasConstPI_1_875) {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
+							if (tagRunAndJump === true) {
+								x = timestampUnix - tagRunAndJumpOptions.timestampUnix;
+								y = tagRunAndJumpOptions.durationRunInMS;
+
+								if (x < y) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.1) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP1_S) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.2) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP2_S) || renderDebugImage;
+								} else if (x < y + tagRunAndJumpOptions.durationJumpInMS * 0.3) {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP3_S) || renderDebugImage;
+								} else {
+									asset = assetImageCharacterInstance.get(AssetIdImgCharacter.JUMP4_S) || renderDebugImage;
+								}
 							} else {
-								asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+								// Calc: Asset
+								if (renderAngle < GamingCanvasConstPI_0_125) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_375) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNE[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_625) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveN[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_0_875) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveNW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_125) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_375) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSW[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_625) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveS[renderCharacterNPCState]) || renderDebugImage;
+								} else if (renderAngle < GamingCanvasConstPI_1_875) {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveSE[renderCharacterNPCState]) || renderDebugImage;
+								} else {
+									asset = assetImageCharacterInstance.get(assetIdImgCharacterMoveE[renderCharacterNPCState]) || renderDebugImage;
+								}
 							}
 
 							// Render: Lighting
@@ -1695,7 +1742,7 @@ class VideoMainEngine {
 				}
 
 				// Weapon
-				if (renderModeEdit !== true) {
+				if (renderModeEdit !== true && tagRunAndJump !== true) {
 					if (settingsCrosshair === true) {
 						// Crosshair
 						offscreenCanvasContext.fillStyle = 'rgba(255,247,0,0.75)';

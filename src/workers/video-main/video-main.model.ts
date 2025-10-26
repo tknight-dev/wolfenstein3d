@@ -5,6 +5,7 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
 import {
 	CalcMainBusActionDoorState,
 	CalcMainBusOutputDataActionSwitch,
+	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusOutputDataNPCUpdate,
 } from '../calc-main/calc-main.model.js';
@@ -31,6 +32,7 @@ export enum VideoMainBusStats {
 export enum VideoMainBusInputCmd {
 	ACTION_DOOR,
 	ACTION_SWITCH,
+	ACTION_TAG,
 	ACTION_WALL_MOVE,
 	CALCULATIONS,
 	INIT,
@@ -81,6 +83,7 @@ export interface VideoMainBusInputPayload {
 		| boolean
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataActionSwitch
+		| CalcMainBusOutputDataActionTag
 		| CalcMainBusOutputDataActionWallMove
 		| CalcMainBusOutputDataNPCUpdate
 		| CharacterWeapon

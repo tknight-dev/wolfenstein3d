@@ -1,4 +1,11 @@
-import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasConstPI_2_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvas,
+	GamingCanvasAudioType,
+	GamingCanvasConstPI_1_000,
+	GamingCanvasConstPI_2_000,
+	GamingCanvasOptionsDetectDeviceType,
+	GamingCanvasRenderStyle,
+} from '@tknight-dev/gaming-canvas';
 import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
@@ -49,9 +56,9 @@ export class Settings {
 				debug: Game.settings.debug,
 				difficulty: GameDifficulty.NORMAL,
 				fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
-				fps: GamingCanvas.detectDevice(true, true) ? FPS._40 : FPS._60,
+				fps: GamingCanvas.detectDevice() ? FPS._40 : FPS._60,
 				player2Enable: false,
-				raycastQuality: GamingCanvas.detectDevice(true, true) ? RaycastQuality.HALF : RaycastQuality.FULL,
+				raycastQuality: GamingCanvas.detectDevice() ? RaycastQuality.HALF : RaycastQuality.FULL,
 			};
 
 			Game.settings.threadCalcPath = {

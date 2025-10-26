@@ -602,7 +602,11 @@ export enum AssetIdImgCharacter {
 	FIRE = 6,
 	FIRE2 = 50,
 	HIT1 = 7,
-	HIT2 = 50,
+	HIT2 = 51,
+	JUMP1_S = 52,
+	JUMP2_S = 53,
+	JUMP3_S = 54,
+	JUMP4_S = 55,
 	MOVE1_E = 8,
 	MOVE1_N = 9,
 	MOVE1_NE = 10,
@@ -673,6 +677,13 @@ export const assetIdImgCharacterMenu: AssetIdImgCharacter[] = [
 	AssetIdImgCharacter.STAND_SW,
 	AssetIdImgCharacter.MOVE1_W,
 	AssetIdImgCharacter.STAND_W,
+];
+
+export const assetIdImgCharacterJumpS: AssetIdImgCharacter[] = [
+	AssetIdImgCharacter.JUMP1_S,
+	AssetIdImgCharacter.JUMP2_S,
+	AssetIdImgCharacter.JUMP3_S,
+	AssetIdImgCharacter.JUMP4_S,
 ];
 
 export const assetIdImgCharacterMoveE: AssetIdImgCharacter[] = [
@@ -750,6 +761,15 @@ const assetIdImgCharacterMoveAll: AssetIdImgCharacter[][] = [
 	assetIdImgCharacterMoveW,
 ];
 const assetIdImgCharacterMoveAllFilePrefixes: string[] = ['e', 'n', 'ne', 'nw', 's', 'se', 'sw', 'w'];
+
+export enum AssetIdImgCharacterType {
+	BOSS_HANS_GROSSE = 4,
+	GUARD = 0,
+	OFFICER = 1,
+	RAT = 3,
+	SS = 2,
+	WILLIAM_BJ_BLAZKOWICZ = 5,
+}
 
 export enum AssetIdImgMenu {
 	CREDITS,
@@ -838,14 +858,6 @@ export enum AssetIdImgMenu {
 	WEAPONS_2,
 	WEAPONS_3,
 	WEAPONS_4,
-}
-
-export enum AssetIdImgCharacterType {
-	BOSS_HANS_GROSSE = 4,
-	GUARD = 0,
-	OFFICER = 1,
-	RAT = 3,
-	SS = 2,
 }
 
 export enum AssetIdMap {
@@ -1458,7 +1470,7 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 		ext: AssetExtAudio.MP3,
 		file: 'audio/music/pow.mp3',
 		title: 'P.O.W.',
-		volume: 0.6,
+		volume: 0.4,
 	});
 
 	assetsAudio.set(AssetIdAudio.AUDIO_MUSIC_SEARCHN, {
@@ -1533,6 +1545,13 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 					cDir = 'ss';
 					cHide = true;
 					cName = 'SS';
+					break;
+				case AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ:
+					cAuthor = 'Id Software';
+					cBoss = true;
+					cDir = 'bj';
+					cHide = true;
+					cName = 'William Joseph "BJ" Blazkowics';
 					break;
 			}
 
@@ -1704,6 +1723,21 @@ export const initializeAssetManager = async (audioOnly?: boolean) => {
 							file: `img/character/${cDir}/${cFilePrefix}_${cI === 0 ? 'stand' : `move${cI}`}.png`,
 							hide: cHide,
 							title: `${cName} ${cI === 0 ? 'Stand' : 'Move'} ${cFilePrefix.toUpperCase()}`,
+						});
+					}
+				}
+
+				if (cAngle === 4.7124 && characterType === AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ) {
+					for ([cI, cAssetIdImgCharacter] of assetIdImgCharacterJumpS.entries()) {
+						cInstance.set(cAssetIdImgCharacter, {
+							alpha: true,
+							angle: cAngle,
+							author: cAuthor,
+							category: AssetImgCategory.CHARACTER,
+							ext: AssetExtImg.PNG,
+							file: `img/character/${cDir}/${cFilePrefix}_${`jump${cI + 1}`}.png`,
+							hide: cHide,
+							title: `${cName} ${'Jump'} ${cFilePrefix.toUpperCase()}`,
 						});
 					}
 				}

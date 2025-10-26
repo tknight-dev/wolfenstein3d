@@ -778,6 +778,8 @@ export class DOM {
 						boss = false;
 						elementContainer = DOM.elEditorContainerCharactersSSContent;
 						break;
+					case AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ:
+						continue;
 				}
 
 				if (boss === true && character !== AssetIdImgCharacter.MOVE1_S && character !== AssetIdImgCharacter.STAND_S) {

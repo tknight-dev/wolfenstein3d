@@ -36,6 +36,7 @@ import {
 	CalcMainBusOutputDataWeaponSave,
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataActionDoorLocked,
+	CalcMainBusOutputDataActionTag,
 } from '../workers/calc-main/calc-main.model.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
 import { GameGridCellMasksAndValues, GameMap } from '../models/game.model.js';
@@ -171,6 +172,7 @@ export class Game {
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
 	} = {} as any;
 	public static started: boolean;
+	public static tagRunAndJump: boolean;
 	public static viewport: GamingCanvasGridViewport;
 
 	private static cellApply(): void {
@@ -272,6 +274,7 @@ export class Game {
 				Game.viewport.apply(Game.camera, false);
 
 				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				Game.tagRunAndJump = false;
 
 				Game.gameMusicPlay(Game.mapBackup.music);
 
@@ -569,6 +572,7 @@ export class Game {
 		Game.viewport.apply(Game.camera, false);
 
 		DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+		Game.tagRunAndJump = false;
 
 		Game.gameMusicPlay(Game.mapBackup.music);
 
@@ -1376,6 +1380,7 @@ export class Game {
 
 			DOM.elEditorFindAndReplace.style.display = 'none';
 			Game.inputSuspend = false;
+			Game.tagRunAndJump = false;
 		};
 
 		DOM.elEditorFindAndReplaceCancel.onclick = () => {
@@ -1622,7 +1627,7 @@ export class Game {
 			DOM.elLogo.classList.remove('open');
 			DOM.elMenuContent.classList.remove('open');
 
-			if (GamingCanvas.detectDevice(true, true) === true) {
+			if (GamingCanvas.detectDevice() === true) {
 				DOM.elControlsSubTouch.click();
 			} else {
 				DOM.elControlsSubKeyboard.click();
@@ -1963,7 +1968,7 @@ export class Game {
 			Game.mapEnding = true;
 			data.gridIndex !== -1 && VideoMainBus.outputActionSwitch(data);
 
-			GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+			Game.tagRunAndJump !== true && GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
 			CalcMainBus.outputPause(true);
 			CalcPathBus.outputPause(true);
@@ -2121,6 +2126,20 @@ export class Game {
 						);
 					}, 2500);
 				}
+			}
+		});
+
+		CalcMainBus.setCallbackActionTag((data: CalcMainBusOutputDataActionTag) => {
+			VideoMainBus.outputActionTag(data);
+			if ((Game.map.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+				Game.tagRunAndJump = true;
+
+				setTimeout(() => {
+					// Stop all audio for the end animation
+					// Normally the callback back for ActionSwitch does this
+					// But that would cut off the "yeah!" audio at the end
+					GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+				}, 3000);
 			}
 		});
 
@@ -2411,6 +2430,7 @@ export class Game {
 			if (dataUpdated === true || Game.mapUpdated === true) {
 				dataUpdated = false;
 				Game.mapUpdated = false;
+				Game.tagRunAndJump = false;
 
 				CalcMainBus.outputMap(Game.map);
 				CalcPathBus.outputMap(Game.map);
@@ -2948,6 +2968,7 @@ Y: ${camera.y | 0}`);
 								Game.viewport.apply(Game.camera, false);
 
 								DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+								Game.tagRunAndJump = false;
 
 								Game.gameMusicPlay(Game.mapBackup.music);
 

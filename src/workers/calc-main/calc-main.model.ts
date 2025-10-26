@@ -154,6 +154,7 @@ export enum CalcMainBusOutputCmd {
 	ACTION_DOOR,
 	ACTION_DOOR_LOCKED,
 	ACTION_SWITCH,
+	ACTION_TAG,
 	ACTION_WALL_MOVE,
 	AUDIO,
 	CAMERA,
@@ -197,6 +198,12 @@ export interface CalcMainBusOutputDataActionPlayerMeta {
 	shotsFired: number;
 	shotsHit: number;
 	timeInMS: number;
+}
+
+export interface CalcMainBusOutputDataActionTag {
+	gridIndex: number;
+	options: any;
+	player1: boolean;
 }
 
 export interface CalcMainBusOutputDataActionWallMove {
@@ -278,6 +285,7 @@ export interface CalcMainBusOutputPayload {
 		| boolean
 		| CalcMainBusOutputDataActionDoorLocked
 		| CalcMainBusOutputDataActionSwitch
+		| CalcMainBusOutputDataActionTag
 		| CalcMainBusOutputDataActionWallMove
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataAudio
