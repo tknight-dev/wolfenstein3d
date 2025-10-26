@@ -1257,6 +1257,7 @@ class CalcMainEngine {
 								timestampUnix: timestampUnix,
 							},
 							player1: player1,
+							type: GameGridCellMasksAndValues.TAG_RUN_AND_JUMP,
 						},
 					},
 				]);

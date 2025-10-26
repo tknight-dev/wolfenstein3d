@@ -2141,7 +2141,9 @@ export class Game {
 
 		CalcMainBus.setCallbackActionTag((data: CalcMainBusOutputDataActionTag) => {
 			VideoMainBus.outputActionTag(data);
+			VideoOverlayBus.outputActionTag(data);
 			if ((Game.map.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+				DOM.elIconsTop.classList.add('intro');
 				Game.tagRunAndJump = true;
 
 				setTimeout(() => {

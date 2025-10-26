@@ -9,7 +9,6 @@ import {
 	VideoMainBusOutputDataStats,
 	VideoMainBusOutputPayload,
 } from './video-main.model.js';
-import { GamingCanvasGridCamera } from '@tknight-dev/gaming-canvas/grid';
 import {
 	CalcMainBusActionDoorState,
 	CalcMainBusOutputDataActionSwitch,

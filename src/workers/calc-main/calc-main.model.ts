@@ -1,5 +1,5 @@
 import { GamingCanvasConstPI_1_000, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameDifficulty, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import { FPS, RaycastQuality } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import { CharacterInput, CharacterWeapon } from '../../models/character.model.js';
@@ -204,6 +204,7 @@ export interface CalcMainBusOutputDataActionTag {
 	gridIndex: number;
 	options: any;
 	player1: boolean;
+	type: GameGridCellMasksAndValues;
 }
 
 export interface CalcMainBusOutputDataActionWallMove {

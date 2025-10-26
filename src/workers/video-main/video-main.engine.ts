@@ -327,7 +327,7 @@ class VideoMainEngine {
 	}
 
 	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
-		if ((VideoMainEngine.gameMap.grid.data[data.gridIndex] & GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) !== 0) {
+		if (data.type === GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) {
 			VideoMainEngine.tagRunAndJump = true;
 			VideoMainEngine.tagRunAndJumpOptions = data.options;
 		}
