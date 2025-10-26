@@ -565,7 +565,7 @@ class CalcMainEngine {
 			audio: Map<number, AudioInstance> = CalcMainEngine.audio,
 			audioDeath: number = -1,
 			audioDeathLast: number = audioDeath,
-			audioDistanceMax: number = 20,
+			audioDistanceMax: number = 25,
 			audioEnableNoAction: boolean = CalcMainEngine.settings.audioNoAction,
 			audioEnableWallCollisions: boolean = CalcMainEngine.settings.audioWallCollisions,
 			audioInstance: AudioInstance,
