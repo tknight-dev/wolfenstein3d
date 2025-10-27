@@ -289,7 +289,7 @@ export class Game {
 				CalcPathBus.outputMap(Game.mapBackup);
 				VideoEditorBus.outputMap(Game.mapBackup);
 				VideoMainBus.outputMap(Game.mapBackup);
-				VideoOverlayBus.outputReset();
+				VideoOverlayBus.outputMap(Game.map);
 
 				// End menu
 				setTimeout(() => {
@@ -590,7 +590,7 @@ export class Game {
 		CalcPathBus.outputMap(Game.mapBackup);
 		VideoEditorBus.outputMap(Game.mapBackup);
 		VideoMainBus.outputMap(Game.mapBackup);
-		VideoOverlayBus.outputReset();
+		VideoOverlayBus.outputMap(Game.map);
 
 		// End menu
 		setTimeout(() => {
@@ -1389,6 +1389,7 @@ export class Game {
 			CalcPathBus.outputMap(Game.map);
 			VideoEditorBus.outputMap(Game.map);
 			VideoMainBus.outputMap(Game.map);
+			VideoOverlayBus.outputMap(Game.map);
 
 			DOM.elEditorFindAndReplace.style.display = 'none';
 			Game.inputSuspend = false;
@@ -2283,19 +2284,25 @@ export class Game {
 
 			if (data.characterPlayer2Camera !== undefined) {
 				cameraScratch.decode(data.characterPlayer2Camera);
-
 				gridIndexPlayer2 = (cameraScratch.x | 0) * Game.map.grid.sideLength + (cameraScratch.y | 0);
 
+				// First: VideoMain
 				VideoMainBus.outputCalculations(false, {
-					camera: data.characterPlayer2Camera,
+					camera: Float64Array.from(data.characterPlayer2Camera),
 					cameraAlt: data.characterPlayer1Camera,
 					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
 					timestampUnix: data.timestampUnix,
 				});
+
+				// Second: Overlay
+				VideoOverlayBus.outputCamera(camera.encode(), data.characterPlayer2Camera);
 			} else {
 				gridIndexPlayer2 = undefined;
+
+				// Third: Overlay
+				VideoOverlayBus.outputCamera(camera.encode());
 			}
 
 			CalcPathBus.outputPlayerUpdate({
@@ -2454,6 +2461,7 @@ export class Game {
 				CalcPathBus.outputMap(Game.map);
 				VideoEditorBus.outputMap(Game.map);
 				VideoMainBus.outputMap(Game.map);
+				VideoOverlayBus.outputMap(Game.map);
 			}
 		}, 100);
 
@@ -2994,7 +3002,7 @@ Y: ${camera.y | 0}`);
 								CalcPathBus.outputMap(Game.mapBackup);
 								VideoEditorBus.outputMap(Game.mapBackup);
 								VideoMainBus.outputMap(Game.mapBackup);
-								VideoOverlayBus.outputReset();
+								VideoOverlayBus.outputMap(Game.map);
 
 								// End menu
 								setTimeout(() => {

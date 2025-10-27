@@ -275,6 +275,7 @@ export class DOM {
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
+	public static elSettingsValueGameNavigation: HTMLInputElement;
 	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
 	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
@@ -692,6 +693,7 @@ export class DOM {
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
+		DOM.elSettingsValueGameNavigation = <HTMLInputElement>document.getElementById('settings-value-game-navigation');
 		DOM.elSettingsValueGamePlayer2InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player2-input');
 		DOM.elSettingsValueGraphicsAntialias = <HTMLInputElement>document.getElementById('settings-value-graphics-antialias');
 		DOM.elSettingsValueGraphicsDPI = <HTMLInputElement>document.getElementById('settings-value-graphics-dpi');

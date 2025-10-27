@@ -6,7 +6,7 @@ import {
 	GamingCanvasOptionsDetectDeviceType,
 	GamingCanvasRenderStyle,
 } from '@tknight-dev/gaming-canvas';
-import { FPS, InputDevice, LightingQuality, RaycastQuality, Resolution } from '../models/settings.model.js';
+import { FPS, InputDevice, LightingQuality, Navigation, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
@@ -95,6 +95,7 @@ export class Settings {
 				antialias: Game.settings.threadVideoEditor.antialias,
 				debug: Game.settings.debug,
 				grayscale: false,
+				navigation: Navigation.COMPASS,
 				player2Enable: Game.settings.threadCalcMain.player2Enable,
 			};
 
@@ -291,6 +292,7 @@ export class Settings {
 			Game.settings.threadVideoOverlay.antialias = Game.settings.threadVideoEditor.antialias;
 			Game.settings.threadVideoOverlay.debug = Game.settings.debug;
 			Game.settings.threadVideoOverlay.grayscale = Game.settings.threadVideoMain.grayscale;
+			Game.settings.threadVideoOverlay.navigation = Number(DOM.elSettingsValueGameNavigation.value);
 			Game.settings.threadVideoOverlay.player2Enable = Game.settings.threadVideoMain.player2Enable;
 
 			// GamingCanvas
@@ -317,7 +319,7 @@ export class Settings {
 			CalcPathBus.outputSettings(Game.settings.threadCalcPath);
 			VideoEditorBus.outputSettings(Game.settings.threadVideoEditor);
 			VideoMainBus.outputSettings(Game.settings.threadVideoMain);
-			VideoOverlayBus.outputSettings(Game.settings.threadVideoMain);
+			VideoOverlayBus.outputSettings(Game.settings.threadVideoOverlay);
 
 			// Performance
 			if (Game.settings.threadCalcMain.player2Enable === true) {
@@ -343,6 +345,7 @@ export class Settings {
 			DOM.elSettingsValueGameDebug.checked = Game.settings.debug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settings.threadCalcMain.difficulty);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settings.threadCalcMain.player2Enable;
+			DOM.elSettingsValueGameNavigation.value = String(Game.settings.threadVideoOverlay.navigation);
 			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settings.gamePlayer2InputDevice);
 			DOM.elSettingsValueGraphicsAntialias.checked = Game.settings.threadVideoEditor.antialias;
 			DOM.elSettingsValueGraphicsDPI.checked = Game.settings.graphicsDPISupport;

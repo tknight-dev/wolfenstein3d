@@ -1,6 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
 import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
+import { Navigation } from '../../models/settings.model.js';
 
 /**
  * @author tknight-dev
@@ -11,15 +12,22 @@ import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js'
  */
 export enum VideoOverlayBusInputCmd {
 	ACTION_TAG,
+	CAMERA,
 	GAME_OVER,
 	INIT,
 	LOCKED,
+	MAP,
 	PAUSE,
 	PLAYER_DEAD,
 	PLAYER_HIT,
 	REPORT,
 	RESET,
 	SETTINGS,
+}
+
+export interface VideoOverlayBusInputDataCamera {
+	cameraPlayer1: Float64Array;
+	cameraPlayer2?: Float64Array;
 }
 
 export interface VideoOverlayBusInputDataInit extends VideoOverlayBusInputDataSettings {
@@ -32,6 +40,7 @@ export interface VideoOverlayBusInputDataSettings {
 	antialias: boolean;
 	debug: boolean;
 	grayscale: boolean;
+	navigation: Navigation;
 	player2Enable: boolean;
 }
 
@@ -47,6 +56,7 @@ export interface VideoOverlayBusInputPayload {
 		| number
 		| number[]
 		| Uint16Array
+		| VideoOverlayBusInputDataCamera
 		| VideoOverlayBusInputDataInit
 		| VideoOverlayBusInputDataSettings;
 }

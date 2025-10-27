@@ -8,6 +8,7 @@ import {
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
 import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
+import { GameMap } from '../../models/game.model.js';
 
 /**
  * @author tknight-dev
@@ -120,6 +121,45 @@ export class VideoOverlayBus {
 	 * Output
 	 */
 
+	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+	}
+
+	public static outputCamera(cameraPlayer1: Float64Array, cameraPlayer2?: Float64Array): void {
+		let camera1: Float64Array = Float64Array.from(cameraPlayer1),
+			camera2: Float64Array | undefined = cameraPlayer2 !== undefined ? Float64Array.from(cameraPlayer2) : undefined;
+
+		VideoOverlayBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.CAMERA,
+				data: {
+					cameraPlayer1: camera1,
+					cameraPlayer2: camera2,
+				},
+			},
+			camera2 !== undefined ? [camera1.buffer, camera2.buffer] : [camera1.buffer],
+		);
+
+		VideoOverlayBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.CAMERA,
+				data: {
+					cameraPlayer1: cameraPlayer1,
+					cameraPlayer2: cameraPlayer2,
+				},
+			},
+			cameraPlayer2 !== undefined ? [cameraPlayer1.buffer, cameraPlayer2.buffer] : [cameraPlayer1.buffer],
+		);
+	}
+
 	public static outputGameOver(): void {
 		VideoOverlayBus.workerPlayer1.postMessage({
 			cmd: VideoOverlayBusInputCmd.GAME_OVER,
@@ -144,6 +184,18 @@ export class VideoOverlayBus {
 				data: keys,
 			});
 		}
+	}
+
+	public static outputMap(data: GameMap): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP,
+			data: data,
+		});
 	}
 
 	public static outputPause(state: boolean): void {
@@ -229,17 +281,5 @@ export class VideoOverlayBus {
 
 	public static setCallbackStats(callbackStats: (player1: boolean, data: VideoOverlayBusOutputDataStats) => void): void {
 		VideoOverlayBus.callbackStats = callbackStats;
-	}
-
-	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
-		VideoOverlayBus.workerPlayer1.postMessage({
-			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
-			data: data,
-		});
-
-		VideoOverlayBus.workerPlayer2.postMessage({
-			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
-			data: data,
-		});
 	}
 }
