@@ -1,8 +1,7 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameMap } from '../../models/game.model.js';
-import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
+import { CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 import { Navigation } from '../../models/settings.model.js';
-import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 
 /**
  * @author tknight-dev
@@ -13,11 +12,14 @@ import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/g
  */
 export enum VideoOverlayBusInputCmd {
 	ACTION_TAG,
+	ACTION_WALL_MOVE,
 	CALCULATIONS,
 	GAME_OVER,
 	INIT,
 	LOCKED,
 	MAP,
+	MAP_SHOW_ALL,
+	MAP_ZOOM,
 	PAUSE,
 	PLAYER_DEAD,
 	PLAYER_HIT,
@@ -29,7 +31,6 @@ export enum VideoOverlayBusInputCmd {
 export interface VideoOverlayBusInputDataCalculations {
 	characterPlayerCamera: Float64Array;
 	characterPlayerCameraAlt?: Float64Array;
-	characterPlayerRaysMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>;
 }
 
 export interface VideoOverlayBusInputDataInit extends VideoOverlayBusInputDataSettings {
@@ -41,6 +42,7 @@ export interface VideoOverlayBusInputDataInit extends VideoOverlayBusInputDataSe
 export interface VideoOverlayBusInputDataSettings {
 	antialias: boolean;
 	debug: boolean;
+	fov: number;
 	grayscale: boolean;
 	navigation: Navigation;
 	player2Enable: boolean;
@@ -51,6 +53,7 @@ export interface VideoOverlayBusInputPayload {
 	data:
 		| boolean
 		| CalcMainBusOutputDataActionTag
+		| CalcMainBusOutputDataActionWallMove
 		| Float32Array[]
 		| Float64Array
 		| GameMap

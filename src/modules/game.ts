@@ -1437,7 +1437,7 @@ export class Game {
 			CalcPathBus.outputMap(parsed);
 			VideoEditorBus.outputMap(parsed);
 			VideoMainBus.outputMap(parsed);
-			VideoOverlayBus.outputReset();
+			VideoOverlayBus.outputMap(parsed);
 
 			setTimeout(() => {
 				CalcMainBus.outputMetaReset();
@@ -2166,6 +2166,7 @@ export class Game {
 		CalcMainBus.setCallbackActionWallMove((data: CalcMainBusOutputDataActionWallMove) => {
 			CalcPathBus.outputActionWallMove(data);
 			VideoMainBus.outputActionWallMove(data);
+			VideoOverlayBus.outputActionWallMove(data);
 		});
 
 		// Calc: Audio
@@ -2274,7 +2275,6 @@ export class Game {
 				VideoOverlayBus.outputCalculations(true, {
 					characterPlayerCamera: camera.encode(),
 					characterPlayerCameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined,
-					characterPlayerRaysMap: <any>data.characterPlayer1RaysMap,
 				});
 			} else {
 				gridIndexPlayer1 = undefined;
@@ -2307,7 +2307,6 @@ export class Game {
 				VideoOverlayBus.outputCalculations(false, {
 					characterPlayerCamera: data.characterPlayer2Camera,
 					characterPlayerCameraAlt: camera.encode(),
-					characterPlayerRaysMap: <any>data.characterPlayer2RaysMap,
 				});
 			} else {
 				gridIndexPlayer2 = undefined;
@@ -2923,6 +2922,9 @@ export class Game {
 					case 'Escape':
 						Game.gameMenu();
 						break;
+					case 'Equal':
+						down && VideoOverlayBus.outputMapZoom(player1, true);
+						break;
 					case 'KeyA':
 						if (down) {
 							characterPlayerInputPlayer.x = -1;
@@ -2965,6 +2967,11 @@ Y: ${camera.y | 0}`);
 					case 'KeyM':
 						if (down) {
 							cheatCodeCheck(player1);
+
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+								keyState.set('Tab', false);
+								VideoOverlayBus.outputMapShowAll(player1);
+							}
 						}
 						break;
 					case 'KeyW':
@@ -3037,6 +3044,9 @@ Y: ${camera.y | 0}`);
 							characterPlayerInputPlayer.y = 0;
 						}
 						updated = true;
+						break;
+					case 'Minus':
+						down && VideoOverlayBus.outputMapZoom(player1, false);
 						break;
 				}
 			} else {

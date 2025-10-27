@@ -94,8 +94,9 @@ export class Settings {
 			Game.settings.threadVideoOverlay = {
 				antialias: Game.settings.threadVideoEditor.antialias,
 				debug: Game.settings.debug,
+				fov: Game.settings.threadCalcMain.fov,
 				grayscale: false,
-				navigation: Navigation.COMPASS,
+				navigation: Navigation.NONE,
 				player2Enable: Game.settings.threadCalcMain.player2Enable,
 			};
 
@@ -291,6 +292,7 @@ export class Settings {
 
 			Game.settings.threadVideoOverlay.antialias = Game.settings.threadVideoEditor.antialias;
 			Game.settings.threadVideoOverlay.debug = Game.settings.debug;
+			Game.settings.threadVideoOverlay.fov = Game.settings.threadCalcMain.fov;
 			Game.settings.threadVideoOverlay.grayscale = Game.settings.threadVideoMain.grayscale;
 			Game.settings.threadVideoOverlay.navigation = Number(DOM.elSettingsValueGameNavigation.value);
 			Game.settings.threadVideoOverlay.player2Enable = Game.settings.threadVideoMain.player2Enable;

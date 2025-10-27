@@ -8,7 +8,7 @@ import {
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
-import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
+import { CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 
 /**
@@ -134,6 +134,18 @@ export class VideoOverlayBus {
 		});
 	}
 
+	public static outputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_WALL_MOVE,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_WALL_MOVE,
+			data: data,
+		});
+	}
+
 	public static outputCalculations(player1: boolean, data: VideoOverlayBusInputDataCalculations): void {
 		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
 			{
@@ -181,6 +193,20 @@ export class VideoOverlayBus {
 		VideoOverlayBus.workerPlayer2.postMessage({
 			cmd: VideoOverlayBusInputCmd.MAP,
 			data: data,
+		});
+	}
+
+	public static outputMapShowAll(player1: boolean): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP_SHOW_ALL,
+			data: undefined,
+		});
+	}
+
+	public static outputMapZoom(player1: boolean, zoomIn: boolean): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP_ZOOM,
+			data: zoomIn,
 		});
 	}
 
