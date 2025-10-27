@@ -941,20 +941,28 @@ class VideoMainEngine {
 					if (renderLightingQuality >= LightingQuality.FULL) {
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx); // Ceiling
 
+						if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
+							renderDistance1 = 0.4;
+							renderDistance2 = 0.3;
+						} else {
+							renderDistance1 = 0.7;
+							renderDistance2 = 0.6;
+						}
+
 						color = gameMapColorCeiling.toString(16).padStart(6, '0');
 						renderGradientCanvasGradient.addColorStop(0, '#' + color);
-						i = (Number(color.substring(0, 2)) * 0.4) | 0;
-						x = (Number(color.substring(2, 4)) * 0.4) | 0;
-						y = (Number(color.substring(4, 6)) * 0.4) | 0;
+						i = (Number(color.substring(0, 2)) * renderDistance1) | 0;
+						x = (Number(color.substring(2, 4)) * renderDistance1) | 0;
+						y = (Number(color.substring(4, 6)) * renderDistance1) | 0;
 						renderGradientCanvasGradient.addColorStop(
 							0.5,
 							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
 						);
 
 						color = gameMapColorFloor.toString(16).padStart(6, '0');
-						i = (Number(color.substring(0, 2)) * 0.3) | 0;
-						x = (Number(color.substring(2, 4)) * 0.3) | 0;
-						y = (Number(color.substring(4, 6)) * 0.3) | 0;
+						i = (Number(color.substring(0, 2)) * renderDistance2) | 0;
+						x = (Number(color.substring(2, 4)) * renderDistance2) | 0;
+						y = (Number(color.substring(4, 6)) * renderDistance2) | 0;
 						renderGradientCanvasGradient.addColorStop(
 							0.5,
 							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
