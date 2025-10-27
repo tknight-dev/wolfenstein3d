@@ -451,13 +451,9 @@ class VideoOverlayEngine {
 					offscreenCanvasCompassRotate.height = offscreenCanvasCompass.width;
 					offscreenCanvasCompassRotate.width = offscreenCanvasCompass.height;
 
-					offscreenCanvasCompassContext.clearRect(0, 0, offscreenCanvasCompass.width, offscreenCanvasCompass.height);
 					offscreenCanvasCompassContext.fillStyle = '#161616';
-					offscreenCanvasCompassContext.lineWidth = 1;
-					offscreenCanvasCompassContext.strokeStyle = 'black';
 					offscreenCanvasCompassContext.beginPath();
-					offscreenCanvasCompassContext.arc(r / 2, r / 2, r / 2, 0, GamingCanvasConstPI_2_000); // Base shape and color
-					offscreenCanvasCompassContext.stroke();
+					offscreenCanvasCompassContext.arc(r / 2, r / 2, r * 0.45, 0, GamingCanvasConstPI_2_000); // Base shape and color
 					offscreenCanvasCompassContext.clip();
 					offscreenCanvasCompassContext.fill();
 
