@@ -2255,7 +2255,7 @@ export class Game {
 					camera: camera.encode(),
 					cameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					rays: <Float64Array>data.characterPlayer1Rays,
-					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
+					raysMap: <any>data.characterPlayer1RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer1RaysMapKeysSorted,
 					timestampUnix: data.timestampUnix,
 				});
@@ -2268,6 +2268,13 @@ export class Game {
 					gameMode: true,
 					viewport: viewport.encode(),
 					timestampUnix: data.timestampUnix,
+				});
+
+				// Third: VideoOverlay
+				VideoOverlayBus.outputCalculations(true, {
+					characterPlayerCamera: camera.encode(),
+					characterPlayerCameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined,
+					characterPlayerRaysMap: <any>data.characterPlayer1RaysMap,
 				});
 			} else {
 				gridIndexPlayer1 = undefined;
@@ -2296,13 +2303,14 @@ export class Game {
 					timestampUnix: data.timestampUnix,
 				});
 
-				// Second: Overlay
-				VideoOverlayBus.outputCamera(camera.encode(), data.characterPlayer2Camera);
+				// Second: VideoOverlay
+				VideoOverlayBus.outputCalculations(false, {
+					characterPlayerCamera: data.characterPlayer2Camera,
+					characterPlayerCameraAlt: camera.encode(),
+					characterPlayerRaysMap: <any>data.characterPlayer2RaysMap,
+				});
 			} else {
 				gridIndexPlayer2 = undefined;
-
-				// Third: Overlay
-				VideoOverlayBus.outputCamera(camera.encode());
 			}
 
 			CalcPathBus.outputPlayerUpdate({

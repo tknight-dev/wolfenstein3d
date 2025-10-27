@@ -1,6 +1,7 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	VideoOverlayBusInputCmd,
+	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusOutputCmd,
@@ -133,30 +134,15 @@ export class VideoOverlayBus {
 		});
 	}
 
-	public static outputCamera(cameraPlayer1: Float64Array, cameraPlayer2?: Float64Array): void {
-		let camera1: Float64Array = Float64Array.from(cameraPlayer1),
-			camera2: Float64Array | undefined = cameraPlayer2 !== undefined ? Float64Array.from(cameraPlayer2) : undefined;
-
-		VideoOverlayBus.workerPlayer1.postMessage(
+	public static outputCalculations(player1: boolean, data: VideoOverlayBusInputDataCalculations): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
 			{
-				cmd: VideoOverlayBusInputCmd.CAMERA,
-				data: {
-					cameraPlayer1: camera1,
-					cameraPlayer2: camera2,
-				},
+				cmd: VideoOverlayBusInputCmd.CALCULATIONS,
+				data: data,
 			},
-			camera2 !== undefined ? [camera1.buffer, camera2.buffer] : [camera1.buffer],
-		);
-
-		VideoOverlayBus.workerPlayer2.postMessage(
-			{
-				cmd: VideoOverlayBusInputCmd.CAMERA,
-				data: {
-					cameraPlayer1: cameraPlayer1,
-					cameraPlayer2: cameraPlayer2,
-				},
-			},
-			cameraPlayer2 !== undefined ? [cameraPlayer1.buffer, cameraPlayer2.buffer] : [cameraPlayer1.buffer],
+			data.characterPlayerCameraAlt !== undefined
+				? [data.characterPlayerCamera.buffer, data.characterPlayerCameraAlt.buffer]
+				: [data.characterPlayerCamera.buffer],
 		);
 	}
 
