@@ -2924,13 +2924,13 @@ export class Game {
 						updated = true;
 						break;
 					case 'KeyE':
-						if (keyState.get('Tab') === true && down) {
+						if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
 							keyState.set('Tab', false);
 							CalcMainBus.outputMapEnd();
 						}
 						break;
 					case 'KeyF':
-						if (keyState.get('Tab') === true && down) {
+						if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
 							keyState.set('Tab', false);
 							alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
 R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
@@ -2939,7 +2939,7 @@ Y: ${camera.y | 0}`);
 						}
 						break;
 					case 'KeyH':
-						if (keyState.get('Tab') === true && down) {
+						if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
 							keyState.set('Tab', false);
 							CalcMainBus.outputDebugHit();
 						}
@@ -2952,7 +2952,7 @@ Y: ${camera.y | 0}`);
 						}
 						break;
 					case 'KeyW':
-						if (keyState.get('Tab') === true && down) {
+						if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
 							keyState.set('Tab', false);
 							keyState.set('KeyW', false);
 
