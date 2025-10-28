@@ -2311,7 +2311,7 @@ class CalcMainEngine {
 					for (characterNPC of gameMapNPCById.values()) {
 						characterNPC.fireCount = 0;
 						characterNPC.timestamp = timestampNow;
-						characterNPC.timestampPrevious = timestampNow;
+						characterNPC.timestampPrevious = timestampNow - 200;
 						characterNPC.timestampUnixState = timestampUnixEff;
 						gameMapNPCByGridIndex.set(characterNPC.gridIndex, characterNPC);
 

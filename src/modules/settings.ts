@@ -1,11 +1,4 @@
-import {
-	GamingCanvas,
-	GamingCanvasAudioType,
-	GamingCanvasConstPI_1_000,
-	GamingCanvasConstPI_2_000,
-	GamingCanvasOptionsDetectDeviceType,
-	GamingCanvasRenderStyle,
-} from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasConstPI_2_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
 import { FPS, InputDevice, LightingQuality, Navigation, RaycastQuality, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
@@ -17,6 +10,7 @@ import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
 import { AssetIdMap } from '../asset-manager.js';
 import { InputActions } from '../models/input.model.js';
+import packageJSON from '../../package.json' with { type: 'json' };
 
 /**
  * @author tknight-dev
@@ -211,13 +205,14 @@ export class Settings {
 			Game.settings.audioVolumeEffect = 0.8; // def: 0.8
 			Game.settings.audioVolumeMusic = 0.8; // def: 0.8
 			Game.settings.controlAlwaysRun = true; // def: true
-			Game.settings.controlStrafe = true; // def: true
+			Game.settings.controlStrafe = false; // def: false
 			Game.settings.debug = false; // def: false
 			Game.settings.graphicsDPISupport = false; // def: false
 			Game.settings.graphicsFPSDisplay = true; // def: true
 			Game.settings.gamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
 			Game.settings.graphicsResolution = 320;
 			Game.settings.intro = true;
+			Game.settings.version = packageJSON.version;
 
 			Settings.inputKeyboardDefaultWASD();
 

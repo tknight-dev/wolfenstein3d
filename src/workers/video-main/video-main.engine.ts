@@ -942,8 +942,8 @@ class VideoMainEngine {
 						renderGradientCanvasGradient = offscreenCanvasContext.createLinearGradient(0, 0, 0, offscreenCanvasHeightPx); // Ceiling
 
 						if (VideoMainEngine.report.orientation === GamingCanvasOrientation.LANDSCAPE) {
-							renderDistance1 = 0.4;
-							renderDistance2 = 0.3;
+							renderDistance1 = 0.5;
+							renderDistance2 = 0.4;
 						} else {
 							renderDistance1 = 0.7;
 							renderDistance2 = 0.6;

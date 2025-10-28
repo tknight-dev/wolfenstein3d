@@ -178,6 +178,7 @@ export class Game {
 		threadVideoEditor: VideoEditorBusInputDataSettings;
 		threadVideoMain: VideoMainBusInputDataSettings;
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
+		version: string;
 	} = {} as any;
 	public static started: boolean;
 	public static switchAlt: boolean;
