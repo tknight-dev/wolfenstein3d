@@ -189,6 +189,11 @@ export class Settings {
 			try {
 				Game.settings = JSON.parse(setttingsRaw);
 
+				// Too old?
+				if (Game.settings.version === undefined) {
+					setttingsRaw = null;
+				}
+
 				// Convert
 				Game.settings.inputBindingsKeyboardActionByKey = new Map(Game.settings.inputBindingsKeyboardActionByKey);
 				Game.settings.inputBindingsKeyboardKeyByAction = new Map(Game.settings.inputBindingsKeyboardKeyByAction);
