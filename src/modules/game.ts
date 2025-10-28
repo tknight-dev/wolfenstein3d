@@ -1985,6 +1985,7 @@ export class Game {
 			inputAction: InputActions,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			inputStrafeInvert: boolean,
+			keyAction: Map<InputActions, boolean> = new Map(),
 			keyState: Map<string, boolean> = new Map(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
@@ -2979,6 +2980,7 @@ export class Game {
 				}
 				characterPlayerInputPlayer.type === GamingCanvasInputType.KEYBOARD;
 				inputAction = <InputActions>Game.settings.inputBindingsKeyboardActionByKey.get(input.propriatary.action.code);
+				keyAction.set(inputAction, down);
 
 				if (inputAction !== undefined && keyState.get('Tab') !== true) {
 					run =
@@ -3002,7 +3004,11 @@ export class Game {
 								if (down) {
 									characterPlayerInputPlayer.r = -1;
 								} else if (characterPlayerInputPlayer.r === -1) {
-									characterPlayerInputPlayer.r = 0;
+									if (keyAction.get(InputActions.LOOK_RIGHT) === true) {
+										characterPlayerInputPlayer.r = 1;
+									} else {
+										characterPlayerInputPlayer.r = 0;
+									}
 								}
 
 								if (characterPlayerInputPlayer.x < 0) {
@@ -3012,7 +3018,11 @@ export class Game {
 								if (down) {
 									characterPlayerInputPlayer.x = run ? -1 : -0.5;
 								} else if (characterPlayerInputPlayer.x !== 0) {
-									characterPlayerInputPlayer.x = 0;
+									if (keyAction.get(InputActions.LOOK_RIGHT) === true) {
+										characterPlayerInputPlayer.x = run ? 1 : 0.5;
+									} else {
+										characterPlayerInputPlayer.x = 0;
+									}
 								}
 
 								if (characterPlayerInputPlayer.r < 0) {
@@ -3029,7 +3039,11 @@ export class Game {
 								if (down) {
 									characterPlayerInputPlayer.r = 1;
 								} else if (characterPlayerInputPlayer.r === 1) {
-									characterPlayerInputPlayer.r = 0;
+									if (keyAction.get(InputActions.LOOK_LEFT) === true) {
+										characterPlayerInputPlayer.r = -1;
+									} else {
+										characterPlayerInputPlayer.r = 0;
+									}
 								}
 
 								if (characterPlayerInputPlayer.x > 0) {
@@ -3039,7 +3053,11 @@ export class Game {
 								if (down) {
 									characterPlayerInputPlayer.x = run ? 1 : 0.5;
 								} else if (characterPlayerInputPlayer.x !== 0) {
-									characterPlayerInputPlayer.x = 0;
+									if (keyAction.get(InputActions.LOOK_LEFT) === true) {
+										characterPlayerInputPlayer.x = run ? -1 : -0.5;
+									} else {
+										characterPlayerInputPlayer.x = 0;
+									}
 								}
 
 								if (characterPlayerInputPlayer.r > 0) {
@@ -3058,7 +3076,11 @@ export class Game {
 							if (down) {
 								characterPlayerInputPlayer.y = run ? 1 : 0.5;
 							} else if (characterPlayerInputPlayer.y !== 0) {
-								characterPlayerInputPlayer.y = 0;
+								if (keyAction.get(InputActions.MOVE_FORWARD) === true) {
+									characterPlayerInputPlayer.y = run ? -1 : -0.5;
+								} else {
+									characterPlayerInputPlayer.y = 0;
+								}
 							}
 							updated = true;
 							break;
@@ -3066,7 +3088,11 @@ export class Game {
 							if (down) {
 								characterPlayerInputPlayer.y = run ? -1 : -0.5;
 							} else if (characterPlayerInputPlayer.y !== 0) {
-								characterPlayerInputPlayer.y = 0;
+								if (keyAction.get(InputActions.MOVE_BACKWARD) === true) {
+									characterPlayerInputPlayer.y = run ? 1 : 0.5;
+								} else {
+									characterPlayerInputPlayer.y = 0;
+								}
 							}
 							updated = true;
 							break;
@@ -3074,7 +3100,11 @@ export class Game {
 							if (down) {
 								characterPlayerInputPlayer.x = run ? -1 : -0.5;
 							} else if (characterPlayerInputPlayer.x !== 0) {
-								characterPlayerInputPlayer.x = 0;
+								if (keyAction.get(InputActions.MOVE_RIGHT) === true) {
+									characterPlayerInputPlayer.x = run ? 1 : 0.5;
+								} else {
+									characterPlayerInputPlayer.x = 0;
+								}
 							}
 							updated = true;
 							break;
@@ -3082,7 +3112,11 @@ export class Game {
 							if (down) {
 								characterPlayerInputPlayer.x = run ? 1 : 0.5;
 							} else if (characterPlayerInputPlayer.x !== 0) {
-								characterPlayerInputPlayer.x = 0;
+								if (keyAction.get(InputActions.MOVE_LEFT) === true) {
+									characterPlayerInputPlayer.x = run ? -1 : -0.5;
+								} else {
+									characterPlayerInputPlayer.x = 0;
+								}
 							}
 							updated = true;
 							break;
@@ -3395,6 +3429,22 @@ Y: ${camera.y | 0}`);
 						cameraZoom = Math.max(cameraZoomMin, Math.min(cameraZoomMax, cameraZoom + (down ? -cameraZoomStep : cameraZoomStep)));
 						if (cameraZoom !== cameraZoomPrevious) {
 							updated = true;
+						}
+					} else if (mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								player1 = false;
+							} else {
+								player1 = true;
+							}
+						} else {
+							player1 = true;
+						}
+
+						if (down === true) {
+							VideoOverlayBus.outputMapZoom(player1, false);
+						} else {
+							VideoOverlayBus.outputMapZoom(player1, true);
 						}
 					}
 				case GamingCanvasInputMouseAction.RIGHT:
