@@ -19,6 +19,8 @@ import {
 } from './video-overlay.model.js';
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import {
+	CalcMainBusActionDoorState,
+	CalcMainBusActionDoorStateChangeDurationInMS,
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
@@ -51,6 +53,9 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoOverlayBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case VideoOverlayBusInputCmd.ACTION_DOOR:
+			VideoOverlayEngine.inputActionDoor(<CalcMainBusActionDoorState>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.ACTION_TAG:
 			VideoOverlayEngine.inputActionTag(<CalcMainBusOutputDataActionTag>payload.data);
 			break;
@@ -100,6 +105,7 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoOverlayEngine {
+	private static actionDoors: Map<number, CalcMainBusActionDoorState> = new Map();
 	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoOverlayBusInputDataCalculations;
 	private static calculationsNew: boolean;
@@ -199,6 +205,41 @@ class VideoOverlayEngine {
 	 * Input
 	 */
 
+	public static inputActionDoor(data: CalcMainBusActionDoorState): void {
+		let durationEff: number,
+			statePrevious: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>VideoOverlayEngine.actionDoors.get(data.gridIndex);
+
+		if (statePrevious !== undefined) {
+			VideoOverlayEngine.timers.clear(statePrevious.timeout);
+
+			if (statePrevious.closing === true) {
+				data.timestampUnix -= CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
+			}
+		}
+
+		durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
+		VideoOverlayEngine.actionDoors.set(data.gridIndex, data);
+
+		if (data.closing === true) {
+			VideoOverlayEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+		}
+		data.timeout = VideoOverlayEngine.timers.add(() => {
+			// Change state complete
+			if (data.closing === true) {
+				data.closed = true;
+				data.closing = false;
+				data.open = false;
+				data.opening = false;
+			} else if (data.opening === true) {
+				data.closed = false;
+				data.closing = false;
+				data.open = true;
+				data.opening = false;
+				VideoOverlayEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
+			}
+		}, durationEff);
+	}
+
 	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
 		if (data.type === GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) {
 			VideoOverlayEngine.tagRunAndJump = true;
@@ -273,7 +314,7 @@ class VideoOverlayEngine {
 	}
 
 	public static inputGameMapZoom(zoomIn: boolean): void {
-		VideoOverlayEngine.gameMapZoom = Math.max(1, Math.min(10, VideoOverlayEngine.gameMapZoom + (zoomIn === true ? 1 : -1)));
+		VideoOverlayEngine.gameMapZoom = Math.max(2, Math.min(20, VideoOverlayEngine.gameMapZoom + (zoomIn === true ? 1 : -1)));
 	}
 
 	public static inputPause(state: boolean): void {
@@ -336,7 +377,8 @@ class VideoOverlayEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let assetId: AssetIdImg,
+		let actionDoors: Map<number, CalcMainBusActionDoorState> = VideoOverlayEngine.actionDoors,
+			assetId: AssetIdImg,
 			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoOverlayEngine.assetImages,
 			calculationsCamera: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
@@ -404,7 +446,22 @@ class VideoOverlayEngine {
 			renderMapPlayer1YEff: number,
 			renderMapPlayer2XEff: number,
 			renderMapPlayer2YEff: number,
-			renderMapRaycastBlocking: number = GameGridCellMasksAndValues.DOOR | GameGridCellMasksAndValues.WALL,
+			renderMapRaycastBlocking = (cell: number, gridIndex: number) => {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0 && (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0) {
+					renderMapRaycastBlockingDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+
+					if (renderMapRaycastBlockingDoorState !== undefined) {
+						if (renderMapRaycastBlockingDoorState.closed === true) {
+							return true;
+						}
+					} else if ((cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0) {
+						return true;
+					}
+				}
+
+				return (cell & GameGridCellMasksAndValues.WALL) !== 0;
+			},
+			renderMapRaycastBlockingDoorState: CalcMainBusActionDoorState,
 			renderMapRaycastOptions: GamingCanvasGridRaycastOptions = {
 				cellEnable: true,
 				cellIncludeBlocked: true,

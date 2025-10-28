@@ -8,7 +8,7 @@ import {
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
-import { CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 
 /**
@@ -121,6 +121,18 @@ export class VideoOverlayBus {
 	/*
 	 * Output
 	 */
+
+	public static outputActionDoor(data: CalcMainBusActionDoorState): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_DOOR,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_DOOR,
+			data: data,
+		});
+	}
 
 	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
 		VideoOverlayBus.workerPlayer1.postMessage({

@@ -1946,6 +1946,7 @@ export class Game {
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
 			VideoMainBus.outputActionDoor(data);
+			VideoOverlayBus.outputActionDoor(data);
 		});
 
 		CalcMainBus.setCallbackActionDoorLocked((data: CalcMainBusOutputDataActionDoorLocked) => {
