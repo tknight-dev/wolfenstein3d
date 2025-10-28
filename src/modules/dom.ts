@@ -21,6 +21,8 @@ import packageJSON from '../../package.json' with { type: 'json' };
  */
 
 export class DOM {
+	public static elBind: HTMLElement;
+	public static elBindBody: HTMLElement;
 	public static elButtonApply: HTMLElement;
 	public static elButtonDownload: HTMLElement;
 	public static elButtonEdit: HTMLElement;
@@ -40,6 +42,40 @@ export class DOM {
 	public static elControlsBodyMouse: HTMLElement;
 	public static elControlsBodyTouch: HTMLElement;
 	public static elControlsClose: HTMLElement;
+	public static elControlsInputAction: HTMLInputElement;
+	public static elControlsInputActionBind: HTMLButtonElement;
+	public static elControlsInputDefaultWASD: HTMLButtonElement;
+	public static elControlsInputDefaultWolf3D: HTMLButtonElement;
+	public static elControlsInputLookLeft: HTMLInputElement;
+	public static elControlsInputLookLeftBind: HTMLButtonElement;
+	public static elControlsInputLookRight: HTMLInputElement;
+	public static elControlsInputLookRightBind: HTMLButtonElement;
+	public static elControlsInputMiniMapZoomIn: HTMLInputElement;
+	public static elControlsInputMiniMapZoomInBind: HTMLButtonElement;
+	public static elControlsInputMiniMapZoomOut: HTMLInputElement;
+	public static elControlsInputMiniMapZoomOuntBind: HTMLButtonElement;
+	public static elControlsInputMoveBackward: HTMLInputElement;
+	public static elControlsInputMoveBackwardBind: HTMLButtonElement;
+	public static elControlsInputStrafeAltMode: HTMLInputElement;
+	public static elControlsInputStrafeAltModeBind: HTMLButtonElement;
+	public static elControlsInputMoveForward: HTMLInputElement;
+	public static elControlsInputMoveForwardBind: HTMLButtonElement;
+	public static elControlsInputMoveLeft: HTMLInputElement;
+	public static elControlsInputMoveLeftBind: HTMLButtonElement;
+	public static elControlsInputMoveRight: HTMLInputElement;
+	public static elControlsInputMoveRightBind: HTMLButtonElement;
+	public static elControlsInputRun: HTMLInputElement;
+	public static elControlsInputRunBind: HTMLButtonElement;
+	public static elControlsInputShoot: HTMLInputElement;
+	public static elControlsInputShootBind: HTMLButtonElement;
+	public static elControlsInputWeapon1: HTMLInputElement;
+	public static elControlsInputWeapon1Bind: HTMLButtonElement;
+	public static elControlsInputWeapon2: HTMLInputElement;
+	public static elControlsInputWeapon2Bind: HTMLButtonElement;
+	public static elControlsInputWeapon3: HTMLInputElement;
+	public static elControlsInputWeapon3Bind: HTMLButtonElement;
+	public static elControlsInputWeapon4: HTMLInputElement;
+	public static elControlsInputWeapon4Bind: HTMLButtonElement;
 	public static elControlsSubGamepad: HTMLElement;
 	public static elControlsSubKeyboard: HTMLElement;
 	public static elControlsSubMouse: HTMLElement;
@@ -274,9 +310,11 @@ export class DOM {
 	public static elSettingsValueGameCrosshair: HTMLInputElement;
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
+	public static elSettingsValueGameControlStrafe: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
 	public static elSettingsValueGameNavigation: HTMLInputElement;
 	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
+	public static elSettingsValueGameControlAlwaysRun: HTMLInputElement;
 	public static elSettingsValueGraphicsAntialias: HTMLInputElement;
 	public static elSettingsValueGraphicsDPI: HTMLInputElement;
 	public static elSettingsValueGraphicsFOV: HTMLInputElement;
@@ -304,6 +342,8 @@ export class DOM {
 	private static timeoutSpinner: ReturnType<typeof setTimeout>;
 
 	public static initialize(): void {
+		DOM.elBind = <HTMLElement>document.getElementById('bind');
+		DOM.elBindBody = <HTMLElement>document.getElementById('bind-body');
 		DOM.elButtonApply = <HTMLElement>document.getElementById('button-apply');
 		DOM.elButtonDownload = <HTMLElement>document.getElementById('button-download');
 		DOM.elButtonEdit = <HTMLElement>document.getElementById('button-edit');
@@ -327,6 +367,41 @@ export class DOM {
 		DOM.elControlsSubKeyboard = <HTMLElement>document.getElementById('controls-sub-keyboard');
 		DOM.elControlsSubMouse = <HTMLElement>document.getElementById('controls-sub-mouse');
 		DOM.elControlsSubTouch = <HTMLElement>document.getElementById('controls-sub-touch');
+
+		DOM.elControlsInputAction = <HTMLInputElement>document.getElementById('controls-input-action');
+		DOM.elControlsInputActionBind = <HTMLButtonElement>document.getElementById('controls-input-action-bind');
+		DOM.elControlsInputDefaultWASD = <HTMLButtonElement>document.getElementById('controls-input-default-wasd');
+		DOM.elControlsInputDefaultWolf3D = <HTMLButtonElement>document.getElementById('controls-input-default-wolf3d');
+		DOM.elControlsInputLookLeft = <HTMLInputElement>document.getElementById('controls-input-look-left');
+		DOM.elControlsInputLookLeftBind = <HTMLButtonElement>document.getElementById('controls-input-look-left-bind');
+		DOM.elControlsInputLookRight = <HTMLInputElement>document.getElementById('controls-input-look-right');
+		DOM.elControlsInputLookRightBind = <HTMLButtonElement>document.getElementById('controls-input-look-right-bind');
+		DOM.elControlsInputMiniMapZoomIn = <HTMLInputElement>document.getElementById('controls-input-mini-map-zoom-in');
+		DOM.elControlsInputMiniMapZoomInBind = <HTMLButtonElement>document.getElementById('controls-input-mini-map-zoom-in-bind');
+		DOM.elControlsInputMiniMapZoomOut = <HTMLInputElement>document.getElementById('controls-input-mini-map-zoom-out');
+		DOM.elControlsInputMiniMapZoomOuntBind = <HTMLButtonElement>document.getElementById('controls-input-mini-map-zoom-out-bind');
+		DOM.elControlsInputMoveBackward = <HTMLInputElement>document.getElementById('controls-input-move-backward');
+		DOM.elControlsInputMoveBackwardBind = <HTMLButtonElement>document.getElementById('controls-input-move-backward-bind');
+		DOM.elControlsInputMoveForward = <HTMLInputElement>document.getElementById('controls-input-move-forward');
+		DOM.elControlsInputMoveForwardBind = <HTMLButtonElement>document.getElementById('controls-input-move-forward-bind');
+		DOM.elControlsInputMoveLeft = <HTMLInputElement>document.getElementById('controls-input-move-left');
+		DOM.elControlsInputMoveLeftBind = <HTMLButtonElement>document.getElementById('controls-input-move-left-bind');
+		DOM.elControlsInputMoveRight = <HTMLInputElement>document.getElementById('controls-input-move-right');
+		DOM.elControlsInputMoveRightBind = <HTMLButtonElement>document.getElementById('controls-input-move-right-bind');
+		DOM.elControlsInputRun = <HTMLInputElement>document.getElementById('controls-input-run');
+		DOM.elControlsInputRunBind = <HTMLButtonElement>document.getElementById('controls-input-run-bind');
+		DOM.elControlsInputShoot = <HTMLInputElement>document.getElementById('controls-input-shoot');
+		DOM.elControlsInputShootBind = <HTMLButtonElement>document.getElementById('controls-input-shoot-bind');
+		DOM.elControlsInputStrafeAltMode = <HTMLInputElement>document.getElementById('controls-input-strafe-alt-mode');
+		DOM.elControlsInputStrafeAltModeBind = <HTMLButtonElement>document.getElementById('controls-input-strafe-alt-mode-bind');
+		DOM.elControlsInputWeapon1 = <HTMLInputElement>document.getElementById('controls-input-weapon-1');
+		DOM.elControlsInputWeapon1Bind = <HTMLButtonElement>document.getElementById('controls-input-weapon-1-bind');
+		DOM.elControlsInputWeapon2 = <HTMLInputElement>document.getElementById('controls-input-weapon-2');
+		DOM.elControlsInputWeapon2Bind = <HTMLButtonElement>document.getElementById('controls-input-weapon-2-bind');
+		DOM.elControlsInputWeapon3 = <HTMLInputElement>document.getElementById('controls-input-weapon-3');
+		DOM.elControlsInputWeapon3Bind = <HTMLButtonElement>document.getElementById('controls-input-weapon-3-bind');
+		DOM.elControlsInputWeapon4 = <HTMLInputElement>document.getElementById('controls-input-weapon-4');
+		DOM.elControlsInputWeapon4Bind = <HTMLButtonElement>document.getElementById('controls-input-weapon-4-bind');
 
 		DOM.elDebug = <HTMLElement>document.getElementById('debug');
 
@@ -689,6 +764,8 @@ export class DOM {
 		DOM.elSettingsValueAudioNoAction = <HTMLInputElement>document.getElementById('settings-value-audio-no-action');
 		DOM.elSettingsValueAudioWallCollisions = <HTMLInputElement>document.getElementById('settings-value-audio-wall-collision');
 		DOM.elSettingsValueEditorDrawGrid = <HTMLInputElement>document.getElementById('settings-value-editor-cell-draw-grid');
+		DOM.elSettingsValueGameControlAlwaysRun = <HTMLInputElement>document.getElementById('settings-value-game-control-always-run');
+		DOM.elSettingsValueGameControlStrafe = <HTMLInputElement>document.getElementById('settings-value-game-control-strafe');
 		DOM.elSettingsValueGameCrosshair = <HTMLInputElement>document.getElementById('settings-value-game-crosshair');
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');

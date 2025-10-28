@@ -33,6 +33,12 @@
 			</div>
 			<div class="game" id="game">
 				<div class="wrapper">
+					<div class="bind hide" id="bind">
+						<div class="content">
+							<div class="body" id="bind-body">Body</div>
+							<div class="title">Bind</div>
+						</div>
+					</div>
 					<div class="debug" id="debug"></div>
 					<div class="icons top intro" id="icons-top">
 						<span class="button" id="button-fullscreen"><span class="main-icon fullscreen"></span></span>
@@ -69,35 +75,35 @@
 									<tbody>
 										<tr>
 											<td>Action</td>
-											<td><input autocomplete="off" disabled readonly value = "0 or 10" /></td>
+											<td><input autocomplete="off" disabled value="0 or 10" /></td>
 										</tr>
 										<tr>
 											<td>Pause</td>
-											<td><input autocomplete="off" disabled readonly value = "9" /></td>
+											<td><input autocomplete="off" disabled value="9" /></td>
 										</tr>
 										<tr>
 											<td>Shoot</td>
-											<td><input autocomplete="off" disabled readonly value = "5 or 11" /></td>
+											<td><input autocomplete="off" disabled value="5 or 11" /></td>
 										</tr>
 										<tr>
 											<td>Weapon: Knife</td>
-											<td><input autocomplete="off" disabled readonly value = "13" /></td>
+											<td><input autocomplete="off" disabled value="13" /></td>
 										</tr>
 										<tr>
 											<td>Weapon: Pistol</td>
-											<td><input autocomplete="off" disabled readonly value = "12" /></td>
+											<td><input autocomplete="off" disabled value="12" /></td>
 										</tr>
 										<tr>
 											<td>Weapon: Sub Machine Gun</td>
-											<td><input autocomplete="off" disabled readonly value = "14" /></td>
+											<td><input autocomplete="off" disabled value="14" /></td>
 										</tr>
 										<tr>
 											<td>Weapon: Machine Gun</td>
-											<td><input autocomplete="off" disabled readonly value = "15" /></td>
+											<td><input autocomplete="off" disabled value="15" /></td>
 										</tr>
 										<tr>
 											<td>Cheat Code</td>
-											<td><input autocomplete="off" disabled readonly value = "0 + 1 + 2 + 3" /></td>
+											<td><input autocomplete="off" disabled value="0 + 1 + 2 + 3" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -106,119 +112,161 @@
 								<table>
 									<tbody>
 										<tr>
+											<td>Default To:</td>
+											<td colspan="2">
+												<button id="controls-input-default-wasd">WASD</button>
+												<button id="controls-input-default-wolf3d">Wolf3D (MS-DOS)</button>
+											</td>
+										</tr>
+										<tr>
+											<td colspan="3" style="text-align: center;">--- Game ---</td>
+										</tr>
+										<tr>
 											<td>Action</td>
-											<td><input autocomplete="off" disabled readonly value = "Arrow Down or Spacebar" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-action" /></td>
+											<td><button id="controls-input-action-bind">Set</button></td>
 										</tr>
 										<tr>
-											<td>Look Left</td>
-											<td><input autocomplete="off" disabled readonly value = "Arrow Left" /></td>
+											<td>Look Left (Strafe Left Alt)</td>
+											<td><input autocomplete="off" disabled id="controls-input-look-left" /></td>
+											<td><button id="controls-input-look-left-bind">Set</button></td>
 										</tr>
 										<tr>
-											<td>Look Right</td>
-											<td><input autocomplete="off" disabled readonly value = "Arrow Right" /></td>
+											<td>Look Right (Strafe Right Alt)</td>
+											<td><input autocomplete="off" disabled id="controls-input-look-right" /></td>
+											<td><button id="controls-input-look-right-bind">Set</button></td>
 										</tr>
 										<tr>
-											<td>Move Forward</td>
-											<td><input autocomplete="off" disabled readonly value = "W" /></td>
+											<td>Mini Map: Zoom-In</td>
+											<td><input autocomplete="off" disabled id="controls-input-mini-map-zoom-in" /></td>
+											<td><button id="controls-input-mini-map-zoom-in-bind">Set</button></td>
+										</tr>
+										<tr>
+											<td>Mini Map: Zoom-Out</td>
+											<td><input autocomplete="off" disabled id="controls-input-mini-map-zoom-out" /></td>
+											<td><button id="controls-input-mini-map-zoom-out-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Move Backward</td>
-											<td><input autocomplete="off" disabled readonly value = "S" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-move-backward" /></td>
+											<td><button id="controls-input-move-backward-bind">Set</button></td>
+										</tr>
+										<tr>
+											<td>Move Forward</td>
+											<td><input autocomplete="off" disabled id="controls-input-move-forward" /></td>
+											<td><button id="controls-input-move-forward-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Move Left</td>
-											<td><input autocomplete="off" disabled readonly value = "A" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-move-left" /></td>
+											<td><button id="controls-input-move-left-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Move Right</td>
-											<td><input autocomplete="off" disabled readonly value = "D" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-move-right" /></td>
+											<td><button id="controls-input-move-right-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Pause</td>
-											<td><input autocomplete="off" disabled readonly value = "Escape" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="Escape" /></td>
+										</tr>
+										<tr>
+											<td>Run</td>
+											<td><input autocomplete="off" disabled id="controls-input-run" /></td>
+											<td><button id="controls-input-run-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Shoot</td>
-											<td><input autocomplete="off" disabled readonly value = "Arrow Up or Shift" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-shoot" /></td>
+											<td><button id="controls-input-shoot-bind">Set</button></td>
+										</tr>
+										<tr>
+											<td>Strafe Alt Mode</td>
+											<td><input autocomplete="off" disabled id="controls-input-strafe-alt-mode" value="Alt" /></td>
+											<td><button id="controls-input-strafe-alt-mode-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Weapon: Knife</td>
-											<td><input autocomplete="off" disabled readonly value = "1" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-weapon-1" /></td>
+											<td><button id="controls-input-weapon-1-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Weapon: Pistol</td>
-											<td><input autocomplete="off" disabled readonly value = "2" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-weapon-2" /></td>
+											<td><button id="controls-input-weapon-2-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Weapon: Sub Machine Gun</td>
-											<td><input autocomplete="off" disabled readonly value = "3" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-weapon-3" /></td>
+											<td><button id="controls-input-weapon-3-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Weapon: Machine Gun</td>
-											<td><input autocomplete="off" disabled readonly value = "4" /></td>
+											<td><input autocomplete="off" disabled id="controls-input-weapon-4" /></td>
+											<td><button id="controls-input-weapon-4-bind">Set</button></td>
 										</tr>
 										<tr>
 											<td>Cheat Code</td>
-											<td><input autocomplete="off" disabled readonly value = "i + l + m" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="i + l + m" /></td>
 										</tr>
 										<tr>
-											<td colspan="2" style="text-align: center;">--- Editor ---</td>
+											<td colspan="3" style="text-align: center;">--- Editor ---</td>
 										</tr>
 										<tr>
 											<td>Download</td>
-											<td><input autocomplete="off" disabled readonly value = "d" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="d" /></td>
 										</tr>
 										<tr>
 											<td>Erase Mode</td>
-											<td><input autocomplete="off" disabled readonly value = "e" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="e" /></td>
 										</tr>
 										<tr>
 											<td>Erase All</td>
-											<td><input autocomplete="off" disabled readonly value = "left-shift + r" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="left-shift + r" /></td>
 										</tr>
 										<tr>
 											<td>History Redo</td>
-											<td><input autocomplete="off" disabled readonly value = "left-control + y" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="left-control + y" /></td>
 										</tr>
 										<tr>
 											<td>History Undo</td>
-											<td><input autocomplete="off" disabled readonly value = "left-control + z" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="left-control + z" /></td>
 										</tr>
 										<tr>
 											<td>Inspect (eye-dropper) Mode</td>
-											<td><input autocomplete="off" disabled readonly value = "i" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="i" /></td>
 										</tr>
 										<tr>
 											<td>Move Mode</td>
-											<td><input autocomplete="off" disabled readonly value = "m" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="m" /></td>
 										</tr>
 										<tr>
 											<td>Upload</td>
-											<td><input autocomplete="off" disabled readonly value = "u" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="u" /></td>
 										</tr>
 										<tr>
 										<tr>
-											<td colspan="2" style="text-align: center;">--- Debug (Goobers) ---</td>
+											<td colspan="3" style="text-align: center;">--- Debug (Goobers) ---</td>
 										</tr>
 										<tr>
 											<td>Display Current Position</td>
-											<td><input autocomplete="off" disabled readonly value = "tab + f" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="tab + f" /></td>
 										</tr>
 										<tr>
 											<td>End Level</td>
-											<td><input autocomplete="off" disabled readonly value = "tab + e" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="tab + e" /></td>
 										</tr>
 										<tr>
-											<td>Minimap: Show All</td>
-											<td><input autocomplete="off" disabled readonly value = "tab + m" /></td>
+											<td>Minimap: Show All Toggle</td>
+											<td colspan="2"><input autocomplete="off" disabled value="tab + m" /></td>
 										</tr>
 										<tr>
 											<td>Take Damage</td>
-											<td><input autocomplete="off" disabled readonly value = "tab + h" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="tab + h" /></td>
 										</tr>
 										<tr>
 											<td>Warp To Level</td>
-											<td><input autocomplete="off" disabled readonly value = "tab + w" /></td>
+											<td colspan="2"><input autocomplete="off" disabled value="tab + w" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -232,27 +280,27 @@
 										</tr>
 										<tr>
 											<td>Camera: Move (move mode)</td>
-											<td><input autocomplete="off" disabled readonly value = "L + Move Down/Left/Right/Up" /></td>
+											<td><input autocomplete="off" disabled value="L + Move Down/Left/Right/Up" /></td>
 										</tr>
 										<tr>
 											<td>Camera: Move (edit mode)</td>
-											<td><input autocomplete="off" disabled readonly value = "M + Move Down/Left/Right/Up" /></td>
+											<td><input autocomplete="off" disabled value="M + Move Down/Left/Right/Up" /></td>
 										</tr>
 										<tr>
 											<td>Camera: Rotate</td>
-											<td><input autocomplete="off" disabled readonly value = "M + Move Left/Right" /></td>
+											<td><input autocomplete="off" disabled value="M + Move Left/Right" /></td>
 										</tr>
 										<tr>
 											<td>Fill Mode Toggle</td>
-											<td><input autocomplete="off" disabled readonly value = "hold L on pencil-icon when active" /></td>
+											<td><input autocomplete="off" disabled value="hold L on pencil-icon when active" /></td>
 										</tr>
 										<tr>
 											<td>Place/Inspect</td>
-											<td><input autocomplete="off" disabled readonly value = "L" /></td>
+											<td><input autocomplete="off" disabled value="L" /></td>
 										</tr>
 										<tr>
 											<td>Zoom</td>
-											<td><input autocomplete="off" disabled readonly value = "Scroll Down/Up" /></td>
+											<td><input autocomplete="off" disabled value="Scroll Down/Up" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -263,27 +311,27 @@
 									<tbody>
 										<tr>
 											<td>Action</td>
-											<td><input autocomplete="off" disabled readonly value = "R y-axis down" /></td>
+											<td><input autocomplete="off" disabled value="R y-axis down" /></td>
 										</tr>
 										<tr>
 											<td>Move</td>
-											<td><input autocomplete="off" disabled readonly value = "L" /></td>
+											<td><input autocomplete="off" disabled value="L" /></td>
 										</tr>
 										<tr>
 											<td>Look</td>
-											<td><input autocomplete="off" disabled readonly value = "R x-axis" /></td>
+											<td><input autocomplete="off" disabled value="R x-axis" /></td>
 										</tr>
 										<tr>
 											<td>Shoot</td>
-											<td><input autocomplete="off" disabled readonly value = "R y-axis up" /></td>
+											<td><input autocomplete="off" disabled value="R y-axis up" /></td>
 										</tr>
 										<tr>
 											<td>Weapons</td>
-											<td><input autocomplete="off" disabled readonly value = "3 touch inputs" /></td>
+											<td><input autocomplete="off" disabled value="3 touch inputs" /></td>
 										</tr>
 										<tr>
 											<td>Cheat Code</td>
-											<td><input autocomplete="off" disabled readonly value = "4 touch inputs" /></td>
+											<td><input autocomplete="off" disabled value="4 touch inputs" /></td>
 										</tr>
 									</tbody>
 								</table>
@@ -427,22 +475,6 @@
 											<input autocomplete="off" class="input" id="editor-cell-wall-movable" name="editor-cell-wall-movable" type="checkbox" />
 											<div class="title">Wall: Movable</div>
 										</label>
-			<!-- 							<label class="item" for="editor-cell-mux-1">
-											<input autocomplete="off" class="input" id="editor-cell-mux-1" name="editor-cell-mux-1" type="checkbox" />
-											<div class="title">Mux 01</div>
-										</label>
-										<label class="item" for="editor-cell-mux-2">
-											<input autocomplete="off" class="input" id="editor-cell-mux-2" name="editor-cell-mux-2" type="checkbox" />
-											<div class="title">Mux 02</div>
-										</label>
-										<label class="item" for="editor-cell-mux-3">
-											<input autocomplete="off" class="input" id="editor-cell-mux-3" name="editor-cell-mux-3" type="checkbox" />
-											<div class="title">Mux 03</div>
-										</label>
-										<label class="item" for="editor-cell-mux-4">
-											<input autocomplete="off" class="input" id="editor-cell-mux-4" name="editor-cell-mux-4" type="checkbox" />
-											<div class="title">Mux 04</div>
-										</label> -->
 									</div>
 								</div>
 							</div>
@@ -903,7 +935,7 @@
 											<td>Volume</td>
 											<td class="range">
 												<input autocomplete="off" id="settings-value-audio-volume" max="1" min="0" step="0.05" type="range" />
-												<input autocomplete="off" id="settings-value-audio-volume-readout" disabled readonly />
+												<input autocomplete="off" id="settings-value-audio-volume-readout" disabled />
 											</td>
 										</tr>
 										<tr>
@@ -914,14 +946,14 @@
 											<td>Effect Volume</td>
 											<td class="range">
 												<input autocomplete="off" id="settings-value-audio-volume-effect" max="1" min="0" step="0.05" type="range" />
-												<input autocomplete="off" id="settings-value-audio-volume-effect-readout" disabled readonly />
+												<input autocomplete="off" id="settings-value-audio-volume-effect-readout" disabled />
 											</td>
 										</tr>
 										<tr>
 											<td>Music Volume</td>
 											<td class="range">
 												<input autocomplete="off" id="settings-value-audio-volume-music" max="1" min="0" step="0.05" type="range" />
-												<input autocomplete="off" id="settings-value-audio-volume-music-readout" disabled readonly />
+												<input autocomplete="off" id="settings-value-audio-volume-music-readout" disabled />
 											</td>
 										</tr>
 										<tr>
@@ -948,6 +980,14 @@
 							<div class="body" id="settings-body-game">
 								<table>
 									<tbody>
+										<tr>
+											<td>Control: Always Run</td>
+											<td><input autocomplete="off" id="settings-value-game-control-always-run" type="checkbox" /></td>
+										</tr>
+										<tr>
+											<td>Control: Strafe Alt by Default</td>
+											<td><input autocomplete="off" id="settings-value-game-control-strafe" type="checkbox" /></td>
+										</tr>
 										<tr>
 											<td>Crosshair</td>
 											<td><input autocomplete="off" id="settings-value-game-crosshair" type="checkbox" /></td>
@@ -977,7 +1017,7 @@
 												<select autocomplete="off" id="settings-value-game-navigation">
 													<option value="1" selected>None</option>
 													<option value="0">Compass</option>
-													<option value="2">Map</option>
+													<option value="2">Mini Map</option>
 												</select>
 											</td>
 										</tr>
@@ -1014,7 +1054,7 @@
 											<td>FOV</td>
 											<td class="range">
 												<input autocomplete="off" id="settings-value-graphics-fov" min="30" max="120" step="1" type="range" />
-												<input autocomplete="off" id="settings-value-graphics-fov-readout" disabled readonly />
+												<input autocomplete="off" id="settings-value-graphics-fov-readout" disabled />
 											</td>
 										</tr>
 										<tr>
@@ -1038,7 +1078,7 @@
 											<td>Gamma Correction</td>
 											<td class="range">
 												<input autocomplete="off" id="settings-value-graphics-gamma" min="0" max="2" step="0.1" type="range" />
-												<input autocomplete="off" id="settings-value-graphics-gamma-readout" disabled readonly />
+												<input autocomplete="off" id="settings-value-graphics-gamma-readout" disabled />
 											</td>
 										</tr>
 										<tr>
