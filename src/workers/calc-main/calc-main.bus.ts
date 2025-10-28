@@ -22,6 +22,7 @@ import {
 	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusOutputDataActionDoorLocked,
 	CalcMainBusOutputDataActionTag,
+	CalcMainBusInputDataPlayerInputRx,
 } from './calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
@@ -177,6 +178,13 @@ export class CalcMainBus {
 			},
 			[data.camera.buffer],
 		);
+	}
+
+	public static outputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
+		CalcMainBus.worker.postMessage({
+			cmd: CalcMainBusInputCmd.CAMERA_RX,
+			data: data,
+		});
 	}
 
 	public static outputCheatCode(player1: boolean): void {

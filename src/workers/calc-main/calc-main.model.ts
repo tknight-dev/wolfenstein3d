@@ -78,6 +78,7 @@ export enum CalcMainBusInputCmd {
 	AUDIO_START,
 	AUDIO_STOP,
 	CAMERA,
+	CAMERA_RX,
 	CHARACTER_INPUT,
 	CHEAT_CODE,
 	DEBUG_HIT,
@@ -113,6 +114,11 @@ export interface CalcMainBusInputDataPlayerInput {
 	player2: CharacterInput;
 }
 
+export interface CalcMainBusInputDataPlayerInputRx {
+	player1: boolean;
+	rx: number;
+}
+
 export interface CalcMainBusInputDataSettings {
 	audioNoAction: boolean;
 	audioWallCollisions: boolean;
@@ -120,6 +126,7 @@ export interface CalcMainBusInputDataSettings {
 	difficulty: GameDifficulty;
 	fov: number;
 	fps: FPS;
+	mouseSensitivity: number;
 	player2Enable: boolean;
 	raycastQuality: RaycastQuality;
 }
@@ -137,6 +144,7 @@ export interface CalcMainBusInputPayload {
 		| CalcMainBusInputDataCamera
 		| CalcMainBusInputDataInit
 		| CalcMainBusInputDataPlayerInput
+		| CalcMainBusInputDataPlayerInputRx
 		| CalcMainBusInputDataSettings
 		| CalcMainBusInputDataWeaponSelect
 		| CharacterInput

@@ -1,13 +1,15 @@
 import { GamingCanvas, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import {
 	VideoOverlayBusInputCmd,
+	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusOutputCmd,
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
-import { CalcMainBusOutputDataActionTag } from '../calc-main/calc-main.model.js';
+import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import { GameMap } from '../../models/game.model.js';
 
 /**
  * @author tknight-dev
@@ -120,6 +122,54 @@ export class VideoOverlayBus {
 	 * Output
 	 */
 
+	public static outputActionDoor(data: CalcMainBusActionDoorState): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_DOOR,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_DOOR,
+			data: data,
+		});
+	}
+
+	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
+			data: data,
+		});
+	}
+
+	public static outputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_WALL_MOVE,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.ACTION_WALL_MOVE,
+			data: data,
+		});
+	}
+
+	public static outputCalculations(player1: boolean, data: VideoOverlayBusInputDataCalculations): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.CALCULATIONS,
+				data: data,
+			},
+			data.characterPlayerCameraAlt !== undefined
+				? [data.characterPlayerCamera.buffer, data.characterPlayerCameraAlt.buffer]
+				: [data.characterPlayerCamera.buffer],
+		);
+	}
+
 	public static outputGameOver(): void {
 		VideoOverlayBus.workerPlayer1.postMessage({
 			cmd: VideoOverlayBusInputCmd.GAME_OVER,
@@ -144,6 +194,32 @@ export class VideoOverlayBus {
 				data: keys,
 			});
 		}
+	}
+
+	public static outputMap(data: GameMap): void {
+		VideoOverlayBus.workerPlayer1.postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP,
+			data: data,
+		});
+
+		VideoOverlayBus.workerPlayer2.postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP,
+			data: data,
+		});
+	}
+
+	public static outputMapShowAll(player1: boolean): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP_SHOW_ALL,
+			data: undefined,
+		});
+	}
+
+	public static outputMapZoom(player1: boolean, zoomIn: boolean): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
+			cmd: VideoOverlayBusInputCmd.MAP_ZOOM,
+			data: zoomIn,
+		});
 	}
 
 	public static outputPause(state: boolean): void {
@@ -229,17 +305,5 @@ export class VideoOverlayBus {
 
 	public static setCallbackStats(callbackStats: (player1: boolean, data: VideoOverlayBusOutputDataStats) => void): void {
 		VideoOverlayBus.callbackStats = callbackStats;
-	}
-
-	public static outputActionTag(data: CalcMainBusOutputDataActionTag): void {
-		VideoOverlayBus.workerPlayer1.postMessage({
-			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
-			data: data,
-		});
-
-		VideoOverlayBus.workerPlayer2.postMessage({
-			cmd: VideoOverlayBusInputCmd.ACTION_TAG,
-			data: data,
-		});
 	}
 }

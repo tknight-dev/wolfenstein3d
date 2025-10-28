@@ -83,6 +83,7 @@ import { CalcPathBus } from '../workers/calc-path/calc-path.bus.js';
 import { CalcPathBusInputDataSettings } from '../workers/calc-path/calc-path.model.js';
 import { VideoOverlayBusInputDataSettings } from '../workers/video-overlay/video-overlay.model.js';
 import { VideoOverlayBus } from '../workers/video-overlay/video-overlay.bus.js';
+import { InputActions } from '../models/input.model.js';
 
 /**
  * Guards are 100 points
@@ -113,6 +114,9 @@ enum GameMenuAction {
 }
 
 export class Game {
+	public static bindKeyboard: boolean;
+	public static bindKeyboardAction: InputActions;
+	public static bindKeyboardTimeout: ReturnType<typeof setTimeout>;
 	public static camera: GamingCanvasGridCamera = new GamingCanvasGridCamera();
 	public static editorAssetIdImg: number = 0;
 	public static editorAssetCharacterId: AssetIdImgCharacter = 0;
@@ -157,12 +161,16 @@ export class Game {
 		audioVolume: number;
 		audioVolumeEffect: number;
 		audioVolumeMusic: number;
+		controlAlwaysRun: boolean;
+		controlStrafe: boolean;
 		debug: boolean;
 		graphicsDPISupport: boolean;
 		graphicsFOV: number;
 		graphicsFPSDisplay: boolean;
 		gamePlayer2InputDevice: InputDevice;
 		graphicsResolution: Resolution;
+		inputBindingsKeyboardActionByKey: Map<string, InputActions>;
+		inputBindingsKeyboardKeyByAction: Map<InputActions, string>;
 		intro: boolean;
 		threadCalcMain: CalcMainBusInputDataSettings;
 		threadCalcPath: CalcPathBusInputDataSettings;
@@ -170,6 +178,7 @@ export class Game {
 		threadVideoEditor: VideoEditorBusInputDataSettings;
 		threadVideoMain: VideoMainBusInputDataSettings;
 		threadVideoOverlay: VideoOverlayBusInputDataSettings;
+		version: string;
 	} = {} as any;
 	public static started: boolean;
 	public static switchAlt: boolean;
@@ -221,86 +230,14 @@ export class Game {
 		DOM.elEditorPropertiesCellOutputValue.innerText = '0000';
 	}
 
-	public static loadNextLevel(): void {
-		if (Game.inputSuspend === true) {
-			return;
-		}
+	public static inputBindKeyboard(action: InputActions, event: PointerEvent): void {
+		(<HTMLElement>event.srcElement).blur();
 
-		Game.inputSuspend = true;
-
-		if (Game.mapBackup.id % 10 === 8) {
-			// episode complete
-			if (Game.musicInstance !== null) {
-				GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
-			}
-			setTimeout(async () => {
-				Game.inputSuspend = false;
-				Game.gameMenu(true);
-				Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
-			}, 1500);
-
-			DOM.elGameMenuMainGameSave.classList.add('disable');
-			Game.mapEnded = false;
-			Game.mapEnding = false;
-			Game.mapEndingSkip = false;
-			Game.started = false;
-		} else {
-			let assetIdMapNext: AssetIdMap;
-
-			if (Game.mapBackup.id % 10 === 9) {
-				// secret level complete
-				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
-			} else {
-				if (Game.switchAlt === true) {
-					// regular level complete: goto secret level
-					assetIdMapNext = Game.mapBackup.id + 9;
-					Game.switchAlt = false;
-				} else {
-					// regular level complete
-					assetIdMapNext = Game.mapBackup.id + 1;
-				}
-			}
-
-			if (Assets.dataMap.has(assetIdMapNext) !== true) {
-				alert("That's it for this build!");
-			} else {
-				// GameMap
-				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
-				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
-				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
-				Game.mapEnded = false;
-				Game.mapEnding = false;
-
-				Game.camera.r = Game.map.position.r;
-				Game.camera.x = Game.map.position.x + 0.5;
-				Game.camera.y = Game.map.position.y + 0.5;
-				Game.camera.z = Game.map.position.z;
-
-				Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-				Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-				Game.viewport.apply(Game.camera, false);
-
-				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
-				Game.tagRunAndJump = false;
-
-				Game.gameMusicPlay(Game.mapBackup.music);
-
-				CalcMainBus.outputMap(Game.mapBackup);
-				CalcPathBus.outputMap(Game.mapBackup);
-				VideoEditorBus.outputMap(Game.mapBackup);
-				VideoMainBus.outputMap(Game.mapBackup);
-				VideoOverlayBus.outputReset();
-
-				// End menu
-				setTimeout(() => {
-					Game.gameMenu(false);
-					DOM.elIconsTop.classList.remove('intro');
-					DOM.elScreenActive.style.display = 'none';
-					Game.inputSuspend = false;
-					Game.pause(false);
-				}, 200);
-			}
-		}
+		DOM.elBindBody.innerText = InputActions[action].replace('_', ' ');
+		DOM.elBind.classList.remove('hide');
+		Game.bindKeyboardAction = action;
+		Game.bindKeyboard = true;
+		Game.inputSuspend = false;
 	}
 
 	/**
@@ -590,7 +527,7 @@ export class Game {
 		CalcPathBus.outputMap(Game.mapBackup);
 		VideoEditorBus.outputMap(Game.mapBackup);
 		VideoMainBus.outputMap(Game.mapBackup);
-		VideoOverlayBus.outputReset();
+		VideoOverlayBus.outputMap(Game.map);
 
 		// End menu
 		setTimeout(() => {
@@ -1364,6 +1301,58 @@ export class Game {
 			DOM.elFile.click();
 		};
 
+		// Control input - binders
+		DOM.elControlsInputDefaultWASD.onclick = () => {
+			Settings.inputKeyboardDefaultWASD();
+			Settings.inputKeyboardNames();
+			Settings.save();
+		};
+		DOM.elControlsInputDefaultWolf3D.onclick = () => {
+			Settings.inputKeyboardDefaultWolf3D();
+			Settings.inputKeyboardNames();
+			Settings.save();
+		};
+
+		DOM.elControlsInputActionBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.ACTION, event);
+		};
+		DOM.elControlsInputLookLeftBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.LOOK_LEFT, event);
+		};
+		DOM.elControlsInputLookRightBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.LOOK_RIGHT, event);
+		};
+		DOM.elControlsInputMoveBackwardBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.MOVE_BACKWARD, event);
+		};
+		DOM.elControlsInputStrafeAltModeBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.MOVE_FIXED_VS_STRAFE_INVERT, event);
+		};
+		DOM.elControlsInputMoveForwardBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.MOVE_FORWARD, event);
+		};
+		DOM.elControlsInputMoveLeftBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.MOVE_LEFT, event);
+		};
+		DOM.elControlsInputMoveRightBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.MOVE_RIGHT, event);
+		};
+		DOM.elControlsInputShootBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.SHOOT, event);
+		};
+		DOM.elControlsInputWeapon1Bind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.WEAPON_1, event);
+		};
+		DOM.elControlsInputWeapon2Bind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.WEAPON_2, event);
+		};
+		DOM.elControlsInputWeapon3Bind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.WEAPON_3, event);
+		};
+		DOM.elControlsInputWeapon4Bind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.WEAPON_4, event);
+		};
+
 		// Editor commands
 		DOM.elEditorCommandFindAndReplace.onclick = () => {
 			DOM.elEditorFindAndReplaceValueFind.value = Game.editorCellValue.toString(16).padStart(4, '0');
@@ -1389,6 +1378,7 @@ export class Game {
 			CalcPathBus.outputMap(Game.map);
 			VideoEditorBus.outputMap(Game.map);
 			VideoMainBus.outputMap(Game.map);
+			VideoOverlayBus.outputMap(Game.map);
 
 			DOM.elEditorFindAndReplace.style.display = 'none';
 			Game.inputSuspend = false;
@@ -1436,7 +1426,7 @@ export class Game {
 			CalcPathBus.outputMap(parsed);
 			VideoEditorBus.outputMap(parsed);
 			VideoMainBus.outputMap(parsed);
-			VideoOverlayBus.outputReset();
+			VideoOverlayBus.outputMap(parsed);
 
 			setTimeout(() => {
 				CalcMainBus.outputMetaReset();
@@ -1752,6 +1742,9 @@ export class Game {
 			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeMusic.value), GamingCanvasAudioType.MUSIC);
 			DOM.elSettingsValueAudioVolumeMusicReadout.value = (Number(DOM.elSettingsValueAudioVolumeMusic.value) * 100).toFixed(0) + '%';
 		};
+		DOM.elSettingsValueGameMouseSensitivity.oninput = () => {
+			DOM.elSettingsValueGameMouseSensitivityReadout.value = Number(DOM.elSettingsValueGameMouseSensitivity.value).toFixed(2);
+		};
 
 		DOM.elSettingsSubEditor.onclick = () => {
 			DOM.elSettingsBodyAudio.style.display = 'none';
@@ -1864,6 +1857,88 @@ export class Game {
 		Game.inputRequest = requestAnimationFrame(Game.processor);
 	}
 
+	public static loadNextLevel(): void {
+		if (Game.inputSuspend === true) {
+			return;
+		}
+
+		Game.inputSuspend = true;
+
+		if (Game.mapBackup.id % 10 === 8) {
+			// episode complete
+			if (Game.musicInstance !== null) {
+				GamingCanvas.audioControlVolume(Game.musicInstance, 0, 1500);
+			}
+			setTimeout(async () => {
+				Game.inputSuspend = false;
+				Game.gameMenu(true);
+				Game.gameMusicPlay(AssetIdAudio.AUDIO_MUSIC_WONDERING);
+			}, 1500);
+
+			DOM.elGameMenuMainGameSave.classList.add('disable');
+			Game.mapEnded = false;
+			Game.mapEnding = false;
+			Game.mapEndingSkip = false;
+			Game.started = false;
+		} else {
+			let assetIdMapNext: AssetIdMap;
+
+			if (Game.mapBackup.id % 10 === 9) {
+				// secret level complete
+				assetIdMapNext = Game.mapBackup.id - 8; // goto level 2
+			} else {
+				if (Game.switchAlt === true) {
+					// regular level complete: goto secret level
+					assetIdMapNext = Game.mapBackup.id + 9;
+					Game.switchAlt = false;
+				} else {
+					// regular level complete
+					assetIdMapNext = Game.mapBackup.id + 1;
+				}
+			}
+
+			if (Assets.dataMap.has(assetIdMapNext) !== true) {
+				alert("That's it for this build!");
+			} else {
+				// GameMap
+				Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+				Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
+				Game.mapEnded = false;
+				Game.mapEnding = false;
+
+				Game.camera.r = Game.map.position.r;
+				Game.camera.x = Game.map.position.x + 0.5;
+				Game.camera.y = Game.map.position.y + 0.5;
+				Game.camera.z = Game.map.position.z;
+
+				Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+				Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+				Game.viewport.apply(Game.camera, false);
+
+				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+				Game.tagRunAndJump = false;
+
+				Game.gameMusicPlay(Game.mapBackup.music);
+
+				CalcMainBus.outputMap(Game.mapBackup);
+				CalcPathBus.outputMap(Game.mapBackup);
+				VideoEditorBus.outputMap(Game.mapBackup);
+				VideoMainBus.outputMap(Game.mapBackup);
+				VideoOverlayBus.outputMap(Game.map);
+
+				// End menu
+				setTimeout(() => {
+					Game.gameMenu(false);
+					DOM.elIconsTop.classList.remove('intro');
+					DOM.elScreenActive.style.display = 'none';
+					Game.inputSuspend = false;
+					Game.pause(false);
+				}, 200);
+			}
+		}
+	}
+
 	private static processor(_: number): void {}
 
 	private static processorBinder(): void {
@@ -1907,10 +1982,13 @@ export class Game {
 			gridIndexPlayer1: number | undefined,
 			gridIndexPlayer2: number | undefined,
 			id: number,
+			inputAction: InputActions,
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
+			inputStrafeInvert: boolean,
 			keyState: Map<string, boolean> = new Map(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
+			mouseLocked: boolean = GamingCanvas.isMouseLocked(),
 			player1: boolean,
 			position1: GamingCanvasInputPosition,
 			position2: GamingCanvasInputPosition,
@@ -1921,6 +1999,7 @@ export class Game {
 			queueInputOverlays: GamingCanvasInputPosition[],
 			queueTimestamp: number = -2025,
 			report: GamingCanvasReport = Game.report,
+			run: boolean,
 			touchDistancePrevious: number,
 			touchDistance: number,
 			touchJoystickDeadBand: number = 0.2,
@@ -1945,6 +2024,7 @@ export class Game {
 		// Calc: Action Door Open
 		CalcMainBus.setCallbackActionDoor((data: CalcMainBusActionDoorState) => {
 			VideoMainBus.outputActionDoor(data);
+			VideoOverlayBus.outputActionDoor(data);
 		});
 
 		CalcMainBus.setCallbackActionDoorLocked((data: CalcMainBusOutputDataActionDoorLocked) => {
@@ -2165,6 +2245,7 @@ export class Game {
 		CalcMainBus.setCallbackActionWallMove((data: CalcMainBusOutputDataActionWallMove) => {
 			CalcPathBus.outputActionWallMove(data);
 			VideoMainBus.outputActionWallMove(data);
+			VideoOverlayBus.outputActionWallMove(data);
 		});
 
 		// Calc: Audio
@@ -2254,7 +2335,7 @@ export class Game {
 					camera: camera.encode(),
 					cameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined, // Clone
 					rays: <Float64Array>data.characterPlayer1Rays,
-					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer1RaysMap,
+					raysMap: <any>data.characterPlayer1RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer1RaysMapKeysSorted,
 					timestampUnix: data.timestampUnix,
 				});
@@ -2267,6 +2348,12 @@ export class Game {
 					gameMode: true,
 					viewport: viewport.encode(),
 					timestampUnix: data.timestampUnix,
+				});
+
+				// Third: VideoOverlay
+				VideoOverlayBus.outputCalculations(true, {
+					characterPlayerCamera: camera.encode(),
+					characterPlayerCameraAlt: data.characterPlayer2Camera !== undefined ? Float64Array.from(data.characterPlayer2Camera) : undefined,
 				});
 			} else {
 				gridIndexPlayer1 = undefined;
@@ -2283,16 +2370,22 @@ export class Game {
 
 			if (data.characterPlayer2Camera !== undefined) {
 				cameraScratch.decode(data.characterPlayer2Camera);
-
 				gridIndexPlayer2 = (cameraScratch.x | 0) * Game.map.grid.sideLength + (cameraScratch.y | 0);
 
+				// First: VideoMain
 				VideoMainBus.outputCalculations(false, {
-					camera: data.characterPlayer2Camera,
+					camera: Float64Array.from(data.characterPlayer2Camera),
 					cameraAlt: data.characterPlayer1Camera,
 					rays: <Float64Array>data.characterPlayer2Rays,
 					raysMap: <Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>>data.characterPlayer2RaysMap,
 					raysMapKeysSorted: <Float64Array>data.characterPlayer2RaysMapKeysSorted,
 					timestampUnix: data.timestampUnix,
+				});
+
+				// Second: VideoOverlay
+				VideoOverlayBus.outputCalculations(false, {
+					characterPlayerCamera: data.characterPlayer2Camera,
+					characterPlayerCameraAlt: camera.encode(),
 				});
 			} else {
 				gridIndexPlayer2 = undefined;
@@ -2396,6 +2489,10 @@ export class Game {
 			VideoEditorBus.outputPathUpdate(data);
 		});
 
+		GamingCanvas.setCallbackMouseLocked((state: boolean) => {
+			mouseLocked = state;
+		});
+
 		// Camera
 		setInterval(() => {
 			if (updated === true || updatedR === true || Game.reportNew === true || Game.mapBackupRestored === true) {
@@ -2454,6 +2551,7 @@ export class Game {
 				CalcPathBus.outputMap(Game.map);
 				VideoEditorBus.outputMap(Game.map);
 				VideoMainBus.outputMap(Game.map);
+				VideoOverlayBus.outputMap(Game.map);
 			}
 		}, 100);
 
@@ -2814,7 +2912,39 @@ export class Game {
 			down = input.propriatary.down;
 			keyState.set(input.propriatary.action.code, down);
 
-			if (Game.gameMenuActive === true) {
+			if (Game.bindKeyboard === true) {
+				if (down === true) {
+					if (input.propriatary.action.code !== 'Escape') {
+						let keyPrevious: string | undefined = Game.settings.inputBindingsKeyboardKeyByAction.get(InputActions.ACTION);
+						if (keyPrevious !== undefined) {
+							Game.settings.inputBindingsKeyboardActionByKey.delete(keyPrevious);
+						}
+
+						if (Game.settings.inputBindingsKeyboardKeyByAction.get(InputActions.ACTION) !== input.propriatary.action.code) {
+							if (Game.settings.inputBindingsKeyboardActionByKey.has(input.propriatary.action.code) === true) {
+								DOM.elBindBody.innerText = 'Aleady in use';
+
+								clearTimeout(Game.bindKeyboardTimeout);
+								Game.bindKeyboardTimeout = setTimeout(() => {
+									DOM.elBindBody.innerText = InputActions[InputActions.ACTION].replace('_', ' ');
+								}, 2000);
+								return;
+							} else {
+								DOM.elBindBody.innerText = '';
+								Game.settings.inputBindingsKeyboardActionByKey.set(input.propriatary.action.code, Game.bindKeyboardAction);
+								Game.settings.inputBindingsKeyboardKeyByAction.set(Game.bindKeyboardAction, input.propriatary.action.code);
+
+								Settings.inputKeyboardNames();
+								Settings.save();
+							}
+						}
+					}
+
+					Game.bindKeyboard = false;
+					DOM.elBind.classList.add('hide');
+					Game.inputSuspend = true;
+				}
+			} else if (Game.gameMenuActive === true) {
 				if (down === true) {
 					switch (input.propriatary.action.code) {
 						case 'ArrowDown':
@@ -2848,180 +2978,235 @@ export class Game {
 					player1 = true;
 				}
 				characterPlayerInputPlayer.type === GamingCanvasInputType.KEYBOARD;
+				inputAction = <InputActions>Game.settings.inputBindingsKeyboardActionByKey.get(input.propriatary.action.code);
 
-				switch (input.propriatary.action.code) {
-					case 'ArrowDown':
-					case 'Space':
-						if (down) {
-							characterPlayerInputPlayer.action = true;
-						} else if ((characterPlayerInputPlayer.action = true)) {
-							characterPlayerInputPlayer.action = false;
-						}
-						updated = true;
-						break;
-					case 'ArrowLeft':
-						if (down) {
-							characterPlayerInputPlayer.r = -1;
-						} else if (characterPlayerInputPlayer.r === -1) {
-							characterPlayerInputPlayer.r = 0;
-						}
-						updated = true;
-						break;
-					case 'ArrowRight':
-						if (down) {
-							characterPlayerInputPlayer.r = 1;
-						} else if (characterPlayerInputPlayer.r === 1) {
-							characterPlayerInputPlayer.r = 0;
-						}
-						updated = true;
-						break;
-					case 'ArrowUp':
-					case 'ShiftLeft':
-						if (down) {
-							characterPlayerInputPlayer.fire = true;
-						} else if ((characterPlayerInputPlayer.fire = true)) {
-							characterPlayerInputPlayer.fire = false;
-						}
-						updated = true;
-						break;
-					case 'Digit1':
-						if (down) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
-						}
-						break;
-					case 'Digit2':
-						if (down) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
-						}
-						break;
-					case 'Digit3':
-						if (down) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
-						}
-						break;
-					case 'Digit4':
-						if (down) {
-							CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
-						}
-						break;
-					case 'Escape':
-						Game.gameMenu();
-						break;
-					case 'KeyA':
-						if (down) {
-							characterPlayerInputPlayer.x = -1;
-						} else if (characterPlayerInputPlayer.x === -1) {
-							characterPlayerInputPlayer.x = 0;
-						}
-						updated = true;
-						break;
-					case 'KeyD':
-						if (down) {
-							characterPlayerInputPlayer.x = 1;
-						} else if (characterPlayerInputPlayer.x === 1) {
-							characterPlayerInputPlayer.x = 0;
-						}
-						updated = true;
-						break;
-					case 'KeyE':
-						if (keyState.get('Tab') === true && down) {
-							keyState.set('Tab', false);
-							CalcMainBus.outputMapEnd();
-						}
-						break;
-					case 'KeyF':
-						if (keyState.get('Tab') === true && down) {
-							keyState.set('Tab', false);
-							alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
-R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
-X: ${camera.x | 0}
-Y: ${camera.y | 0}`);
-						}
-						break;
-					case 'KeyH':
-						if (keyState.get('Tab') === true && down) {
-							keyState.set('Tab', false);
-							CalcMainBus.outputDebugHit();
-						}
-						break;
-					case 'KeyI':
-					case 'KeyL':
-					case 'KeyM':
-						if (down) {
-							cheatCodeCheck(player1);
-						}
-						break;
-					case 'KeyW':
-						if (keyState.get('Tab') === true && down) {
-							keyState.set('Tab', false);
-							keyState.set('KeyW', false);
+				if (inputAction !== undefined && keyState.get('Tab') !== true) {
+					run =
+						Game.settings.controlAlwaysRun === true ||
+						keyState.get(<string>Game.settings.inputBindingsKeyboardKeyByAction.get(InputActions.RUN)) === true;
 
-							// Warp to level
-							let level: number | string | null = prompt('Warp to level? [1-10]');
-							if (level !== null) {
-								level = Number(level);
-								if (Number.isInteger(level) !== true || level < 1 || level > 10) {
-									break;
-								}
-								Game.inputSuspend = true;
-								Game.pause(true);
-								GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
-
-								let assetIdMapNext: AssetIdMap = Game.mapBackup.id - (Game.mapBackup.id % 10) + (level - 1);
-
-								// GameMap
-								Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
-								Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
-								Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
-								Game.mapEnded = false;
-								Game.mapEnding = false;
-
-								Game.camera.r = Game.map.position.r;
-								Game.camera.x = Game.map.position.x + 0.5;
-								Game.camera.y = Game.map.position.y + 0.5;
-								Game.camera.z = Game.map.position.z;
-
-								Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
-								Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
-								Game.viewport.apply(Game.camera, false);
-
-								DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
-								Game.tagRunAndJump = false;
-
-								Game.gameMusicPlay(Game.mapBackup.music);
-
-								CalcMainBus.outputMap(Game.mapBackup);
-								CalcPathBus.outputMap(Game.mapBackup);
-								VideoEditorBus.outputMap(Game.mapBackup);
-								VideoMainBus.outputMap(Game.mapBackup);
-								VideoOverlayBus.outputReset();
-
-								// End menu
-								setTimeout(() => {
-									DOM.elIconsTop.classList.remove('intro');
-									Game.gameMenu(false);
-									Game.started = true;
-									Game.inputSuspend = false;
-									Game.pause(false);
-								}, 200);
-							}
-						} else {
+					switch (inputAction) {
+						case InputActions.ACTION:
 							if (down) {
-								characterPlayerInputPlayer.y = -1;
-							} else if (characterPlayerInputPlayer.y === -1) {
+								characterPlayerInputPlayer.action = true;
+							} else if ((characterPlayerInputPlayer.action = true)) {
+								characterPlayerInputPlayer.action = false;
+							}
+							updated = true;
+							break;
+						case InputActions.LOOK_LEFT:
+							if (
+								(inputStrafeInvert !== true && Game.settings.controlStrafe === false) ||
+								(inputStrafeInvert === true && Game.settings.controlStrafe === true)
+							) {
+								if (down) {
+									characterPlayerInputPlayer.r = -1;
+								} else if (characterPlayerInputPlayer.r === -1) {
+									characterPlayerInputPlayer.r = 0;
+								}
+
+								if (characterPlayerInputPlayer.x < 0) {
+									characterPlayerInputPlayer.x = 0;
+								}
+							} else {
+								if (down) {
+									characterPlayerInputPlayer.x = run ? -1 : -0.5;
+								} else if (characterPlayerInputPlayer.x !== 0) {
+									characterPlayerInputPlayer.x = 0;
+								}
+
+								if (characterPlayerInputPlayer.r < 0) {
+									characterPlayerInputPlayer.r = 0;
+								}
+							}
+							updated = true;
+							break;
+						case InputActions.LOOK_RIGHT:
+							if (
+								(inputStrafeInvert !== true && Game.settings.controlStrafe === false) ||
+								(inputStrafeInvert === true && Game.settings.controlStrafe === true)
+							) {
+								if (down) {
+									characterPlayerInputPlayer.r = 1;
+								} else if (characterPlayerInputPlayer.r === 1) {
+									characterPlayerInputPlayer.r = 0;
+								}
+
+								if (characterPlayerInputPlayer.x > 0) {
+									characterPlayerInputPlayer.x = 0;
+								}
+							} else {
+								if (down) {
+									characterPlayerInputPlayer.x = run ? 1 : 0.5;
+								} else if (characterPlayerInputPlayer.x !== 0) {
+									characterPlayerInputPlayer.x = 0;
+								}
+
+								if (characterPlayerInputPlayer.r > 0) {
+									characterPlayerInputPlayer.r = 0;
+								}
+							}
+							updated = true;
+							break;
+						case InputActions.MINI_MAP_ZOOM_IN:
+							down && VideoOverlayBus.outputMapZoom(player1, true);
+							break;
+						case InputActions.MINI_MAP_ZOOM_OUT:
+							down && VideoOverlayBus.outputMapZoom(player1, false);
+							break;
+						case InputActions.MOVE_BACKWARD:
+							if (down) {
+								characterPlayerInputPlayer.y = run ? 1 : 0.5;
+							} else if (characterPlayerInputPlayer.y !== 0) {
 								characterPlayerInputPlayer.y = 0;
 							}
 							updated = true;
-						}
-						break;
-					case 'KeyS':
-						if (down) {
-							characterPlayerInputPlayer.y = 1;
-						} else if (characterPlayerInputPlayer.y === 1) {
-							characterPlayerInputPlayer.y = 0;
-						}
-						updated = true;
-						break;
+							break;
+						case InputActions.MOVE_FORWARD:
+							if (down) {
+								characterPlayerInputPlayer.y = run ? -1 : -0.5;
+							} else if (characterPlayerInputPlayer.y !== 0) {
+								characterPlayerInputPlayer.y = 0;
+							}
+							updated = true;
+							break;
+						case InputActions.MOVE_LEFT:
+							if (down) {
+								characterPlayerInputPlayer.x = run ? -1 : -0.5;
+							} else if (characterPlayerInputPlayer.x !== 0) {
+								characterPlayerInputPlayer.x = 0;
+							}
+							updated = true;
+							break;
+						case InputActions.MOVE_RIGHT:
+							if (down) {
+								characterPlayerInputPlayer.x = run ? 1 : 0.5;
+							} else if (characterPlayerInputPlayer.x !== 0) {
+								characterPlayerInputPlayer.x = 0;
+							}
+							updated = true;
+							break;
+						case InputActions.MOVE_FIXED_VS_STRAFE_INVERT:
+							inputStrafeInvert = down;
+							break;
+						case InputActions.RUN:
+							break;
+						case InputActions.SHOOT:
+							if (down) {
+								characterPlayerInputPlayer.fire = true;
+							} else if ((characterPlayerInputPlayer.fire = true)) {
+								characterPlayerInputPlayer.fire = false;
+							}
+							updated = true;
+							break;
+						case InputActions.WEAPON_1:
+							down && CalcMainBus.weaponSelect(player1, CharacterWeapon.KNIFE);
+							break;
+						case InputActions.WEAPON_2:
+							down && CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
+							break;
+						case InputActions.WEAPON_3:
+							down && CalcMainBus.weaponSelect(player1, CharacterWeapon.SUB_MACHINE_GUN);
+							break;
+						case InputActions.WEAPON_4:
+							down && CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
+							break;
+					}
+				} else {
+					switch (input.propriatary.action.code) {
+						case 'Escape':
+							Game.gameMenu();
+							break;
+						case 'KeyE':
+							if (keyState.get('Tab') === true && Game.settings.debug === true && down) {
+								keyState.set('Tab', false);
+								CalcMainBus.outputMapEnd();
+							}
+							break;
+						case 'KeyF':
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+								keyState.set('Tab', false);
+								alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
+R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
+X: ${camera.x | 0}
+Y: ${camera.y | 0}`);
+							}
+							break;
+						case 'KeyH':
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+								keyState.set('Tab', false);
+								CalcMainBus.outputDebugHit();
+							}
+							break;
+						case 'KeyI':
+						case 'KeyL':
+						case 'KeyM':
+							if (down) {
+								cheatCodeCheck(player1);
+
+								if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+									keyState.set('Tab', false);
+									VideoOverlayBus.outputMapShowAll(player1);
+								}
+							}
+							break;
+						case 'KeyW':
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+								keyState.set('Tab', false);
+								keyState.set('KeyW', false);
+
+								// Warp to level
+								let level: number | string | null = prompt('Warp to level? [1-10]');
+								if (level !== null) {
+									level = Number(level);
+									if (Number.isInteger(level) !== true || level < 1 || level > 10) {
+										break;
+									}
+									Game.inputSuspend = true;
+									Game.pause(true);
+									GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
+
+									let assetIdMapNext: AssetIdMap = Game.mapBackup.id - (Game.mapBackup.id % 10) + (level - 1);
+
+									// GameMap
+									Game.map = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+									Game.mapBackup = Assets.mapParse(JSON.parse(Assets.mapToJSONString(<GameMap>Assets.dataMap.get(assetIdMapNext))));
+									Game.mapEditor = new GamingCanvasGridEditor(Game.map.grid);
+									Game.mapEnded = false;
+									Game.mapEnding = false;
+
+									Game.camera.r = Game.map.position.r;
+									Game.camera.x = Game.map.position.x + 0.5;
+									Game.camera.y = Game.map.position.y + 0.5;
+									Game.camera.z = Game.map.position.z;
+
+									Game.viewport = new GamingCanvasGridViewport(Game.map.grid.sideLength);
+									Game.viewport.applyZ(Game.camera, GamingCanvas.getReport());
+									Game.viewport.apply(Game.camera, false);
+
+									DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
+									Game.tagRunAndJump = false;
+
+									Game.gameMusicPlay(Game.mapBackup.music);
+
+									CalcMainBus.outputMap(Game.mapBackup);
+									CalcPathBus.outputMap(Game.mapBackup);
+									VideoEditorBus.outputMap(Game.mapBackup);
+									VideoMainBus.outputMap(Game.mapBackup);
+									VideoOverlayBus.outputMap(Game.map);
+
+									// End menu
+									setTimeout(() => {
+										DOM.elIconsTop.classList.remove('intro');
+										Game.gameMenu(false);
+										Game.started = true;
+										Game.inputSuspend = false;
+										Game.pause(false);
+									}, 200);
+								}
+							}
+							break;
+					}
 				}
 			} else {
 				switch (input.propriatary.action.code) {
@@ -3109,6 +3294,23 @@ Y: ${camera.y | 0}`);
 							}
 						}
 						downMode = down;
+					} else if (mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								characterPlayerInputPlayer = characterPlayerInput.player2;
+								player1 = false;
+							} else {
+								characterPlayerInputPlayer = characterPlayerInput.player1;
+								player1 = true;
+							}
+						} else {
+							characterPlayerInputPlayer = characterPlayerInput.player1;
+							player1 = true;
+						}
+						characterPlayerInputPlayer.type === GamingCanvasInputType.MOUSE;
+
+						characterPlayerInputPlayer.fire = down;
+						updated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.WHEEL:
@@ -3123,6 +3325,12 @@ Y: ${camera.y | 0}`);
 							}
 						}
 						downModeWheel = down;
+					} else if (down === true) {
+						if (mouseLocked === true) {
+							GamingCanvas.mouseUnlock();
+						} else {
+							GamingCanvas.mouseLock(true);
+						}
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
@@ -3160,6 +3368,23 @@ Y: ${camera.y | 0}`);
 								}
 							}
 						}
+					} else if (mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								player1 = false;
+							} else {
+								player1 = true;
+							}
+						} else {
+							player1 = true;
+						}
+
+						if (input.propriatary.movementX !== undefined) {
+							CalcMainBus.outputCameraRx({
+								player1: player1,
+								rx: input.propriatary.movementX,
+							});
+						}
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
@@ -3171,6 +3396,25 @@ Y: ${camera.y | 0}`);
 						if (cameraZoom !== cameraZoomPrevious) {
 							updated = true;
 						}
+					}
+				case GamingCanvasInputMouseAction.RIGHT:
+					if (modeEdit !== true && mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								characterPlayerInputPlayer = characterPlayerInput.player2;
+								player1 = false;
+							} else {
+								characterPlayerInputPlayer = characterPlayerInput.player1;
+								player1 = true;
+							}
+						} else {
+							characterPlayerInputPlayer = characterPlayerInput.player1;
+							player1 = true;
+						}
+						characterPlayerInputPlayer.type === GamingCanvasInputType.MOUSE;
+
+						characterPlayerInputPlayer.action = down;
+						updated = true;
 					}
 					break;
 			}

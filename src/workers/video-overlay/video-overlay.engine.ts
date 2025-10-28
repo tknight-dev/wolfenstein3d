@@ -1,6 +1,16 @@
-import { GamingCanvas, GamingCanvasConstPI_0_500, GamingCanvasRenderStyle, GamingCanvasReport, GamingCanvasUtilTimers } from '@tknight-dev/gaming-canvas';
+import {
+	GamingCanvas,
+	GamingCanvasConstPI_0_500,
+	GamingCanvasConstPI_1_500,
+	GamingCanvasConstPI_2_000,
+	GamingCanvasRenderStyle,
+	GamingCanvasReport,
+	GamingCanvasUtilDebugImage,
+	GamingCanvasUtilTimers,
+} from '@tknight-dev/gaming-canvas';
 import {
 	VideoOverlayBusInputCmd,
+	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusInputPayload,
@@ -9,12 +19,28 @@ import {
 } from './video-overlay.model.js';
 import { GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 import {
+	CalcMainBusActionDoorState,
+	CalcMainBusActionDoorStateChangeDurationInMS,
+	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusOutputDataActionTag,
+	CalcMainBusOutputDataActionWallMove,
 	CalcMainBusPlayerDeadFadeDurationInMS,
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusPlayerHitDurationInMS,
 } from '../calc-main/calc-main.model.js';
-import { GameGridCellMasksAndValues } from '../../models/game.model.js';
+import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { Assets } from '../../modules/assets.js';
+import {
+	GamingCanvasGridCamera,
+	GamingCanvasGridRaycast,
+	GamingCanvasGridRaycastCellSide,
+	GamingCanvasGridRaycastOptions,
+	GamingCanvasGridRaycastResult,
+	GamingCanvasGridUint32Array,
+	GamingCanvasGridViewport,
+} from '@tknight-dev/gaming-canvas/grid';
+import { Navigation } from '../../models/settings.model.js';
+import { AssetIdImg, assetLoaderImage, AssetPropertiesImage, assetsImages, initializeAssetManager } from '../../asset-manager.js';
 
 /**
  * @author tknight-dev
@@ -27,8 +53,17 @@ self.onmessage = (event: MessageEvent) => {
 	const payload: VideoOverlayBusInputPayload = event.data;
 
 	switch (payload.cmd) {
+		case VideoOverlayBusInputCmd.ACTION_DOOR:
+			VideoOverlayEngine.inputActionDoor(<CalcMainBusActionDoorState>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.ACTION_TAG:
 			VideoOverlayEngine.inputActionTag(<CalcMainBusOutputDataActionTag>payload.data);
+			break;
+		case VideoOverlayBusInputCmd.ACTION_WALL_MOVE:
+			VideoOverlayEngine.inputActionWallMove(<CalcMainBusOutputDataActionWallMove>payload.data);
+			break;
+		case VideoOverlayBusInputCmd.CALCULATIONS:
+			VideoOverlayEngine.inputCalculations(<VideoOverlayBusInputDataCalculations>payload.data);
 			break;
 		case VideoOverlayBusInputCmd.GAME_OVER:
 			VideoOverlayEngine.inputGameOver();
@@ -38,6 +73,15 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case VideoOverlayBusInputCmd.LOCKED:
 			VideoOverlayEngine.inputLocked(<number[]>payload.data);
+			break;
+		case VideoOverlayBusInputCmd.MAP:
+			VideoOverlayEngine.inputGameMap(<GameMap>payload.data);
+			break;
+		case VideoOverlayBusInputCmd.MAP_SHOW_ALL:
+			VideoOverlayEngine.inputGameMapShowAll();
+			break;
+		case VideoOverlayBusInputCmd.MAP_ZOOM:
+			VideoOverlayEngine.inputGameMapZoom(<boolean>payload.data);
 			break;
 		case VideoOverlayBusInputCmd.PAUSE:
 			VideoOverlayEngine.inputPause(<boolean>payload.data);
@@ -61,6 +105,10 @@ self.onmessage = (event: MessageEvent) => {
 };
 
 class VideoOverlayEngine {
+	private static actionDoors: Map<number, CalcMainBusActionDoorState> = new Map();
+	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
+	private static calculations: VideoOverlayBusInputDataCalculations;
+	private static calculationsNew: boolean;
 	private static dead: boolean;
 	private static deadTimestamp: number;
 	private static gameover: boolean;
@@ -68,6 +116,10 @@ class VideoOverlayEngine {
 	private static hitsByTimerId: Map<number, number> = new Map();
 	private static locked: number[];
 	private static lockedNew: boolean;
+	private static gameMap: GameMap;
+	private static gameMapNew: boolean;
+	private static gameMapShowAll: boolean;
+	private static gameMapZoom: number = 8;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
@@ -84,6 +136,32 @@ class VideoOverlayEngine {
 	private static timers: GamingCanvasUtilTimers = new GamingCanvasUtilTimers();
 
 	public static async initialize(data: VideoOverlayBusInputDataInit): Promise<void> {
+		// Assets
+		await initializeAssetManager();
+		let assetCanvas: OffscreenCanvas,
+			assetContext: OffscreenCanvasRenderingContext2D,
+			assetData: ImageBitmap,
+			assetId: AssetIdImg,
+			assetImagesLoaded: Map<AssetIdImg, ImageBitmap> = <any>await assetLoaderImage(),
+			assetProperties: AssetPropertiesImage;
+
+		for ([assetId, assetData] of assetImagesLoaded) {
+			// Get properties
+			assetProperties = <AssetPropertiesImage>assetsImages.get(assetId);
+
+			// Canvas: Regular
+			assetCanvas = new OffscreenCanvas(assetData.width, assetData.height);
+			assetContext = assetCanvas.getContext('2d', {
+				alpha: assetProperties.alpha,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D;
+			assetContext.drawImage(assetData, 0, 0);
+			VideoOverlayEngine.assetImages.set(assetId, assetCanvas);
+		}
+
 		// Config: Canvas
 		VideoOverlayEngine.offscreenCanvas = data.offscreenCanvas;
 		VideoOverlayEngine.offscreenCanvasContext = data.offscreenCanvas.getContext('2d', {
@@ -127,11 +205,92 @@ class VideoOverlayEngine {
 	 * Input
 	 */
 
+	public static inputActionDoor(data: CalcMainBusActionDoorState): void {
+		let durationEff: number,
+			statePrevious: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>VideoOverlayEngine.actionDoors.get(data.gridIndex);
+
+		if (statePrevious !== undefined) {
+			VideoOverlayEngine.timers.clear(statePrevious.timeout);
+
+			if (statePrevious.closing === true) {
+				data.timestampUnix -= CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - statePrevious.timestampUnix);
+			}
+		}
+
+		durationEff = CalcMainBusActionDoorStateChangeDurationInMS - (Date.now() - data.timestampUnix);
+		VideoOverlayEngine.actionDoors.set(data.gridIndex, data);
+
+		if (data.closing === true) {
+			VideoOverlayEngine.gameMap.grid.data[data.gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+		}
+		data.timeout = VideoOverlayEngine.timers.add(() => {
+			// Change state complete
+			if (data.closing === true) {
+				data.closed = true;
+				data.closing = false;
+				data.open = false;
+				data.opening = false;
+			} else if (data.opening === true) {
+				data.closed = false;
+				data.closing = false;
+				data.open = true;
+				data.opening = false;
+				VideoOverlayEngine.gameMap.grid.data[data.gridIndex] &= ~GameGridCellMasksAndValues.WALL_INVISIBLE;
+			}
+		}, durationEff);
+	}
+
 	public static inputActionTag(data: CalcMainBusOutputDataActionTag): void {
 		if (data.type === GameGridCellMasksAndValues.TAG_RUN_AND_JUMP) {
 			VideoOverlayEngine.tagRunAndJump = true;
 			VideoOverlayEngine.tagRunAndJumpOptions = data.options;
 		}
+	}
+
+	public static inputActionWallMove(data: CalcMainBusOutputDataActionWallMove): void {
+		const gameMapGridData: Uint32Array = VideoOverlayEngine.gameMap.grid.data;
+
+		// Calc: Offset
+		let offset: number, value: number;
+		switch (data.cellSide) {
+			case GamingCanvasGridRaycastCellSide.EAST:
+				offset = -VideoOverlayEngine.gameMap.grid.sideLength;
+				break;
+			case GamingCanvasGridRaycastCellSide.NORTH:
+				offset = 1;
+				break;
+			case GamingCanvasGridRaycastCellSide.SOUTH:
+				offset = -1;
+				break;
+			case GamingCanvasGridRaycastCellSide.WEST:
+				offset = VideoOverlayEngine.gameMap.grid.sideLength;
+				break;
+		}
+		value = gameMapGridData[data.gridIndex] & ~GameGridCellMasksAndValues.WALL_MOVABLE;
+
+		// Calc: State
+		VideoOverlayEngine.timers.add(
+			() => {
+				// 1st block
+				gameMapGridData[data.gridIndex] = GameGridCellMasksAndValues.FLOOR;
+				gameMapGridData[data.gridIndex + offset] = value;
+
+				// Calc: Move 2nd Block
+				VideoOverlayEngine.timers.add(
+					() => {
+						gameMapGridData[data.gridIndex + offset] = GameGridCellMasksAndValues.FLOOR;
+						gameMapGridData[data.gridIndex + offset * 2] = value;
+					},
+					(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+				);
+			},
+			(CalcMainBusActionWallMoveStateChangeDurationInMS / 2) | 0,
+		);
+	}
+
+	public static inputCalculations(data: VideoOverlayBusInputDataCalculations): void {
+		VideoOverlayEngine.calculations = data;
+		VideoOverlayEngine.calculationsNew = true;
 	}
 
 	public static inputGameOver(): void {
@@ -142,6 +301,20 @@ class VideoOverlayEngine {
 	public static inputLocked(locked: number[]): void {
 		VideoOverlayEngine.locked = locked;
 		VideoOverlayEngine.lockedNew = true;
+	}
+
+	public static inputGameMap(data: GameMap): void {
+		VideoOverlayEngine.gameMap = Assets.mapParse(data);
+		VideoOverlayEngine.gameMapNew = true;
+		VideoOverlayEngine.reset = true;
+	}
+
+	public static inputGameMapShowAll(): void {
+		VideoOverlayEngine.gameMapShowAll = !VideoOverlayEngine.gameMapShowAll;
+	}
+
+	public static inputGameMapZoom(zoomIn: boolean): void {
+		VideoOverlayEngine.gameMapZoom = Math.max(2, Math.min(20, VideoOverlayEngine.gameMapZoom + (zoomIn === true ? 1 : -1)));
 	}
 
 	public static inputPause(state: boolean): void {
@@ -204,23 +377,61 @@ class VideoOverlayEngine {
 
 	public static go(_timestampNow: number): void {}
 	public static go__funcForward(): void {
-		let offscreenCanvas: OffscreenCanvas = VideoOverlayEngine.offscreenCanvas,
-			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoOverlayEngine.offscreenCanvasContext,
-			offscreenCanvasHeightPx: number = VideoOverlayEngine.report.canvasHeightSplit,
-			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
-			offscreenCanvasWidthPx: number = VideoOverlayEngine.report.canvasWidthSplit,
-			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
+		let actionDoors: Map<number, CalcMainBusActionDoorState> = VideoOverlayEngine.actionDoors,
+			assetId: AssetIdImg,
+			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoOverlayEngine.assetImages,
+			calculationsCamera: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
+			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
+			calculationsCameraAltAvailable: boolean,
 			frameCount: number = 0,
 			fpms: number = 1000 / 30, // Fixed 30fps
+			gameMap: GameMap,
+			gameMapGrid: GamingCanvasGridUint32Array,
+			gameMapGridData: Uint32Array,
+			gameMapGridSideLength: number,
+			gridIndex: number,
 			hitAngle: number,
 			hitGradientsByTimerId: Map<number, CanvasGradient> = VideoOverlayEngine.hitGradientsByTimerId,
 			hitsByTimerId: Map<number, number> = VideoOverlayEngine.hitsByTimerId,
+			offscreenCanvas: OffscreenCanvas = VideoOverlayEngine.offscreenCanvas,
+			offscreenCanvasCompass: OffscreenCanvas = new OffscreenCanvas(64, 64),
+			offscreenCanvasCompassRotate: OffscreenCanvas = new OffscreenCanvas(64, 64),
+			offscreenCanvasCompassRotateContext: OffscreenCanvasRenderingContext2D = offscreenCanvasCompassRotate.getContext('2d', {
+				alpha: true,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D,
+			offscreenCanvasCompassContext: OffscreenCanvasRenderingContext2D = offscreenCanvasCompass.getContext('2d', {
+				alpha: true,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D,
+			offscreenCanvasContext: OffscreenCanvasRenderingContext2D = VideoOverlayEngine.offscreenCanvasContext,
+			offscreenCanvasHeightPx: number = VideoOverlayEngine.report.canvasHeightSplit,
+			offscreenCanvasHeightPxHalf: number = (offscreenCanvasHeightPx / 2) | 0,
+			offscreenCanvasMap: OffscreenCanvas = new OffscreenCanvas(1, 1),
+			offscreenCanvasMapContext: OffscreenCanvasRenderingContext2D = offscreenCanvasMap.getContext('2d', {
+				alpha: true,
+				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
+			}) as OffscreenCanvasRenderingContext2D,
+			offscreenCanvasWidthPx: number = VideoOverlayEngine.report.canvasWidthSplit,
+			offscreenCanvasWidthPxHalf: number = (offscreenCanvasWidthPx / 2) | 0,
+			orientation: GamingCanvasOrientation = VideoOverlayEngine.report.orientation,
 			player1: boolean = VideoOverlayEngine.player1,
 			pause: boolean = VideoOverlayEngine.pause,
+			r: number,
 			renderDead: boolean = VideoOverlayEngine.dead,
 			renderDeadFadeOut: boolean,
 			renderDeadFall: boolean,
 			renderDeadTimestamp: number,
+			renderDebugImage: OffscreenCanvas = GamingCanvasUtilDebugImage(64),
 			renderFilter: string,
 			renderFilterNone: string = 'none',
 			renderGameOver: boolean = VideoOverlayEngine.gameover,
@@ -230,6 +441,51 @@ class VideoOverlayEngine {
 			renderLocked: number[],
 			renderLockedDelta: number,
 			renderLockedTimestampUnix: number,
+			renderMapFilter: number = GameGridCellMasksAndValues.DOOR | GameGridCellMasksAndValues.WALL | GameGridCellMasksAndValues.WALL_INVISIBLE,
+			renderMapPlayer1XEff: number,
+			renderMapPlayer1YEff: number,
+			renderMapPlayer2XEff: number,
+			renderMapPlayer2YEff: number,
+			renderMapRaycastBlocking = (cell: number, gridIndex: number) => {
+				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0 && (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0) {
+					renderMapRaycastBlockingDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
+
+					if (renderMapRaycastBlockingDoorState !== undefined) {
+						if (renderMapRaycastBlockingDoorState.closed === true) {
+							return true;
+						}
+					} else if ((cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0) {
+						return true;
+					}
+				}
+
+				return (cell & GameGridCellMasksAndValues.WALL) !== 0;
+			},
+			renderMapRaycastBlockingDoorState: CalcMainBusActionDoorState,
+			renderMapRaycastOptions: GamingCanvasGridRaycastOptions = {
+				cellEnable: true,
+				cellIncludeBlocked: true,
+				rayEnable: false,
+				rayCount: 20,
+				rayFOV: 60,
+			},
+			renderMapRaycastResult: GamingCanvasGridRaycastResult,
+			renderMapSeenCells: Set<number> = new Set(),
+			renderMapShowAll: boolean = VideoOverlayEngine.gameMapShowAll,
+			renderMapViewport: GamingCanvasGridViewport = new GamingCanvasGridViewport(1),
+			renderMapViewportCellSizePx: number,
+			renderMapViewportHeightStart: number,
+			renderMapViewportHeightStartEff: number,
+			renderMapViewportHeightStopEff: number,
+			renderMapViewportWidthStart: number,
+			renderMapViewportWidthStartEff: number,
+			renderMapViewportWidthStopEff: number,
+			renderMapViewportHeightPx: number = 90,
+			renderMapViewportWidthPx: number = 160,
+			renderMapViewportZoom: number = VideoOverlayEngine.gameMapZoom,
+			settingsFOV: number = VideoOverlayEngine.settings.fov,
+			settingsMultiplayer: boolean = VideoOverlayEngine.settings.player2Enable,
+			settingsNavigation: Navigation = VideoOverlayEngine.settings.navigation,
 			tagRunAndJump: boolean,
 			tagRunAndJumpOptions: any,
 			timerId: number,
@@ -240,6 +496,7 @@ class VideoOverlayEngine {
 			timestampUnix: number,
 			timestampUnixPause: number,
 			timestampUnixPauseDelta: number,
+			value: number,
 			x: number,
 			y: number;
 
@@ -286,6 +543,135 @@ class VideoOverlayEngine {
 				 * Modifiers
 				 */
 
+				if (
+					VideoOverlayEngine.calculationsNew === true ||
+					renderMapShowAll !== VideoOverlayEngine.gameMapShowAll ||
+					VideoOverlayEngine.gameMapZoom !== renderMapViewportZoom
+				) {
+					VideoOverlayEngine.calculationsNew = false;
+
+					calculationsCamera.decode(VideoOverlayEngine.calculations.characterPlayerCamera);
+					calculationsCamera.z = VideoOverlayEngine.gameMapZoom;
+
+					if (VideoOverlayEngine.calculations.characterPlayerCameraAlt !== undefined) {
+						calculationsCameraAlt.decode(VideoOverlayEngine.calculations.characterPlayerCameraAlt);
+						calculationsCameraAltAvailable = true;
+					} else {
+						calculationsCameraAltAvailable = false;
+					}
+
+					// Process camera
+					renderMapViewport.applyZ(
+						calculationsCamera,
+						<GamingCanvasReport>Object.assign({}, VideoOverlayEngine.report, {
+							canvasHeight: renderMapViewportHeightPx,
+							canvasWidth: renderMapViewportWidthPx,
+						}),
+					);
+					renderMapViewport.apply(calculationsCamera);
+
+					// Cache map
+					if (
+						(gameMap !== undefined && (player1 === true || settingsMultiplayer === true)) ||
+						VideoOverlayEngine.gameMapZoom !== renderMapViewportZoom
+					) {
+						renderMapShowAll = VideoOverlayEngine.gameMapShowAll;
+						renderMapViewportZoom = VideoOverlayEngine.gameMapZoom;
+
+						// Cast seen!!!
+						renderMapRaycastResult = GamingCanvasGridRaycast(calculationsCamera, gameMapGrid, renderMapRaycastBlocking, renderMapRaycastOptions);
+						if (renderMapRaycastResult.cells !== undefined) {
+							for (gridIndex of renderMapRaycastResult.cells) {
+								renderMapSeenCells.add(gridIndex);
+							}
+						}
+
+						// Sizes
+						renderMapViewportCellSizePx = Math.max(1, renderMapViewport.cellSizePx);
+						renderMapViewportHeightStart = renderMapViewport.heightStart;
+						renderMapViewportHeightStartEff = Math.max(0, (renderMapViewportHeightStart - 1) | 0);
+						renderMapViewportHeightStopEff = Math.min(gameMapGridSideLength, (renderMapViewport.heightStop + 1) | 0);
+						renderMapViewportWidthStart = renderMapViewport.widthStart;
+						renderMapViewportWidthStartEff = Math.max(0, (renderMapViewportWidthStart - 1) | 0);
+						renderMapViewportWidthStopEff = Math.min(gameMapGridSideLength * gameMapGridSideLength, (renderMapViewport.widthStop + 1) | 0);
+
+						// Background
+						offscreenCanvasMapContext.clearRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
+						offscreenCanvasMapContext.fillStyle = '#323232aa';
+						offscreenCanvasMapContext.fillRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
+
+						offscreenCanvasMapContext.lineWidth = 3;
+						offscreenCanvasMapContext.strokeStyle = '#161616';
+						offscreenCanvasMapContext.strokeRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
+
+						// Foreground
+						offscreenCanvasMapContext.fillStyle = 'black';
+						for (x = renderMapViewportWidthStartEff; x < renderMapViewportWidthStopEff; x++) {
+							for (y = renderMapViewportHeightStartEff; y < renderMapViewportHeightStopEff; y++) {
+								gridIndex = x * gameMapGridSideLength + y;
+
+								if (renderMapShowAll === true || renderMapSeenCells.has(gridIndex) === true) {
+									value = gameMapGridData[gridIndex];
+
+									if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
+										offscreenCanvasMapContext.fillRect(
+											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
+											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
+										);
+									}
+
+									if ((value & renderMapFilter) !== 0) {
+										assetId = value & GameGridCellMasksAndValues.ID_MASK;
+										offscreenCanvasMapContext.drawImage(
+											assetImages.get(assetId) || renderDebugImage,
+											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
+											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
+										);
+									}
+								}
+							}
+						}
+
+						// Your position
+						renderMapPlayer1XEff = calculationsCamera.x - renderMapViewportWidthStart;
+						renderMapPlayer1YEff = calculationsCamera.y - renderMapViewportHeightStart;
+
+						offscreenCanvasMapContext.lineWidth = renderMapViewportCellSizePx / 2;
+						offscreenCanvasMapContext.strokeStyle = '#f70000';
+						offscreenCanvasMapContext.beginPath();
+						offscreenCanvasMapContext.moveTo(
+							renderMapPlayer1XEff * renderMapViewportCellSizePx,
+							renderMapPlayer1YEff * renderMapViewportCellSizePx,
+						); // Center
+						offscreenCanvasMapContext.lineTo(
+							renderMapViewportCellSizePx * (Math.cos(calculationsCamera.r) + renderMapPlayer1XEff),
+							renderMapViewportCellSizePx * (-Math.sin(calculationsCamera.r) + renderMapPlayer1YEff),
+						);
+						offscreenCanvasMapContext.stroke();
+
+						offscreenCanvasMapContext.fillStyle = '#f70000';
+						offscreenCanvasMapContext.beginPath();
+						offscreenCanvasMapContext.arc(
+							renderMapPlayer1XEff * renderMapViewportCellSizePx,
+							renderMapPlayer1YEff * renderMapViewportCellSizePx,
+							renderMapViewportCellSizePx / 2,
+							0,
+							GamingCanvasConstPI_2_000,
+						); // Base shape and color
+						offscreenCanvasMapContext.fill();
+
+						// Other player
+						if (settingsMultiplayer === true) {
+							renderMapPlayer2XEff = calculationsCameraAlt.x - renderMapViewportWidthStart;
+							renderMapPlayer2YEff = calculationsCameraAlt.y - renderMapViewportHeightStart;
+						}
+					}
+				}
+
 				if (VideoOverlayEngine.dead !== renderDead) {
 					renderDead = VideoOverlayEngine.dead;
 
@@ -294,6 +680,24 @@ class VideoOverlayEngine {
 						renderDeadFall = true;
 						renderDeadTimestamp = VideoOverlayEngine.deadTimestamp;
 					}
+				}
+
+				if (VideoOverlayEngine.gameMapNew === true) {
+					VideoOverlayEngine.gameMapNew = false;
+
+					gameMap = VideoOverlayEngine.gameMap;
+					gameMapGrid = VideoOverlayEngine.gameMap.grid;
+					gameMapGridData = VideoOverlayEngine.gameMap.grid.data;
+					gameMapGridSideLength = VideoOverlayEngine.gameMap.grid.sideLength;
+					renderMapSeenCells.clear();
+					renderMapViewport = new GamingCanvasGridViewport(gameMap.grid.sideLength);
+					renderMapViewport.applyZ(
+						calculationsCamera,
+						<GamingCanvasReport>Object.assign({}, VideoOverlayEngine.report, {
+							canvasHeight: renderMapViewportHeightPx,
+							canvasWidth: renderMapViewportWidthPx,
+						}),
+					);
 				}
 
 				if (VideoOverlayEngine.gameover !== renderGameOver) {
@@ -315,7 +719,11 @@ class VideoOverlayEngine {
 
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew === true) {
 					// Settings
+					orientation = VideoOverlayEngine.report.orientation;
 					renderGrayscale = VideoOverlayEngine.settings.grayscale;
+					settingsFOV = VideoOverlayEngine.settings.fov;
+					settingsMultiplayer = VideoOverlayEngine.settings.player2Enable;
+					settingsNavigation = VideoOverlayEngine.settings.navigation;
 
 					// Report
 					if (VideoOverlayEngine.settings.player2Enable === true) {
@@ -335,11 +743,81 @@ class VideoOverlayEngine {
 					offscreenCanvas.height = offscreenCanvasHeightPx;
 					offscreenCanvas.width = offscreenCanvasWidthPx;
 
+					renderMapRaycastOptions.rayFOV = settingsFOV;
+
 					if (VideoOverlayEngine.settings.antialias === true) {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.ANTIALIAS);
 					} else {
 						GamingCanvas.renderStyle(offscreenCanvasContext, GamingCanvasRenderStyle.PIXELATED);
 					}
+
+					// Cache: compass
+					r = Math.max(
+						1,
+						offscreenCanvasHeightPx * 0.1 * (settingsMultiplayer === true ? 2 : 1),
+						offscreenCanvasWidthPx * 0.1 * (settingsMultiplayer === true ? 2 : 1),
+					);
+					offscreenCanvasCompass.height = r;
+					offscreenCanvasCompass.width = offscreenCanvasCompass.height;
+					offscreenCanvasCompassRotate.height = offscreenCanvasCompass.width;
+					offscreenCanvasCompassRotate.width = offscreenCanvasCompass.height;
+
+					offscreenCanvasCompassContext.fillStyle = '#161616';
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r / 2, r / 2, r * 0.45, 0, GamingCanvasConstPI_2_000); // Base shape and color
+					offscreenCanvasCompassContext.clip();
+					offscreenCanvasCompassContext.fill();
+
+					offscreenCanvasCompassContext.fillStyle = '#969696';
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r * 0.1, r * 0.1, r * 0.425, 0, GamingCanvasConstPI_2_000); // TL cut away
+					offscreenCanvasCompassContext.fill();
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r * 0.9, r * 0.1, r * 0.425, 0, GamingCanvasConstPI_2_000); // TR cut away
+					offscreenCanvasCompassContext.fill();
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r * 0.1, r * 0.9, r * 0.425, 0, GamingCanvasConstPI_2_000); // BL cut away
+					offscreenCanvasCompassContext.fill();
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r * 0.9, r * 0.9, r * 0.425, 0, GamingCanvasConstPI_2_000); // BR cut away
+					offscreenCanvasCompassContext.fill();
+
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r / 2, r / 2, r * 0.1, 0, GamingCanvasConstPI_2_000); // Center cut away
+					offscreenCanvasCompassContext.fill();
+
+					offscreenCanvasCompassContext.lineWidth = 2;
+					offscreenCanvasCompassContext.strokeStyle = '#161616';
+					offscreenCanvasCompassContext.beginPath();
+					offscreenCanvasCompassContext.arc(r / 2, r / 2, r / 4, 0, GamingCanvasConstPI_2_000); // Inner circle
+					offscreenCanvasCompassContext.stroke();
+
+					offscreenCanvasCompassContext.fillStyle = '#161616';
+					offscreenCanvasCompassContext.font = `bold ${r * 0.15625}px serif`;
+					offscreenCanvasCompassContext.textAlign = 'center';
+					offscreenCanvasCompassContext.fillText('N', r / 2, r * 0.1875);
+					offscreenCanvasCompassContext.fillText('E', r * 0.875, r * 0.5635);
+					offscreenCanvasCompassContext.fillText('W', r * 0.125, r * 0.5635);
+					offscreenCanvasCompassContext.fillText('S', r / 2, r * 0.9375);
+					offscreenCanvasCompassRotateContext.translate(offscreenCanvasCompass.width / 2, offscreenCanvasCompass.height / 2);
+
+					// Cache: Map
+					renderMapViewportWidthPx = Math.max(
+						1,
+						offscreenCanvasHeightPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
+						offscreenCanvasWidthPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
+					);
+					renderMapViewportHeightPx = Math.max(1, ((renderMapViewportWidthPx * 9) / 16) | 0);
+					renderMapViewport.applyZ(
+						calculationsCamera,
+						<GamingCanvasReport>Object.assign({}, VideoOverlayEngine.report, {
+							canvasHeight: renderMapViewportHeightPx,
+							canvasWidth: renderMapViewportWidthPx,
+						}),
+					);
+
+					offscreenCanvasMap.height = renderMapViewportHeightPx;
+					offscreenCanvasMap.width = renderMapViewportWidthPx;
 				}
 
 				// Background cache
@@ -496,6 +974,46 @@ class VideoOverlayEngine {
 							offscreenCanvasContext.globalAlpha = 1;
 						}
 					}
+				}
+
+				if (settingsNavigation === Navigation.COMPASS) {
+					// Rotation
+					r = GamingCanvasConstPI_1_500 + calculationsCamera.r;
+
+					offscreenCanvasCompassRotateContext.clearRect(0, 0, offscreenCanvasCompass.width, offscreenCanvasCompass.height);
+					offscreenCanvasCompassRotateContext.rotate(r);
+					offscreenCanvasCompassRotateContext.drawImage(
+						offscreenCanvasCompass,
+						-offscreenCanvasCompass.width / 2,
+						-offscreenCanvasCompass.height / 2,
+					);
+					offscreenCanvasCompassRotateContext.rotate(-r);
+
+					// Placement
+					if (orientation === GamingCanvasOrientation.PORTRAIT) {
+						y = player1 === true ? 65 : 0;
+					} else {
+						y = 0;
+					}
+
+					// Draw
+					offscreenCanvasContext.globalAlpha = 0.6;
+					offscreenCanvasContext.drawImage(
+						offscreenCanvasCompassRotate,
+						offscreenCanvasWidthPx - offscreenCanvasCompassRotate.width * 1.125,
+						offscreenCanvasHeightPx - offscreenCanvasCompassRotate.height * 1.125 - y,
+						offscreenCanvasCompassRotate.width,
+						offscreenCanvasCompassRotate.height,
+					);
+					offscreenCanvasContext.globalAlpha = 1;
+				} else if (settingsNavigation === Navigation.MAP) {
+					offscreenCanvasContext.drawImage(
+						offscreenCanvasMap,
+						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125,
+						offscreenCanvasMap.width * 0.125,
+						offscreenCanvasMap.width,
+						offscreenCanvasMap.height,
+					);
 				}
 			}
 

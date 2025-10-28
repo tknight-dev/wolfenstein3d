@@ -22,6 +22,12 @@ export enum InputDevice {
 	KEYBOARD = 1,
 }
 
+export enum Navigation {
+	COMPASS = 0,
+	NONE = 1,
+	MAP = 2,
+}
+
 export enum RaycastQuality {
 	FULL = 1, // ray = 1px
 	HALF = 2, // ray = 2px
