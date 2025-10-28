@@ -311,6 +311,8 @@ export class DOM {
 	public static elSettingsValueGameDebug: HTMLInputElement;
 	public static elSettingsValueGameDifficulty: HTMLInputElement;
 	public static elSettingsValueGameControlStrafe: HTMLInputElement;
+	public static elSettingsValueGameMouseSensitivity: HTMLInputElement;
+	public static elSettingsValueGameMouseSensitivityReadout: HTMLInputElement;
 	public static elSettingsValueGameMultiplayer: HTMLInputElement;
 	public static elSettingsValueGameNavigation: HTMLInputElement;
 	public static elSettingsValueGamePlayer2InputDevice: HTMLInputElement;
@@ -769,6 +771,10 @@ export class DOM {
 		DOM.elSettingsValueGameCrosshair = <HTMLInputElement>document.getElementById('settings-value-game-crosshair');
 		DOM.elSettingsValueGameDebug = <HTMLInputElement>document.getElementById('settings-value-game-debug');
 		DOM.elSettingsValueGameDifficulty = <HTMLInputElement>document.getElementById('settings-value-game-difficulty');
+
+		DOM.elSettingsValueGameMouseSensitivity = <HTMLInputElement>document.getElementById('settings-value-game-mouse-sensitivity');
+		DOM.elSettingsValueGameMouseSensitivityReadout = <HTMLInputElement>document.getElementById('settings-value-game-mouse-sensitivity-readout');
+
 		DOM.elSettingsValueGameMultiplayer = <HTMLInputElement>document.getElementById('settings-value-game-multiplayer');
 		DOM.elSettingsValueGameNavigation = <HTMLInputElement>document.getElementById('settings-value-game-navigation');
 		DOM.elSettingsValueGamePlayer2InputDevice = <HTMLInputElement>document.getElementById('settings-value-game-player2-input');

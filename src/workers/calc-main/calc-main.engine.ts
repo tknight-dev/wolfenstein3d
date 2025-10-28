@@ -18,6 +18,7 @@ import {
 	CalcMainBusInputDataCamera,
 	CalcMainBusInputDataInit,
 	CalcMainBusInputDataPlayerInput,
+	CalcMainBusInputDataPlayerInputRx,
 	CalcMainBusInputDataSettings,
 	CalcMainBusInputDataWeaponSelect,
 	CalcMainBusInputPayload,
@@ -115,6 +116,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcMainBusInputCmd.CAMERA:
 			CalcMainEngine.inputCamera(<CalcMainBusInputDataCamera>payload.data);
 			break;
+		case CalcMainBusInputCmd.CAMERA_RX:
+			CalcMainEngine.inputCameraRx(<CalcMainBusInputDataPlayerInputRx>payload.data);
+			break;
 		case CalcMainBusInputCmd.CHARACTER_INPUT:
 			CalcMainEngine.inputCharacterInput(<CalcMainBusInputDataPlayerInput>payload.data);
 			break;
@@ -173,6 +177,7 @@ class CalcMainEngine {
 	private static cameraNew: boolean;
 	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
+	private static characterPlayerInputRxNew: number = 0;
 	private static characterPlayerMetaReport: boolean;
 	private static characterPlayer1: Character;
 	private static characterPlayer1Meta: CalcMainBusOutputDataActionPlayerMeta;
@@ -321,6 +326,22 @@ class CalcMainEngine {
 	public static inputCamera(data: CalcMainBusInputDataCamera): void {
 		CalcMainEngine.camera = data;
 		CalcMainEngine.cameraNew = true;
+	}
+
+	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
+		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.65;
+
+		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
+			value += value * CalcMainEngine.settings.mouseSensitivity;
+		}
+
+		if (data.player1 === true) {
+			CalcMainEngine.characterPlayerInputRxNew = 1;
+			CalcMainEngine.characterPlayer1.camera.r -= value;
+		} else {
+			CalcMainEngine.characterPlayerInputRxNew = 2;
+			CalcMainEngine.characterPlayer2.camera.r -= value;
+		}
 	}
 
 	public static inputCharacterInput(data: CalcMainBusInputDataPlayerInput): void {
@@ -2409,6 +2430,11 @@ class CalcMainEngine {
 									gameMapControlBlocking,
 									characterControlOptions,
 								);
+
+								if (CalcMainEngine.characterPlayerInputRxNew === 1) {
+									CalcMainEngine.characterPlayerInputRxNew = 0;
+									characterPlayerChanged[0] = true;
+								}
 							} else {
 								GamingCanvasGridCharacterControl(
 									characterPlayer1,
@@ -2430,6 +2456,11 @@ class CalcMainEngine {
 										gameMapControlBlocking,
 										characterControlOptions,
 									);
+
+									if (CalcMainEngine.characterPlayerInputRxNew === 2) {
+										CalcMainEngine.characterPlayerInputRxNew = 0;
+										characterPlayerChanged[1] = true;
+									}
 								} else {
 									GamingCanvasGridCharacterControl(
 										characterPlayer2,

@@ -219,7 +219,7 @@ export class Settings {
 			Game.settings.graphicsResolution = 320;
 			Game.settings.intro = true;
 
-			Settings.inputKeyboardDefaultWolf3D();
+			Settings.inputKeyboardDefaultWASD();
 
 			/**
 			 * Worker specific
@@ -231,6 +231,7 @@ export class Settings {
 				difficulty: GameDifficulty.NORMAL,
 				fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
 				fps: GamingCanvas.detectDevice() ? FPS._40 : FPS._60,
+				mouseSensitivity: 0,
 				player2Enable: false,
 				raycastQuality: GamingCanvas.detectDevice() ? RaycastQuality.HALF : RaycastQuality.FULL,
 			};
@@ -460,6 +461,7 @@ export class Settings {
 			Game.settings.threadCalcMain.difficulty = Number(DOM.elSettingsValueGameDifficulty.value);
 			Game.settings.threadCalcMain.fov = (Number(DOM.elSettingsValueGraphicsFOV.value) * GamingCanvasConstPI_1_000) / 180;
 			Game.settings.threadCalcMain.fps = Number(DOM.elSettingsValueGraphicsFPS.value);
+			Game.settings.threadCalcMain.mouseSensitivity = Number(DOM.elSettingsValueGameMouseSensitivity.value);
 			Game.settings.threadCalcMain.player2Enable = DOM.elSettingsValueGameMultiplayer.checked;
 			Game.settings.threadCalcMain.raycastQuality = Number(DOM.elSettingsValueGraphicsRaycastQuality.value);
 
@@ -545,6 +547,8 @@ export class Settings {
 			DOM.elSettingsValueGameCrosshair.checked = Game.settings.threadVideoMain.crosshair;
 			DOM.elSettingsValueGameDebug.checked = Game.settings.debug;
 			DOM.elSettingsValueGameDifficulty.value = String(Game.settings.threadCalcMain.difficulty);
+			DOM.elSettingsValueGameMouseSensitivity.value = String(Game.settings.threadCalcMain.mouseSensitivity || 0);
+			DOM.elSettingsValueGameMouseSensitivityReadout.value = (Game.settings.threadCalcMain.mouseSensitivity || 0).toFixed(2);
 			DOM.elSettingsValueGameMultiplayer.checked = Game.settings.threadCalcMain.player2Enable;
 			DOM.elSettingsValueGameNavigation.value = String(Game.settings.threadVideoOverlay.navigation);
 			DOM.elSettingsValueGamePlayer2InputDevice.value = String(Game.settings.gamePlayer2InputDevice);

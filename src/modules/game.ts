@@ -1741,6 +1741,9 @@ export class Game {
 			GamingCanvas.audioVolumeGlobal(Number(DOM.elSettingsValueAudioVolumeMusic.value), GamingCanvasAudioType.MUSIC);
 			DOM.elSettingsValueAudioVolumeMusicReadout.value = (Number(DOM.elSettingsValueAudioVolumeMusic.value) * 100).toFixed(0) + '%';
 		};
+		DOM.elSettingsValueGameMouseSensitivity.oninput = () => {
+			DOM.elSettingsValueGameMouseSensitivityReadout.value = Number(DOM.elSettingsValueGameMouseSensitivity.value).toFixed(2);
+		};
 
 		DOM.elSettingsSubEditor.onclick = () => {
 			DOM.elSettingsBodyAudio.style.display = 'none';
@@ -1984,6 +1987,7 @@ export class Game {
 			keyState: Map<string, boolean> = new Map(),
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
+			mouseLocked: boolean = GamingCanvas.isMouseLocked(),
 			player1: boolean,
 			position1: GamingCanvasInputPosition,
 			position2: GamingCanvasInputPosition,
@@ -2482,6 +2486,10 @@ export class Game {
 		CalcPathBus.setCallbackPathUpdate((data: Map<number, number[]>) => {
 			CalcMainBus.outputPathUpdate(data);
 			VideoEditorBus.outputPathUpdate(data);
+		});
+
+		GamingCanvas.setCallbackMouseLocked((state: boolean) => {
+			mouseLocked = state;
 		});
 
 		// Camera
@@ -3285,6 +3293,23 @@ Y: ${camera.y | 0}`);
 							}
 						}
 						downMode = down;
+					} else if (mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								characterPlayerInputPlayer = characterPlayerInput.player2;
+								player1 = false;
+							} else {
+								characterPlayerInputPlayer = characterPlayerInput.player1;
+								player1 = true;
+							}
+						} else {
+							characterPlayerInputPlayer = characterPlayerInput.player1;
+							player1 = true;
+						}
+						characterPlayerInputPlayer.type === GamingCanvasInputType.MOUSE;
+
+						characterPlayerInputPlayer.fire = down;
+						updated = true;
 					}
 					break;
 				case GamingCanvasInputMouseAction.WHEEL:
@@ -3299,6 +3324,12 @@ Y: ${camera.y | 0}`);
 							}
 						}
 						downModeWheel = down;
+					} else if (down === true) {
+						if (mouseLocked === true) {
+							GamingCanvas.mouseUnlock();
+						} else {
+							GamingCanvas.mouseLock(true);
+						}
 					}
 					break;
 				case GamingCanvasInputMouseAction.MOVE:
@@ -3336,6 +3367,23 @@ Y: ${camera.y | 0}`);
 								}
 							}
 						}
+					} else if (mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								player1 = false;
+							} else {
+								player1 = true;
+							}
+						} else {
+							player1 = true;
+						}
+
+						if (input.propriatary.movementX !== undefined) {
+							CalcMainBus.outputCameraRx({
+								player1: player1,
+								rx: input.propriatary.movementX,
+							});
+						}
 					}
 					break;
 				case GamingCanvasInputMouseAction.SCROLL:
@@ -3347,6 +3395,25 @@ Y: ${camera.y | 0}`);
 						if (cameraZoom !== cameraZoomPrevious) {
 							updated = true;
 						}
+					}
+				case GamingCanvasInputMouseAction.RIGHT:
+					if (modeEdit !== true && mouseLocked === true) {
+						if (Game.settings.threadCalcMain.player2Enable === true) {
+							if (Game.settings.gamePlayer2InputDevice === InputDevice.KEYBOARD) {
+								characterPlayerInputPlayer = characterPlayerInput.player2;
+								player1 = false;
+							} else {
+								characterPlayerInputPlayer = characterPlayerInput.player1;
+								player1 = true;
+							}
+						} else {
+							characterPlayerInputPlayer = characterPlayerInput.player1;
+							player1 = true;
+						}
+						characterPlayerInputPlayer.type === GamingCanvasInputType.MOUSE;
+
+						characterPlayerInputPlayer.action = down;
+						updated = true;
 					}
 					break;
 			}
