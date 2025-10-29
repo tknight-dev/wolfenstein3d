@@ -338,9 +338,21 @@ class CalcMainEngine {
 		if (data.player1 === true) {
 			CalcMainEngine.characterPlayerInputRxNew = 1;
 			CalcMainEngine.characterPlayer1.camera.r -= value;
+
+			if (CalcMainEngine.characterPlayer1.camera.r < 0) {
+				CalcMainEngine.characterPlayer1.camera.r += GamingCanvasConstPI_2_000;
+			} else if (CalcMainEngine.characterPlayer1.camera.r >= GamingCanvasConstPI_2_000) {
+				CalcMainEngine.characterPlayer1.camera.r -= GamingCanvasConstPI_2_000;
+			}
 		} else {
 			CalcMainEngine.characterPlayerInputRxNew = 2;
 			CalcMainEngine.characterPlayer2.camera.r -= value;
+
+			if (CalcMainEngine.characterPlayer2.camera.r < 0) {
+				CalcMainEngine.characterPlayer2.camera.r += GamingCanvasConstPI_2_000;
+			} else if (CalcMainEngine.characterPlayer2.camera.r >= GamingCanvasConstPI_2_000) {
+				CalcMainEngine.characterPlayer2.camera.r -= GamingCanvasConstPI_2_000;
+			}
 		}
 	}
 
@@ -750,11 +762,11 @@ class CalcMainEngine {
 			gameMapNPCByGridIndex: Map<number, CharacterNPC> = new Map(),
 			gameMapNPCPath: number[],
 			gameMapNPCPathInstance: number,
-			gameMapNPCPaths: Map<number, number[]>,
+			gameMapNPCPaths: Map<number, number[]> = new Map(),
 			gameMapNPCSpeed: number,
 			gameMapNPCShootAt: Map<number, number> = new Map(),
 			gameMapSideLength: number,
-			gameMapUpdate: number[] = new Array(50), // arbitrary size
+			gameMapUpdate: number[] = new Array(50), // arbitrary sizes
 			gameMapUpdateEncoded: Uint16Array,
 			gameMapUpdateIndex: number = 0,
 			i: number,

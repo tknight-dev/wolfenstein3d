@@ -23,6 +23,7 @@ export enum InputDevice {
 }
 
 export enum Navigation {
+	AUTO = 3,
 	COMPASS = 0,
 	NONE = 1,
 	MAP = 2,
