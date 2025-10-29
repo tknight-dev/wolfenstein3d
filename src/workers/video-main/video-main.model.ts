@@ -1,6 +1,6 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
-import { FPS, LightingQuality, RaycastQuality } from '../../models/settings.model.js';
+import { FPS, LightingQuality, RaycastQuality, RenderMode } from '../../models/settings.model.js';
 import { GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
 import {
 	CalcMainBusActionDoorState,
@@ -75,6 +75,7 @@ export interface VideoMainBusInputDataSettings {
 	lightingQuality: LightingQuality;
 	player2Enable: boolean;
 	raycastQuality: RaycastQuality;
+	renderMode: RenderMode;
 }
 
 export interface VideoMainBusInputPayload {

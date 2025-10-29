@@ -95,9 +95,6 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.REPORT:
 			VideoOverlayEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
-		case VideoOverlayBusInputCmd.RESET:
-			VideoOverlayEngine.inputReset();
-			break;
 		case VideoOverlayBusInputCmd.SETTINGS:
 			VideoOverlayEngine.inputSettings(<VideoOverlayBusInputDataSettings>payload.data);
 			break;
@@ -128,7 +125,6 @@ class VideoOverlayEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static reset: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static tagRunAndJump: boolean;
@@ -306,7 +302,6 @@ class VideoOverlayEngine {
 	public static inputGameMap(data: GameMap): void {
 		VideoOverlayEngine.gameMap = Assets.mapParse(data);
 		VideoOverlayEngine.gameMapNew = true;
-		VideoOverlayEngine.reset = true;
 	}
 
 	public static inputGameMapShowAll(): void {
@@ -353,10 +348,6 @@ class VideoOverlayEngine {
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoOverlayEngine.report = report;
 		VideoOverlayEngine.reportNew = true;
-	}
-
-	public static inputReset(): void {
-		VideoOverlayEngine.reset = true;
 	}
 
 	public static inputSettings(data: VideoOverlayBusInputDataSettings): void {
@@ -483,6 +474,7 @@ class VideoOverlayEngine {
 			renderMapViewportHeightPx: number = 90,
 			renderMapViewportWidthPx: number = 160,
 			renderMapViewportZoom: number = VideoOverlayEngine.gameMapZoom,
+			settingsDebug: boolean = VideoOverlayEngine.settings.debug,
 			settingsFOV: number = VideoOverlayEngine.settings.fov,
 			settingsMultiplayer: boolean = VideoOverlayEngine.settings.player2Enable,
 			settingsNavigation: Navigation = VideoOverlayEngine.settings.navigation,
@@ -503,7 +495,6 @@ class VideoOverlayEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoOverlayEngine.request = requestAnimationFrame(VideoOverlayEngine.go);
-			timestampNow = timestampNow | 0;
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
@@ -572,7 +563,7 @@ class VideoOverlayEngine {
 
 					// Cache map
 					if (
-						(gameMap !== undefined && (player1 === true || settingsMultiplayer === true)) ||
+						(gameMap !== undefined && settingsNavigation === Navigation.MAP && (player1 === true || settingsMultiplayer === true)) ||
 						VideoOverlayEngine.gameMapZoom !== renderMapViewportZoom
 					) {
 						renderMapShowAll = VideoOverlayEngine.gameMapShowAll;
@@ -595,11 +586,9 @@ class VideoOverlayEngine {
 						renderMapViewportWidthStartEff = Math.max(0, (renderMapViewportWidthStart - 1) | 0);
 						renderMapViewportWidthStopEff = Math.min(gameMapGridSideLength * gameMapGridSideLength, (renderMapViewport.widthStop + 1) | 0);
 
-						// Background
 						offscreenCanvasMapContext.clearRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
-						offscreenCanvasMapContext.fillStyle = '#323232aa';
-						offscreenCanvasMapContext.fillRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
 
+						// Background
 						offscreenCanvasMapContext.lineWidth = 3;
 						offscreenCanvasMapContext.strokeStyle = '#161616';
 						offscreenCanvasMapContext.strokeRect(0, 0, offscreenCanvasMap.width, offscreenCanvasMap.height);
@@ -617,8 +606,8 @@ class VideoOverlayEngine {
 										offscreenCanvasMapContext.fillRect(
 											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
 											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
-											renderMapViewportCellSizePx,
-											renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx + 1,
+											renderMapViewportCellSizePx + 1,
 										);
 									}
 
@@ -628,17 +617,77 @@ class VideoOverlayEngine {
 											assetImages.get(assetId) || renderDebugImage,
 											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
 											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
-											renderMapViewportCellSizePx,
-											renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx + 1,
+											renderMapViewportCellSizePx + 1,
 										);
 									}
 								}
 							}
 						}
 
+						// Other player
+						if (settingsMultiplayer === true) {
+							renderMapPlayer2XEff = calculationsCameraAlt.x - renderMapViewportWidthStart;
+							renderMapPlayer2YEff = calculationsCameraAlt.y - renderMapViewportHeightStart;
+
+							offscreenCanvasMapContext.lineWidth = renderMapViewportCellSizePx / 2;
+							offscreenCanvasMapContext.strokeStyle = '#00f700';
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.moveTo(
+								renderMapPlayer2XEff * renderMapViewportCellSizePx,
+								renderMapPlayer2YEff * renderMapViewportCellSizePx,
+							); // Center
+							offscreenCanvasMapContext.lineTo(
+								renderMapViewportCellSizePx * (Math.cos(calculationsCameraAlt.r) + renderMapPlayer2XEff),
+								renderMapViewportCellSizePx * (-Math.sin(calculationsCameraAlt.r) + renderMapPlayer2YEff),
+							);
+							offscreenCanvasMapContext.stroke();
+
+							offscreenCanvasMapContext.fillStyle = '#00f700';
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.arc(
+								renderMapPlayer2XEff * renderMapViewportCellSizePx,
+								renderMapPlayer2YEff * renderMapViewportCellSizePx,
+								renderMapViewportCellSizePx / 2,
+								0,
+								GamingCanvasConstPI_2_000,
+							); // Base shape and color
+							offscreenCanvasMapContext.fill();
+						}
+
 						// Your position
 						renderMapPlayer1XEff = calculationsCamera.x - renderMapViewportWidthStart;
 						renderMapPlayer1YEff = calculationsCamera.y - renderMapViewportHeightStart;
+
+						// Debug Fov
+						if (settingsDebug === true) {
+							offscreenCanvasMapContext.globalCompositeOperation = 'source-atop';
+
+							offscreenCanvasMapContext.lineWidth = 2;
+							offscreenCanvasMapContext.fillStyle = 'rgba(255,247,0,0.25)';
+							offscreenCanvasMapContext.strokeStyle = 'rgba(255,247,0,0.75)';
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.moveTo(
+								offscreenCanvasMap.width * Math.cos(calculationsCamera.r - settingsFOV / 2) +
+									renderMapPlayer1XEff * renderMapViewportCellSizePx,
+								offscreenCanvasMap.width * -Math.sin(calculationsCamera.r - settingsFOV / 2) +
+									renderMapPlayer1YEff * renderMapViewportCellSizePx,
+							);
+							offscreenCanvasMapContext.lineTo(
+								renderMapPlayer1XEff * renderMapViewportCellSizePx,
+								renderMapPlayer1YEff * renderMapViewportCellSizePx,
+							); // Center
+							offscreenCanvasMapContext.lineTo(
+								offscreenCanvasMap.width * Math.cos(calculationsCamera.r + settingsFOV / 2) +
+									renderMapPlayer1XEff * renderMapViewportCellSizePx,
+								offscreenCanvasMap.width * -Math.sin(calculationsCamera.r + settingsFOV / 2) +
+									renderMapPlayer1YEff * renderMapViewportCellSizePx,
+							);
+							offscreenCanvasMapContext.fill();
+							offscreenCanvasMapContext.stroke();
+
+							offscreenCanvasMapContext.globalCompositeOperation = 'source-over';
+						}
 
 						offscreenCanvasMapContext.lineWidth = renderMapViewportCellSizePx / 2;
 						offscreenCanvasMapContext.strokeStyle = '#f70000';
@@ -663,12 +712,6 @@ class VideoOverlayEngine {
 							GamingCanvasConstPI_2_000,
 						); // Base shape and color
 						offscreenCanvasMapContext.fill();
-
-						// Other player
-						if (settingsMultiplayer === true) {
-							renderMapPlayer2XEff = calculationsCameraAlt.x - renderMapViewportWidthStart;
-							renderMapPlayer2YEff = calculationsCameraAlt.y - renderMapViewportHeightStart;
-						}
 					}
 				}
 
@@ -698,6 +741,18 @@ class VideoOverlayEngine {
 							canvasWidth: renderMapViewportWidthPx,
 						}),
 					);
+
+					// Reset
+					VideoOverlayEngine.dead = false;
+					VideoOverlayEngine.gameover = false;
+					VideoOverlayEngine.timers.clearAll();
+					VideoOverlayEngine.hitsByTimerId.clear();
+					VideoOverlayEngine.hitGradientsByTimerId.clear();
+					VideoOverlayEngine.tagRunAndJump = false;
+
+					renderDead = false;
+					renderGameOver = false;
+					tagRunAndJump = false;
 				}
 
 				if (VideoOverlayEngine.gameover !== renderGameOver) {
@@ -721,6 +776,7 @@ class VideoOverlayEngine {
 					// Settings
 					orientation = VideoOverlayEngine.report.orientation;
 					renderGrayscale = VideoOverlayEngine.settings.grayscale;
+					settingsDebug = VideoOverlayEngine.settings.debug;
 					settingsFOV = VideoOverlayEngine.settings.fov;
 					settingsMultiplayer = VideoOverlayEngine.settings.player2Enable;
 					settingsNavigation = VideoOverlayEngine.settings.navigation;
@@ -822,8 +878,8 @@ class VideoOverlayEngine {
 					// Cache: Map
 					renderMapViewportWidthPx = Math.max(
 						1,
-						offscreenCanvasHeightPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
-						offscreenCanvasWidthPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
+						offscreenCanvasHeightPx * 0.25 * (settingsMultiplayer === true ? 1.5 : 1),
+						offscreenCanvasWidthPx * 0.25 * (settingsMultiplayer === true ? 1.5 : 1),
 					);
 					renderMapViewportHeightPx = Math.max(1, ((renderMapViewportWidthPx * 9) / 16) | 0);
 					renderMapViewport.applyZ(
@@ -842,21 +898,6 @@ class VideoOverlayEngine {
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew) {
 					VideoOverlayEngine.reportNew = false;
 					VideoOverlayEngine.settingsNew = false;
-				}
-
-				if (VideoOverlayEngine.reset === true) {
-					VideoOverlayEngine.reset = false;
-
-					VideoOverlayEngine.dead = false;
-					VideoOverlayEngine.gameover = false;
-					VideoOverlayEngine.timers.clearAll();
-					VideoOverlayEngine.hitsByTimerId.clear();
-					VideoOverlayEngine.hitGradientsByTimerId.clear();
-					VideoOverlayEngine.tagRunAndJump = false;
-
-					renderDead = false;
-					renderGameOver = false;
-					tagRunAndJump = false;
 				}
 
 				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {
@@ -1025,10 +1066,29 @@ class VideoOverlayEngine {
 					);
 					offscreenCanvasContext.globalAlpha = 1;
 				} else if (settingsNavigation === Navigation.MAP) {
+					// Placement
+					if (orientation === GamingCanvasOrientation.PORTRAIT) {
+						x = 15;
+						y = player1 === true ? 35 : 35;
+					} else {
+						x = 0;
+						y = 0;
+					}
+
+					// Background
+					offscreenCanvasContext.fillStyle = '#323232aa';
+					offscreenCanvasContext.fillRect(
+						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+						offscreenCanvasMap.width * 0.125 + y,
+						offscreenCanvasMap.width,
+						offscreenCanvasMap.height,
+					);
+
+					// Map
 					offscreenCanvasContext.drawImage(
 						offscreenCanvasMap,
-						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125,
-						offscreenCanvasMap.width * 0.125,
+						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+						offscreenCanvasMap.width * 0.125 + y,
 						offscreenCanvasMap.width,
 						offscreenCanvasMap.height,
 					);

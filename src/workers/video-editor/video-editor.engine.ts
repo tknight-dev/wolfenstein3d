@@ -376,7 +376,6 @@ class VideoEditorEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoEditorEngine.request = requestAnimationFrame(VideoEditorEngine.go);
-			timestampNow = timestampNow | 0;
 
 			// Main code
 			timestampDelta = timestampNow - timestampThen;

@@ -56,7 +56,7 @@ import {
 	GamingCanvasUtilDebugImage,
 } from '@tknight-dev/gaming-canvas';
 import { GamingCanvasGridCamera, GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
+import { LightingQuality, RaycastQuality, RenderMode } from '../../models/settings.model.js';
 import {
 	CalcMainBusActionDoorState,
 	CalcMainBusActionDoorStateChangeDurationInMS,
@@ -278,8 +278,20 @@ class VideoMainEngine {
 			]);
 
 			// Start rendering thread
-			VideoMainEngine.go__funcForward();
-			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
+			switch (data.renderMode) {
+				case RenderMode.OPENGL:
+					VideoMainEngine.goOpenGL__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+					break;
+				case RenderMode.RAYCAST:
+					VideoMainEngine.goRaycast__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+					break;
+				case RenderMode.WEBGL:
+					VideoMainEngine.goWebGL__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+					break;
+			}
 		}
 	}
 
@@ -515,8 +527,56 @@ class VideoMainEngine {
 	 * Main Loop
 	 */
 
-	public static go(_timestampNow: number): void {}
-	public static go__funcForward(): void {
+	public static goOpenGL(_timestampNow: number): void {}
+	public static goOpenGL__funcForward(): void {
+		let countFrame: number = 0,
+			settingsFPMS: number = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0,
+			timestampDelta: number,
+			timestampThen: number = 0;
+
+		const go = (timestampNow: number) => {
+			// Always start the request for the next frame first!
+			VideoMainEngine.request = requestAnimationFrame(go);
+
+			// Timing
+			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta > settingsFPMS) {
+				// More accurately calculate for more stable FPS
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
+				countFrame++;
+
+				if (VideoMainEngine.settingsNew === true) {
+					VideoMainEngine.settingsNew = false;
+
+					settingsFPMS = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0;
+
+					if (VideoMainEngine.settings.renderMode !== RenderMode.OPENGL) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							// case RenderMode.OPENGL:
+							// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+							// 	break;
+							case RenderMode.RAYCAST:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+								break;
+							case RenderMode.WEBGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+								break;
+						}
+					}
+				}
+			}
+		};
+		VideoMainEngine.goOpenGL = go;
+	}
+
+	public static goRaycast(_timestampNow: number): void {}
+	public static goRaycast__funcForward(): void {
 		let actionDoors: Map<number, CalcMainBusActionDoorState> = VideoMainEngine.actionDoors,
 			actionDoorState: CalcMainBusActionDoorState,
 			actionWall: Map<number, CalcMainBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
@@ -674,8 +734,7 @@ class VideoMainEngine {
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
-			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
-			timestampNow = timestampNow | 0;
+			VideoMainEngine.request = requestAnimationFrame(go);
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
@@ -883,6 +942,19 @@ class VideoMainEngine {
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
 					renderGammaFilter = `brightness(${renderGamma})`;
+
+					// Render mode
+					if (VideoMainEngine.settings.renderMode !== RenderMode.RAYCAST) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							case RenderMode.OPENGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+								break;
+							case RenderMode.WEBGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+								break;
+						}
+					}
 
 					// Report
 					if (VideoMainEngine.settings.player2Enable === true) {
@@ -1680,7 +1752,7 @@ class VideoMainEngine {
 											}
 
 											// Calc: Movement
-											if (renderCharacterNPC.running === true) {
+											if (renderCharacterNPC.running === true || renderCharacterNPC.type === AssetIdImgCharacterType.RAT) {
 												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
 											} else if (renderCharacterNPC.walking === true) {
 												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
@@ -1848,6 +1920,54 @@ class VideoMainEngine {
 				countFrame = 0;
 			}
 		};
-		VideoMainEngine.go = go;
+		VideoMainEngine.goRaycast = go;
+	}
+
+	public static goWebGL(_timestampNow: number): void {}
+	public static goWebGL__funcForward(): void {
+		let countFrame: number = 0,
+			settingsFPMS: number = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0,
+			timestampDelta: number,
+			timestampThen: number = 0;
+
+		const go = (timestampNow: number) => {
+			// Always start the request for the next frame first!
+			VideoMainEngine.request = requestAnimationFrame(go);
+
+			// Timing
+			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta > settingsFPMS) {
+				// More accurately calculate for more stable FPS
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
+				countFrame++;
+
+				if (VideoMainEngine.settingsNew === true) {
+					VideoMainEngine.settingsNew = false;
+
+					settingsFPMS = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0;
+
+					if (VideoMainEngine.settings.renderMode !== RenderMode.WEBGL) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							case RenderMode.OPENGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+								break;
+							case RenderMode.RAYCAST:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+								break;
+							// case RenderMode.WEBGL:
+							// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+							// 	break;
+						}
+					}
+				}
+			}
+		};
+		VideoMainEngine.goWebGL = go;
 	}
 }

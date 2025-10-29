@@ -29,6 +29,12 @@ export enum Navigation {
 	MAP = 2,
 }
 
+export enum RenderMode {
+	RAYCAST = 0,
+	OPENGL = 1,
+	WEBGL = 2,
+}
+
 export enum RaycastQuality {
 	FULL = 1, // ray = 1px
 	HALF = 2, // ray = 2px

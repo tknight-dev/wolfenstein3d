@@ -597,11 +597,20 @@ export class Game {
 
 				DOM.elEditorHandleEpisodeLevel.innerText = AssetIdMap[Game.mapBackup.id];
 
+				// Reset doors to closed
+				let cell: number, gridIndex: number;
+				for ([gridIndex, cell] of parsed.grid.data.entries()) {
+					if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
+						parsed.grid.data[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+						parsed2.grid.data[gridIndex] |= GameGridCellMasksAndValues.WALL_INVISIBLE;
+					}
+				}
+
 				CalcMainBus.outputMap(parsed);
 				CalcPathBus.outputMap(parsed);
 				VideoEditorBus.outputMap(parsed);
 				VideoMainBus.outputMap(parsed);
-				VideoOverlayBus.outputReset();
+				VideoOverlayBus.outputMap(parsed);
 
 				Game.gameMusicPlay(parsed.music);
 
@@ -1280,7 +1289,7 @@ export class Game {
 							CalcPathBus.outputMap(parsed);
 							VideoEditorBus.outputMap(parsed);
 							VideoMainBus.outputMap(parsed);
-							VideoOverlayBus.outputReset();
+							VideoOverlayBus.outputMap(parsed);
 						} catch (error) {
 							console.error('upload failed with', error);
 
@@ -1925,7 +1934,7 @@ export class Game {
 				CalcPathBus.outputMap(Game.mapBackup);
 				VideoEditorBus.outputMap(Game.mapBackup);
 				VideoMainBus.outputMap(Game.mapBackup);
-				VideoOverlayBus.outputMap(Game.map);
+				VideoOverlayBus.outputMap(Game.mapBackup);
 
 				// End menu
 				setTimeout(() => {

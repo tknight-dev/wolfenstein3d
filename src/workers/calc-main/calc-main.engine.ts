@@ -329,7 +329,7 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.65;
+		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.75;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;
@@ -2152,7 +2152,6 @@ class CalcMainEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			CalcMainEngine.request = requestAnimationFrame(CalcMainEngine.go);
-			timestampNow = timestampNow | 0;
 
 			/**
 			 * Calc
@@ -3181,6 +3180,7 @@ class CalcMainEngine {
 												gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
 												if (
+													characterNPC.type !== AssetIdImgCharacterType.RAT &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
 												) {
@@ -3402,6 +3402,7 @@ class CalcMainEngine {
 												gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
 												if (
+													characterNPC.type !== AssetIdImgCharacterType.RAT &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
 												) {
