@@ -28,7 +28,7 @@ import {
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusPlayerHitDurationInMS,
 } from '../calc-main/calc-main.model.js';
-import { GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameGridCellMasksAndValues, GameMap } from '../../models/game.model.js';
 import { Assets } from '../../modules/assets.js';
 import {
 	GamingCanvasGridCamera,
@@ -724,6 +724,24 @@ class VideoOverlayEngine {
 					settingsFOV = VideoOverlayEngine.settings.fov;
 					settingsMultiplayer = VideoOverlayEngine.settings.player2Enable;
 					settingsNavigation = VideoOverlayEngine.settings.navigation;
+
+					// Navigation
+					if (settingsNavigation === Navigation.AUTO) {
+						switch (VideoOverlayEngine.settings.difficulty) {
+							case GameDifficulty.EASY:
+								settingsNavigation = Navigation.MAP;
+								break;
+							case GameDifficulty.NORMAL:
+								settingsNavigation = Navigation.COMPASS;
+								break;
+							case GameDifficulty.HARD:
+								settingsNavigation = Navigation.NONE;
+								break;
+							case GameDifficulty.INSANE:
+								settingsNavigation = Navigation.NONE;
+								break;
+						}
+					}
 
 					// Report
 					if (VideoOverlayEngine.settings.player2Enable === true) {

@@ -854,8 +854,6 @@ class CalcMainEngine {
 			let state: CalcMainBusActionDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex),
 				durationEff: number;
 
-			console.log('actionDoor', gridIndex);
-
 			if (state === undefined) {
 				state = {
 					cellSide: cellSide,
@@ -2571,12 +2569,10 @@ class CalcMainEngine {
 								}
 
 								gameMapGridDataCell = gameMapGridData[gameMapIndexEff];
-								console.log('ACTION', gameMapIndexEff, cameraInstance.r.toFixed(3));
 								if (
 									(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 									(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
 								) {
-									console.log('DOOR');
 									if (
 										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_1) !== 0 &&
 										(gameMapGridDataCell & GameGridCellMasksAndValues.LOCKED_2) !== 0

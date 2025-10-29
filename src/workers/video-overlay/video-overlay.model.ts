@@ -1,5 +1,5 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
-import { GameMap } from '../../models/game.model.js';
+import { GameDifficulty, GameMap } from '../../models/game.model.js';
 import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
 import { Navigation } from '../../models/settings.model.js';
 
@@ -43,6 +43,7 @@ export interface VideoOverlayBusInputDataInit extends VideoOverlayBusInputDataSe
 export interface VideoOverlayBusInputDataSettings {
 	antialias: boolean;
 	debug: boolean;
+	difficulty: GameDifficulty;
 	fov: number;
 	grayscale: boolean;
 	navigation: Navigation;
