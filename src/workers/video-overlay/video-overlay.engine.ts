@@ -626,6 +626,36 @@ class VideoOverlayEngine {
 							}
 						}
 
+						// Other player
+						if (settingsMultiplayer === true) {
+							renderMapPlayer2XEff = calculationsCameraAlt.x - renderMapViewportWidthStart;
+							renderMapPlayer2YEff = calculationsCameraAlt.y - renderMapViewportHeightStart;
+
+							offscreenCanvasMapContext.lineWidth = renderMapViewportCellSizePx / 2;
+							offscreenCanvasMapContext.strokeStyle = '#00f700';
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.moveTo(
+								renderMapPlayer2XEff * renderMapViewportCellSizePx,
+								renderMapPlayer2YEff * renderMapViewportCellSizePx,
+							); // Center
+							offscreenCanvasMapContext.lineTo(
+								renderMapViewportCellSizePx * (Math.cos(calculationsCameraAlt.r) + renderMapPlayer2XEff),
+								renderMapViewportCellSizePx * (-Math.sin(calculationsCameraAlt.r) + renderMapPlayer2YEff),
+							);
+							offscreenCanvasMapContext.stroke();
+
+							offscreenCanvasMapContext.fillStyle = '#00f700';
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.arc(
+								renderMapPlayer2XEff * renderMapViewportCellSizePx,
+								renderMapPlayer2YEff * renderMapViewportCellSizePx,
+								renderMapViewportCellSizePx / 2,
+								0,
+								GamingCanvasConstPI_2_000,
+							); // Base shape and color
+							offscreenCanvasMapContext.fill();
+						}
+
 						// Your position
 						renderMapPlayer1XEff = calculationsCamera.x - renderMapViewportWidthStart;
 						renderMapPlayer1YEff = calculationsCamera.y - renderMapViewportHeightStart;
@@ -683,12 +713,6 @@ class VideoOverlayEngine {
 							GamingCanvasConstPI_2_000,
 						); // Base shape and color
 						offscreenCanvasMapContext.fill();
-
-						// Other player
-						if (settingsMultiplayer === true) {
-							renderMapPlayer2XEff = calculationsCameraAlt.x - renderMapViewportWidthStart;
-							renderMapPlayer2YEff = calculationsCameraAlt.y - renderMapViewportHeightStart;
-						}
 					}
 				}
 
@@ -855,8 +879,8 @@ class VideoOverlayEngine {
 					// Cache: Map
 					renderMapViewportWidthPx = Math.max(
 						1,
-						offscreenCanvasHeightPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
-						offscreenCanvasWidthPx * 0.25 * (settingsMultiplayer === true ? 2 : 1),
+						offscreenCanvasHeightPx * 0.25 * (settingsMultiplayer === true ? 1.5 : 1),
+						offscreenCanvasWidthPx * 0.25 * (settingsMultiplayer === true ? 1.5 : 1),
 					);
 					renderMapViewportHeightPx = Math.max(1, ((renderMapViewportWidthPx * 9) / 16) | 0);
 					renderMapViewport.applyZ(
@@ -1043,11 +1067,20 @@ class VideoOverlayEngine {
 					);
 					offscreenCanvasContext.globalAlpha = 1;
 				} else if (settingsNavigation === Navigation.MAP) {
+					// Placement
+					if (orientation === GamingCanvasOrientation.PORTRAIT) {
+						x = 15;
+						y = player1 === true ? 35 : 35;
+					} else {
+						x = 0;
+						y = 0;
+					}
+
 					// Background
 					offscreenCanvasContext.fillStyle = '#323232aa';
 					offscreenCanvasContext.fillRect(
-						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125,
-						offscreenCanvasMap.width * 0.125,
+						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+						offscreenCanvasMap.width * 0.125 + y,
 						offscreenCanvasMap.width,
 						offscreenCanvasMap.height,
 					);
@@ -1055,8 +1088,8 @@ class VideoOverlayEngine {
 					// Map
 					offscreenCanvasContext.drawImage(
 						offscreenCanvasMap,
-						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125,
-						offscreenCanvasMap.width * 0.125,
+						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+						offscreenCanvasMap.width * 0.125 + y,
 						offscreenCanvasMap.width,
 						offscreenCanvasMap.height,
 					);
