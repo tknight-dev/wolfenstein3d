@@ -529,22 +529,46 @@ class VideoMainEngine {
 
 	public static goOpenGL(_timestampNow: number): void {}
 	public static goOpenGL__funcForward(): void {
+		let countFrame: number = 0,
+			settingsFPMS: number = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0,
+			timestampDelta: number,
+			timestampThen: number = 0;
+
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoMainEngine.request = requestAnimationFrame(go);
 
-			if (VideoMainEngine.settings.renderMode !== RenderMode.OPENGL) {
-				cancelAnimationFrame(VideoMainEngine.request);
-				switch (VideoMainEngine.settings.renderMode) {
-					// case RenderMode.OPENGL:
-					// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
-					// 	break;
-					case RenderMode.RAYCAST:
-						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
-						break;
-					case RenderMode.WEBGL:
-						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
-						break;
+			// Timing
+			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta > settingsFPMS) {
+				// More accurately calculate for more stable FPS
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
+				countFrame++;
+
+				if (VideoMainEngine.settingsNew === true) {
+					VideoMainEngine.settingsNew = false;
+
+					settingsFPMS = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0;
+
+					if (VideoMainEngine.settings.renderMode !== RenderMode.OPENGL) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							// case RenderMode.OPENGL:
+							// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+							// 	break;
+							case RenderMode.RAYCAST:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+								break;
+							case RenderMode.WEBGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+								break;
+						}
+					}
 				}
 			}
 		};
@@ -711,7 +735,6 @@ class VideoMainEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoMainEngine.request = requestAnimationFrame(go);
-			timestampNow = timestampNow | 0;
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
@@ -1902,22 +1925,46 @@ class VideoMainEngine {
 
 	public static goWebGL(_timestampNow: number): void {}
 	public static goWebGL__funcForward(): void {
+		let countFrame: number = 0,
+			settingsFPMS: number = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0,
+			timestampDelta: number,
+			timestampThen: number = 0;
+
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoMainEngine.request = requestAnimationFrame(go);
 
-			if (VideoMainEngine.settings.renderMode !== RenderMode.WEBGL) {
-				cancelAnimationFrame(VideoMainEngine.request);
-				switch (VideoMainEngine.settings.renderMode) {
-					case RenderMode.OPENGL:
-						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
-						break;
-					case RenderMode.RAYCAST:
-						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
-						break;
-					// case RenderMode.WEBGL:
-					// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
-					// 	break;
+			// Timing
+			timestampDelta = timestampNow - timestampThen;
+
+			if (timestampDelta > settingsFPMS) {
+				// More accurately calculate for more stable FPS
+				if (settingsFPMS === 0) {
+					timestampThen = timestampNow - timestampDelta;
+				} else {
+					timestampThen = timestampNow - (timestampDelta % settingsFPMS);
+				}
+				countFrame++;
+
+				if (VideoMainEngine.settingsNew === true) {
+					VideoMainEngine.settingsNew = false;
+
+					settingsFPMS = VideoMainEngine.settings.fps !== 0 ? 1000 / VideoMainEngine.settings.fps : 0;
+
+					if (VideoMainEngine.settings.renderMode !== RenderMode.WEBGL) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							case RenderMode.OPENGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+								break;
+							case RenderMode.RAYCAST:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+								break;
+							// case RenderMode.WEBGL:
+							// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+							// 	break;
+						}
+					}
 				}
 			}
 		};

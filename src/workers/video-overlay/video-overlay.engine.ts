@@ -495,7 +495,6 @@ class VideoOverlayEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			VideoOverlayEngine.request = requestAnimationFrame(VideoOverlayEngine.go);
-			timestampNow = timestampNow | 0;
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;

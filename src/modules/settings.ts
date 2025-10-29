@@ -192,6 +192,10 @@ export class Settings {
 				// Too old?
 				if (Game.settings.version === undefined) {
 					setttingsRaw = null;
+				} else {
+					if (Game.settings.threadVideoMain.renderMode === undefined) {
+						Game.settings.threadVideoMain.renderMode = RenderMode.RAYCAST;
+					}
 				}
 
 				// Convert

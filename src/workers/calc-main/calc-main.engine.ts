@@ -2152,7 +2152,6 @@ class CalcMainEngine {
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
 			CalcMainEngine.request = requestAnimationFrame(CalcMainEngine.go);
-			timestampNow = timestampNow | 0;
 
 			/**
 			 * Calc

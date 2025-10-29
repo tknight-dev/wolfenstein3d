@@ -30,8 +30,8 @@ export enum Navigation {
 }
 
 export enum RenderMode {
-	OPENGL = 0,
-	RAYCAST = 1,
+	RAYCAST = 0,
+	OPENGL = 1,
 	WEBGL = 2,
 }
 
