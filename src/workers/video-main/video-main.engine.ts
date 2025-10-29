@@ -1680,7 +1680,7 @@ class VideoMainEngine {
 											}
 
 											// Calc: Movement
-											if (renderCharacterNPC.running === true) {
+											if (renderCharacterNPC.running === true || renderCharacterNPC.type === AssetIdImgCharacterType.RAT) {
 												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 400) / 100) | 0) + 1;
 											} else if (renderCharacterNPC.walking === true) {
 												renderCharacterNPCState = ((((timestampUnix - renderCharacterNPC.timestampUnixState) % 1600) / 400) | 0) + 1;
