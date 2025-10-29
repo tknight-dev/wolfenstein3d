@@ -3181,6 +3181,7 @@ class CalcMainEngine {
 												gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
 												if (
+													characterNPC.type !== AssetIdImgCharacterType.RAT &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
 												) {
@@ -3402,6 +3403,7 @@ class CalcMainEngine {
 												gameMapGridDataCell = gameMapGridData[characterNPCGridIndex];
 
 												if (
+													characterNPC.type !== AssetIdImgCharacterType.RAT &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DISABLED) === 0 &&
 													(gameMapGridDataCell & GameGridCellMasksAndValues.DOOR) !== 0
 												) {
