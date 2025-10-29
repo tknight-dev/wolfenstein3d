@@ -328,6 +328,7 @@ export class DOM {
 	public static elSettingsValueGraphicsGrayscale: HTMLInputElement;
 	public static elSettingsValueGraphicsLightingQuality: HTMLInputElement;
 	public static elSettingsValueGraphicsRaycastQuality: HTMLInputElement;
+	public static elSettingsValueGraphicsRenderMode: HTMLInputElement;
 	public static elSettingsValueGraphicsResolution: HTMLInputElement;
 	public static elSpinner: HTMLElement;
 	public static elStatFPS: HTMLElement;
@@ -799,6 +800,7 @@ export class DOM {
 		DOM.elSettingsValueGraphicsGrayscale = <HTMLInputElement>document.getElementById('settings-value-graphics-grayscale');
 		DOM.elSettingsValueGraphicsLightingQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-lighting');
 		DOM.elSettingsValueGraphicsRaycastQuality = <HTMLInputElement>document.getElementById('settings-value-graphics-raycast-quality');
+		DOM.elSettingsValueGraphicsRenderMode = <HTMLInputElement>document.getElementById('settings-value-graphics-render-mode');
 		DOM.elSettingsValueGraphicsResolution = <HTMLInputElement>document.getElementById('settings-value-graphics-resolution');
 
 		DOM.elSpinner = <HTMLElement>document.getElementById('spinner');

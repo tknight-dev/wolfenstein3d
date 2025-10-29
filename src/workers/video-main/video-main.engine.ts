@@ -56,7 +56,7 @@ import {
 	GamingCanvasUtilDebugImage,
 } from '@tknight-dev/gaming-canvas';
 import { GamingCanvasGridCamera, GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
-import { LightingQuality, RaycastQuality } from '../../models/settings.model.js';
+import { LightingQuality, RaycastQuality, RenderMode } from '../../models/settings.model.js';
 import {
 	CalcMainBusActionDoorState,
 	CalcMainBusActionDoorStateChangeDurationInMS,
@@ -278,8 +278,20 @@ class VideoMainEngine {
 			]);
 
 			// Start rendering thread
-			VideoMainEngine.go__funcForward();
-			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
+			switch (data.renderMode) {
+				case RenderMode.OPENGL:
+					VideoMainEngine.goOpenGL__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+					break;
+				case RenderMode.RAYCAST:
+					VideoMainEngine.goRaycast__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+					break;
+				case RenderMode.WEBGL:
+					VideoMainEngine.goWebGL__funcForward();
+					VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+					break;
+			}
 		}
 	}
 
@@ -515,8 +527,32 @@ class VideoMainEngine {
 	 * Main Loop
 	 */
 
-	public static go(_timestampNow: number): void {}
-	public static go__funcForward(): void {
+	public static goOpenGL(_timestampNow: number): void {}
+	public static goOpenGL__funcForward(): void {
+		const go = (timestampNow: number) => {
+			// Always start the request for the next frame first!
+			VideoMainEngine.request = requestAnimationFrame(go);
+
+			if (VideoMainEngine.settings.renderMode !== RenderMode.OPENGL) {
+				cancelAnimationFrame(VideoMainEngine.request);
+				switch (VideoMainEngine.settings.renderMode) {
+					// case RenderMode.OPENGL:
+					// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+					// 	break;
+					case RenderMode.RAYCAST:
+						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+						break;
+					case RenderMode.WEBGL:
+						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+						break;
+				}
+			}
+		};
+		VideoMainEngine.goOpenGL = go;
+	}
+
+	public static goRaycast(_timestampNow: number): void {}
+	public static goRaycast__funcForward(): void {
 		let actionDoors: Map<number, CalcMainBusActionDoorState> = VideoMainEngine.actionDoors,
 			actionDoorState: CalcMainBusActionDoorState,
 			actionWall: Map<number, CalcMainBusOutputDataActionWallMove> = VideoMainEngine.actionWall,
@@ -674,7 +710,7 @@ class VideoMainEngine {
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
-			VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.go);
+			VideoMainEngine.request = requestAnimationFrame(go);
 			timestampNow = timestampNow | 0;
 
 			// Timing
@@ -883,6 +919,19 @@ class VideoMainEngine {
 					settingsRaycastQuality = VideoMainEngine.settings.raycastQuality;
 
 					renderGammaFilter = `brightness(${renderGamma})`;
+
+					// Render mode
+					if (VideoMainEngine.settings.renderMode !== RenderMode.RAYCAST) {
+						cancelAnimationFrame(VideoMainEngine.request);
+						switch (VideoMainEngine.settings.renderMode) {
+							case RenderMode.OPENGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+								break;
+							case RenderMode.WEBGL:
+								VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+								break;
+						}
+					}
 
 					// Report
 					if (VideoMainEngine.settings.player2Enable === true) {
@@ -1848,6 +1897,30 @@ class VideoMainEngine {
 				countFrame = 0;
 			}
 		};
-		VideoMainEngine.go = go;
+		VideoMainEngine.goRaycast = go;
+	}
+
+	public static goWebGL(_timestampNow: number): void {}
+	public static goWebGL__funcForward(): void {
+		const go = (timestampNow: number) => {
+			// Always start the request for the next frame first!
+			VideoMainEngine.request = requestAnimationFrame(go);
+
+			if (VideoMainEngine.settings.renderMode !== RenderMode.WEBGL) {
+				cancelAnimationFrame(VideoMainEngine.request);
+				switch (VideoMainEngine.settings.renderMode) {
+					case RenderMode.OPENGL:
+						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goOpenGL);
+						break;
+					case RenderMode.RAYCAST:
+						VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goRaycast);
+						break;
+					// case RenderMode.WEBGL:
+					// 	VideoMainEngine.request = requestAnimationFrame(VideoMainEngine.goWebGL);
+					// 	break;
+				}
+			}
+		};
+		VideoMainEngine.goWebGL = go;
 	}
 }

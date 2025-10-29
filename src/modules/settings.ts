@@ -1,5 +1,5 @@
 import { GamingCanvas, GamingCanvasAudioType, GamingCanvasConstPI_1_000, GamingCanvasConstPI_2_000, GamingCanvasRenderStyle } from '@tknight-dev/gaming-canvas';
-import { FPS, InputDevice, LightingQuality, Navigation, RaycastQuality, Resolution } from '../models/settings.model.js';
+import { FPS, InputDevice, LightingQuality, Navigation, RaycastQuality, RenderMode, Resolution } from '../models/settings.model.js';
 import { DOM } from './dom.js';
 import { Game } from './game.js';
 import { CalcMainBus } from '../workers/calc-main/calc-main.bus.js';
@@ -264,6 +264,7 @@ export class Settings {
 				lightingQuality: LightingQuality.FULL,
 				player2Enable: Game.settings.threadCalcMain.player2Enable,
 				raycastQuality: Game.settings.threadCalcMain.raycastQuality,
+				renderMode: RenderMode.RAYCAST,
 			};
 
 			Game.settings.threadVideoOverlay = {
@@ -489,6 +490,7 @@ export class Settings {
 			Game.settings.threadVideoMain.lightingQuality = Number(DOM.elSettingsValueGraphicsLightingQuality.value);
 			Game.settings.threadVideoMain.player2Enable = Game.settings.threadCalcMain.player2Enable;
 			Game.settings.threadVideoMain.raycastQuality = Game.settings.threadCalcMain.raycastQuality;
+			Game.settings.threadVideoMain.renderMode = Number(DOM.elSettingsValueGraphicsRenderMode.value);
 
 			Game.settings.threadVideoOverlay.antialias = Game.settings.threadVideoEditor.antialias;
 			Game.settings.threadVideoOverlay.debug = Game.settings.debug;
@@ -566,6 +568,7 @@ export class Settings {
 			DOM.elSettingsValueGraphicsGrayscale.checked = Game.settings.threadVideoMain.grayscale;
 			DOM.elSettingsValueGraphicsLightingQuality.value = String(Game.settings.threadVideoMain.lightingQuality);
 			DOM.elSettingsValueGraphicsRaycastQuality.value = String(Game.settings.threadVideoMain.raycastQuality);
+			DOM.elSettingsValueGraphicsRenderMode.value = String(Game.settings.threadVideoMain.renderMode);
 			DOM.elSettingsValueGraphicsResolution.value = String(Game.settings.graphicsResolution);
 		}
 
