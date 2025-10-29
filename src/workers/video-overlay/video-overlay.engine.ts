@@ -95,9 +95,6 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.REPORT:
 			VideoOverlayEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
-		case VideoOverlayBusInputCmd.RESET:
-			VideoOverlayEngine.inputReset();
-			break;
 		case VideoOverlayBusInputCmd.SETTINGS:
 			VideoOverlayEngine.inputSettings(<VideoOverlayBusInputDataSettings>payload.data);
 			break;
@@ -128,7 +125,6 @@ class VideoOverlayEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static reset: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static tagRunAndJump: boolean;
@@ -306,7 +302,6 @@ class VideoOverlayEngine {
 	public static inputGameMap(data: GameMap): void {
 		VideoOverlayEngine.gameMap = Assets.mapParse(data);
 		VideoOverlayEngine.gameMapNew = true;
-		VideoOverlayEngine.reset = true;
 	}
 
 	public static inputGameMapShowAll(): void {
@@ -353,10 +348,6 @@ class VideoOverlayEngine {
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoOverlayEngine.report = report;
 		VideoOverlayEngine.reportNew = true;
-	}
-
-	public static inputReset(): void {
-		VideoOverlayEngine.reset = true;
 	}
 
 	public static inputSettings(data: VideoOverlayBusInputDataSettings): void {
@@ -572,7 +563,7 @@ class VideoOverlayEngine {
 
 					// Cache map
 					if (
-						(gameMap !== undefined && (player1 === true || settingsMultiplayer === true)) ||
+						(gameMap !== undefined && settingsNavigation === Navigation.MAP && (player1 === true || settingsMultiplayer === true)) ||
 						VideoOverlayEngine.gameMapZoom !== renderMapViewportZoom
 					) {
 						renderMapShowAll = VideoOverlayEngine.gameMapShowAll;
@@ -698,6 +689,18 @@ class VideoOverlayEngine {
 							canvasWidth: renderMapViewportWidthPx,
 						}),
 					);
+
+					// Reset
+					VideoOverlayEngine.dead = false;
+					VideoOverlayEngine.gameover = false;
+					VideoOverlayEngine.timers.clearAll();
+					VideoOverlayEngine.hitsByTimerId.clear();
+					VideoOverlayEngine.hitGradientsByTimerId.clear();
+					VideoOverlayEngine.tagRunAndJump = false;
+
+					renderDead = false;
+					renderGameOver = false;
+					tagRunAndJump = false;
 				}
 
 				if (VideoOverlayEngine.gameover !== renderGameOver) {
@@ -842,21 +845,6 @@ class VideoOverlayEngine {
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew) {
 					VideoOverlayEngine.reportNew = false;
 					VideoOverlayEngine.settingsNew = false;
-				}
-
-				if (VideoOverlayEngine.reset === true) {
-					VideoOverlayEngine.reset = false;
-
-					VideoOverlayEngine.dead = false;
-					VideoOverlayEngine.gameover = false;
-					VideoOverlayEngine.timers.clearAll();
-					VideoOverlayEngine.hitsByTimerId.clear();
-					VideoOverlayEngine.hitGradientsByTimerId.clear();
-					VideoOverlayEngine.tagRunAndJump = false;
-
-					renderDead = false;
-					renderGameOver = false;
-					tagRunAndJump = false;
 				}
 
 				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {

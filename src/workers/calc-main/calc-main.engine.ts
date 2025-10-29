@@ -329,7 +329,7 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.65;
+		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.5;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;

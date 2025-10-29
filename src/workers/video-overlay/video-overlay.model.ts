@@ -25,7 +25,6 @@ export enum VideoOverlayBusInputCmd {
 	PLAYER_DEAD,
 	PLAYER_HIT,
 	REPORT,
-	RESET,
 	SETTINGS,
 }
 

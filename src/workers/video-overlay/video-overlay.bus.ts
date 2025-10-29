@@ -279,17 +279,6 @@ export class VideoOverlayBus {
 		});
 	}
 
-	public static outputReset(): void {
-		VideoOverlayBus.workerPlayer1.postMessage({
-			cmd: VideoOverlayBusInputCmd.RESET,
-			data: undefined,
-		});
-		VideoOverlayBus.workerPlayer2.postMessage({
-			cmd: VideoOverlayBusInputCmd.RESET,
-			data: undefined,
-		});
-	}
-
 	// User changed their settings
 	public static outputSettings(settings: VideoOverlayBusInputDataSettings): void {
 		VideoOverlayBus.workerPlayer1.postMessage({
