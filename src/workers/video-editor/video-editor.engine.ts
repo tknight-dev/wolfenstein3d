@@ -594,6 +594,7 @@ class VideoEditorEngine {
 					calculationsViewportWidthStopEff = Math.min(gameMapGridSideLength * gameMapGridSideLength, (calculationsViewport.widthStop + 1) | 0);
 
 					statCells.watchStart();
+					offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 					for (x = calculationsViewportWidthStartEff; x < calculationsViewportWidthStopEff; x++) {
 						for (y = calculationsViewportHeightStartEff; y < calculationsViewportHeightStopEff; y++) {
 							gridIndex = x * gameMapGridSideLength + y;
@@ -637,7 +638,6 @@ class VideoEditorEngine {
 										offscreenCanvasContext.strokeStyle = '#00f7ff';
 									}
 
-									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 									offscreenCanvasContext.strokeRect(
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
 										(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
@@ -648,7 +648,6 @@ class VideoEditorEngine {
 
 								// Special Property: Wall Movable
 								if ((value & GameGridCellMasksAndValues.WALL_MOVABLE) !== 0) {
-									offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 									offscreenCanvasContext.strokeStyle = 'white';
 									offscreenCanvasContext.strokeRect(
 										(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
@@ -712,7 +711,6 @@ class VideoEditorEngine {
 										break;
 								}
 
-								offscreenCanvasContext.lineWidth = renderCellOutlineWidth | 0;
 								offscreenCanvasContext.strokeRect(
 									(x - calculationsViewportWidthStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
 									(y - calculationsViewportHeightStart) * calculationsViewportCellSizePx + renderCellOutlineOffset,
