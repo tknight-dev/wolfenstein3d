@@ -238,7 +238,7 @@ class CalcPathEngine {
 
 		const go = (timestampNow: number) => {
 			// Always start the request for the next frame first!
-			CalcPathEngine.request = requestAnimationFrame(CalcPathEngine.go);
+			CalcPathEngine.request = requestAnimationFrame(go);
 
 			// Timing
 			timestampDelta = timestampNow - timestampThen;
