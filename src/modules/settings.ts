@@ -234,10 +234,10 @@ export class Settings {
 				debug: Game.settings.debug,
 				difficulty: GameDifficulty.NORMAL,
 				fov: (60 * GamingCanvasConstPI_1_000) / 180, // 60 deg
-				fps: GamingCanvas.detectDevice() ? FPS._40 : FPS._60,
+				fps: GamingCanvas.detectDevice() === true ? FPS._40 : FPS._60,
 				mouseSensitivity: 0,
 				player2Enable: false,
-				raycastQuality: GamingCanvas.detectDevice() ? RaycastQuality.HALF : RaycastQuality.FULL,
+				raycastQuality: GamingCanvas.detectDevice() === true ? RaycastQuality.HALF : RaycastQuality.FULL,
 			};
 
 			Game.settings.threadCalcPath = {
@@ -263,7 +263,7 @@ export class Settings {
 				difficulty: Game.settings.threadCalcMain.difficulty,
 				fov: Game.settings.threadCalcMain.fov,
 				fps: Game.settings.threadCalcMain.fps,
-				gamma: 1, // 0 - 1 (def) - 2
+				gamma: GamingCanvas.detectDevice() === true ? 1.2 : 1, // 0 - 1 (def) - 2
 				grayscale: false,
 				lightingQuality: LightingQuality.FULL,
 				player2Enable: Game.settings.threadCalcMain.player2Enable,

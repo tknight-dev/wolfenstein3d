@@ -1017,10 +1017,11 @@ class VideoMainEngine {
 							renderDistance1 = 0.5;
 							renderDistance2 = 0.4;
 						} else {
-							renderDistance1 = 0.7;
-							renderDistance2 = 0.6;
+							renderDistance1 = 0.8;
+							renderDistance2 = 0.7;
 						}
 
+						// Ceiling
 						color = gameMapColorCeiling.toString(16).padStart(6, '0');
 						renderGradientCanvasGradient.addColorStop(0, '#' + color);
 						i = (Number(color.substring(0, 2)) * renderDistance1) | 0;
@@ -1031,6 +1032,7 @@ class VideoMainEngine {
 							'#' + i.toString(16).padStart(2, '0') + x.toString(16).padStart(2, '0') + y.toString(16).padStart(2, '0'),
 						);
 
+						// Floor
 						color = gameMapColorFloor.toString(16).padStart(6, '0');
 						i = (Number(color.substring(0, 2)) * renderDistance2) | 0;
 						x = (Number(color.substring(2, 4)) * renderDistance2) | 0;
