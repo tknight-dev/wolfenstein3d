@@ -106,9 +106,9 @@ class VideoOverlayEngine {
 	private static assetImages: Map<AssetIdImg, OffscreenCanvas> = new Map();
 	private static calculations: VideoOverlayBusInputDataCalculations;
 	private static calculationsNew: boolean;
-	private static dead: boolean;
+	private static dead: boolean = false;
 	private static deadTimestamp: number;
-	private static gameover: boolean;
+	private static gameover: boolean = false;
 	private static hitGradientsByTimerId: Map<number, CanvasGradient> = new Map();
 	private static hitsByTimerId: Map<number, number> = new Map();
 	private static locked: number[];
@@ -373,7 +373,6 @@ class VideoOverlayEngine {
 			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoOverlayEngine.assetImages,
 			calculationsCamera: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
-			calculationsCameraAltAvailable: boolean,
 			frameCount: number = 0,
 			fpms: number = 1000 / 30, // Fixed 30fps
 			gameMap: GameMap,
@@ -546,9 +545,7 @@ class VideoOverlayEngine {
 
 					if (VideoOverlayEngine.calculations.characterPlayerCameraAlt !== undefined) {
 						calculationsCameraAlt.decode(VideoOverlayEngine.calculations.characterPlayerCameraAlt);
-						calculationsCameraAltAvailable = true;
 					} else {
-						calculationsCameraAltAvailable = false;
 					}
 
 					// Process camera
@@ -1032,66 +1029,67 @@ class VideoOverlayEngine {
 
 							offscreenCanvasContext.globalAlpha = 1;
 						}
+
+						// Navigation
+						if (settingsNavigation === Navigation.COMPASS) {
+							// Rotation
+							r = GamingCanvasConstPI_1_500 + calculationsCamera.r;
+
+							offscreenCanvasCompassRotateContext.clearRect(0, 0, offscreenCanvasCompass.width, offscreenCanvasCompass.height);
+							offscreenCanvasCompassRotateContext.rotate(r);
+							offscreenCanvasCompassRotateContext.drawImage(
+								offscreenCanvasCompass,
+								-offscreenCanvasCompass.width / 2,
+								-offscreenCanvasCompass.height / 2,
+							);
+							offscreenCanvasCompassRotateContext.rotate(-r);
+
+							// Placement
+							if (orientation === GamingCanvasOrientation.PORTRAIT) {
+								y = player1 === true ? 65 : 0;
+							} else {
+								y = 0;
+							}
+
+							// Draw
+							offscreenCanvasContext.globalAlpha = 0.6;
+							offscreenCanvasContext.drawImage(
+								offscreenCanvasCompassRotate,
+								offscreenCanvasWidthPx - offscreenCanvasCompassRotate.width * 1.125,
+								offscreenCanvasHeightPx - offscreenCanvasCompassRotate.height * 1.125 - y,
+								offscreenCanvasCompassRotate.width,
+								offscreenCanvasCompassRotate.height,
+							);
+							offscreenCanvasContext.globalAlpha = 1;
+						} else if (settingsNavigation === Navigation.MAP) {
+							// Placement
+							if (orientation === GamingCanvasOrientation.PORTRAIT) {
+								x = 15;
+								y = player1 === true ? 35 : 35;
+							} else {
+								x = 0;
+								y = 0;
+							}
+
+							// Background
+							offscreenCanvasContext.fillStyle = '#323232aa';
+							offscreenCanvasContext.fillRect(
+								offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+								offscreenCanvasMap.width * 0.125 + y,
+								offscreenCanvasMap.width,
+								offscreenCanvasMap.height,
+							);
+
+							// Map
+							offscreenCanvasContext.drawImage(
+								offscreenCanvasMap,
+								offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
+								offscreenCanvasMap.width * 0.125 + y,
+								offscreenCanvasMap.width,
+								offscreenCanvasMap.height,
+							);
+						}
 					}
-				}
-
-				if (settingsNavigation === Navigation.COMPASS) {
-					// Rotation
-					r = GamingCanvasConstPI_1_500 + calculationsCamera.r;
-
-					offscreenCanvasCompassRotateContext.clearRect(0, 0, offscreenCanvasCompass.width, offscreenCanvasCompass.height);
-					offscreenCanvasCompassRotateContext.rotate(r);
-					offscreenCanvasCompassRotateContext.drawImage(
-						offscreenCanvasCompass,
-						-offscreenCanvasCompass.width / 2,
-						-offscreenCanvasCompass.height / 2,
-					);
-					offscreenCanvasCompassRotateContext.rotate(-r);
-
-					// Placement
-					if (orientation === GamingCanvasOrientation.PORTRAIT) {
-						y = player1 === true ? 65 : 0;
-					} else {
-						y = 0;
-					}
-
-					// Draw
-					offscreenCanvasContext.globalAlpha = 0.6;
-					offscreenCanvasContext.drawImage(
-						offscreenCanvasCompassRotate,
-						offscreenCanvasWidthPx - offscreenCanvasCompassRotate.width * 1.125,
-						offscreenCanvasHeightPx - offscreenCanvasCompassRotate.height * 1.125 - y,
-						offscreenCanvasCompassRotate.width,
-						offscreenCanvasCompassRotate.height,
-					);
-					offscreenCanvasContext.globalAlpha = 1;
-				} else if (settingsNavigation === Navigation.MAP) {
-					// Placement
-					if (orientation === GamingCanvasOrientation.PORTRAIT) {
-						x = 15;
-						y = player1 === true ? 35 : 35;
-					} else {
-						x = 0;
-						y = 0;
-					}
-
-					// Background
-					offscreenCanvasContext.fillStyle = '#323232aa';
-					offscreenCanvasContext.fillRect(
-						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
-						offscreenCanvasMap.width * 0.125 + y,
-						offscreenCanvasMap.width,
-						offscreenCanvasMap.height,
-					);
-
-					// Map
-					offscreenCanvasContext.drawImage(
-						offscreenCanvasMap,
-						offscreenCanvasWidthPx - offscreenCanvasMap.width * 1.125 + x,
-						offscreenCanvasMap.width * 0.125 + y,
-						offscreenCanvasMap.width,
-						offscreenCanvasMap.height,
-					);
 				}
 			}
 
