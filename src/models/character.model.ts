@@ -91,7 +91,7 @@ export interface CharacterNPCUpdate {
 	walking?: boolean;
 }
 
-export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: CharacterNPC, timestampUnix: number = Date.now()): void => {
+export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: CharacterNPC, timestampUnix: number = Date.now()): number => {
 	character.assetId = data[0] | 0;
 	character.camera.r = data[1];
 	character.camera.x = data[2];
@@ -100,15 +100,16 @@ export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: 
 	character.gridIndex = data[5] | 0;
 	character.id = data[6] | 0;
 	character.running = data[7] === 1;
-	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[8];
-	character.walking = data[9] === 1;
+	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[9];
+	character.walking = data[10] === 1;
+	return data[8] | 0;
 };
 
 export const CharacterNPCUpdateDecodeId = (data: Float32Array): number => {
 	return data[6] | 0;
 };
 
-export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate): Float32Array => {
+export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate, shootAt?: number): Float32Array => {
 	return Float32Array.from([
 		update.assetId,
 		update.camera.r,
@@ -118,6 +119,7 @@ export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate): Float32Arr
 		update.gridIndex,
 		update.id,
 		update.running === true ? 1 : 0,
+		shootAt || 0,
 		update.timestampUnixState & 0xffffff,
 		update.walking === true ? 1 : 0,
 	]);

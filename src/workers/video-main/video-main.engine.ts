@@ -618,6 +618,7 @@ class VideoMainEngine {
 			gameMapNPCDead: Set<number> = new Set(),
 			gameMapNPCByGridIndex: Map<number, Map<number, CharacterNPC>> = new Map(),
 			gameMapNPCByGridIndexInstance: Map<number, CharacterNPC>,
+			gameMapNPCShootAt: Map<number, number> = new Map(),
 			gameMapUpdate: Uint16Array,
 			i: number,
 			player1: boolean = VideoMainEngine.player1,
@@ -837,6 +838,7 @@ class VideoMainEngine {
 
 					gameMapNPCDead.clear();
 					gameMapNPCByGridIndex.clear();
+					gameMapNPCShootAt.clear();
 					for (characterNPC of gameMapNPCById.values()) {
 						gameMapNPCByGridIndexInstance = <any>gameMapNPCByGridIndex.get(characterNPC.gridIndex);
 						if (gameMapNPCByGridIndexInstance === undefined) {
@@ -888,7 +890,7 @@ class VideoMainEngine {
 
 						// Update
 						x = characterNPC.assetId;
-						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix);
+						gameMapNPCShootAt.set(characterNPCId, CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, timestampUnix));
 
 						if (x >= AssetIdImgCharacter.DIE1 && x <= AssetIdImgCharacter.DIE4) {
 							characterNPC.assetId = x;
@@ -1720,6 +1722,48 @@ class VideoMainEngine {
 									renderSpriteXFactor /= settingsFOV;
 
 									// Calc: Asset by rotation
+									if (renderCharacterNPC.type !== AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
+										if (renderCharacterNPC.assetId === AssetIdImgCharacter.AIM || renderCharacterNPC.assetId === AssetIdImgCharacter.FIRE) {
+											x = player1 === true ? -1 : -2;
+
+											// Replace AIM asset with something that points in the right direction when not looking at player
+											if (gameMapNPCShootAt.get(renderCharacterNPC.id) !== x) {
+												// Calc: Angle
+												renderAngle = renderCharacterNPC.camera.r - Math.atan2(-y, x) + GamingCanvasConstPI_0_500;
+												if (renderAngle < 0) {
+													renderAngle += GamingCanvasConstPI_2_000;
+												} else if (renderAngle >= GamingCanvasConstPI_2_000) {
+													renderAngle -= GamingCanvasConstPI_2_000;
+												}
+
+												// Calc: Asset
+												if (renderAngle < GamingCanvasConstPI_0_125) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveE[0];
+												} else if (renderAngle < GamingCanvasConstPI_0_375) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveNE[0];
+												} else if (renderAngle < GamingCanvasConstPI_0_625) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveN[0];
+												} else if (renderAngle < GamingCanvasConstPI_0_875) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveNW[0];
+												} else if (renderAngle < GamingCanvasConstPI_1_125) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveW[0];
+												} else if (renderAngle < GamingCanvasConstPI_1_375) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveSW[0];
+												} else if (renderAngle < GamingCanvasConstPI_1_625) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveS[0];
+												} else if (renderAngle < GamingCanvasConstPI_1_875) {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveSE[0];
+												} else {
+													renderCharacterNPC.assetId = assetIdImgCharacterMoveE[0];
+												}
+
+												// Update instance to standing
+												renderCharacterNPC.running = false;
+												renderCharacterNPC.walking = false;
+											}
+										}
+									}
+
 									if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
 										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
 											if (renderCharacterNPC.assetId === AssetIdImgCharacter.FIRE) {
