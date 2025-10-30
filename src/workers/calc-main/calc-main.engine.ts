@@ -3323,22 +3323,19 @@ class CalcMainEngine {
 												characterNPC.timestampUnixState = timestampUnix;
 												characterNPC.walking = false;
 
-												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-												characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+												if (
+													(characterNPC.type === AssetIdImgCharacterType.RAT && characterNPCDistance > 1) ||
+													(characterNPC.type !== AssetIdImgCharacterType.RAT &&
+														characterNPCDistance === GamingCanvasConstIntegerMaxSafe)
+												) {
+													characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
+													characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
+												} else {
+													characterNPC.assetId = AssetIdImgCharacter.AIM;
+													characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
 
-												// if (
-												// 	(characterNPC.type === AssetIdImgCharacterType.RAT && characterNPCDistance > 1) ||
-												// 	(characterNPC.type !== AssetIdImgCharacterType.RAT &&
-												// 		characterNPCDistance === GamingCanvasConstIntegerMaxSafe)
-												// ) {
-												// 	characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
-												// 	characterNPCStates.set(characterNPC.id, CharacterNPCState.RUNNING);
-												// } else {
-												// 	characterNPC.assetId = AssetIdImgCharacter.AIM;
-												// 	characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
-
-												// 	gameMapNPCShootAt.set(characterNPC.id, characterPlayerId);
-												// }
+													gameMapNPCShootAt.set(characterNPC.id, characterPlayerId);
+												}
 
 												characterNPCUpdated.add(characterNPC.id);
 											}
@@ -3950,20 +3947,23 @@ class CalcMainEngine {
 							continue;
 						}
 
-						characterNPCUpdate = CharacterNPCUpdateEncode({
-							assetId: characterNPC.assetId,
-							camera: {
-								r: characterNPC.camera.r,
-								x: characterNPC.camera.x,
-								y: characterNPC.camera.y,
-								z: characterNPC.camera.z,
+						characterNPCUpdate = CharacterNPCUpdateEncode(
+							{
+								assetId: characterNPC.assetId,
+								camera: {
+									r: characterNPC.camera.r,
+									x: characterNPC.camera.x,
+									y: characterNPC.camera.y,
+									z: characterNPC.camera.z,
+								},
+								gridIndex: characterNPC.gridIndex,
+								id: characterNPC.id,
+								running: characterNPC.running === true ? true : undefined,
+								timestampUnixState: characterNPC.timestampUnixState,
+								walking: characterNPC.walking === true ? true : undefined,
 							},
-							gridIndex: characterNPC.gridIndex,
-							id: characterNPC.id,
-							running: characterNPC.running === true ? true : undefined,
-							timestampUnixState: characterNPC.timestampUnixState,
-							walking: characterNPC.walking === true ? true : undefined,
-						});
+							gameMapNPCShootAt.get(characterNPC.id),
+						);
 
 						buffers.push(characterNPCUpdate.buffer);
 						characterNPCUpdates.push(characterNPCUpdate);
