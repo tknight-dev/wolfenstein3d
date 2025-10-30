@@ -679,7 +679,7 @@ class CalcMainEngine {
 			characterPlayer2Action: boolean = false,
 			characterPlayer2CameraEncoded: Float64Array | undefined,
 			characterPlayer2FiringLocked: boolean = false,
-			characterPlayer2Meta: CalcMainBusOutputDataActionPlayerMeta = CalcMainEngine.characterPlayer1Meta,
+			characterPlayer2Meta: CalcMainBusOutputDataActionPlayerMeta = CalcMainEngine.characterPlayer2Meta,
 			characterPlayer2MetaEncoded: Uint16Array | undefined,
 			characterPlayer2RaycastDistanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
 			characterPlayer2RaycastDistanceMapKeysSorted: Float64Array | undefined,
@@ -1204,17 +1204,18 @@ class CalcMainEngine {
 			if (characterPlayer1Meta.ratioKill !== 0) {
 				characterPlayer1Meta.ratioKill /= gameMapMetaNPCCount;
 			}
-			if (characterPlayer2Meta.ratioKill !== 0) {
-				characterPlayer2Meta.ratioKill /= gameMapMetaNPCCount;
-			}
 			if (characterPlayer1Meta.ratioSecret !== 0) {
 				characterPlayer1Meta.ratioSecret /= gameMapMetaSecretsCount;
 			}
-			if (characterPlayer2Meta.ratioSecret !== 0) {
-				characterPlayer2Meta.ratioSecret /= gameMapMetaSecretsCount;
-			}
 			if (characterPlayer1Meta.ratioTreasure !== 0) {
 				characterPlayer1Meta.ratioTreasure /= gameMapMetaTreasureCount;
+			}
+
+			if (characterPlayer2Meta.ratioKill !== 0) {
+				characterPlayer2Meta.ratioKill /= gameMapMetaNPCCount;
+			}
+			if (characterPlayer2Meta.ratioSecret !== 0) {
+				characterPlayer2Meta.ratioSecret /= gameMapMetaSecretsCount;
 			}
 			if (characterPlayer2Meta.ratioTreasure !== 0) {
 				characterPlayer2Meta.ratioTreasure /= gameMapMetaTreasureCount;
