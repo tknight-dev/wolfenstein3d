@@ -1857,6 +1857,16 @@ class CalcMainEngine {
 						break;
 				}
 
+				// Calculate the angle to the NPC from the player to compare against the current player r-direction to determine how accurate the shot was
+				angle =
+					Math.atan2(-(characterNPC.camera.y - characterPlayer.camera.y), characterNPC.camera.x - characterPlayer.camera.x) +
+					GamingCanvasConstPI_1_000;
+				if (angle < 0) {
+					angle += GamingCanvasConstPI_2_000;
+				} else if (angle >= GamingCanvasConstPI_2_000) {
+					angle -= GamingCanvasConstPI_2_000;
+				}
+
 				// Update the npc state based on the new situation for it
 				if (characterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
 					// Getting hit doesn't interrupt the aim/fire state cycle
