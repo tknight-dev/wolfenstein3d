@@ -279,6 +279,17 @@ export class VideoOverlayBus {
 		});
 	}
 
+	// Non-fixed resolution canvas has changed in size
+	public static outputSeen(player1: boolean, seen: Uint16Array): void {
+		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.SEEN,
+				data: seen,
+			},
+			[seen.buffer],
+		);
+	}
+
 	// User changed their settings
 	public static outputSettings(settings: VideoOverlayBusInputDataSettings): void {
 		VideoOverlayBus.workerPlayer1.postMessage({
