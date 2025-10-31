@@ -22,6 +22,9 @@ import {
 	CalcMainBusInputDataSettings,
 	CalcMainBusInputDataWeaponSelect,
 	CalcMainBusInputPayload,
+	CalcMainBusNPCReactionSpeedAimByDifficulty,
+	CalcMainBusNPCReactionSpeedHitByDifficulty,
+	CalcMainBusNPCReactionSpeedSurpriseByDifficulty,
 	CalcMainBusOutputCmd,
 	CalcMainBusOutputDataActionPlayerMeta,
 	CalcMainBusOutputPayload,
@@ -2985,7 +2988,10 @@ class CalcMainEngine {
 
 									switch (characterNPCState) {
 										case CharacterNPCState.AIM:
-											if (timestampUnix - characterNPC.timestampUnixState > 500) {
+											if (
+												timestampUnix - characterNPC.timestampUnixState >
+												<number>CalcMainBusNPCReactionSpeedAimByDifficulty.get(settingsDifficulty)
+											) {
 												if (gameMapNPCShootAt.get(characterNPC.id) === characterPlayerId) {
 													// Fire at player intended
 
@@ -3054,7 +3060,8 @@ class CalcMainEngine {
 												(<any>characterNPC).fireCount < 16 &&
 												characterNPCDistance !== GamingCanvasConstIntegerMaxSafe
 											) {
-												characterNPC.timestampUnixState = timestampUnix - 450;
+												characterNPC.timestampUnixState =
+													timestampUnix - (<number>CalcMainBusNPCReactionSpeedAimByDifficulty.get(settingsDifficulty) - 50);
 												characterNPCUpdated.add(characterNPC.id);
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
 											} else if (
@@ -3062,7 +3069,8 @@ class CalcMainEngine {
 												(<any>characterNPC).fireCount < 8 &&
 												characterNPCDistance !== GamingCanvasConstIntegerMaxSafe
 											) {
-												characterNPC.timestampUnixState = timestampUnix - 400;
+												characterNPC.timestampUnixState =
+													timestampUnix - (<number>CalcMainBusNPCReactionSpeedAimByDifficulty.get(settingsDifficulty) - 100);
 												characterNPCUpdated.add(characterNPC.id);
 												characterNPCStates.set(characterNPC.id, CharacterNPCState.AIM);
 											} else if (timestampUnix - characterNPC.timestampUnixState > 250) {
@@ -3077,7 +3085,10 @@ class CalcMainEngine {
 											}
 											break;
 										case CharacterNPCState.HIT:
-											if (timestampUnix - characterNPC.timestampUnixState > 500) {
+											if (
+												timestampUnix - characterNPC.timestampUnixState >
+												<number>CalcMainBusNPCReactionSpeedHitByDifficulty.get(settingsDifficulty)
+											) {
 												characterNPC.assetId = AssetIdImgCharacter.MOVE1_E;
 												(<any>characterNPC).fireCount = 0;
 												characterNPC.timestampUnixState = timestampUnix;
@@ -3318,7 +3329,10 @@ class CalcMainEngine {
 										case CharacterNPCState.STANDING:
 											break;
 										case CharacterNPCState.SURPRISE:
-											if (timestampUnix - characterNPC.timestampUnixState > 500) {
+											if (
+												timestampUnix - characterNPC.timestampUnixState >
+												<number>CalcMainBusNPCReactionSpeedSurpriseByDifficulty.get(settingsDifficulty)
+											) {
 												characterNPC.running = true;
 												characterNPC.timestampUnixState = timestampUnix;
 												characterNPC.walking = false;
