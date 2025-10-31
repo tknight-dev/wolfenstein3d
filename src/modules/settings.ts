@@ -25,6 +25,9 @@ export class Settings {
 		Game.settings.inputBindingsKeyboardActionByKey.set('ArrowDown', InputActions.ACTION);
 		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.ACTION, 'ArrowDown');
 
+		Game.settings.inputBindingsKeyboardActionByKey.set('KeyF', InputActions.FULLSCREEN);
+		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.FULLSCREEN, 'KeyF');
+
 		Game.settings.inputBindingsKeyboardActionByKey.set('ArrowLeft', InputActions.LOOK_LEFT);
 		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.LOOK_LEFT, 'ArrowLeft');
 
@@ -79,6 +82,9 @@ export class Settings {
 		Game.settings.inputBindingsKeyboardActionByKey.set('Space', InputActions.ACTION);
 		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.ACTION, 'Space');
 
+		Game.settings.inputBindingsKeyboardActionByKey.set('KeyF', InputActions.FULLSCREEN);
+		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.FULLSCREEN, 'KeyF');
+
 		Game.settings.inputBindingsKeyboardActionByKey.set('ArrowLeft', InputActions.LOOK_LEFT);
 		Game.settings.inputBindingsKeyboardKeyByAction.set(InputActions.LOOK_LEFT, 'ArrowLeft');
 
@@ -129,9 +135,14 @@ export class Settings {
 		let action: InputActions, key: string;
 
 		for ([action, key] of Game.settings.inputBindingsKeyboardKeyByAction.entries()) {
+			key = key || '';
+
 			switch (action) {
 				case InputActions.ACTION:
 					DOM.elControlsInputAction.value = key;
+					break;
+				case InputActions.FULLSCREEN:
+					DOM.elControlsInputFullscreen.value = key;
 					break;
 				case InputActions.LOOK_LEFT:
 					DOM.elControlsInputLookLeft.value = key;

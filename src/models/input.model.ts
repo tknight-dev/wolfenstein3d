@@ -4,6 +4,7 @@
 
 export enum InputActions {
 	ACTION = 0,
+	FULLSCREEN = 16,
 	LOOK_LEFT = 1,
 	LOOK_RIGHT = 2,
 	MINI_MAP_ZOOM_IN = 13,

@@ -46,6 +46,8 @@ export class DOM {
 	public static elControlsInputActionBind: HTMLButtonElement;
 	public static elControlsInputDefaultWASD: HTMLButtonElement;
 	public static elControlsInputDefaultWolf3D: HTMLButtonElement;
+	public static elControlsInputFullscreen: HTMLInputElement;
+	public static elControlsInputFullscreenBind: HTMLButtonElement;
 	public static elControlsInputLookLeft: HTMLInputElement;
 	public static elControlsInputLookLeftBind: HTMLButtonElement;
 	public static elControlsInputLookRight: HTMLInputElement;
@@ -375,6 +377,8 @@ export class DOM {
 		DOM.elControlsInputActionBind = <HTMLButtonElement>document.getElementById('controls-input-action-bind');
 		DOM.elControlsInputDefaultWASD = <HTMLButtonElement>document.getElementById('controls-input-default-wasd');
 		DOM.elControlsInputDefaultWolf3D = <HTMLButtonElement>document.getElementById('controls-input-default-wolf3d');
+		DOM.elControlsInputFullscreen = <HTMLInputElement>document.getElementById('controls-input-fullscreen');
+		DOM.elControlsInputFullscreenBind = <HTMLButtonElement>document.getElementById('controls-input-fullscreen-bind');
 		DOM.elControlsInputLookLeft = <HTMLInputElement>document.getElementById('controls-input-look-left');
 		DOM.elControlsInputLookLeftBind = <HTMLButtonElement>document.getElementById('controls-input-look-left-bind');
 		DOM.elControlsInputLookRight = <HTMLInputElement>document.getElementById('controls-input-look-right');
