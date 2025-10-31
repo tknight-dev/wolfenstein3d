@@ -25,6 +25,7 @@ export enum VideoOverlayBusInputCmd {
 	PLAYER_DEAD,
 	PLAYER_HIT,
 	REPORT,
+	SEEN,
 	SETTINGS,
 }
 
@@ -78,6 +79,7 @@ export enum VideoOverlayBusOutputCmd {
 
 export interface VideoOverlayBusOutputDataStats {
 	fps: number;
+	seen: Uint16Array;
 }
 
 export interface VideoOverlayBusOutputPayload {

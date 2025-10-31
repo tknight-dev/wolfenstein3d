@@ -147,6 +147,8 @@ export class Game {
 	public static mapEnding: boolean;
 	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
+	public static mapSeenPlayer1: Uint16Array | undefined;
+	public static mapSeenPlayer2: Uint16Array | undefined;
 	public static mapUpdated: boolean;
 	public static modeEdit: boolean;
 	public static modeEditApplyType: EditApplyType = EditApplyType.PENCIL;
@@ -572,7 +574,8 @@ export class Game {
 				}
 			} else {
 				const rawMap: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-' + id),
-					rawMeta: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-meta-' + id);
+					rawMeta: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-meta-' + id),
+					rawSeen: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-seen-' + id);
 
 				if (rawMap === null || rawMeta === null) {
 					return false;
@@ -613,6 +616,20 @@ export class Game {
 				VideoOverlayBus.outputMap(parsed);
 
 				Game.gameMusicPlay(parsed.music);
+
+				// Seen
+				if (rawSeen !== null) {
+					try {
+						const seen: any = JSON.parse(rawSeen);
+
+						if (seen.player1 !== undefined) {
+							VideoOverlayBus.outputSeen(true, Uint16Array.from(seen.player1));
+						}
+						if (seen.player2 !== undefined) {
+							VideoOverlayBus.outputSeen(false, Uint16Array.from(seen.player2));
+						}
+					} catch (error) {}
+				}
 
 				setTimeout(() => {
 					CalcMainBus.outputMeta(rawMeta);
@@ -2474,11 +2491,18 @@ export class Game {
 			VideoOverlayBus.outputPlayerHit(data.angle, data.player1);
 		});
 
-		// Calc: Weapon Fire
+		// Calc: Save
 		CalcMainBus.setCallbackSave((data: CalcMainBusOutputDataWeaponSave) => {
 			if (Game.gameMenuSlotSaveId !== undefined) {
 				localStorage.setItem(Game.localStoragePrefix + 'map-' + Game.gameMenuSlotSaveId, data.mapRaw);
 				localStorage.setItem(Game.localStoragePrefix + 'map-meta-' + Game.gameMenuSlotSaveId, data.metaRaw);
+				localStorage.setItem(
+					Game.localStoragePrefix + 'map-seen-' + Game.gameMenuSlotSaveId,
+					JSON.stringify({
+						player1: Array.from(Game.mapSeenPlayer1 || []),
+						player2: Array.from(Game.mapSeenPlayer2 || []),
+					}),
+				);
 				Game.gameMenuSlotSaveId = undefined;
 			}
 		});

@@ -43,6 +43,27 @@ CalcMainBusFOVByDifficulty.set(GameDifficulty.NORMAL, (20 * GamingCanvasConstPI_
 CalcMainBusFOVByDifficulty.set(GameDifficulty.HARD, (18 * GamingCanvasConstPI_1_000) / 180);
 CalcMainBusFOVByDifficulty.set(GameDifficulty.INSANE, (16 * GamingCanvasConstPI_1_000) / 180);
 
+// How long to wait between aiming and firing
+export const CalcMainBusNPCReactionSpeedAimByDifficulty: Map<GameDifficulty, number> = new Map();
+CalcMainBusNPCReactionSpeedAimByDifficulty.set(GameDifficulty.EASY, 500);
+CalcMainBusNPCReactionSpeedAimByDifficulty.set(GameDifficulty.NORMAL, 466);
+CalcMainBusNPCReactionSpeedAimByDifficulty.set(GameDifficulty.HARD, 433);
+CalcMainBusNPCReactionSpeedAimByDifficulty.set(GameDifficulty.INSANE, 400);
+
+// How long to recover from being hit
+export const CalcMainBusNPCReactionSpeedHitByDifficulty: Map<GameDifficulty, number> = new Map();
+CalcMainBusNPCReactionSpeedHitByDifficulty.set(GameDifficulty.EASY, 500);
+CalcMainBusNPCReactionSpeedHitByDifficulty.set(GameDifficulty.NORMAL, 466);
+CalcMainBusNPCReactionSpeedHitByDifficulty.set(GameDifficulty.HARD, 433);
+CalcMainBusNPCReactionSpeedHitByDifficulty.set(GameDifficulty.INSANE, 400);
+
+// How long to look surprised before aiming
+export const CalcMainBusNPCReactionSpeedSurpriseByDifficulty: Map<GameDifficulty, number> = new Map();
+CalcMainBusNPCReactionSpeedSurpriseByDifficulty.set(GameDifficulty.EASY, 500);
+CalcMainBusNPCReactionSpeedSurpriseByDifficulty.set(GameDifficulty.NORMAL, 466);
+CalcMainBusNPCReactionSpeedSurpriseByDifficulty.set(GameDifficulty.HARD, 433);
+CalcMainBusNPCReactionSpeedSurpriseByDifficulty.set(GameDifficulty.INSANE, 400);
+
 export const CalcMainBusPlayerDamageByDifficulty: Map<GameDifficulty, number> = new Map();
 CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.EASY, 10);
 CalcMainBusPlayerDamageByDifficulty.set(GameDifficulty.NORMAL, 20);

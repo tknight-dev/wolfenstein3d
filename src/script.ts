@@ -113,7 +113,13 @@ class Blockenstein {
 		/**
 		 * Video: Overlay
 		 */
-		VideoOverlayBus.setCallbackStats((player1: boolean, stats: VideoOverlayBusOutputDataStats) => {});
+		VideoOverlayBus.setCallbackStats((player1: boolean, stats: VideoOverlayBusOutputDataStats) => {
+			if (player1 === true) {
+				Game.mapSeenPlayer1 = stats.seen;
+			} else {
+				Game.mapSeenPlayer2 = stats.seen;
+			}
+		});
 	}
 
 	private static displayNumber(value: number, precision: number, prefix: string, postfix: string = 'ms'): string {

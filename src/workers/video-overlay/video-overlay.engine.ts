@@ -95,6 +95,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.REPORT:
 			VideoOverlayEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
+		case VideoOverlayBusInputCmd.SEEN:
+			VideoOverlayEngine.inputSeen(<Uint16Array>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.SETTINGS:
 			VideoOverlayEngine.inputSettings(<VideoOverlayBusInputDataSettings>payload.data);
 			break;
@@ -125,6 +128,8 @@ class VideoOverlayEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
+	private static seen: Uint16Array;
+	private static seenNew: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static tagRunAndJump: boolean;
@@ -350,6 +355,11 @@ class VideoOverlayEngine {
 		VideoOverlayEngine.reportNew = true;
 	}
 
+	public static inputSeen(data: Uint16Array): void {
+		VideoOverlayEngine.seen = data;
+		VideoOverlayEngine.seenNew = true;
+	}
+
 	public static inputSettings(data: VideoOverlayBusInputDataSettings): void {
 		VideoOverlayEngine.settings = data;
 		VideoOverlayEngine.settingsNew = true;
@@ -436,6 +446,7 @@ class VideoOverlayEngine {
 			renderMapPlayer1YEff: number,
 			renderMapPlayer2XEff: number,
 			renderMapPlayer2YEff: number,
+			renderMapRenderLineWidth: number = 1,
 			renderMapRaycastBlocking = (cell: number, gridIndex: number) => {
 				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0 && (cell & GameGridCellMasksAndValues.WALL_INVISIBLE) !== 0) {
 					renderMapRaycastBlockingDoorState = <CalcMainBusActionDoorState>actionDoors.get(gridIndex);
@@ -473,6 +484,7 @@ class VideoOverlayEngine {
 			renderMapViewportHeightPx: number = 90,
 			renderMapViewportWidthPx: number = 160,
 			renderMapViewportZoom: number = VideoOverlayEngine.gameMapZoom,
+			seen: Uint16Array,
 			settingsDebug: boolean = VideoOverlayEngine.settings.debug,
 			settingsFOV: number = VideoOverlayEngine.settings.fov,
 			settingsMultiplayer: boolean = VideoOverlayEngine.settings.player2Enable,
@@ -592,6 +604,7 @@ class VideoOverlayEngine {
 
 						// Foreground
 						offscreenCanvasMapContext.fillStyle = 'black';
+						offscreenCanvasMapContext.lineWidth = renderMapRenderLineWidth;
 						for (x = renderMapViewportWidthStartEff; x < renderMapViewportWidthStopEff; x++) {
 							for (y = renderMapViewportHeightStartEff; y < renderMapViewportHeightStopEff; y++) {
 								gridIndex = x * gameMapGridSideLength + y;
@@ -599,6 +612,7 @@ class VideoOverlayEngine {
 								if (renderMapShowAll === true || renderMapSeenCells.has(gridIndex) === true) {
 									value = gameMapGridData[gridIndex];
 
+									// Floor
 									if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
 										offscreenCanvasMapContext.fillRect(
 											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
@@ -608,6 +622,7 @@ class VideoOverlayEngine {
 										);
 									}
 
+									// Asset
 									if ((value & renderMapFilter) !== 0) {
 										assetId = value & GameGridCellMasksAndValues.ID_MASK;
 										offscreenCanvasMapContext.drawImage(
@@ -616,6 +631,24 @@ class VideoOverlayEngine {
 											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
 											renderMapViewportCellSizePx + 1,
 											renderMapViewportCellSizePx + 1,
+										);
+									}
+
+									// Special Property: Locked
+									if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0 || (value & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+										if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0 && (value & GameGridCellMasksAndValues.LOCKED_2) !== 0) {
+											offscreenCanvasMapContext.strokeStyle = '#f700f7';
+										} else if ((value & GameGridCellMasksAndValues.LOCKED_1) !== 0) {
+											offscreenCanvasMapContext.strokeStyle = '#fff700';
+										} else {
+											offscreenCanvasMapContext.strokeStyle = '#00f7ff';
+										}
+
+										offscreenCanvasMapContext.strokeRect(
+											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
+											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx,
 										);
 									}
 								}
@@ -897,6 +930,15 @@ class VideoOverlayEngine {
 					VideoOverlayEngine.settingsNew = false;
 				}
 
+				if (VideoOverlayEngine.seenNew === true) {
+					VideoOverlayEngine.seenNew = false;
+
+					renderMapSeenCells.clear();
+					for (gridIndex of VideoOverlayEngine.seen) {
+						renderMapSeenCells.add(gridIndex);
+					}
+				}
+
 				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {
 					tagRunAndJump = VideoOverlayEngine.tagRunAndJump;
 					tagRunAndJumpOptions = VideoOverlayEngine.tagRunAndJumpOptions;
@@ -1097,15 +1139,21 @@ class VideoOverlayEngine {
 			if (timestampNow - timestampFPS > 999) {
 				timestampFPS = timestampNow;
 
+				seen = Uint16Array.from(renderMapSeenCells);
+
 				// Output
-				VideoOverlayEngine.post([
-					{
-						cmd: VideoOverlayBusOutputCmd.STATS,
-						data: {
-							fps: frameCount,
+				VideoOverlayEngine.post(
+					[
+						{
+							cmd: VideoOverlayBusOutputCmd.STATS,
+							data: {
+								fps: frameCount,
+								seen: seen,
+							},
 						},
-					},
-				]);
+					],
+					[seen.buffer],
+				);
 				frameCount = 0;
 			}
 		};
