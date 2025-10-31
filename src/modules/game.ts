@@ -1342,6 +1342,9 @@ export class Game {
 		DOM.elControlsInputActionBind.onclick = (event: PointerEvent) => {
 			Game.inputBindKeyboard(InputActions.ACTION, event);
 		};
+		DOM.elControlsInputFullscreenBind.onclick = (event: PointerEvent) => {
+			Game.inputBindKeyboard(InputActions.FULLSCREEN, event);
+		};
 		DOM.elControlsInputLookLeftBind.onclick = (event: PointerEvent) => {
 			Game.inputBindKeyboard(InputActions.LOOK_LEFT, event);
 		};
@@ -2949,18 +2952,18 @@ export class Game {
 			if (Game.bindKeyboard === true) {
 				if (down === true) {
 					if (input.propriatary.action.code !== 'Escape') {
-						let keyPrevious: string | undefined = Game.settings.inputBindingsKeyboardKeyByAction.get(InputActions.ACTION);
+						let keyPrevious: string | undefined = Game.settings.inputBindingsKeyboardKeyByAction.get(Game.bindKeyboardAction);
 						if (keyPrevious !== undefined) {
 							Game.settings.inputBindingsKeyboardActionByKey.delete(keyPrevious);
 						}
 
-						if (Game.settings.inputBindingsKeyboardKeyByAction.get(InputActions.ACTION) !== input.propriatary.action.code) {
+						if (Game.settings.inputBindingsKeyboardKeyByAction.get(Game.bindKeyboardAction) !== input.propriatary.action.code) {
 							if (Game.settings.inputBindingsKeyboardActionByKey.has(input.propriatary.action.code) === true) {
 								DOM.elBindBody.innerText = 'Aleady in use';
 
 								clearTimeout(Game.bindKeyboardTimeout);
 								Game.bindKeyboardTimeout = setTimeout(() => {
-									DOM.elBindBody.innerText = InputActions[InputActions.ACTION].replace('_', ' ');
+									DOM.elBindBody.innerText = InputActions[Game.bindKeyboardAction].replace('_', ' ');
 								}, 2000);
 								return;
 							} else {
@@ -3022,19 +3025,24 @@ export class Game {
 
 					switch (inputAction) {
 						case InputActions.ACTION:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.action = true;
 							} else if ((characterPlayerInputPlayer.action = true)) {
 								characterPlayerInputPlayer.action = false;
 							}
 							updated = true;
 							break;
+						case InputActions.FULLSCREEN:
+							if (down === true) {
+								GamingCanvas.setFullscreen(!GamingCanvas.isFullscreen());
+							}
+							break;
 						case InputActions.LOOK_LEFT:
 							if (
 								(inputStrafeInvert !== true && Game.settings.controlStrafe === false) ||
 								(inputStrafeInvert === true && Game.settings.controlStrafe === true)
 							) {
-								if (down) {
+								if (down === true) {
 									characterPlayerInputPlayer.r = -1;
 								} else if (characterPlayerInputPlayer.r === -1) {
 									if (keyAction.get(InputActions.LOOK_RIGHT) === true) {
@@ -3048,7 +3056,7 @@ export class Game {
 									characterPlayerInputPlayer.x = 0;
 								}
 							} else {
-								if (down) {
+								if (down === true) {
 									characterPlayerInputPlayer.x = run ? -1 : -0.5;
 								} else if (characterPlayerInputPlayer.x !== 0) {
 									if (keyAction.get(InputActions.LOOK_RIGHT) === true) {
@@ -3069,7 +3077,7 @@ export class Game {
 								(inputStrafeInvert !== true && Game.settings.controlStrafe === false) ||
 								(inputStrafeInvert === true && Game.settings.controlStrafe === true)
 							) {
-								if (down) {
+								if (down === true) {
 									characterPlayerInputPlayer.r = 1;
 								} else if (characterPlayerInputPlayer.r === 1) {
 									if (keyAction.get(InputActions.LOOK_LEFT) === true) {
@@ -3083,7 +3091,7 @@ export class Game {
 									characterPlayerInputPlayer.x = 0;
 								}
 							} else {
-								if (down) {
+								if (down === true) {
 									characterPlayerInputPlayer.x = run ? 1 : 0.5;
 								} else if (characterPlayerInputPlayer.x !== 0) {
 									if (keyAction.get(InputActions.LOOK_LEFT) === true) {
@@ -3106,7 +3114,7 @@ export class Game {
 							down && VideoOverlayBus.outputMapZoom(player1, false);
 							break;
 						case InputActions.MOVE_BACKWARD:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.y = run ? 1 : 0.5;
 							} else if (characterPlayerInputPlayer.y !== 0) {
 								if (keyAction.get(InputActions.MOVE_FORWARD) === true) {
@@ -3118,7 +3126,7 @@ export class Game {
 							updated = true;
 							break;
 						case InputActions.MOVE_FORWARD:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.y = run ? -1 : -0.5;
 							} else if (characterPlayerInputPlayer.y !== 0) {
 								if (keyAction.get(InputActions.MOVE_BACKWARD) === true) {
@@ -3130,7 +3138,7 @@ export class Game {
 							updated = true;
 							break;
 						case InputActions.MOVE_LEFT:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.x = run ? -1 : -0.5;
 							} else if (characterPlayerInputPlayer.x !== 0) {
 								if (keyAction.get(InputActions.MOVE_RIGHT) === true) {
@@ -3142,7 +3150,7 @@ export class Game {
 							updated = true;
 							break;
 						case InputActions.MOVE_RIGHT:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.x = run ? 1 : 0.5;
 							} else if (characterPlayerInputPlayer.x !== 0) {
 								if (keyAction.get(InputActions.MOVE_LEFT) === true) {
@@ -3159,7 +3167,7 @@ export class Game {
 						case InputActions.RUN:
 							break;
 						case InputActions.SHOOT:
-							if (down) {
+							if (down === true) {
 								characterPlayerInputPlayer.fire = true;
 							} else if ((characterPlayerInputPlayer.fire = true)) {
 								characterPlayerInputPlayer.fire = false;
@@ -3185,13 +3193,13 @@ export class Game {
 							Game.gameMenu();
 							break;
 						case 'KeyE':
-							if (keyState.get('Tab') === true && Game.settings.debug === true && down) {
+							if (keyState.get('Tab') === true && Game.settings.debug === true && down === true) {
 								keyState.set('Tab', false);
 								CalcMainBus.outputMapEnd();
 							}
 							break;
 						case 'KeyF':
-							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down === true) {
 								keyState.set('Tab', false);
 								alert(`GridIndex: ${(camera.x * Game.map.grid.sideLength + camera.y) | 0}
 R: ${((camera.r * 180) / GamingCanvasConstPI_1_000) | 0}°
@@ -3200,7 +3208,7 @@ Y: ${camera.y | 0}`);
 							}
 							break;
 						case 'KeyH':
-							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down === true) {
 								keyState.set('Tab', false);
 								CalcMainBus.outputDebugHit();
 							}
@@ -3208,17 +3216,17 @@ Y: ${camera.y | 0}`);
 						case 'KeyI':
 						case 'KeyL':
 						case 'KeyM':
-							if (down) {
+							if (down === true) {
 								cheatCodeCheck(player1);
 
-								if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+								if (Game.settings.debug === true && keyState.get('Tab') === true && down === true) {
 									keyState.set('Tab', false);
 									VideoOverlayBus.outputMapShowAll(player1);
 								}
 							}
 							break;
 						case 'KeyW':
-							if (Game.settings.debug === true && keyState.get('Tab') === true && down) {
+							if (Game.settings.debug === true && keyState.get('Tab') === true && down === true) {
 								keyState.set('Tab', false);
 								keyState.set('KeyW', false);
 
@@ -3311,12 +3319,12 @@ Y: ${camera.y | 0}`);
 						down === true && DOM.elButtonUpload.click();
 						break;
 					case 'KeyY':
-						if (keyState.get('ControlLeft') === true && down) {
+						if (keyState.get('ControlLeft') === true && down === true) {
 							dataUpdated = Game.mapEditor.historyRedo();
 						}
 						break;
 					case 'KeyZ':
-						if (keyState.get('ControlLeft') === true && down) {
+						if (keyState.get('ControlLeft') === true && down === true) {
 							dataUpdated = Game.mapEditor.historyUndo();
 						}
 						break;

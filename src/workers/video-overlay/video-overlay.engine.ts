@@ -119,7 +119,7 @@ class VideoOverlayEngine {
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
 	private static gameMapShowAll: boolean;
-	private static gameMapZoom: number = 8;
+	private static gameMapZoom: number = 5;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
 	private static player1: boolean;
