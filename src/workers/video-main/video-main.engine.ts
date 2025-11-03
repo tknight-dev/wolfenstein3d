@@ -1501,7 +1501,7 @@ class VideoMainEngine {
 								/**
 								 * Draw: Sprites - Rotating
 								 */
-								asset = assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
+								asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;
