@@ -3034,7 +3034,7 @@ export class Game {
 							break;
 						case InputActions.FULLSCREEN:
 							if (down === true) {
-								GamingCanvas.setFullscreen(!GamingCanvas.isFullscreen());
+								DOM.elButtonFullscreen.click();
 							}
 							break;
 						case InputActions.LOOK_LEFT:
