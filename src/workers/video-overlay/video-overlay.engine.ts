@@ -12,6 +12,7 @@ import {
 	VideoOverlayBusInputCmd,
 	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
+	VideoOverlayBusInputDataMapMap,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusInputPayload,
 	VideoOverlayBusOutputCmd,
@@ -77,6 +78,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.MAP:
 			VideoOverlayEngine.inputGameMap(<GameMap>payload.data);
 			break;
+		case VideoOverlayBusInputCmd.MAP_MAP:
+			VideoOverlayEngine.inputGameMapMap(<VideoOverlayBusInputDataMapMap>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.MAP_SHOW_ALL:
 			VideoOverlayEngine.inputGameMapShowAll();
 			break;
@@ -98,9 +102,6 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.REPORT:
 			VideoOverlayEngine.inputReport(<GamingCanvasReport>payload.data);
 			break;
-		case VideoOverlayBusInputCmd.SEEN:
-			VideoOverlayEngine.inputSeen(<Uint16Array>payload.data);
-			break;
 		case VideoOverlayBusInputCmd.SETTINGS:
 			VideoOverlayEngine.inputSettings(<VideoOverlayBusInputDataSettings>payload.data);
 			break;
@@ -121,6 +122,8 @@ class VideoOverlayEngine {
 	private static lockedNew: boolean;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static gameMapMap: VideoOverlayBusInputDataMapMap;
+	private static gameMapMapNew: boolean;
 	private static gameMapUpdate: Uint32Array;
 	private static gameMapUpdateNew: boolean;
 	private static gameMapShowAll: boolean;
@@ -133,8 +136,6 @@ class VideoOverlayEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static seen: Uint16Array;
-	private static seenNew: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static tagRunAndJump: boolean;
@@ -314,6 +315,11 @@ class VideoOverlayEngine {
 		VideoOverlayEngine.gameMapNew = true;
 	}
 
+	public static inputGameMapMap(data: VideoOverlayBusInputDataMapMap): void {
+		VideoOverlayEngine.gameMapMap = data;
+		VideoOverlayEngine.gameMapMapNew = true;
+	}
+
 	public static inputGameMapShowAll(): void {
 		VideoOverlayEngine.gameMapShowAll = !VideoOverlayEngine.gameMapShowAll;
 	}
@@ -363,11 +369,6 @@ class VideoOverlayEngine {
 	public static inputReport(report: GamingCanvasReport): void {
 		VideoOverlayEngine.report = report;
 		VideoOverlayEngine.reportNew = true;
-	}
-
-	public static inputSeen(data: Uint16Array): void {
-		VideoOverlayEngine.seen = data;
-		VideoOverlayEngine.seenNew = true;
 	}
 
 	public static inputSettings(data: VideoOverlayBusInputDataSettings): void {
@@ -809,6 +810,7 @@ class VideoOverlayEngine {
 					// Reset
 					VideoOverlayEngine.dead = false;
 					VideoOverlayEngine.gameover = false;
+					VideoOverlayEngine.gameMapZoom = 5;
 					VideoOverlayEngine.timers.clearAll();
 					VideoOverlayEngine.hitsByTimerId.clear();
 					VideoOverlayEngine.hitGradientsByTimerId.clear();
@@ -817,6 +819,17 @@ class VideoOverlayEngine {
 					renderDead = false;
 					renderGameOver = false;
 					tagRunAndJump = false;
+				}
+
+				if (VideoOverlayEngine.gameMapMapNew === true) {
+					VideoOverlayEngine.gameMapMapNew = false;
+
+					VideoOverlayEngine.gameMapZoom = VideoOverlayEngine.gameMapMap.zoom;
+
+					renderMapSeenCells.clear();
+					for (gridIndex of VideoOverlayEngine.gameMapMap.seen) {
+						renderMapSeenCells.add(gridIndex);
+					}
 				}
 
 				if (VideoOverlayEngine.gameMapUpdateNew === true) {
@@ -971,15 +984,6 @@ class VideoOverlayEngine {
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew) {
 					VideoOverlayEngine.reportNew = false;
 					VideoOverlayEngine.settingsNew = false;
-				}
-
-				if (VideoOverlayEngine.seenNew === true) {
-					VideoOverlayEngine.seenNew = false;
-
-					renderMapSeenCells.clear();
-					for (gridIndex of VideoOverlayEngine.seen) {
-						renderMapSeenCells.add(gridIndex);
-					}
 				}
 
 				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {
@@ -1191,7 +1195,8 @@ class VideoOverlayEngine {
 							cmd: VideoOverlayBusOutputCmd.STATS,
 							data: {
 								fps: frameCount,
-								seen: seen,
+								mapSeen: seen,
+								mapZoom: VideoOverlayEngine.gameMapZoom,
 							},
 						},
 					],

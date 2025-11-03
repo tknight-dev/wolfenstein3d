@@ -147,8 +147,10 @@ export class Game {
 	public static mapEnding: boolean;
 	public static mapEndingSkip: boolean;
 	public static mapNew: boolean;
-	public static mapSeenPlayer1: Uint16Array | undefined;
-	public static mapSeenPlayer2: Uint16Array | undefined;
+	public static mapPlayer1Seen: Uint16Array | undefined;
+	public static mapPlayer1Zoom: number | undefined;
+	public static mapPlayer2Seen: Uint16Array | undefined;
+	public static mapPlayer2Zoom: number | undefined;
 	public static mapUpdated: boolean;
 	public static modeEdit: boolean;
 	public static modeEditApplyType: EditApplyType = EditApplyType.PENCIL;
@@ -574,8 +576,8 @@ export class Game {
 				}
 			} else {
 				const rawMap: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-' + id),
-					rawMeta: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-meta-' + id),
-					rawSeen: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-seen-' + id);
+					rawMapMap: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-map-' + id),
+					rawMeta: string | null = localStorage.getItem(Game.localStoragePrefix + 'map-meta-' + id);
 
 				if (rawMap === null || rawMeta === null) {
 					return false;
@@ -618,15 +620,21 @@ export class Game {
 				Game.gameMusicPlay(parsed.music);
 
 				// Seen
-				if (rawSeen !== null) {
+				if (rawMapMap !== null) {
 					try {
-						const seen: any = JSON.parse(rawSeen);
+						const mapMap: any = JSON.parse(rawMapMap);
 
-						if (seen.player1 !== undefined) {
-							VideoOverlayBus.outputSeen(true, Uint16Array.from(seen.player1));
+						if (mapMap.player1Seen !== undefined) {
+							VideoOverlayBus.outputSeen(true, {
+								seen: Uint16Array.from(mapMap.player1Seen),
+								zoom: mapMap.player1Zoom,
+							});
 						}
-						if (seen.player2 !== undefined) {
-							VideoOverlayBus.outputSeen(false, Uint16Array.from(seen.player2));
+						if (mapMap.player2Seen !== undefined) {
+							VideoOverlayBus.outputSeen(false, {
+								seen: Uint16Array.from(mapMap.player2Seen),
+								zoom: mapMap.player2Zoom,
+							});
 						}
 					} catch (error) {}
 				}
@@ -2500,10 +2508,12 @@ export class Game {
 				localStorage.setItem(Game.localStoragePrefix + 'map-' + Game.gameMenuSlotSaveId, data.mapRaw);
 				localStorage.setItem(Game.localStoragePrefix + 'map-meta-' + Game.gameMenuSlotSaveId, data.metaRaw);
 				localStorage.setItem(
-					Game.localStoragePrefix + 'map-seen-' + Game.gameMenuSlotSaveId,
+					Game.localStoragePrefix + 'map-map-' + Game.gameMenuSlotSaveId,
 					JSON.stringify({
-						player1: Array.from(Game.mapSeenPlayer1 || []),
-						player2: Array.from(Game.mapSeenPlayer2 || []),
+						player1Seen: Array.from(Game.mapPlayer1Seen || []),
+						player1Zoom: Game.mapPlayer1Zoom || 5,
+						player2Seen: Array.from(Game.mapPlayer1Seen || []),
+						player2Zoom: Game.mapPlayer2Zoom || 5,
 					}),
 				);
 				Game.gameMenuSlotSaveId = undefined;

@@ -3,6 +3,7 @@ import {
 	VideoOverlayBusInputCmd,
 	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
+	VideoOverlayBusInputDataMapMap,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusOutputCmd,
 	VideoOverlayBusOutputDataStats,
@@ -300,13 +301,13 @@ export class VideoOverlayBus {
 	}
 
 	// Non-fixed resolution canvas has changed in size
-	public static outputSeen(player1: boolean, seen: Uint16Array): void {
+	public static outputSeen(player1: boolean, data: VideoOverlayBusInputDataMapMap): void {
 		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
 			{
-				cmd: VideoOverlayBusInputCmd.SEEN,
-				data: seen,
+				cmd: VideoOverlayBusInputCmd.MAP_MAP,
+				data: data,
 			},
-			[seen.buffer],
+			[data.seen.buffer],
 		);
 	}
 
