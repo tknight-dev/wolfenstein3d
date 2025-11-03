@@ -1157,7 +1157,7 @@ class VideoOverlayEngine {
 								y = player1 === true ? 35 : 35;
 							} else {
 								x = 0;
-								y = 0;
+								y = 20;
 							}
 
 							// Background
