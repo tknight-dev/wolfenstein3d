@@ -203,8 +203,8 @@ export class VideoMainBus {
 		});
 	}
 
-	public static outputMapUpdate(data: Uint16Array): void {
-		let dataClone: Uint16Array = Uint16Array.from(data);
+	public static outputMapUpdate(data: Uint32Array): void {
+		let dataClone: Uint32Array = Uint32Array.from(data);
 
 		VideoMainBus.workerPlayer1.postMessage(
 			{

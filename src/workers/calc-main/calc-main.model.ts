@@ -331,5 +331,6 @@ export interface CalcMainBusOutputPayload {
 		| Float32Array[]
 		| Map<number, number[]>
 		| Uint16Array
+		| Uint32Array
 		| undefined;
 }

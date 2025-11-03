@@ -19,13 +19,14 @@ export enum VideoOverlayBusInputCmd {
 	INIT,
 	LOCKED,
 	MAP,
+	MAP_MAP,
 	MAP_SHOW_ALL,
+	MAP_UPDATE,
 	MAP_ZOOM,
 	PAUSE,
 	PLAYER_DEAD,
 	PLAYER_HIT,
 	REPORT,
-	SEEN,
 	SETTINGS,
 }
 
@@ -38,6 +39,11 @@ export interface VideoOverlayBusInputDataInit extends VideoOverlayBusInputDataSe
 	offscreenCanvas: OffscreenCanvas;
 	player1: boolean;
 	report: GamingCanvasReport;
+}
+
+export interface VideoOverlayBusInputDataMapMap {
+	seen: Uint16Array;
+	zoom: number;
 }
 
 export interface VideoOverlayBusInputDataSettings {
@@ -64,8 +70,10 @@ export interface VideoOverlayBusInputPayload {
 		| number
 		| number[]
 		| Uint16Array
+		| Uint32Array
 		| VideoOverlayBusInputDataCalculations
 		| VideoOverlayBusInputDataInit
+		| VideoOverlayBusInputDataMapMap
 		| VideoOverlayBusInputDataSettings;
 }
 
@@ -79,7 +87,8 @@ export enum VideoOverlayBusOutputCmd {
 
 export interface VideoOverlayBusOutputDataStats {
 	fps: number;
-	seen: Uint16Array;
+	mapSeen: Uint16Array;
+	mapZoom: number;
 }
 
 export interface VideoOverlayBusOutputPayload {

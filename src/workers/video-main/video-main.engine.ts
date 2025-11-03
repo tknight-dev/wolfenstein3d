@@ -1488,7 +1488,7 @@ class VideoMainEngine {
 											asset, // (image) Draw from our test image
 											renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
 											0, // (y-source) Start at the bottom of the image (y pixel)
-											0.025, // (width-source) Slice 1 pixel wide
+											1, // (width-source) Slice 1 pixel wide
 											asset.height, // (height-source) height of our test image
 											renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
 											((offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
@@ -1501,7 +1501,7 @@ class VideoMainEngine {
 								/**
 								 * Draw: Sprites - Rotating
 								 */
-								asset = assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
+								asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 
 								// Calc: Position
 								y = gameMapGridIndex % gameMapGridSideLength;

@@ -45,6 +45,9 @@ self.onmessage = (event: MessageEvent) => {
 		case CalcPathBusInputCmd.MAP:
 			CalcPathEngine.inputMap(<GameMap>payload.data);
 			break;
+		case CalcPathBusInputCmd.MAP_UPDATE:
+			CalcPathEngine.inputMapUpdate(<Uint32Array>payload.data);
+			break;
 		case CalcPathBusInputCmd.INIT:
 			CalcPathEngine.initialize(<CalcPathBusInputDataInit>payload.data);
 			break;
@@ -66,6 +69,8 @@ self.onmessage = (event: MessageEvent) => {
 class CalcPathEngine {
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static gameMapUpdate: Uint32Array;
+	private static gameMapUpdateNew: boolean;
 	private static npcUpdate: Float32Array[];
 	private static npcUpdateNew: boolean;
 	private static playerUpdate: CalcPathBusInputDataPlayerUpdate;
@@ -159,6 +164,11 @@ class CalcPathEngine {
 		CalcPathEngine.gameMapNew = true;
 	}
 
+	public static inputMapUpdate(data: Uint32Array): void {
+		CalcPathEngine.gameMapUpdate = data;
+		CalcPathEngine.gameMapUpdateNew = true;
+	}
+
 	public static inputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
 		CalcPathEngine.npcUpdate = data.npcs;
 		CalcPathEngine.npcUpdateNew = true;
@@ -200,6 +210,7 @@ class CalcPathEngine {
 			count: number = 0,
 			gameMap: GameMap,
 			gameMapGrid: GamingCanvasGridUint32Array,
+			gameMapGridData: Uint32Array,
 			gameMapGridIndex: number,
 			gameMapGridPathOptions: GamingCanvasGridPathAStarOptions = {
 				// pathClosest: false,
@@ -208,6 +219,8 @@ class CalcPathEngine {
 			},
 			gameMapGridPathResult: GamingCanvasGridPathAStarResult,
 			gameMapNPCById: Map<number, CharacterNPC>,
+			gameMapUpdate: Uint32Array,
+			i: number,
 			pathBlocking = (cell: number, gridIndex: number) => {
 				if ((cell & GameGridCellMasksAndValues.DOOR) !== 0) {
 					return false;
@@ -264,10 +277,20 @@ class CalcPathEngine {
 
 					gameMap = CalcPathEngine.gameMap;
 					gameMapGrid = CalcPathEngine.gameMap.grid;
+					gameMapGridData = CalcPathEngine.gameMap.grid.data;
 					gameMapNPCById = CalcPathEngine.gameMap.npcById;
 
 					characterPlayer1GridIndex = gameMap.position.x * gameMapGrid.sideLength + gameMap.position.y;
 					characterPlayer2GridIndex = characterPlayer1GridIndex;
+				}
+
+				if (CalcPathEngine.gameMapUpdateNew === true) {
+					CalcPathEngine.gameMapUpdateNew = false;
+
+					gameMapUpdate = CalcPathEngine.gameMapUpdate;
+					for (i = 0; i < gameMapUpdate.length; i += 2) {
+						gameMapGridData[gameMapUpdate[i]] = gameMapUpdate[i + 1];
+					}
 				}
 
 				if (CalcPathEngine.npcUpdateNew === true) {

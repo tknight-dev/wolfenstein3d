@@ -12,6 +12,7 @@ import {
 	VideoOverlayBusInputCmd,
 	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
+	VideoOverlayBusInputDataMapMap,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusInputPayload,
 	VideoOverlayBusOutputCmd,
@@ -77,8 +78,14 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.MAP:
 			VideoOverlayEngine.inputGameMap(<GameMap>payload.data);
 			break;
+		case VideoOverlayBusInputCmd.MAP_MAP:
+			VideoOverlayEngine.inputGameMapMap(<VideoOverlayBusInputDataMapMap>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.MAP_SHOW_ALL:
 			VideoOverlayEngine.inputGameMapShowAll();
+			break;
+		case VideoOverlayBusInputCmd.MAP_UPDATE:
+			VideoOverlayEngine.inputGameMapUpdate(<Uint32Array>payload.data);
 			break;
 		case VideoOverlayBusInputCmd.MAP_ZOOM:
 			VideoOverlayEngine.inputGameMapZoom(<boolean>payload.data);
@@ -94,9 +101,6 @@ self.onmessage = (event: MessageEvent) => {
 			break;
 		case VideoOverlayBusInputCmd.REPORT:
 			VideoOverlayEngine.inputReport(<GamingCanvasReport>payload.data);
-			break;
-		case VideoOverlayBusInputCmd.SEEN:
-			VideoOverlayEngine.inputSeen(<Uint16Array>payload.data);
 			break;
 		case VideoOverlayBusInputCmd.SETTINGS:
 			VideoOverlayEngine.inputSettings(<VideoOverlayBusInputDataSettings>payload.data);
@@ -118,6 +122,10 @@ class VideoOverlayEngine {
 	private static lockedNew: boolean;
 	private static gameMap: GameMap;
 	private static gameMapNew: boolean;
+	private static gameMapMap: VideoOverlayBusInputDataMapMap;
+	private static gameMapMapNew: boolean;
+	private static gameMapUpdate: Uint32Array;
+	private static gameMapUpdateNew: boolean;
 	private static gameMapShowAll: boolean;
 	private static gameMapZoom: number = 5;
 	private static offscreenCanvas: OffscreenCanvas;
@@ -128,8 +136,6 @@ class VideoOverlayEngine {
 	private static report: GamingCanvasReport;
 	private static reportNew: boolean;
 	private static request: number;
-	private static seen: Uint16Array;
-	private static seenNew: boolean;
 	private static settings: VideoOverlayBusInputDataSettings;
 	private static settingsNew: boolean;
 	private static tagRunAndJump: boolean;
@@ -309,8 +315,18 @@ class VideoOverlayEngine {
 		VideoOverlayEngine.gameMapNew = true;
 	}
 
+	public static inputGameMapMap(data: VideoOverlayBusInputDataMapMap): void {
+		VideoOverlayEngine.gameMapMap = data;
+		VideoOverlayEngine.gameMapMapNew = true;
+	}
+
 	public static inputGameMapShowAll(): void {
 		VideoOverlayEngine.gameMapShowAll = !VideoOverlayEngine.gameMapShowAll;
+	}
+
+	public static inputGameMapUpdate(data: Uint32Array): void {
+		VideoOverlayEngine.gameMapUpdate = data;
+		VideoOverlayEngine.gameMapUpdateNew = true;
 	}
 
 	public static inputGameMapZoom(zoomIn: boolean): void {
@@ -355,11 +371,6 @@ class VideoOverlayEngine {
 		VideoOverlayEngine.reportNew = true;
 	}
 
-	public static inputSeen(data: Uint16Array): void {
-		VideoOverlayEngine.seen = data;
-		VideoOverlayEngine.seenNew = true;
-	}
-
 	public static inputSettings(data: VideoOverlayBusInputDataSettings): void {
 		VideoOverlayEngine.settings = data;
 		VideoOverlayEngine.settingsNew = true;
@@ -389,10 +400,12 @@ class VideoOverlayEngine {
 			gameMapGrid: GamingCanvasGridUint32Array,
 			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
+			gameMapUpdate: Uint32Array,
 			gridIndex: number,
 			hitAngle: number,
 			hitGradientsByTimerId: Map<number, CanvasGradient> = VideoOverlayEngine.hitGradientsByTimerId,
 			hitsByTimerId: Map<number, number> = VideoOverlayEngine.hitsByTimerId,
+			i: number,
 			offscreenCanvas: OffscreenCanvas = VideoOverlayEngine.offscreenCanvas,
 			offscreenCanvasCompass: OffscreenCanvas = new OffscreenCanvas(64, 64),
 			offscreenCanvasCompassRotate: OffscreenCanvas = new OffscreenCanvas(64, 64),
@@ -623,8 +636,8 @@ class VideoOverlayEngine {
 									}
 
 									// Asset
+									assetId = value & GameGridCellMasksAndValues.ID_MASK;
 									if ((value & renderMapFilter) !== 0) {
-										assetId = value & GameGridCellMasksAndValues.ID_MASK;
 										offscreenCanvasMapContext.drawImage(
 											assetImages.get(assetId) || renderDebugImage,
 											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
@@ -632,6 +645,28 @@ class VideoOverlayEngine {
 											renderMapViewportCellSizePx + 1,
 											renderMapViewportCellSizePx + 1,
 										);
+									}
+
+									// Special Property: Key
+									if (assetId === AssetIdImg.SPRITE_KEY1 || assetId === AssetIdImg.SPRITE_KEY2) {
+										if (assetId === AssetIdImg.SPRITE_KEY1) {
+											offscreenCanvasMapContext.fillStyle = '#fff700';
+										} else {
+											offscreenCanvasMapContext.fillStyle = '#00f7ff';
+										}
+
+										offscreenCanvasMapContext.beginPath();
+										offscreenCanvasMapContext.arc(
+											(x - renderMapViewportWidthStart + 0.5) * renderMapViewportCellSizePx,
+											(y - renderMapViewportHeightStart + 0.5) * renderMapViewportCellSizePx,
+											renderMapViewportCellSizePx / 2,
+											0,
+											GamingCanvasConstPI_2_000,
+										); // Base shape and color
+										offscreenCanvasMapContext.fill();
+
+										// Slightly faster to reset here
+										offscreenCanvasMapContext.fillStyle = 'black';
 									}
 
 									// Special Property: Locked
@@ -775,6 +810,7 @@ class VideoOverlayEngine {
 					// Reset
 					VideoOverlayEngine.dead = false;
 					VideoOverlayEngine.gameover = false;
+					VideoOverlayEngine.gameMapZoom = 5;
 					VideoOverlayEngine.timers.clearAll();
 					VideoOverlayEngine.hitsByTimerId.clear();
 					VideoOverlayEngine.hitGradientsByTimerId.clear();
@@ -783,6 +819,26 @@ class VideoOverlayEngine {
 					renderDead = false;
 					renderGameOver = false;
 					tagRunAndJump = false;
+				}
+
+				if (VideoOverlayEngine.gameMapMapNew === true) {
+					VideoOverlayEngine.gameMapMapNew = false;
+
+					VideoOverlayEngine.gameMapZoom = VideoOverlayEngine.gameMapMap.zoom;
+
+					renderMapSeenCells.clear();
+					for (gridIndex of VideoOverlayEngine.gameMapMap.seen) {
+						renderMapSeenCells.add(gridIndex);
+					}
+				}
+
+				if (VideoOverlayEngine.gameMapUpdateNew === true) {
+					VideoOverlayEngine.gameMapUpdateNew = false;
+
+					gameMapUpdate = VideoOverlayEngine.gameMapUpdate;
+					for (i = 0; i < gameMapUpdate.length; i += 2) {
+						gameMapGridData[gameMapUpdate[i]] = gameMapUpdate[i + 1];
+					}
 				}
 
 				if (VideoOverlayEngine.gameover !== renderGameOver) {
@@ -928,15 +984,6 @@ class VideoOverlayEngine {
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew) {
 					VideoOverlayEngine.reportNew = false;
 					VideoOverlayEngine.settingsNew = false;
-				}
-
-				if (VideoOverlayEngine.seenNew === true) {
-					VideoOverlayEngine.seenNew = false;
-
-					renderMapSeenCells.clear();
-					for (gridIndex of VideoOverlayEngine.seen) {
-						renderMapSeenCells.add(gridIndex);
-					}
 				}
 
 				if (VideoOverlayEngine.tagRunAndJump !== tagRunAndJump) {
@@ -1110,7 +1157,7 @@ class VideoOverlayEngine {
 								y = player1 === true ? 35 : 35;
 							} else {
 								x = 0;
-								y = 0;
+								y = 20;
 							}
 
 							// Background
@@ -1148,7 +1195,8 @@ class VideoOverlayEngine {
 							cmd: VideoOverlayBusOutputCmd.STATS,
 							data: {
 								fps: frameCount,
-								seen: seen,
+								mapSeen: seen,
+								mapZoom: VideoOverlayEngine.gameMapZoom,
 							},
 						},
 					],

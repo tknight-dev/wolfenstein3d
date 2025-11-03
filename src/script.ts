@@ -115,9 +115,11 @@ class Blockenstein {
 		 */
 		VideoOverlayBus.setCallbackStats((player1: boolean, stats: VideoOverlayBusOutputDataStats) => {
 			if (player1 === true) {
-				Game.mapSeenPlayer1 = stats.seen;
+				Game.mapPlayer1Seen = stats.mapSeen;
+				Game.mapPlayer1Zoom = stats.mapZoom;
 			} else {
-				Game.mapSeenPlayer2 = stats.seen;
+				Game.mapPlayer2Seen = stats.mapSeen;
+				Game.mapPlayer2Zoom = stats.mapZoom;
 			}
 		});
 	}

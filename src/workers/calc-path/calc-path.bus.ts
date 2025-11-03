@@ -83,6 +83,16 @@ export class CalcPathBus {
 		});
 	}
 
+	public static outputMapUpdate(data: Uint32Array): void {
+		CalcPathBus.worker.postMessage(
+			{
+				cmd: CalcPathBusInputCmd.MAP_UPDATE,
+				data: data,
+			},
+			[data.buffer],
+		);
+	}
+
 	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
 		CalcPathBus.worker.postMessage({
 			cmd: CalcPathBusInputCmd.NPC_UPDATE,

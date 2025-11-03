@@ -3,6 +3,7 @@ import {
 	VideoOverlayBusInputCmd,
 	VideoOverlayBusInputDataCalculations,
 	VideoOverlayBusInputDataInit,
+	VideoOverlayBusInputDataMapMap,
 	VideoOverlayBusInputDataSettings,
 	VideoOverlayBusOutputCmd,
 	VideoOverlayBusOutputDataStats,
@@ -208,6 +209,26 @@ export class VideoOverlayBus {
 		});
 	}
 
+	public static outputMapUpdate(data: Uint32Array): void {
+		let dataClone: Uint32Array = Uint32Array.from(data);
+
+		VideoOverlayBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.MAP_UPDATE,
+				data: dataClone,
+			},
+			[dataClone.buffer],
+		);
+
+		VideoOverlayBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.MAP_UPDATE,
+				data: data,
+			},
+			[data.buffer],
+		);
+	}
+
 	public static outputMapShowAll(player1: boolean): void {
 		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
 			cmd: VideoOverlayBusInputCmd.MAP_SHOW_ALL,
@@ -280,13 +301,13 @@ export class VideoOverlayBus {
 	}
 
 	// Non-fixed resolution canvas has changed in size
-	public static outputSeen(player1: boolean, seen: Uint16Array): void {
+	public static outputSeen(player1: boolean, data: VideoOverlayBusInputDataMapMap): void {
 		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage(
 			{
-				cmd: VideoOverlayBusInputCmd.SEEN,
-				data: seen,
+				cmd: VideoOverlayBusInputCmd.MAP_MAP,
+				data: data,
 			},
-			[seen.buffer],
+			[data.seen.buffer],
 		);
 	}
 
