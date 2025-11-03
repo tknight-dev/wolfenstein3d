@@ -20,6 +20,7 @@ export enum CalcPathBusInputCmd {
 	ACTION_WALL_MOVE,
 	INIT,
 	MAP,
+	MAP_UPDATE,
 	NPC_UPDATE,
 	PAUSE,
 	PLAYER_UPDATE,

@@ -770,7 +770,7 @@ class CalcMainEngine {
 			gameMapNPCShootAt: Map<number, number> = new Map(),
 			gameMapSideLength: number,
 			gameMapUpdate: number[] = new Array(50), // arbitrary sizes
-			gameMapUpdateEncoded: Uint16Array,
+			gameMapUpdateEncoded: Uint32Array,
 			gameMapUpdateIndex: number = 0,
 			i: number,
 			pause: boolean = CalcMainEngine.pause,
@@ -3935,7 +3935,7 @@ class CalcMainEngine {
 
 				// Map
 				if (gameMapUpdateIndex !== 0) {
-					gameMapUpdateEncoded = Uint16Array.from(gameMapUpdate.slice(0, gameMapUpdateIndex));
+					gameMapUpdateEncoded = Uint32Array.from(gameMapUpdate.slice(0, gameMapUpdateIndex));
 					gameMapUpdateIndex = 0;
 
 					CalcMainEngine.post(

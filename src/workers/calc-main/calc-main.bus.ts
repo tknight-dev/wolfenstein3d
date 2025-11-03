@@ -27,6 +27,8 @@ import {
 import { GameMap } from '../../models/game.model.js';
 import { VideoMainBus } from '../video-main/video-main.bus.js';
 import { CharacterWeapon } from '../../models/character.model.js';
+import { CalcPathBus } from '../calc-path/calc-path.bus.js';
+import { VideoOverlayBus } from '../video-overlay/video-overlay.bus.js';
 
 /**
  * @author tknight-dev
@@ -124,7 +126,9 @@ export class CalcMainBus {
 						CalcMainBus.callbackInitComplete(<boolean>payload.data);
 						break;
 					case CalcMainBusOutputCmd.MAP_UPDATE:
-						VideoMainBus.outputMapUpdate(<Uint16Array>payload.data);
+						CalcPathBus.outputMapUpdate(Uint32Array.from(<Uint32Array>payload.data));
+						VideoMainBus.outputMapUpdate(Uint32Array.from(<Uint32Array>payload.data));
+						VideoOverlayBus.outputMapUpdate(<Uint32Array>payload.data);
 						break;
 					case CalcMainBusOutputCmd.NPC_UPDATE:
 						CalcMainBus.callbackNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);

@@ -208,6 +208,26 @@ export class VideoOverlayBus {
 		});
 	}
 
+	public static outputMapUpdate(data: Uint32Array): void {
+		let dataClone: Uint32Array = Uint32Array.from(data);
+
+		VideoOverlayBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.MAP_UPDATE,
+				data: dataClone,
+			},
+			[dataClone.buffer],
+		);
+
+		VideoOverlayBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.MAP_UPDATE,
+				data: data,
+			},
+			[data.buffer],
+		);
+	}
+
 	public static outputMapShowAll(player1: boolean): void {
 		(player1 === true ? VideoOverlayBus.workerPlayer1 : VideoOverlayBus.workerPlayer2).postMessage({
 			cmd: VideoOverlayBusInputCmd.MAP_SHOW_ALL,

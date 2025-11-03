@@ -20,6 +20,7 @@ export enum VideoOverlayBusInputCmd {
 	LOCKED,
 	MAP,
 	MAP_SHOW_ALL,
+	MAP_UPDATE,
 	MAP_ZOOM,
 	PAUSE,
 	PLAYER_DEAD,
@@ -64,6 +65,7 @@ export interface VideoOverlayBusInputPayload {
 		| number
 		| number[]
 		| Uint16Array
+		| Uint32Array
 		| VideoOverlayBusInputDataCalculations
 		| VideoOverlayBusInputDataInit
 		| VideoOverlayBusInputDataSettings;
