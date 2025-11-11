@@ -119,8 +119,8 @@ export class Game {
 	public static bindKeyboardTimeout: ReturnType<typeof setTimeout>;
 	public static camera: GamingCanvasGridCamera = new GamingCanvasGridCamera();
 	public static editorAssetIdImg: number = 0;
-	public static editorAssetCharacterId: AssetIdImgCharacter = 0;
-	public static editorAssetCharacterType: AssetIdImgCharacterType = 0;
+	public static editorAssetCharacterId: AssetIdImgCharacter = AssetIdImgCharacter.AIM;
+	public static editorAssetCharacterType: AssetIdImgCharacterType = AssetIdImgCharacterType.BOSS_HANS_GROSSE;
 	public static editorAssetProperties: AssetPropertiesImage;
 	public static editorAssetPropertiesCharacter: AssetPropertiesCharacter;
 	public static editorCellHighlightEnable: boolean;
