@@ -1771,7 +1771,7 @@ class VideoMainEngine {
 										}
 									}
 
-									if (renderCharacterNPC.assetId < AssetIdImgCharacter.MOVE1_E) {
+									if (renderCharacterNPC.assetId > AssetIdImgCharacter.SUPRISE) {
 										if (renderCharacterNPC.type === AssetIdImgCharacterType.BOSS_HANS_GROSSE) {
 											if (renderCharacterNPC.assetId === AssetIdImgCharacter.FIRE) {
 												if (((timestampUnix / 100) | 0) % 2 === 0) {

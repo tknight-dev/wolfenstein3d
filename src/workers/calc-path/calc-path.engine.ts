@@ -268,7 +268,7 @@ class CalcPathEngine {
 				}
 			}
 
-			if (timestampDelta > 1000) {
+			if (timestampDelta > 500) {
 				timestampThen = timestampNow;
 				statAll.watchStart();
 
