@@ -1232,7 +1232,7 @@ class VideoMainEngine {
 							0, // (y-source) Start at the bottom of the image (y pixel)
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
-							((renderRayIndex + 6) * settingsRaycastQuality) / 7, // (x-destination) Draw sliced image at pixel (6 elements per ray)
+							((renderRayIndex + 6) * settingsRaycastQuality) / 7 - 2, // (x-destination) Draw sliced image at pixel (6 elements per ray)
 							((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (+1 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height
