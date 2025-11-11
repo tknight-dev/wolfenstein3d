@@ -649,6 +649,7 @@ class VideoMainEngine {
 			renderGrayscaleFilter: string = 'grayscale(1)',
 			renderHeightFactor: number,
 			renderHeightOffset: number,
+			renderJiggleCorrection: boolean,
 			renderLightingQuality: LightingQuality,
 			renderModeEdit: boolean | undefined,
 			renderRayDistanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
@@ -1249,6 +1250,7 @@ class VideoMainEngine {
 						gameMapGridIndex = renderRayDistanceMapInstance.gridIndex;
 						gameMapGridCell = gameMapGridData[gameMapGridIndex];
 						renderGlobalShadow = false;
+						renderJiggleCorrection = false;
 						renderSkip = false;
 
 						// Skip arrows
@@ -1340,8 +1342,8 @@ class VideoMainEngine {
 													asset =
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
 														renderDebugImage;
-													x -= renderSpriteFixedWallMovableOffset - 0.5;
 													renderGlobalShadow = true;
+													x -= renderSpriteFixedWallMovableOffset - 0.5;
 													break;
 												case GamingCanvasGridRaycastCellSide.NORTH:
 													asset =
@@ -1353,12 +1355,14 @@ class VideoMainEngine {
 												case GamingCanvasGridRaycastCellSide.SOUTH:
 													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 													renderGlobalShadow = false;
-													y -= renderSpriteFixedWallMovableOffset - 0.5; // good
+													renderJiggleCorrection = true;
+													y -= renderSpriteFixedWallMovableOffset - 0.5;
 													break;
-												case GamingCanvasGridRaycastCellSide.WEST: // good
+												case GamingCanvasGridRaycastCellSide.WEST:
 													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
-													x += renderSpriteFixedWallMovableOffset - 0.5;
 													renderGlobalShadow = true;
+													renderJiggleCorrection = true;
+													x += renderSpriteFixedWallMovableOffset - 0.5;
 													break;
 											}
 										}
@@ -1477,6 +1481,7 @@ class VideoMainEngine {
 										asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
 									}
 
+									renderDistance1 = renderJiggleCorrection === true ? 1 : 0.025;
 									renderStep = Math.max(1, (renderDistance / asset.width) | 0);
 
 									for (i = 1; i < renderDistance; i += renderStep) {
@@ -1488,9 +1493,9 @@ class VideoMainEngine {
 										// Render: 3D Projection
 										offscreenCanvasContext.drawImage(
 											asset, // (image) Draw from our test image
-											renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset) * asset.width, // (x-source) Specific how far from the left to draw from the test image
+											asset.width * renderSpriteXFactor * (1 - renderSpriteFixedDoorOffset), // (x-source) Specific how far from the left to draw from the test image
 											0, // (y-source) Start at the bottom of the image (y pixel)
-											1, // (width-source) Slice 1 pixel wide
+											renderDistance1, // (width-source) Slice 1 pixel wide
 											asset.height, // (height-source) height of our test image
 											renderSpriteFixedCoordinates[0] + x * renderSpriteXFactor, // (x-destination) Draw sliced image at pixel
 											((offscreenCanvasHeightPxHalf - renderWallHeight / 2) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
