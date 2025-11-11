@@ -1347,10 +1347,12 @@ class VideoMainEngine {
 													asset =
 														assetImagesInvertHorizontal.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) ||
 														renderDebugImage;
+													renderGlobalShadow = false;
 													y += renderSpriteFixedWallMovableOffset - 0.5; // inv
 													break;
 												case GamingCanvasGridRaycastCellSide.SOUTH:
 													asset = assetImages.get(gameMapGridCell & GameGridCellMasksAndValues.ID_MASK) || renderDebugImage;
+													renderGlobalShadow = false;
 													y -= renderSpriteFixedWallMovableOffset - 0.5; // good
 													break;
 												case GamingCanvasGridRaycastCellSide.WEST: // good
