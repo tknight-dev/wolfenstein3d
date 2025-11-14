@@ -180,12 +180,13 @@ class CalcMainEngine {
 	private static cameraNew: boolean;
 	private static characterPlayerInput: CalcMainBusInputDataPlayerInput;
 	private static characterPlayerInputNew: boolean;
-	private static characterPlayerInputRxNew: number = 0;
 	private static characterPlayerMetaReport: boolean;
 	private static characterPlayer1: Character;
+	private static characterPlayer1InputRx: number = 0;
 	private static characterPlayer1Meta: CalcMainBusOutputDataActionPlayerMeta;
 	private static characterPlayer1Firing: boolean;
 	private static characterPlayer2: Character;
+	private static characterPlayer2InputRx: number = 0;
 	private static characterPlayer2Meta: CalcMainBusOutputDataActionPlayerMeta;
 	private static characterPlayer2Firing: boolean;
 	private static debugHit: boolean;
@@ -332,30 +333,16 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 0.75;
+		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 1.125;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;
 		}
 
 		if (data.player1 === true) {
-			CalcMainEngine.characterPlayerInputRxNew = 1;
-			CalcMainEngine.characterPlayer1.camera.r -= value;
-
-			if (CalcMainEngine.characterPlayer1.camera.r < 0) {
-				CalcMainEngine.characterPlayer1.camera.r += GamingCanvasConstPI_2_000;
-			} else if (CalcMainEngine.characterPlayer1.camera.r >= GamingCanvasConstPI_2_000) {
-				CalcMainEngine.characterPlayer1.camera.r -= GamingCanvasConstPI_2_000;
-			}
+			CalcMainEngine.characterPlayer1InputRx += value;
 		} else {
-			CalcMainEngine.characterPlayerInputRxNew = 2;
-			CalcMainEngine.characterPlayer2.camera.r -= value;
-
-			if (CalcMainEngine.characterPlayer2.camera.r < 0) {
-				CalcMainEngine.characterPlayer2.camera.r += GamingCanvasConstPI_2_000;
-			} else if (CalcMainEngine.characterPlayer2.camera.r >= GamingCanvasConstPI_2_000) {
-				CalcMainEngine.characterPlayer2.camera.r -= GamingCanvasConstPI_2_000;
-			}
+			CalcMainEngine.characterPlayer2InputRx += value;
 		}
 	}
 
@@ -2455,9 +2442,16 @@ class CalcMainEngine {
 									characterControlOptions,
 								);
 
-								if (CalcMainEngine.characterPlayerInputRxNew === 1) {
-									CalcMainEngine.characterPlayerInputRxNew = 0;
+								if (CalcMainEngine.characterPlayer1InputRx !== 0) {
+									characterPlayer1.camera.r -= CalcMainEngine.characterPlayer1InputRx;
+									if (characterPlayer1.camera.r < 0) {
+										characterPlayer1.camera.r += GamingCanvasConstPI_2_000;
+									} else if (characterPlayer1.camera.r >= GamingCanvasConstPI_2_000) {
+										characterPlayer1.camera.r -= GamingCanvasConstPI_2_000;
+									}
+
 									characterPlayerChanged[0] = true;
+									CalcMainEngine.characterPlayer1InputRx = 0;
 								}
 							} else {
 								GamingCanvasGridCharacterControl(
@@ -2481,9 +2475,16 @@ class CalcMainEngine {
 										characterControlOptions,
 									);
 
-									if (CalcMainEngine.characterPlayerInputRxNew === 2) {
-										CalcMainEngine.characterPlayerInputRxNew = 0;
-										characterPlayerChanged[1] = true;
+									if (CalcMainEngine.characterPlayer2InputRx !== 0) {
+										characterPlayer2.camera.r -= CalcMainEngine.characterPlayer2InputRx;
+										if (characterPlayer2.camera.r < 0) {
+											characterPlayer2.camera.r += GamingCanvasConstPI_2_000;
+										} else if (characterPlayer2.camera.r >= GamingCanvasConstPI_2_000) {
+											characterPlayer2.camera.r -= GamingCanvasConstPI_2_000;
+										}
+
+										characterPlayerChanged[0] = true;
+										CalcMainEngine.characterPlayer2InputRx = 0;
 									}
 								} else {
 									GamingCanvasGridCharacterControl(
