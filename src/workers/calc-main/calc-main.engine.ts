@@ -2842,6 +2842,8 @@ class CalcMainEngine {
 													},
 												},
 											]);
+										} else {
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
 										}
 										break;
 									case AssetIdImg.SPRITE_SUB_MACHINE_GUN:
@@ -2860,6 +2862,8 @@ class CalcMainEngine {
 													},
 												},
 											]);
+										} else {
+											audioPlay(AssetIdAudio.AUDIO_EFFECT_AMMO);
 										}
 										break;
 									case AssetIdImg.SPRITE_MEDKIT:
