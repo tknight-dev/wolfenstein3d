@@ -1,6 +1,11 @@
 import { GamingCanvasReport } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameMap } from '../../models/game.model.js';
-import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import {
+	CalcMainBusActionDoorState,
+	CalcMainBusOutputDataActionTag,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
+} from '../calc-main/calc-main.model.js';
 import { Navigation } from '../../models/settings.model.js';
 
 /**
@@ -23,6 +28,7 @@ export enum VideoOverlayBusInputCmd {
 	MAP_SHOW_ALL,
 	MAP_UPDATE,
 	MAP_ZOOM,
+	NPC_UPDATE,
 	PAUSE,
 	PLAYER_DEAD,
 	PLAYER_HIT,
@@ -63,6 +69,7 @@ export interface VideoOverlayBusInputPayload {
 		| CalcMainBusActionDoorState
 		| CalcMainBusOutputDataActionTag
 		| CalcMainBusOutputDataActionWallMove
+		| CalcMainBusOutputDataNPCUpdate
 		| Float32Array[]
 		| Float64Array
 		| GameMap

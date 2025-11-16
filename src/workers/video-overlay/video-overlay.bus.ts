@@ -9,7 +9,12 @@ import {
 	VideoOverlayBusOutputDataStats,
 	VideoOverlayBusOutputPayload,
 } from './video-overlay.model.js';
-import { CalcMainBusActionDoorState, CalcMainBusOutputDataActionTag, CalcMainBusOutputDataActionWallMove } from '../calc-main/calc-main.model.js';
+import {
+	CalcMainBusActionDoorState,
+	CalcMainBusOutputDataActionTag,
+	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
+} from '../calc-main/calc-main.model.js';
 import { GameMap } from '../../models/game.model.js';
 
 /**
@@ -241,6 +246,53 @@ export class VideoOverlayBus {
 			cmd: VideoOverlayBusInputCmd.MAP_ZOOM,
 			data: zoomIn,
 		});
+	}
+
+	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
+		if (VideoOverlayBus.workerPlayer1 === undefined || VideoOverlayBus.workerPlayer2 === undefined) {
+			return;
+		}
+		let buffers: ArrayBufferLike[] = [],
+			clone: CalcMainBusOutputDataNPCUpdate = {
+				npcs: [],
+				timestampUnix: data.timestampUnix,
+			},
+			datam: Float32Array;
+
+		// Worker1
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
+
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
+		VideoOverlayBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.NPC_UPDATE,
+				data: clone,
+			},
+			buffers,
+		);
+
+		// Worker2
+		buffers.length = 0;
+		clone = {
+			npcs: [],
+			timestampUnix: data.timestampUnix,
+		};
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
+
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
+		VideoOverlayBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoOverlayBusInputCmd.NPC_UPDATE,
+				data: clone,
+			},
+			buffers,
+		);
 	}
 
 	public static outputPause(state: boolean): void {

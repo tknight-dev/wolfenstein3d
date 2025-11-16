@@ -94,10 +94,27 @@ export class CalcPathBus {
 	}
 
 	public static outputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
-		CalcPathBus.worker.postMessage({
-			cmd: CalcPathBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
+		let buffers: ArrayBufferLike[] = [],
+			clone: CalcMainBusOutputDataNPCUpdate = {
+				npcs: [],
+				timestampUnix: data.timestampUnix,
+			},
+			datam: Float32Array;
+
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
+
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
+
+		CalcPathBus.worker.postMessage(
+			{
+				cmd: CalcPathBusInputCmd.NPC_UPDATE,
+				data: clone,
+			},
+			buffers,
+		);
 	}
 
 	public static outputPause(state: boolean): void {

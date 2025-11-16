@@ -25,6 +25,7 @@ import {
 	CalcMainBusActionWallMoveStateChangeDurationInMS,
 	CalcMainBusOutputDataActionTag,
 	CalcMainBusOutputDataActionWallMove,
+	CalcMainBusOutputDataNPCUpdate,
 	CalcMainBusPlayerDeadFadeDurationInMS,
 	CalcMainBusPlayerDeadFallDurationInMS,
 	CalcMainBusPlayerHitDurationInMS,
@@ -42,6 +43,7 @@ import {
 } from '@tknight-dev/gaming-canvas/grid';
 import { Navigation } from '../../models/settings.model.js';
 import { AssetIdImg, assetLoaderImage, AssetPropertiesImage, assetsImages, initializeAssetManager } from '../../asset-manager.js';
+import { CharacterNPC, CharacterNPCUpdate, CharacterNPCUpdateDecodeAndApply, CharacterNPCUpdateDecodeId } from '../../models/character.model.js';
 
 /**
  * @author tknight-dev
@@ -90,6 +92,9 @@ self.onmessage = (event: MessageEvent) => {
 		case VideoOverlayBusInputCmd.MAP_ZOOM:
 			VideoOverlayEngine.inputGameMapZoom(<boolean>payload.data);
 			break;
+		case VideoOverlayBusInputCmd.NPC_UPDATE:
+			VideoOverlayEngine.inputNPCUpdate(<CalcMainBusOutputDataNPCUpdate>payload.data);
+			break;
 		case VideoOverlayBusInputCmd.PAUSE:
 			VideoOverlayEngine.inputPause(<boolean>payload.data);
 			break;
@@ -130,6 +135,8 @@ class VideoOverlayEngine {
 	private static gameMapZoom: number = 5;
 	private static offscreenCanvas: OffscreenCanvas;
 	private static offscreenCanvasContext: OffscreenCanvasRenderingContext2D;
+	private static npcUpdate: Float32Array[];
+	private static npcUpdateNew: boolean;
 	private static player1: boolean;
 	private static pause: boolean = true;
 	private static pauseTimestampUnix: number = Date.now();
@@ -333,6 +340,11 @@ class VideoOverlayEngine {
 		VideoOverlayEngine.gameMapZoom = Math.max(2, Math.min(20, VideoOverlayEngine.gameMapZoom + (zoomIn === true ? 1 : -1)));
 	}
 
+	public static inputNPCUpdate(data: CalcMainBusOutputDataNPCUpdate): void {
+		VideoOverlayEngine.npcUpdate = data.npcs;
+		VideoOverlayEngine.npcUpdateNew = true;
+	}
+
 	public static inputPause(state: boolean): void {
 		VideoOverlayEngine.pause = state;
 	}
@@ -394,12 +406,16 @@ class VideoOverlayEngine {
 			assetImages: Map<AssetIdImg, OffscreenCanvas> = VideoOverlayEngine.assetImages,
 			calculationsCamera: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
 			calculationsCameraAlt: GamingCanvasGridCamera = new GamingCanvasGridCamera(),
+			characterNPC: CharacterNPC,
+			characterNPCId: number,
+			characterNPCUpdateEncoded: Float32Array,
 			frameCount: number = 0,
 			fpms: number = 1000 / 30, // Fixed 30fps
 			gameMap: GameMap,
 			gameMapGrid: GamingCanvasGridUint32Array,
 			gameMapGridData: Uint32Array,
 			gameMapGridSideLength: number,
+			gameMapNPCById: Map<number, CharacterNPC>,
 			gameMapUpdate: Uint32Array,
 			gridIndex: number,
 			hitAngle: number,
@@ -499,6 +515,7 @@ class VideoOverlayEngine {
 			renderMapViewportZoom: number = VideoOverlayEngine.gameMapZoom,
 			seen: Uint16Array,
 			settingsDebug: boolean = VideoOverlayEngine.settings.debug,
+			settingsDifficulty: GameDifficulty = VideoOverlayEngine.settings.difficulty,
 			settingsFOV: number = VideoOverlayEngine.settings.fov,
 			settingsMultiplayer: boolean = VideoOverlayEngine.settings.player2Enable,
 			settingsNavigation: Navigation = VideoOverlayEngine.settings.navigation,
@@ -560,28 +577,30 @@ class VideoOverlayEngine {
 
 				if (
 					VideoOverlayEngine.calculationsNew === true ||
+					VideoOverlayEngine.npcUpdateNew === true ||
 					renderMapShowAll !== VideoOverlayEngine.gameMapShowAll ||
 					VideoOverlayEngine.gameMapZoom !== renderMapViewportZoom
 				) {
 					VideoOverlayEngine.calculationsNew = false;
 
-					calculationsCamera.decode(VideoOverlayEngine.calculations.characterPlayerCamera);
-					calculationsCamera.z = VideoOverlayEngine.gameMapZoom;
+					if (VideoOverlayEngine.calculations !== undefined) {
+						calculationsCamera.decode(VideoOverlayEngine.calculations.characterPlayerCamera);
+						calculationsCamera.z = VideoOverlayEngine.gameMapZoom;
 
-					if (VideoOverlayEngine.calculations.characterPlayerCameraAlt !== undefined) {
-						calculationsCameraAlt.decode(VideoOverlayEngine.calculations.characterPlayerCameraAlt);
-					} else {
+						if (VideoOverlayEngine.calculations.characterPlayerCameraAlt !== undefined) {
+							calculationsCameraAlt.decode(VideoOverlayEngine.calculations.characterPlayerCameraAlt);
+						}
+
+						// Process camera
+						renderMapViewport.applyZ(
+							calculationsCamera,
+							<GamingCanvasReport>Object.assign({}, VideoOverlayEngine.report, {
+								canvasHeight: renderMapViewportHeightPx,
+								canvasWidth: renderMapViewportWidthPx,
+							}),
+						);
+						renderMapViewport.apply(calculationsCamera);
 					}
-
-					// Process camera
-					renderMapViewport.applyZ(
-						calculationsCamera,
-						<GamingCanvasReport>Object.assign({}, VideoOverlayEngine.report, {
-							canvasHeight: renderMapViewportHeightPx,
-							canvasWidth: renderMapViewportWidthPx,
-						}),
-					);
-					renderMapViewport.apply(calculationsCamera);
 
 					// Cache map
 					if (
@@ -627,6 +646,7 @@ class VideoOverlayEngine {
 
 									// Floor
 									if ((value & GameGridCellMasksAndValues.FLOOR) !== 0) {
+										offscreenCanvasMapContext.fillStyle = 'black';
 										offscreenCanvasMapContext.fillRect(
 											(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
 											(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
@@ -664,9 +684,6 @@ class VideoOverlayEngine {
 											GamingCanvasConstPI_2_000,
 										); // Base shape and color
 										offscreenCanvasMapContext.fill();
-
-										// Slightly faster to reset here
-										offscreenCanvasMapContext.fillStyle = 'black';
 									}
 
 									// Special Property: Locked
@@ -688,6 +705,76 @@ class VideoOverlayEngine {
 									}
 								}
 							}
+						}
+
+						// NPC
+						for (characterNPC of gameMapNPCById.values()) {
+							if (
+								characterNPC !== undefined &&
+								characterNPC.difficulty <= settingsDifficulty &&
+								renderMapSeenCells.has(characterNPC.gridIndex) === true
+							) {
+								y = characterNPC.gridIndex % gameMapGridSideLength;
+								x = (characterNPC.gridIndex - y) / gameMapGridSideLength;
+
+								if (characterNPC.health !== 0) {
+									offscreenCanvasMapContext.fillStyle = '#f70000';
+									offscreenCanvasMapContext.beginPath();
+									offscreenCanvasMapContext.arc(
+										(x - renderMapViewportWidthStart + 0.5) * renderMapViewportCellSizePx,
+										(y - renderMapViewportHeightStart + 0.5) * renderMapViewportCellSizePx,
+										renderMapViewportCellSizePx / 2,
+										0,
+										GamingCanvasConstPI_2_000,
+									); // Base shape and color
+									offscreenCanvasMapContext.fill();
+								} else {
+									offscreenCanvasMapContext.strokeStyle = '#f70000';
+									offscreenCanvasMapContext.beginPath();
+									offscreenCanvasMapContext.moveTo(
+										(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
+										(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
+									);
+									offscreenCanvasMapContext.lineTo(
+										(x - renderMapViewportWidthStart + 1) * renderMapViewportCellSizePx,
+										(y - renderMapViewportHeightStart + 1) * renderMapViewportCellSizePx,
+									);
+									offscreenCanvasMapContext.stroke();
+
+									offscreenCanvasMapContext.beginPath();
+									offscreenCanvasMapContext.moveTo(
+										(x - renderMapViewportWidthStart + 1) * renderMapViewportCellSizePx,
+										(y - renderMapViewportHeightStart) * renderMapViewportCellSizePx,
+									);
+									offscreenCanvasMapContext.lineTo(
+										(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
+										(y - renderMapViewportHeightStart + 1) * renderMapViewportCellSizePx,
+									);
+									offscreenCanvasMapContext.stroke();
+								}
+							}
+						}
+
+						// Special Property: Key
+						if (assetId === AssetIdImg.SPRITE_KEY1 || assetId === AssetIdImg.SPRITE_KEY2) {
+							if (assetId === AssetIdImg.SPRITE_KEY1) {
+								offscreenCanvasMapContext.fillStyle = '#fff700';
+							} else {
+								offscreenCanvasMapContext.fillStyle = '#00f7ff';
+							}
+
+							offscreenCanvasMapContext.beginPath();
+							offscreenCanvasMapContext.arc(
+								(x - renderMapViewportWidthStart + 0.5) * renderMapViewportCellSizePx,
+								(y - renderMapViewportHeightStart + 0.5) * renderMapViewportCellSizePx,
+								renderMapViewportCellSizePx / 2,
+								0,
+								GamingCanvasConstPI_2_000,
+							); // Base shape and color
+							offscreenCanvasMapContext.fill();
+
+							// Slightly faster to reset here
+							offscreenCanvasMapContext.fillStyle = 'black';
 						}
 
 						// Other player
@@ -754,8 +841,9 @@ class VideoOverlayEngine {
 							offscreenCanvasMapContext.globalCompositeOperation = 'source-over';
 						}
 
+						// Player
 						offscreenCanvasMapContext.lineWidth = renderMapViewportCellSizePx / 2;
-						offscreenCanvasMapContext.strokeStyle = '#f70000';
+						offscreenCanvasMapContext.strokeStyle = '#00f700';
 						offscreenCanvasMapContext.beginPath();
 						offscreenCanvasMapContext.moveTo(
 							renderMapPlayer1XEff * renderMapViewportCellSizePx,
@@ -767,7 +855,7 @@ class VideoOverlayEngine {
 						);
 						offscreenCanvasMapContext.stroke();
 
-						offscreenCanvasMapContext.fillStyle = '#f70000';
+						offscreenCanvasMapContext.fillStyle = '#00f700';
 						offscreenCanvasMapContext.beginPath();
 						offscreenCanvasMapContext.arc(
 							renderMapPlayer1XEff * renderMapViewportCellSizePx,
@@ -797,6 +885,7 @@ class VideoOverlayEngine {
 					gameMapGrid = VideoOverlayEngine.gameMap.grid;
 					gameMapGridData = VideoOverlayEngine.gameMap.grid.data;
 					gameMapGridSideLength = VideoOverlayEngine.gameMap.grid.sideLength;
+					gameMapNPCById = VideoOverlayEngine.gameMap.npcById;
 					renderMapSeenCells.clear();
 					renderMapViewport = new GamingCanvasGridViewport(gameMap.grid.sideLength);
 					renderMapViewport.applyZ(
@@ -858,11 +947,29 @@ class VideoOverlayEngine {
 					renderLockedTimestampUnix = timestampUnix;
 				}
 
+				if (VideoOverlayEngine.npcUpdateNew === true) {
+					VideoOverlayEngine.npcUpdateNew = false;
+
+					for (characterNPCUpdateEncoded of VideoOverlayEngine.npcUpdate) {
+						// Reference
+						characterNPCId = CharacterNPCUpdateDecodeId(characterNPCUpdateEncoded);
+						characterNPC = <CharacterNPC>gameMapNPCById.get(characterNPCId);
+
+						if (characterNPC === undefined) {
+							continue;
+						}
+
+						// Update
+						CharacterNPCUpdateDecodeAndApply(characterNPCUpdateEncoded, characterNPC, 0);
+					}
+				}
+
 				if (VideoOverlayEngine.reportNew === true || VideoOverlayEngine.settingsNew === true) {
 					// Settings
 					orientation = VideoOverlayEngine.report.orientation;
 					renderGrayscale = VideoOverlayEngine.settings.grayscale;
 					settingsDebug = VideoOverlayEngine.settings.debug;
+					settingsDifficulty = VideoOverlayEngine.settings.difficulty;
 					settingsFOV = VideoOverlayEngine.settings.fov;
 					settingsMultiplayer = VideoOverlayEngine.settings.player2Enable;
 					settingsNavigation = VideoOverlayEngine.settings.navigation;

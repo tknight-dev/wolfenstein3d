@@ -333,7 +333,7 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = GamingCanvasConstPI_0_125 * (data.rx / CalcMainEngine.report.canvasWidth) * 1.125;
+		let value: number = (data.rx / CalcMainEngine.report.canvasWidth) * 0.325;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;
@@ -3976,6 +3976,7 @@ class CalcMainEngine {
 									z: characterNPC.camera.z,
 								},
 								gridIndex: characterNPC.gridIndex,
+								health: characterNPC.health,
 								id: characterNPC.id,
 								running: characterNPC.running === true ? true : undefined,
 								timestampUnixState: characterNPC.timestampUnixState,

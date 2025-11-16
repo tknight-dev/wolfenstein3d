@@ -227,16 +227,47 @@ export class VideoMainBus {
 		if (VideoMainBus.workerPlayer1 === undefined || VideoMainBus.workerPlayer2 === undefined) {
 			return;
 		}
+		let buffers: ArrayBufferLike[] = [],
+			clone: CalcMainBusOutputDataNPCUpdate = {
+				npcs: [],
+				timestampUnix: data.timestampUnix,
+			},
+			datam: Float32Array;
 
-		VideoMainBus.workerPlayer1.postMessage({
-			cmd: VideoMainBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
+		// Worker1
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
 
-		VideoMainBus.workerPlayer2.postMessage({
-			cmd: VideoMainBusInputCmd.NPC_UPDATE,
-			data: data,
-		});
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
+		VideoMainBus.workerPlayer1.postMessage(
+			{
+				cmd: VideoMainBusInputCmd.NPC_UPDATE,
+				data: clone,
+			},
+			buffers,
+		);
+
+		// Worker2
+		buffers.length = 0;
+		clone = {
+			npcs: [],
+			timestampUnix: data.timestampUnix,
+		};
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
+
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
+		VideoMainBus.workerPlayer2.postMessage(
+			{
+				cmd: VideoMainBusInputCmd.NPC_UPDATE,
+				data: clone,
+			},
+			buffers,
+		);
 	}
 
 	public static outputPause(state: boolean): void {
