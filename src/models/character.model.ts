@@ -85,6 +85,7 @@ export interface CharacterNPCUpdate {
 	assetId: AssetIdImgCharacter;
 	camera: GamingCanvasGridICamera;
 	gridIndex: number;
+	health: number;
 	id: number;
 	running?: boolean;
 	timestampUnixState: number;
@@ -98,15 +99,16 @@ export const CharacterNPCUpdateDecodeAndApply = (data: Float32Array, character: 
 	character.camera.y = data[3];
 	character.camera.z = data[4];
 	character.gridIndex = data[5] | 0;
-	character.id = data[6] | 0;
-	character.running = data[7] === 1;
-	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[9];
-	character.walking = data[10] === 1;
-	return data[8] | 0;
+	character.health = data[6];
+	character.id = data[7] | 0;
+	character.running = data[8] === 1;
+	character.timestampUnixState = (timestampUnix & ~0xffffff) | data[10];
+	character.walking = data[11] === 1;
+	return data[9] | 0; // shootAt
 };
 
 export const CharacterNPCUpdateDecodeId = (data: Float32Array): number => {
-	return data[6] | 0;
+	return data[7] | 0; // id
 };
 
 export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate, shootAt?: number): Float32Array => {
@@ -117,6 +119,7 @@ export const CharacterNPCUpdateEncode = (update: CharacterNPCUpdate, shootAt?: n
 		update.camera.y,
 		update.camera.z,
 		update.gridIndex,
+		update.health,
 		update.id,
 		update.running === true ? 1 : 0,
 		shootAt || 0,

@@ -3976,6 +3976,7 @@ class CalcMainEngine {
 									z: characterNPC.camera.z,
 								},
 								gridIndex: characterNPC.gridIndex,
+								health: characterNPC.health,
 								id: characterNPC.id,
 								running: characterNPC.running === true ? true : undefined,
 								timestampUnixState: characterNPC.timestampUnixState,

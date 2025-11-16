@@ -2486,9 +2486,11 @@ export class Game {
 
 		// Calc: NPCs
 		CalcMainBus.setCallbackNPCUpdate((data: CalcMainBusOutputDataNPCUpdate) => {
-			CalcPathBus.outputNPCUpdate(data); // Clones
-			VideoMainBus.outputNPCUpdate(data); // Clones
+			// Each bus clones the data as required
+			CalcPathBus.outputNPCUpdate(data);
+			VideoMainBus.outputNPCUpdate(data);
 			VideoEditorBus.outputNPCUpdate(data);
+			VideoOverlayBus.outputNPCUpdate(data);
 		});
 
 		// Calc: Player died

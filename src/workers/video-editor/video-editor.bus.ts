@@ -132,13 +132,26 @@ export class VideoEditorBus {
 		if (VideoEditorBus.worker === undefined) {
 			return;
 		}
+		let buffers: ArrayBufferLike[] = [],
+			clone: CalcMainBusOutputDataNPCUpdate = {
+				npcs: [],
+				timestampUnix: data.timestampUnix,
+			},
+			datam: Float32Array;
+
+		for (datam of data.npcs) {
+			datam = Float32Array.from(datam);
+
+			buffers.push(datam.buffer);
+			clone.npcs.push(datam);
+		}
 
 		VideoEditorBus.worker.postMessage(
 			{
 				cmd: VideoEditorBusInputCmd.NPC_UPDATE,
-				data: data,
+				data: clone,
 			},
-			data.npcs.map((array: Float32Array) => array.buffer),
+			buffers,
 		);
 	}
 
