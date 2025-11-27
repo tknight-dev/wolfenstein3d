@@ -118,6 +118,22 @@ export class Game {
 	public static bindKeyboardAction: InputActions;
 	public static bindKeyboardTimeout: ReturnType<typeof setTimeout>;
 	public static camera: GamingCanvasGridCamera = new GamingCanvasGridCamera();
+	public static characterPlayerInput: CalcMainBusInputDataPlayerInput = {
+		player1: {
+			action: false,
+			fire: false,
+			r: 0, // -1 to 1 (-1 is increase r)
+			x: 0, // -1 to 1 (-1 is left)
+			y: 0, // -1 to 1 (-1 is up)
+		},
+		player2: {
+			action: false,
+			fire: false,
+			r: 0, // -1 to 1 (-1 is increase r)
+			x: 0, // -1 to 1 (-1 is left)
+			y: 0, // -1 to 1 (-1 is up)
+		},
+	};
 	public static editorAssetIdImg: number = 0;
 	public static editorAssetCharacterId: AssetIdImgCharacter = AssetIdImgCharacter.AIM;
 	public static editorAssetCharacterType: AssetIdImgCharacterType = AssetIdImgCharacterType.BOSS_HANS_GROSSE;
@@ -298,6 +314,18 @@ export class Game {
 			DOM.elGameMenu.classList.add('show');
 			DOM.elGameMenuBannersOptions.style.display = 'block';
 
+			// Reset Inputs
+			Game.characterPlayerInput.player1.action = false;
+			Game.characterPlayerInput.player1.fire = false;
+			Game.characterPlayerInput.player1.r = 0;
+			Game.characterPlayerInput.player1.x = 0;
+			Game.characterPlayerInput.player1.y = 0;
+			Game.characterPlayerInput.player2.action = false;
+			Game.characterPlayerInput.player2.fire = false;
+			Game.characterPlayerInput.player2.r = 0;
+			Game.characterPlayerInput.player2.x = 0;
+			Game.characterPlayerInput.player2.y = 0;
+
 			Game.gameMenuActive = true;
 			Game.pause(true, !pauseAudio);
 		} else if (enable === false || DOM.elGameMenu.classList.contains('show') === true) {
@@ -309,6 +337,18 @@ export class Game {
 			DOM.elIconsTop.classList.add('intro');
 			DOM.elGameMenu.classList.add('show');
 			DOM.elGameMenuBannersOptions.style.display = 'block';
+
+			// Reset Inputs
+			Game.characterPlayerInput.player1.action = false;
+			Game.characterPlayerInput.player1.fire = false;
+			Game.characterPlayerInput.player1.r = 0;
+			Game.characterPlayerInput.player1.x = 0;
+			Game.characterPlayerInput.player1.y = 0;
+			Game.characterPlayerInput.player2.action = false;
+			Game.characterPlayerInput.player2.fire = false;
+			Game.characterPlayerInput.player2.r = 0;
+			Game.characterPlayerInput.player2.x = 0;
+			Game.characterPlayerInput.player2.y = 0;
 
 			Game.gameMenuActive = true;
 			Game.pause(true, !pauseAudio);
@@ -528,6 +568,16 @@ export class Game {
 
 		Game.gameMusicPlay(Game.mapBackup.music);
 		Game.keyState.clear();
+		Game.characterPlayerInput.player1.action = false;
+		Game.characterPlayerInput.player1.fire = false;
+		Game.characterPlayerInput.player1.r = 0;
+		Game.characterPlayerInput.player1.x = 0;
+		Game.characterPlayerInput.player1.y = 0;
+		Game.characterPlayerInput.player2.action = false;
+		Game.characterPlayerInput.player2.fire = false;
+		Game.characterPlayerInput.player2.r = 0;
+		Game.characterPlayerInput.player2.x = 0;
+		Game.characterPlayerInput.player2.y = 0;
 
 		CalcMainBus.outputMap(Game.mapBackup);
 		CalcPathBus.outputMap(Game.mapBackup);
@@ -1960,6 +2010,16 @@ export class Game {
 
 				Game.gameMusicPlay(Game.mapBackup.music);
 				Game.keyState.clear();
+				Game.characterPlayerInput.player1.action = false;
+				Game.characterPlayerInput.player1.fire = false;
+				Game.characterPlayerInput.player1.r = 0;
+				Game.characterPlayerInput.player1.x = 0;
+				Game.characterPlayerInput.player1.y = 0;
+				Game.characterPlayerInput.player2.action = false;
+				Game.characterPlayerInput.player2.fire = false;
+				Game.characterPlayerInput.player2.r = 0;
+				Game.characterPlayerInput.player2.x = 0;
+				Game.characterPlayerInput.player2.y = 0;
 
 				CalcMainBus.outputMap(Game.mapBackup);
 				CalcPathBus.outputMap(Game.mapBackup);
@@ -1995,22 +2055,7 @@ export class Game {
 			cameraZoomMin: number = 0.5,
 			cameraZoomPrevious: number = cameraZoomMin,
 			cameraZoomStep: number = 0.3,
-			characterPlayerInput: CalcMainBusInputDataPlayerInput = {
-				player1: {
-					action: false,
-					fire: false,
-					r: 0, // -1 to 1 (-1 is increase r)
-					x: 0, // -1 to 1 (-1 is left)
-					y: 0, // -1 to 1 (-1 is up)
-				},
-				player2: {
-					action: false,
-					fire: false,
-					r: 0, // -1 to 1 (-1 is increase r)
-					x: 0, // -1 to 1 (-1 is left)
-					y: 0, // -1 to 1 (-1 is up)
-				},
-			},
+			characterPlayerInput: CalcMainBusInputDataPlayerInput = Game.characterPlayerInput,
 			characterPlayerInputPlayer: CharacterInput,
 			characterWalking: boolean | undefined,
 			dataUpdated: boolean,
@@ -3287,6 +3332,16 @@ Y: ${camera.y | 0}`);
 
 									Game.gameMusicPlay(Game.mapBackup.music);
 									keyState.clear();
+									characterPlayerInput.player1.action = false;
+									characterPlayerInput.player1.fire = false;
+									characterPlayerInput.player1.r = 0;
+									characterPlayerInput.player1.x = 0;
+									characterPlayerInput.player1.y = 0;
+									characterPlayerInput.player2.action = false;
+									characterPlayerInput.player2.fire = false;
+									characterPlayerInput.player2.r = 0;
+									characterPlayerInput.player2.x = 0;
+									characterPlayerInput.player2.y = 0;
 
 									CalcMainBus.outputMap(Game.mapBackup);
 									CalcPathBus.outputMap(Game.mapBackup);
