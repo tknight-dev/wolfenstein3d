@@ -729,7 +729,7 @@ class VideoOverlayEngine {
 									); // Base shape and color
 									offscreenCanvasMapContext.fill();
 								} else {
-									offscreenCanvasMapContext.strokeStyle = '#f70000';
+									offscreenCanvasMapContext.strokeStyle = '#7f0000';
 									offscreenCanvasMapContext.beginPath();
 									offscreenCanvasMapContext.moveTo(
 										(x - renderMapViewportWidthStart) * renderMapViewportCellSizePx,
