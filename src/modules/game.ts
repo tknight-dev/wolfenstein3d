@@ -2946,8 +2946,16 @@ export class Game {
 								CalcMainBus.weaponSelect(player1, CharacterWeapon.MACHINE_GUN);
 							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.DPAD__UP] === true) {
 								CalcMainBus.weaponSelect(player1, CharacterWeapon.PISTOL);
-							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.MENU__OPTIONS] === true) {
+							}
+
+							if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.MENU__OPTIONS] === true) {
 								Game.gameMenu();
+							}
+
+							if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.Y__SQUARE] === true) {
+								VideoOverlayBus.outputMapZoom(player1, true);
+							} else if (input.propriatary.buttons[GamingCanvasInputGamepadControllerButtons.B__O] === true) {
+								VideoOverlayBus.outputMapZoom(player1, false);
 							}
 						}
 					}
