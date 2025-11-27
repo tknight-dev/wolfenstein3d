@@ -138,6 +138,7 @@ export class Game {
 	public static gameMenuSlotSaveId: number | undefined;
 	public static inputRequest: number;
 	public static inputSuspend: boolean = true;
+	public static keyState: Map<string, boolean> = new Map();
 	public static localStoragePrefix: string = 'tknight-dev-wolfenstein3d-';
 	public static map: GameMap;
 	public static mapBackup: GameMap;
@@ -526,6 +527,7 @@ export class Game {
 		Game.tagRunAndJump = false;
 
 		Game.gameMusicPlay(Game.mapBackup.music);
+		Game.keyState.clear();
 
 		CalcMainBus.outputMap(Game.mapBackup);
 		CalcPathBus.outputMap(Game.mapBackup);
@@ -1957,6 +1959,7 @@ export class Game {
 				Game.tagRunAndJump = false;
 
 				Game.gameMusicPlay(Game.mapBackup.music);
+				Game.keyState.clear();
 
 				CalcMainBus.outputMap(Game.mapBackup);
 				CalcPathBus.outputMap(Game.mapBackup);
@@ -2023,7 +2026,7 @@ export class Game {
 			inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
 			inputStrafeInvert: boolean,
 			keyAction: Map<InputActions, boolean> = new Map(),
-			keyState: Map<string, boolean> = new Map(),
+			keyState: Map<string, boolean> = Game.keyState,
 			modeEdit: boolean = Game.modeEdit,
 			modeEditType: EditType = Game.modeEditType,
 			mouseLocked: boolean = GamingCanvas.isMouseLocked(),
@@ -3283,6 +3286,7 @@ Y: ${camera.y | 0}`);
 									Game.tagRunAndJump = false;
 
 									Game.gameMusicPlay(Game.mapBackup.music);
+									keyState.clear();
 
 									CalcMainBus.outputMap(Game.mapBackup);
 									CalcPathBus.outputMap(Game.mapBackup);
