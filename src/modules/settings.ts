@@ -227,6 +227,7 @@ export class Settings {
 			Game.settings.controlAlwaysRun = true; // def: true
 			Game.settings.controlStrafe = false; // def: false
 			Game.settings.debug = false; // def: false
+			Game.settings.debugAutoplayEp1Lvl1 = false; // def: false
 			Game.settings.graphicsDPISupport = false; // def: false
 			Game.settings.graphicsFPSDisplay = true; // def: true
 			Game.settings.gamePlayer2InputDevice = InputDevice.GAMEPAD; // def: GAMEPAD
@@ -298,6 +299,7 @@ export class Settings {
 
 		// Always set
 		Game.settings.intro = true;
+		Game.settings.debugAutoplayEp1Lvl1 = false;
 
 		/**
 		 * URL Param
@@ -316,6 +318,9 @@ export class Settings {
 					Game.settings.threadVideoEditor.debug = Game.settings.debug;
 					Game.settings.threadVideoMain.debug = Game.settings.debug;
 					Game.settings.threadVideoOverlay.debug = Game.settings.debug;
+					break;
+				case 'debugautoplayep1lvl1':
+					Game.settings.debugAutoplayEp1Lvl1 = String(value).toLowerCase() === 'true';
 					break;
 				case 'dpi':
 					Game.settings.graphicsDPISupport = String(value).toLowerCase() === 'true';

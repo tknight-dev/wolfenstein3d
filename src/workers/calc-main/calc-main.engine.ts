@@ -333,7 +333,7 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = (data.rx / CalcMainEngine.report.canvasWidth) * 0.325;
+		let value: number = data.rx / 2750;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;
@@ -1210,6 +1210,10 @@ class CalcMainEngine {
 				characterPlayer2Meta.ratioTreasure /= gameMapMetaTreasureCount;
 			}
 
+			// Round Time
+			characterPlayer1Meta.timeInMS = (characterPlayer1Meta.timeInMS / 1000) | 0;
+			characterPlayer2Meta.timeInMS = (characterPlayer2Meta.timeInMS / 1000) | 0;
+
 			// Calc: bonus
 			let bonus: number = 0;
 			if (gameMap.id % 10 === 9) {
@@ -1217,12 +1221,11 @@ class CalcMainEngine {
 				bonus = 15000;
 			} else {
 				// Meta Bonus
-				let bonus: number = 0,
-					ratioKill: number = characterPlayer1Meta.ratioKill + characterPlayer2Meta.ratioKill,
+				let ratioKill: number = characterPlayer1Meta.ratioKill + characterPlayer2Meta.ratioKill,
 					ratioSecret: number = characterPlayer1Meta.ratioSecret + characterPlayer2Meta.ratioSecret,
 					ratioTreasure: number = characterPlayer1Meta.ratioTreasure + characterPlayer2Meta.ratioTreasure,
 					timeInSPar: number = (gameMap.timeParInMS / 1000) | 0,
-					timeInSPlayer = (characterPlayer1Meta.timeInMS / 1000) | 0;
+					timeInSPlayer = characterPlayer1Meta.timeInMS;
 
 				// Stats: Bonus
 				bonus += ratioKill * 10000;
@@ -1231,6 +1234,7 @@ class CalcMainEngine {
 				if (timeInSPlayer < timeInSPar) {
 					bonus += (timeInSPar - timeInSPlayer) * 500;
 				}
+
 				bonus = bonus | 0;
 			}
 

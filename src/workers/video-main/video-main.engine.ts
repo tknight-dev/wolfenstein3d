@@ -1574,7 +1574,7 @@ class VideoMainEngine {
 						/**
 						 * Draw: Sprite - Human Player Alt
 						 */
-						if (calculationsCameraAltGridIndex === gameMapGridIndex) {
+						if (calculationsCameraAltGridIndex === gameMapGridIndex && (settingsPlayer2Enable === true || tagRunAndJump === true)) {
 							if (tagRunAndJump === true) {
 								assetImageCharacterInstance = <any>assetImageCharacters.get(AssetIdImgCharacterType.WILLIAM_BJ_BLAZKOWICZ);
 							} else {

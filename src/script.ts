@@ -310,7 +310,12 @@ ${displayNumber(<number>GamingCanvasStat.calc(stat, GamingCanvasStatCalcType.MIN
 							document.removeEventListener('click', click, true);
 							document.removeEventListener('keydown', click, true);
 
-							Game.gameMenu(true);
+							if (Game.settings.debugAutoplayEp1Lvl1 === true) {
+								Game.gameMenuActionLoad();
+							} else {
+								Game.gameMenu(true);
+							}
+
 							setTimeout(() => {
 								Game.inputSuspend = false;
 							}, 500);

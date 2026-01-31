@@ -185,6 +185,7 @@ export class Game {
 		controlAlwaysRun: boolean;
 		controlStrafe: boolean;
 		debug: boolean;
+		debugAutoplayEp1Lvl1: boolean;
 		graphicsDPISupport: boolean;
 		graphicsFOV: number;
 		graphicsFPSDisplay: boolean;
@@ -527,7 +528,7 @@ export class Game {
 		}
 	}
 
-	private static async gameMenuActionLoad(): Promise<void> {
+	public static async gameMenuActionLoad(): Promise<void> {
 		Game.gameMenuActionPlay(AssetIdAudio.AUDIO_EFFECT_MENU_OPEN);
 		GamingCanvas.audioControlStopAll(GamingCanvasAudioType.EFFECT);
 
@@ -3483,7 +3484,7 @@ Y: ${camera.y | 0}`);
 						if (mouseLocked === true) {
 							GamingCanvas.mouseUnlock();
 						} else {
-							GamingCanvas.mouseLock(true);
+							GamingCanvas.mouseLock(false);
 						}
 					}
 					break;
