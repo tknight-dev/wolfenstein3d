@@ -333,7 +333,7 @@ class CalcMainEngine {
 	}
 
 	public static inputCameraRx(data: CalcMainBusInputDataPlayerInputRx): void {
-		let value: number = data.rx / 1000;
+		let value: number = data.rx / 2750;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
 			value += value * CalcMainEngine.settings.mouseSensitivity;
