@@ -3484,7 +3484,7 @@ Y: ${camera.y | 0}`);
 						if (mouseLocked === true) {
 							GamingCanvas.mouseUnlock();
 						} else {
-							GamingCanvas.mouseLock(true);
+							GamingCanvas.mouseLock(false);
 						}
 					}
 					break;
