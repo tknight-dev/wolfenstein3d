@@ -299,6 +299,7 @@ export class Settings {
 
 		// Always set
 		Game.settings.intro = true;
+		Game.settings.debugAutoplayEp1Lvl1 = false;
 
 		/**
 		 * URL Param
