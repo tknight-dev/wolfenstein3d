@@ -1211,8 +1211,8 @@ class CalcMainEngine {
 			}
 
 			// Round Time
-			characterPlayer1Meta.timeInMS = (characterPlayer1Meta.timeInMS / 1000) | 0;
-			characterPlayer2Meta.timeInMS = (characterPlayer2Meta.timeInMS / 1000) | 0;
+			characterPlayer1Meta.timeInMS = characterPlayer1Meta.timeInMS | 0;
+			characterPlayer2Meta.timeInMS = characterPlayer2Meta.timeInMS | 0;
 
 			// Calc: bonus
 			let bonus: number = 0;
@@ -1225,7 +1225,7 @@ class CalcMainEngine {
 					ratioSecret: number = characterPlayer1Meta.ratioSecret + characterPlayer2Meta.ratioSecret,
 					ratioTreasure: number = characterPlayer1Meta.ratioTreasure + characterPlayer2Meta.ratioTreasure,
 					timeInSPar: number = (gameMap.timeParInMS / 1000) | 0,
-					timeInSPlayer = characterPlayer1Meta.timeInMS;
+					timeInSPlayer = (characterPlayer1Meta.timeInMS / 1000) | 0;
 
 				// Stats: Bonus
 				bonus += ratioKill * 10000;
