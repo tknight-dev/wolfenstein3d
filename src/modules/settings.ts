@@ -346,7 +346,7 @@ export class Settings {
 					break;
 				case 'res':
 					if (String(value).toLowerCase() === 'null') {
-						Game.settings.graphicsResolution = null;
+						Game.settings.graphicsResolution = undefined;
 					} else {
 						switch (Number(value)) {
 							case 160:
@@ -472,7 +472,7 @@ export class Settings {
 			Game.settings.graphicsFPSDisplay = DOM.elSettingsValueGraphicsFPSShow.checked;
 
 			if (DOM.elSettingsValueGraphicsResolution.value === 'null') {
-				Game.settings.graphicsResolution = null;
+				Game.settings.graphicsResolution = undefined;
 			} else {
 				Game.settings.graphicsResolution = <Resolution>Number(DOM.elSettingsValueGraphicsResolution.value);
 			}

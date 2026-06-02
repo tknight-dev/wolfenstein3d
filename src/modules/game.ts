@@ -6,7 +6,6 @@ import {
 	AssetIdImgCharacterType,
 	AssetIdImgMenu,
 	AssetIdMap,
-	AssetIdMusicLevels,
 	AssetImgCategory,
 	AssetPropertiesAudio,
 	AssetPropertiesCharacter,
