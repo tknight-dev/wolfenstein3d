@@ -24,13 +24,23 @@ import {
 } from '../../asset-manager.js';
 import {
 	GamingCanvas,
-	GamingCanvasConstPI_1_000,
-	GamingCanvasConstPI_2_000,
+	GamingCanvasConstPI_0_125,
+	GamingCanvasConstPI_0_375,
 	GamingCanvasConstPI_0_500,
-	GamingCanvasReport,
+	GamingCanvasConstPI_0_625,
+	GamingCanvasConstPI_0_875,
+	GamingCanvasConstPI_1_000,
+	GamingCanvasConstPI_1_125,
+	GamingCanvasConstPI_1_375,
+	GamingCanvasConstPI_1_625,
+	GamingCanvasConstPI_1_875,
+	GamingCanvasConstPI_2_000,
+	GamingCanvasOrientation,
 	GamingCanvasRenderStyle,
-	GamingCanvasUtilTimers,
+	GamingCanvasReport,
 	GamingCanvasStat,
+	GamingCanvasUtilDebugImage,
+	GamingCanvasUtilTimers,
 } from '@tknight-dev/gaming-canvas';
 import { GameDifficulty, GameGridCellMasksAndValues, gameGridCellMaskSpriteFixed, GameMap } from '../../models/game.model.js';
 import {
@@ -44,18 +54,11 @@ import {
 	VideoMainBusStats,
 } from './video-main.model.js';
 import {
-	GamingCanvasConstPI_1_875,
-	GamingCanvasConstPI_0_125,
-	GamingCanvasConstPI_0_375,
-	GamingCanvasConstPI_0_625,
-	GamingCanvasConstPI_0_875,
-	GamingCanvasConstPI_1_125,
-	GamingCanvasConstPI_1_375,
-	GamingCanvasConstPI_1_625,
-	GamingCanvasOrientation,
-	GamingCanvasUtilDebugImage,
-} from '@tknight-dev/gaming-canvas';
-import { GamingCanvasGridCamera, GamingCanvasGridRaycastCellSide, GamingCanvasGridRaycastResultDistanceMapInstance } from '@tknight-dev/gaming-canvas/grid';
+	GamingCanvasGridCamera,
+	GamingCanvasGridRaycastCellSide,
+	GamingCanvasGridRaycastResultDistanceMapInstance,
+	GamingCanvasGridRaycastResultRayOffset,
+} from '@tknight-dev/gaming-canvas/grid';
 import { LightingQuality, RaycastQuality, RenderMode } from '../../models/settings.model.js';
 import {
 	CalcMainBusActionDoorState,
@@ -1164,10 +1167,10 @@ class VideoMainEngine {
 						statRay.watchStart();
 						countRays++;
 						renderRayIndex = renderRayDistanceMapInstance.rayIndex;
-						gameMapGridIndex = calculationsRays[renderRayIndex + 4];
+						gameMapGridIndex = calculationsRays[renderRayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_INDEX];
 
 						// Render: Modification based on cell sidedness
-						switch (calculationsRays[renderRayIndex + 6]) {
+						switch (calculationsRays[renderRayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE]) {
 							case GamingCanvasGridRaycastCellSide.EAST:
 								gameMapGridCell2 = gameMapGridData[gameMapGridIndex + gameMapGridSideLength];
 								renderAssets = assetImagesInvertHorizontal;
@@ -1201,7 +1204,9 @@ class VideoMainEngine {
 						// asset = renderDebugImage;
 
 						// Calc
-						renderWallHeight = (offscreenCanvasHeightPx / calculationsRays[renderRayIndex + 3]) * renderWallHeightFactor;
+						renderWallHeight =
+							(offscreenCanvasHeightPx / calculationsRays[renderRayIndex + GamingCanvasGridRaycastResultRayOffset.RANGE]) *
+							renderWallHeightFactor;
 						renderWallHeightFactored = renderWallHeight / renderHeightFactor;
 						renderWallHeightHalf = renderWallHeight / 2;
 
@@ -1211,7 +1216,7 @@ class VideoMainEngine {
 
 							// Filter: Start
 							if (renderLightingQuality === LightingQuality.FULL) {
-								renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + 2] / 20); // no min is lantern light
+								renderBrightness -= Math.min(0.75, calculationsRays[renderRayIndex + GamingCanvasGridRaycastResultRayOffset.DISTANCE] / 20); // no min is lantern light
 
 								if (renderGlobalShadow === true) {
 									renderBrightness = Math.max(-0.85, renderBrightness - 0.3);
@@ -1229,11 +1234,13 @@ class VideoMainEngine {
 						// Render: 3D Projection
 						offscreenCanvasContext.drawImage(
 							asset, // (image) Draw from our test image
-							calculationsRays[renderRayIndex + 5] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
+							calculationsRays[renderRayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_RELATIVE] * (asset.width - 1), // (x-source) Specific how far from the left to draw from the test image
 							0, // (y-source) Start at the bottom of the image (y pixel)
 							1, // (width-source) Slice 1 pixel wide
 							asset.height, // (height-source) height of our test image
-							((renderRayIndex + 6) * settingsRaycastQuality) / 7 - 2, // (x-destination) Draw sliced image at pixel (6 elements per ray)
+							((renderRayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE) * settingsRaycastQuality) /
+								GamingCanvasGridRaycastResultRayOffset.INCREMENT -
+								2, // (x-destination) Draw sliced image at pixel
 							((offscreenCanvasHeightPxHalf - renderWallHeightHalf) / renderHeightFactor + renderHeightOffset) * renderTilt, // (y-destination) how far off the ground to start drawing
 							settingsRaycastQuality + 1, // (width-destination) Draw the sliced image as 1 pixel wide (+1 covers gaps between rays)
 							renderWallHeightFactored, // (height-destination) Draw the sliced image as tall as the wall height

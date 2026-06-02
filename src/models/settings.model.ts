@@ -42,4 +42,4 @@ export enum RaycastQuality {
 	QUARTER = 4, // ray = 3px
 }
 
-export type Resolution = null | 160 | 320 | 640 | 1280 | 1920 | 2560;
+export type Resolution = undefined | 160 | 320 | 640 | 1280 | 1920 | 2560;
