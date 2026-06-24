@@ -1,7 +1,5 @@
 dist
 node_modules
 
-src/assets
-
 *.sublime-project
 *.sublime-workspace

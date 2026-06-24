@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="2.6041665in"
+   height="3.6458335in"
+   version="1.1"
+   viewBox="0 0 66.105765 91.938412"
+   id="svg2658"
+   sodipodi:docname="touch.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2662" />
+  <sodipodi:namedview
+     id="namedview2660"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="in"
+     showgrid="false"
+     inkscape:zoom="1.8640876"
+     inkscape:cx="83.150598"
+     inkscape:cy="99.512489"
+     inkscape:window-width="2560"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g2656" />
+  <g
+     transform="translate(-62.159794,-70.692781)"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     stroke-width="1.3"
+     id="g2656">
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:1.32212;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       id="rect392"
+       width="64.783646"
+       height="91.22596"
+       x="62.820854"
+       y="71.148018" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:1.32212;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       id="rect392-9"
+       width="64.783646"
+       height="9.9025612"
+       x="62.820854"
+       y="152.47141" />
+    <circle
+       cx="79.016762"
+       cy="111.80971"
+       fill="#ffffff"
+       id="ellipse2556-3"
+       r="11"
+       style="stroke:#000000" />
+    <circle
+       cx="79.016762"
+       cy="111.80971"
+       fill="#808080"
+       id="ellipse2558-6"
+       r="6.6999998"
+       style="stroke:#000000" />
+    <circle
+       cx="111.40858"
+       cy="111.80971"
+       fill="#ffffff"
+       id="ellipse2560-7"
+       r="11"
+       style="stroke:#000000" />
+    <circle
+       cx="111.40858"
+       cy="111.80971"
+       id="ellipse2562-5"
+       r="6.6999998"
+       style="fill:#808080;stroke:#000000" />
+    <text
+       x="111.29213"
+       y="113.74157"
+       text-align="center"
+       xml:space="preserve"
+       id="text2640-3"
+       style="font-weight:bold;font-size:5.3px;font-family:'DejaVu Sans Mono';text-anchor:middle"><tspan
+         x="111.29213"
+         y="113.74157"
+         fill="#000000"
+         font-size="5.3px"
+         stroke-width="1.3"
+         id="tspan2638-5">R</tspan></text>
+    <text
+       x="78.932655"
+       y="113.73898"
+       text-align="center"
+       xml:space="preserve"
+       id="text2644-6"
+       style="font-weight:bold;font-size:5.3px;font-family:'DejaVu Sans Mono';text-anchor:middle"><tspan
+         x="78.932655"
+         y="113.73898"
+         fill="#000000"
+         font-size="5.3px"
+         stroke-width="1.3"
+         id="tspan2642-2">L</tspan></text>
+    <circle
+       style="fill:none;stroke:#000000;stroke-width:1.32212;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       id="path1096"
+       cx="95.212677"
+       cy="157.42268"
+       r="2.8513672" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.32212;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1.32212, 3.96636;stroke-dashoffset:0"
+       d="M 95.212677,71.148018 V 152.39608"
+       id="path1152" />
+  </g>
+</svg>
