@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1.2942193in"
+   height="1.845962in"
+   version="1.1"
+   viewBox="0 0 32.853258 46.550348"
+   id="svg2658"
+   sodipodi:docname="mouse.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2662" />
+  <sodipodi:namedview
+     id="namedview2660"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="in"
+     showgrid="false"
+     inkscape:zoom="3.7281752"
+     inkscape:cx="43.721121"
+     inkscape:cy="115.20381"
+     inkscape:window-width="2560"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2658" />
+  <ellipse
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.793272;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+     id="path351-3"
+     cx="16.42663"
+     cy="23.124687"
+     rx="16.029993"
+     ry="23.032883" />
+  <path
+     id="path351-3-2-7"
+     style="fill:#808080;fill-opacity:1;stroke:#000000;stroke-width:0.793272;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+     d="m 16.426629,10.985312 c 2.57653,1.19e-4 4.66517,2.52619 4.66511,6.294509 -1.4e-4,1.313372 -0.25944,2.598788 -0.74679,3.701923 H 32.316812 C 31.549112,9.1817025 24.674752,0.14480746 16.426649,0.09287046 c -5e-5,3.63081404 -2e-5,7.26162824 -2e-5,10.89244154 z"
+     sodipodi:nodetypes="cccccc" />
+  <path
+     id="path351-3-2-7-0"
+     style="fill:#808080;fill-opacity:1;stroke:#000000;stroke-width:0.793272;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+     d="m 16.426492,10.985046 c -2.57653,1.19e-4 -4.66517,2.52619 -4.66511,6.294509 1.4e-4,1.313372 0.25944,2.598788 0.74679,3.701923 H 0.53631192 C 1.3040119,9.1814365 8.1783719,0.14454146 16.426472,0.09260446 c 5e-5,3.63081404 2e-5,7.26162824 2e-5,10.89244154 z"
+     sodipodi:nodetypes="cccccc" />
+  <path
+     id="path351-3-7"
+     style="fill:#808080;fill-opacity:1;stroke:#000000;stroke-width:0.793276;stroke-linecap:round;stroke-linejoin:round"
+     d="m 19.877321,17.279555 a 3.4506926,5.0908562 0 0 1 -3.450692,5.090857 3.4506926,5.0908562 0 0 1 -3.450692,-5.090857 3.4506926,5.0908562 0 0 1 3.450692,-5.090856 3.4506926,5.0908562 0 0 1 3.450692,5.090856 z" />
+  <text
+     x="8.3949785"
+     y="12.468902"
+     text-align="center"
+     xml:space="preserve"
+     id="text2644-6-9"
+     style="font-weight:bold;font-size:5.3px;font-family:'DejaVu Sans Mono';text-anchor:middle;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round"><tspan
+       x="8.3949785"
+       y="12.468902"
+       fill="#000000"
+       font-size="5.3px"
+       stroke-width="1.3"
+       id="tspan2642-2-3">L</tspan></text>
+  <text
+     x="24.789228"
+     y="12.468902"
+     text-align="center"
+     xml:space="preserve"
+     id="text2644-6-9-6"
+     style="font-weight:bold;font-size:5.3px;font-family:'DejaVu Sans Mono';text-anchor:middle;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round"><tspan
+       x="24.789228"
+       y="12.468902"
+       fill="#000000"
+       font-size="5.3px"
+       stroke-width="1.3"
+       id="tspan2642-2-3-0">R</tspan></text>
+  <text
+     x="16.42663"
+     y="19.211418"
+     text-align="center"
+     xml:space="preserve"
+     id="text2644-6-9-6-6"
+     style="font-weight:bold;font-size:5.3px;font-family:'DejaVu Sans Mono';text-anchor:middle;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round"><tspan
+       x="16.42663"
+       y="19.211418"
+       fill="#000000"
+       font-size="5.3px"
+       stroke-width="1.3"
+       id="tspan2642-2-3-0-2">M</tspan></text>
+</svg>
