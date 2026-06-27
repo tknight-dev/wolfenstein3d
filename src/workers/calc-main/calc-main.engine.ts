@@ -336,7 +336,7 @@ class CalcMainEngine {
 		let value: number = data.rx / 2750;
 
 		if (CalcMainEngine.settings.mouseSensitivity !== 0) {
-			value += value * CalcMainEngine.settings.mouseSensitivity;
+			value += value * CalcMainEngine.settings.mouseSensitivity * 5;
 		}
 
 		if (data.player1 === true) {
